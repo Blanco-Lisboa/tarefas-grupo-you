@@ -1,0 +1,101 @@
+/* Ficha da tarefa: card com orelhas a 22° (sombra no pai, o <dialog>), faixa roxa do título, campos no claro. Só tokens da Beec. */
+.ficha {
+  width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 24px);
+  padding: 0; border: 0; background: transparent; overflow: visible; color: var(--cor-tinta);
+}
+.ficha::backdrop { background: rgba(24, 19, 31, .55); }
+.ficha-cartao {
+  --card-corte: 40px;
+  display: flex; flex-direction: column; max-height: calc(100dvh - 24px);
+  background: var(--cor-superficie);
+}
+
+.ficha-faixa { background: var(--cor-roxo); color: var(--cor-bege); padding: var(--s-24) var(--s-24) var(--s-16) var(--s-32); }
+.ficha-faixa-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-12); margin-bottom: var(--s-8); }
+.ficha-rotulo {
+  display: inline-flex; align-items: center; gap: var(--s-8);
+  font-size: var(--t-12); letter-spacing: var(--rotulo-letra); text-transform: uppercase; font-weight: 600; color: var(--cor-ouro);
+}
+.ficha-cor-ponta { width: 22px; height: 10px; background: var(--cor-tarefa); clip-path: var(--ponta-de-barra); transform: skewX(var(--angulo)); }
+.ficha-fechar {
+  background: none; border: 1px solid var(--cor-linha-escuro); border-radius: var(--raio); color: var(--cor-suave);
+  font: 600 var(--t-12) var(--fonte-texto); letter-spacing: var(--rotulo-letra); text-transform: uppercase; padding: 6px 10px; cursor: pointer;
+}
+.ficha-fechar:hover { color: var(--cor-bege); border-color: var(--cor-suave); }
+.ficha-fechar:focus-visible, .ficha-titulo:focus-visible { outline-color: var(--cor-ouro); }
+.ficha-titulo {
+  width: 100%; background: transparent; border: 0; border-bottom: 2px solid var(--cor-linha-escuro); border-radius: 0;
+  color: var(--cor-bege); padding: var(--s-4) 0 var(--s-8);
+  font: var(--titulo-peso) var(--t-31) / 1.1 var(--fonte-titulo); letter-spacing: var(--titulo-espaco);
+}
+.ficha-titulo::placeholder { color: var(--cor-suave); opacity: .7; }
+.ficha-titulo:focus { border-bottom-color: var(--cor-ouro); outline: none; }
+
+.ficha-corpo { display: flex; flex-direction: column; gap: var(--s-16); padding: var(--s-24) var(--s-24) var(--s-16); overflow-y: auto; }
+.ficha-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-12) var(--s-16); }
+@media (max-width: 520px) { .ficha-grade { grid-template-columns: 1fr; } }
+.ficha-campo { display: flex; flex-direction: column; gap: 6px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.ficha-campo legend, .ficha-legenda {
+  padding: 0; margin-bottom: 6px; font-size: var(--t-12); letter-spacing: var(--rotulo-letra); text-transform: uppercase;
+  font-weight: 600; color: var(--cor-tinta-2);
+}
+.ficha-legenda { margin-bottom: 0; }
+.ficha select, .ficha textarea, .ficha-corpo input:not([type="checkbox"]) {
+  width: 100%; min-height: 38px; padding: 6px 10px; border-radius: var(--raio);
+  background: var(--cor-bege); border: 1px solid var(--cor-linha-forte); color: var(--cor-tinta);
+  font: 500 var(--t-14) var(--fonte-texto);
+}
+.ficha textarea { resize: vertical; line-height: var(--texto-entrelinha); }
+.ficha select:hover, .ficha textarea:hover, .ficha-corpo input:hover { border-color: var(--cor-roxo); }
+
+.ficha-pessoas { display: flex; gap: var(--s-8); flex-wrap: wrap; }
+.ficha-pessoa {
+  display: inline-flex; align-items: center; gap: var(--s-8); padding: 4px 12px 4px 4px; min-height: 38px; cursor: pointer;
+  border-radius: var(--raio); border: 1px solid var(--cor-linha-forte); background: var(--cor-superficie);
+  font: 600 var(--t-14) var(--fonte-texto); color: var(--cor-tinta);
+}
+.ficha-pessoa[aria-pressed="true"] { border-color: var(--cor-eletrico); box-shadow: inset 0 0 0 1px var(--cor-eletrico); }
+.ficha-bolinha {
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--cor-bege);
+  font: var(--numero-peso) var(--t-12) var(--fonte-titulo);
+}
+.ficha-bolinha-natham { background: var(--cor-grafite); }
+.ficha-bolinha-matheus { background: var(--cor-roxo); }
+
+.ficha-quando { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-12); }
+.ficha-mini { display: flex; flex-direction: column; gap: 4px; font-size: var(--t-12); color: var(--cor-tinta-2); font-weight: 600; }
+.ficha-mini input { width: auto; }
+.ficha-marcar { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; font: 600 var(--t-14) var(--fonte-texto); cursor: pointer; }
+.ficha-marcar input { width: 18px; height: 18px; accent-color: var(--cor-roxo); }
+.ficha-dica { margin: 6px 0 0; font-size: var(--t-12); color: var(--cor-tinta-2); }
+
+.ficha-cores { display: flex; flex-wrap: wrap; gap: var(--s-8); }
+.ficha-cor { width: 30px; height: 30px; border-radius: var(--raio); border: 1px solid var(--cor-linha-forte); cursor: pointer; padding: 0; }
+.ficha-cor[aria-checked="true"] { outline: 2px solid var(--cor-eletrico); outline-offset: 2px; }
+
+.ficha-link { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto auto; gap: var(--s-8); align-items: center; margin-bottom: var(--s-8); }
+@media (max-width: 520px) { .ficha-link { grid-template-columns: 1fr auto auto; } .ficha-link input:first-child { grid-column: 1 / -1; } }
+.ficha-link a { color: var(--cor-eletrico); font-weight: 600; font-size: var(--t-14); }
+.ficha-texto-botao {
+  align-self: flex-start; background: none; border: 0; padding: 4px 0; cursor: pointer;
+  font: 600 var(--t-14) var(--fonte-texto); color: var(--cor-roxo); text-decoration: underline; text-underline-offset: 3px;
+}
+.ficha-texto-botao:hover { color: var(--cor-eletrico); }
+
+.ficha-pe {
+  display: flex; align-items: center; justify-content: flex-end; gap: var(--s-12);
+  padding: var(--s-16) var(--s-32) var(--s-24) var(--s-24); border-top: 1px solid var(--cor-linha);
+}
+.ficha-excluir { margin-right: auto; color: var(--cor-tinta-2); }
+.ficha-botao {
+  position: relative; isolation: isolate; min-height: 40px; padding: 0 var(--s-24); border: 0; background: none; cursor: pointer;
+  font: 700 var(--t-14) var(--fonte-texto); letter-spacing: .04em; color: var(--cor-bege);
+  transition: transform var(--dur-rapida) var(--curva);
+}
+.ficha-botao::before { /* o botão inclina a 22°; o texto não */
+  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--cor-roxo); border-radius: var(--raio); transform: skewX(var(--angulo));
+}
+.ficha-botao:hover:not(:disabled) { transform: translateX(var(--anda)); }
+.ficha-botao:disabled { opacity: .45; cursor: not-allowed; }
+.ficha-botao-claro { color: var(--cor-roxo); }
+.ficha-botao-claro::before { background: transparent; border: 1.5px solid var(--cor-roxo); }
