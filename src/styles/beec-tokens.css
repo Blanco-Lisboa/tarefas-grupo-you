@@ -1,0 +1,178 @@
+/* Copiado de ID-Visual-ALL/Beec/identidade/tokens.css (linhas 1-6 de cabecalho omitidas, bloco FINAL = linhas 8-170, classes da casa = linhas 246-257) em 2026-10-18. Nao editar aqui: a fonte da verdade e a ID da Beec. Blocos LEGADO ficaram de fora de proposito. */
+
+/* ===================== FINAL ===================== */
+:root {
+  /* ===== 1. Cor · paleta A (Natham: "Quero o A", paletas-r6-comparar.html) ===== */
+  --cor-bege:        #F6F2EA;  /* fundo claro principal. Tinta 16,45 · tinta 2 6,64 · roxo 14,73 · elétrico 5,99 · ouro 1,48 (REPROVA: ouro nunca no claro) */
+  --cor-superficie:  #FFFDF8;  /* card e campo sobre o bege. Tinta 18,06 · tinta 2 7,29 · roxo 16,18 · elétrico 6,58 */
+  --cor-grafite:     #18131F;  /* bloco escuro GRANDE. Bege 16,33 · suave 10,60 · ouro 11,07 · roxo 1,11 e elétrico 2,72 (REPROVAM: nunca roxo nem elétrico no grafite) */
+  --cor-roxo:        #2A075A;  /* roxo profundo: card escuro PEQUENO, placa, botão, título no claro. Bege 14,73 · suave 9,56 · ouro 9,98 · elétrico 2,46 (reprova) */
+  --cor-kraft:       #E6DCC8;  /* APOIO, nunca principal: card, faixa, etiqueta de preço. Tinta 13,50 · roxo 12,09 · texto do kraft 7,50 · tinta 2 5,45 */
+  --cor-kraft-claro: #EDE6D8;  /* card kraft mais leve. Tinta 14,79 · texto do kraft 8,22 */
+  --cor-ouro:        #FFBF2F;  /* ouro vivo: SÓ no escuro e SÓ em detalhe (traço, barrinha, faixa do nó, etiqueta de resultado). Tinta sobre ouro 11,15 */
+  --cor-eletrico:    #7319F1;  /* elétrico: SÓ no claro e SÓ em detalhe (sublinhado, contorno, anel de foco). Sobre bege 5,99 · sobre superfície 6,58 */
+  --cor-tinta:       #1A1024;  /* texto no claro */
+  --cor-tinta-2:     #5C5168;  /* texto secundário no claro. Sobre bege 6,64 · sobre superfície 7,29 · sobre kraft 5,45 */
+  --cor-kraft-texto: #4A3F37;  /* texto secundário dentro do kraft. Sobre kraft 7,50 · sobre kraft claro 8,22 */
+  --cor-suave:       #CFC4B4;  /* texto secundário no escuro e espessura do papel. Sobre grafite 10,60 · sobre roxo 9,56 */
+  --cor-linha:        rgba(26, 16, 36, .12);
+  --cor-linha-forte:  rgba(26, 16, 36, .24);
+  --cor-linha-escuro: rgba(246, 242, 234, .16);
+
+  /* ===== 2. Fonte (Natham: "vamos ficar com essa font mesmo", fb34). Google Fonts, licença OFL ===== */
+  --fonte-titulo: 'Bricolage Grotesque', 'Arial Black', sans-serif;  /* título em caixa normal, peso 800. Exceção consciente: é a fonte de título da Realizze */
+  --fonte-texto:  'Host Grotesk', system-ui, sans-serif;
+  /* NÚMERO NA FONTE DA MARCA, SEMPRE (Natham, fb124, 15/10): Reddit Mono SAIU de vez, inclusive de rótulo (decisão do Alicerce).
+     Número em destaque (preço, R$, %, contador, meta, dado grande): --fonte-numero, peso --numero-peso.
+     Número dentro de texto, rótulo ou eixo de gráfico: --fonte-numero-texto. */
+  --fonte-numero: var(--fonte-titulo);
+  --fonte-numero-texto: var(--fonte-texto);
+  --numero-peso: 800;
+  --numero-variante: normal;   /* NÚMERO PADRÃO DA FONTE, SEMPRE (Natham, fb169, 15/10): algarismo proporcional da Bricolage, nunca tabular-nums. Coluna que precisa alinhar, alinha à direita */
+  --titulo-peso: 800;
+  --titulo-espaco: -.02em;
+  --titulo-entrelinha: .98;
+  --texto-entrelinha: 1.55;
+  --rotulo-letra: .16em;   /* rótulo, botão e capa curta em caixa alta */
+
+  /* Escala (razão 1,25, base 16) */
+  --t-12: 12px;  --t-14: 14px;  --t-16: 16px;  --t-20: 20px;  --t-25: 25px;
+  --t-31: 31px;  --t-39: 39px;  --t-49: 49px;  --t-61: 61px;  --t-76: 76px;  --t-95: 95px;
+
+  /* ===== 3. Espaço (grade de 4) ===== */
+  --s-4: 4px;  --s-8: 8px;  --s-12: 12px;  --s-16: 16px;  --s-24: 24px;
+  --s-32: 32px;  --s-48: 48px;  --s-64: 64px;  --s-96: 96px;  --s-128: 128px;
+  --max: 1280px;
+  --margem: clamp(16px, 4vw, 48px);
+
+  /* ===== 4. Forma ===== */
+  /* Ângulo da casa, MEDIDO no logo: borda das 3 barras 22,4° e 21,2°, média 21,8° → 22°. Texto e campo de digitar nunca inclinam. */
+  --angulo: -22deg;        /* skewX(); negativo = topo para a direita, igual às barras */
+  --angulo-tan: .404;      /* tan(22°): deslocamento horizontal por pixel de altura, para recorte */
+  --raio: 2px;             /* quase reto. Não existe token de pílula */
+  /* "Ponta de barra" (fb36): todo traço de destaque termina com as pontas cortadas a 22°, sem engrossar. */
+  --sub-espessura: .08em;
+  --ponta-de-barra: polygon(calc(.08em * .404) 0, 100% 0, calc(100% - .08em * .404) 100%, 0 100%);
+  /* Regra das barras: comprimento e grossura podem variar; fixo é o canto cortado na diagonal de 22°. */
+  --barra-altura: .26;     /* altura da barra = 0,26 da largura (como no logo) */
+  --barra-vao: .14;        /* vão entre barras = 0,14 da largura */
+  --foto-vao: 2.5%;        /* 09 · vão entre as 3 barras da foto (aprovado, fb69) */
+
+  /* ===== 5. Profundidade e textura (fechados em 14/10, fb89 e fb90) ===== */
+  --borda-corte: 4px;      /* borda bege em volta do adesivo (o corte do papel) */
+  --cor-espessura: var(--cor-suave);              /* lado do papel, visto de lado */
+  --cor-sombra-f: rgba(12, 8, 20, .62);           /* sombra curta e dura no claro */
+  --cor-sombra-f-escuro: rgba(0, 0, 0, .85);      /* sombra curta e dura no escuro */
+  /* Sombra f · média e firme: 3 camadas de papel na diagonal do logo (1 para o lado, 2 para baixo) e sombra curta, sem sombra longe */
+  --sombra-f: drop-shadow(1px 2px 0 var(--cor-espessura)) drop-shadow(1px 2px 0 var(--cor-espessura)) drop-shadow(1px 2px 0 var(--cor-espessura)) drop-shadow(1px 3px 1px var(--cor-sombra-f));
+  --sombra-f-escuro: drop-shadow(1px 2px 0 var(--cor-espessura)) drop-shadow(1px 2px 0 var(--cor-espessura)) drop-shadow(1px 2px 0 var(--cor-espessura)) drop-shadow(1px 3px 1px var(--cor-sombra-f-escuro));
+  /* GRÃO: o padrão é LISO em tudo (topo, blocos, adesivos, quebras). O grão entra só em algumas ocasiões, nunca misturado na mesma peça
+     (Natham, fb102 a fb109: "vamos usar muito mais os lisos"). Claro por cima de peça escura, escuro por cima de peça clara */
+  --grao-claro: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grao-escuro: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.06 0 0 0 0 0.14 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Grão fino por cima dos blocos escuros grandes (usar com opacity .16 e mix-blend-mode overlay) */
+  --grao-bloco: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* Grão do bloco escuro como camada de fundo, na metade da força (11%), para não acinzentar o grafite. Só quando a peça for com grão */
+  --grao-bloco-fundo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* ===== 5b. Quebras de container (fechadas em 14/10, fb102 a fb108) ===== */
+  --quebra-folga: 8px;     /* E3.1 porta justa: folga entre o bloco claro e a faixa */
+  --quebra-vao: 6px;       /* E.4a faixa partida: vão entre a faixa e o botão (4px também aprovado) */
+  --sombra-quebra-suave: drop-shadow(0 12px 14px rgba(24, 19, 31, .32));  /* camadas da C e faixa da E3.1 */
+  --sombra-quebra-firme: drop-shadow(0 14px 10px rgba(24, 19, 31, .42));  /* faixa da E.1 e faixa partida E.4a */
+  --sombra-quebra-foto: 0 18px 26px -8px rgba(24, 19, 31, .62);           /* janela da foto da B */
+  --sombra-quebra-selo: 0 10px 16px -4px rgba(0, 0, 0, .5);               /* selo no canto da foto da B */
+  --sombra-quebra-objeto: drop-shadow(0 10px 10px rgba(0, 0, 0, .5));     /* balão da B */
+
+  /* ===== 5c. Gráficos (fechados em 14/10, fb101): barras em 10 barrinhas e linha 2 Leve ===== */
+  --cor-grafico-grade: rgba(26, 16, 36, .13);           /* linha de grade no claro */
+  --cor-grafico-grade-2: rgba(26, 16, 36, .07);
+  --cor-grafico-vazio: rgba(42, 7, 90, .55);            /* contorno da barrinha vazia no claro (roxo 55%) */
+  --cor-grafico-grade-escuro: rgba(246, 242, 234, .15);
+  --cor-grafico-grade-2-escuro: rgba(246, 242, 234, .08);
+  --cor-grafico-vazio-escuro: rgba(246, 242, 234, .45); /* contorno da barrinha vazia no escuro (bege 45%) */
+
+  /* ===== 6. Movimento: entra rápido e decidido, da esquerda para a direita. Sem quique ===== */
+  --dur-rapida: 160ms;
+  --dur: 240ms;
+  --dur-lenta: 420ms;
+  --curva: cubic-bezier(.2, .8, .2, 1);
+  --anda: 3px;             /* o botão anda isto para a direita ao passar o mouse */
+
+  /* ===== 7. REFINO NÍVEL REALIZZE (15/10, levas/2026-10-15-refino-nivel-realizze.md, fb110 a fb131) ===== */
+  /* 7a. Destaque de palavra no título: COR ou sublinhado em ponta de barra, NUNCA os dois (fb110).
+     No claro a palavra vai em elétrico (o roxo profundo quase some ao lado da tinta); no grafite e no roxo, em ouro. */
+  --cor-destaque-claro: var(--cor-eletrico);   /* sobre bege 5,99 · sobre superfície 6,58 (título grande: mínimo 3) */
+  --cor-destaque-escuro: var(--cor-ouro);      /* sobre grafite 11,07 · sobre roxo 9,98 */
+  /* Rodada 2 (fb134): no escuro a palavra em cor é SEMPRE ouro; elétrico como palavra em cor só no claro.
+     --cor-destaque é o valor em uso: o bloco escuro troca com a classe .no-escuro (fim do arquivo) e a palavra usa .destaque */
+  --cor-destaque: var(--cor-destaque-claro);
+
+  /* 7b. Brilho suave de fundo (fb111): degradê radial muito leve, só nos tons da paleta. Em ALGUNS lugares, não em tudo.
+     Uso: background: var(--brilho-claro), var(--cor-bege);  (o brilho vai por cima da cor chapada) */
+  --brilho-claro: radial-gradient(70% 55% at 100% 0%, rgba(115, 25, 241, .08), transparent 70%),
+                  radial-gradient(60% 50% at 0% 100%, rgba(230, 220, 200, .5), transparent 72%);
+  /* Brilho claro FORTE (pedido da Fresta, régua da Realizze): mesmo desenho, mais presente. As duas manchas não se encostam
+     (elétrico some antes do meio, kraft some antes do meio). Pior ponto: no pico do elétrico (16%), elétrico 4,57 e tinta 2 5,07;
+     no pico do kraft (90%), elétrico 5,02 e tinta 2 5,56 */
+  --brilho-claro-forte: radial-gradient(75% 60% at 100% 0%, rgba(115, 25, 241, .16), transparent 70%),
+                        radial-gradient(65% 55% at 0% 100%, rgba(230, 220, 200, .9), transparent 72%);
+  --brilho-escuro: radial-gradient(75% 60% at 100% 0%, rgba(98, 34, 190, .30), transparent 70%),
+                   radial-gradient(55% 45% at 0% 100%, rgba(42, 7, 90, .55), transparent 75%);
+  --brilho-roxo: radial-gradient(70% 60% at 100% 0%, rgba(115, 25, 241, .32), transparent 70%),
+                 radial-gradient(60% 50% at 0% 100%, rgba(10, 2, 24, .45), transparent 75%);
+
+  /* 7c. Card de informação com sombra fraca (fb111, fb122): leve e difusa, sem borda junto (ou borda ou sombra) */
+  --cor-card-escuro: #221B2B;   /* card sobre o grafite, um passo mais claro. Bege 14,93 · suave 9,69 · ouro 10,12 */
+  --sombra-card: 0 1px 2px rgba(24, 19, 31, .05), 0 10px 28px -8px rgba(24, 19, 31, .12), 0 28px 56px -24px rgba(42, 7, 90, .10);
+  --sombra-card-escuro: inset 0 1px 0 rgba(246, 242, 234, .06), 0 14px 36px -12px rgba(0, 0, 0, .55);
+  /* Mesma sombra para card COM o formato da barra (clip-path corta box-shadow; aplicar no pai com filter) */
+  /* item 45 (fb161, fb162): a MESMA presença da --sombra-card (camada curta + difusa grande levemente arroxeada), em filter,
+     que segue o recorte das orelhas. REGRA: card com .corte-22/.corte-22-esq NUNCA leva box-shadow no próprio elemento;
+     a sombra vai no PAI (ou numa camada própria) com .corte-sombra / .corte-sombra-escuro (ou estes filtros) */
+  --sombra-card-filtro: drop-shadow(0 1px 1.5px rgba(24, 19, 31, .07)) drop-shadow(0 8px 12px rgba(24, 19, 31, .10)) drop-shadow(0 18px 24px rgba(42, 7, 90, .10));
+  --sombra-card-filtro-escuro: drop-shadow(0 6px 8px rgba(0, 0, 0, .35)) drop-shadow(0 16px 24px rgba(0, 0, 0, .42));
+  /* ORELHAS (rodada 2, fb138, fb140, fb143): canto cortado na diagonal de 22°, no mesmo sentido das barras do logo (/).
+     PADRÃO = cima à esquerda + baixo à direita. VARIAÇÃO = só cima à esquerda. Vale para card, submenu e caixa de dado.
+     SEM o formato: canto reto no --raio. PROIBIDO orelha dobrada e selo em aba (pontos únicos da Realizze).
+     Ninguém desenha o corte na mão: usar as classes .corte-22 e .corte-22-esq do fim deste arquivo (ou estas variáveis). */
+  --card-corte: 40px;      /* altura do corte; a largura é 40 × 0,404. Trocar no elemento para mudar o tamanho */
+  /* item 40 (fb155): 'cortados demais, um pouco menor'. Fator único que diminui TODA orelha de todas as páginas junto; o ângulo de 22° não muda */
+  --corte-escala: .7;
+  --forma-corte-22: polygon(calc(calc(var(--card-corte) * var(--corte-escala)) * .404) 0, 100% 0, 100% calc(100% - calc(var(--card-corte) * var(--corte-escala))), calc(100% - calc(var(--card-corte) * var(--corte-escala)) * .404) 100%, 0 100%, 0 calc(var(--card-corte) * var(--corte-escala)));
+  --forma-corte-22-esq: polygon(calc(calc(var(--card-corte) * var(--corte-escala)) * .404) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--card-corte) * var(--corte-escala)));
+  --card-forma-barra: var(--forma-corte-22);   /* nome antigo, já aponta para o padrão novo */
+  /* ATENÇÃO: as 3 variáveis acima ficam presas no corte de 40px. Para outro tamanho, use as classes (ou redeclare a variável no elemento) */
+
+  /* 7d. Profundidade só no herói: a sombra f (seção 5) vai em NO MÁXIMO UM elemento por peça; o resto chapado ou com --sombra-card */
+
+  /* 7e. Menu suspenso do site (fb118): flutuando, com o formato da barra (pontas a 22°). Desde fb172 (15/10, "gostei do A!") o vidro do menu é ROXO PROFUNDO: --vidro-roxo + --vidro-roxo-borda + --vidro-desfoque */
+  --vidro-roxo: color-mix(in srgb, var(--cor-roxo) 88%, transparent);         /* variante A da menu-roxo-variantes.html. Pior fundo por baixo: bege suave 7,06 e ouro 7,37 (no roxo cheio: suave 9,56, ouro 9,98, bege 14,73) */
+  --vidro-roxo-borda: color-mix(in srgb, var(--cor-bege) 22%, transparent);   /* borda de luz do vidro roxo */
+  --vidro-grafite: rgba(24, 19, 31, .92);       /* NÃO é mais o menu (fb172: menu é --vidro-roxo); fica para outros usos. Grafite quase opaco (item 42); bege por cima 16,33 no grafite cheio */
+  --vidro-desfoque: blur(18px) saturate(140%);  /* backdrop-filter, só em elemento fixo */
+  --vidro-borda: rgba(246, 242, 234, .14);
+  --sombra-menu: 0 18px 40px -16px rgba(12, 8, 20, .55);
+
+  /* 7f. Ouro em degradê (pedido do Holofote): SÓ título grande de capa sobre foto escurecida ou grafite. Nunca no claro */
+  --cor-ouro-escuro: #E8900C;   /* sobre grafite 7,32 · sobre roxo 6,60 · tinta sobre ele 7,37 */
+  --degrade-ouro: linear-gradient(180deg, var(--cor-ouro) 0%, var(--cor-ouro-escuro) 100%);
+
+  /* 7g. Encaixe (regra 7 do despacho): margem fixa por formato. Post 1080x1350 na escala real; A4 fixa; site no --max */
+  --margem-post: 88px;
+  --margem-a4: 48px;
+}
+
+/* ===================== CLASSES DA CASA (rodada 2 do refino, 15/10). Dono: Beec · Alicerce ===================== */
+/* Palavra em cor: elétrico no claro, ouro no escuro. Todo bloco escuro (grafite, roxo, foto escurecida) leva .no-escuro */
+.destaque{color:var(--cor-destaque)}
+.no-escuro{--cor-destaque:var(--cor-destaque-escuro)}
+/* Orelhas a 22°: padrão (cima à esquerda + baixo à direita) e variação (só cima à esquerda).
+   O clip-path corta a box-shadow: a sombra vai no pai com .corte-sombra (claro) ou .corte-sombra-escuro */
+/* o polygon fica escrito aqui (e não por var) para o --card-corte do próprio elemento valer: variável dentro de variável
+   resolve onde foi declarada, então var(--forma-corte-22) fica presa nos 40px do :root (aviso do Holofote) */
+.corte-22{box-shadow:none;clip-path:polygon(calc(calc(var(--card-corte) * var(--corte-escala)) * .404) 0,100% 0,100% calc(100% - calc(var(--card-corte) * var(--corte-escala))),calc(100% - var(--card-corte) * var(--corte-escala) * .404) 100%,0 100%,0 calc(var(--card-corte) * var(--corte-escala)));border-radius:0}
+.corte-22-esq{box-shadow:none;clip-path:polygon(calc(calc(var(--card-corte) * var(--corte-escala)) * .404) 0,100% 0,100% 100%,0 100%,0 calc(var(--card-corte) * var(--corte-escala)));border-radius:0}
+.corte-sombra{filter:var(--sombra-card-filtro)}
+.corte-sombra-escuro{filter:var(--sombra-card-filtro-escuro)}

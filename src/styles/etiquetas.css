@@ -1,0 +1,18 @@
+/* Paleta de etiquetas das tarefas (exceção visual aprovada pelo Natham em 18/10/2026, brief seção 5).
+   Cada tarefa tem a sua cor, como no Google Agenda. Usar SÓ em etiqueta/evento, nunca em fundo de tela, botão ou texto solto.
+   Por que estas cores: tons quentes e terrosos, no mesmo "papel e tinta" da Beec (ouro, terracota, sálvia, oliva, kraft)
+   mais dois fechados (floresta, petróleo). Sem azul junto de roxo, sem neon, sem rosa/magenta/lilás.
+   Cada etiqueta tem o par --etiqueta-N (fundo) e --etiqueta-N-texto (letra). Contraste da letra sobre o fundo
+   (fórmula da W3C), mínimo exigido 4,5: */
+:root {
+  --etiqueta-1:  #F2C14E; --etiqueta-1-texto:  #1A1024;  /* ouro suave · tinta 10,94 */
+  --etiqueta-2:  #EBA27C; --etiqueta-2-texto:  #1A1024;  /* pêssego · tinta 8,74 */
+  --etiqueta-3:  #A9C79B; --etiqueta-3-texto:  #1A1024;  /* sálvia · tinta 9,91 */
+  --etiqueta-4:  #CCD07F; --etiqueta-4-texto:  #1A1024;  /* oliva claro · tinta 11,28 */
+  --etiqueta-5:  #D7C39B; --etiqueta-5-texto:  #1A1024;  /* areia · tinta 10,64 */
+  --etiqueta-6:  #DE8A72; --etiqueta-6-texto:  #1A1024;  /* terracota claro · tinta 6,98 */
+  --etiqueta-7:  #8E3B2F; --etiqueta-7-texto:  #F6F2EA;  /* tijolo · bege 6,68 */
+  --etiqueta-8:  #2F5D46; --etiqueta-8-texto:  #F6F2EA;  /* floresta · bege 6,78 */
+  --etiqueta-9:  #7A6416; --etiqueta-9-texto:  #F6F2EA;  /* oliva escuro · bege 5,14 */
+  --etiqueta-10: #1F5F63; --etiqueta-10-texto: #F6F2EA;  /* petróleo · bege 6,54 */
+}
