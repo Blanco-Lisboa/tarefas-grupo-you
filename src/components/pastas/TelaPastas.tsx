@@ -62,10 +62,10 @@ function Grade({ pecas, variante }: { pecas: Peca[]; variante: "exata" | "beec" 
 export function TelaPastas() {
   const empresas = useEmpresas();
   const pecas = usePecas();
-  const { aplicar } = useFiltroEmpresa();
+  const { aplicar, todas, selecionadas } = useFiltroEmpresa();
   const [modo, setModo] = useState<Modo>("lado");
   const visiveis = aplicar(pecas);
-  const comPecas = empresas.filter((e) => visiveis.some((p) => p.empresaId === e.id));
+  const mostradas = empresas.filter((e) => todas || selecionadas.includes(e.id));
 
   return (
     <section className="pastas">
@@ -83,8 +83,8 @@ export function TelaPastas() {
         </div>
       </header>
 
-      {comPecas.length === 0 && <p>Nenhuma peça para o filtro atual.</p>}
-      {comPecas.map((e) => {
+      {mostradas.length === 0 && <p>Nenhuma empresa para o filtro atual.</p>}
+      {mostradas.map((e) => {
         const dela = visiveis.filter((p) => p.empresaId === e.id);
         return (
           <div key={e.id} className="pastas-mesa-pai">

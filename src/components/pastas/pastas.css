@@ -104,7 +104,7 @@ canvas.gf-sheet-art { opacity: 0; filter: blur(10px); }
 canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .gf-sheet::after { /* véu no topo para o nome ler sobre a arte */
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(180deg, rgba(11, 8, 16, .62) 0%, rgba(11, 8, 16, 0) 38%);
+  background: linear-gradient(180deg, rgba(24, 19, 31, .7) 0%, rgba(24, 19, 31, 0) 38%);
   box-shadow: inset 0 0 0 1px rgba(246, 242, 234, .16);
 }
 .gf-sheet-head { position: absolute; left: 14px; right: 14px; top: 11px; z-index: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; white-space: nowrap; }
@@ -119,7 +119,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
   transform: perspective(760px) rotateX(var(--gf-hinge));
   transition: transform var(--gf-t) var(--gf-spring), translate 1s var(--gf-ease), opacity 1s var(--gf-ease);
 }
-.gf-tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(24, 19, 31, .18) 0%, rgba(18, 13, 25, .62) 46%, rgba(11, 8, 16, .94) 100%); }
+.gf-tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(24, 19, 31, .18) 0%, rgba(24, 19, 31, .62) 46%, rgba(24, 19, 31, .94) 100%); }
 .gf-spec {
   position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: .16;
   background: radial-gradient(260px 200px at calc(50% + var(--gf-px) * 46%) calc(30% + var(--gf-py) * 40%), rgba(246, 242, 234, .5), rgba(246, 242, 234, 0) 70%);
@@ -181,3 +181,13 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
   .pastas-versoes { grid-template-columns: minmax(0, 1fr); }
   .pastas-mesa { padding: var(--s-16) var(--s-16) var(--s-32); }
 }
+
+/* ver todas: lista completa da pasta, para baixar quando passa das 4 do leque */
+.pastas-cel { display: flex; flex-direction: column; align-items: stretch; }
+.gf-todas { align-self: center; margin-top: var(--s-8); min-height: 32px; padding: var(--s-4) var(--s-12); border-radius: var(--raio); cursor: pointer; font: 600 var(--t-14) var(--fonte-texto); color: var(--cor-bege); background: transparent; border: 1px solid var(--cor-linha-escuro); }
+.gf-todas:hover { border-color: var(--cor-ouro); color: var(--cor-ouro); }
+.gf-lista { list-style: none; margin: var(--s-8) 0 0; padding: 0; display: grid; gap: 1px; background: var(--cor-linha-escuro); }
+.gf-lista a, .gf-lista button { all: unset; box-sizing: border-box; width: 100%; display: flex; justify-content: space-between; gap: var(--s-12); padding: var(--s-8) var(--s-12); cursor: pointer; background: var(--cor-card-escuro); color: var(--cor-bege); font: 600 var(--t-14) var(--fonte-texto); }
+.gf-lista a:hover, .gf-lista button:hover { background: var(--cor-roxo); }
+.gf-lista a:focus-visible, .gf-lista button:focus-visible { outline: 2px solid var(--cor-ouro); outline-offset: -2px; }
+.gf-lista small { color: var(--cor-suave); font-weight: 400; font-size: var(--t-12); }

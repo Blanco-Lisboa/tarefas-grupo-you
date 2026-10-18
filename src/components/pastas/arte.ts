@@ -13,14 +13,14 @@ export type ArtRecipe = {
   veins?: number;
 };
 
-// Cores Beec: grafite, roxo profundo e elétrico fazem o líquido; o ouro entra só como brilho (último degrau, fino).
-const G = "#18131F", G0 = "#0B0810", R = "#2A075A", R1 = "#3D0E86", E = "#7319F1", O = "#FFBF2F";
+// Só cores de beec-tokens.css: grafite, card escuro e roxo profundo fazem o líquido; o ouro entra como brilho (último degrau,
+// fino) e o elétrico só como filete fino (um degrau entre vários roxos, sem ocupar área).
+const G = "#18131F", C = "#221B2B", R = "#2A075A", E = "#7319F1", O = "#FFBF2F";
 export const RECEITAS = {
-  post: { style: "marble", colors: [G0, G, R, R1, E, R, G, O], scale: 0.66, warp: 3.2, angle: -0.5, gloss: 0.5, veins: 0.5 },
-  carrossel: { style: "streak", colors: [G0, G, R, G, R1, R, G, O], scale: 0.7, warp: 1.5, angle: -0.62, gloss: 0.3, veins: 0 },
-  video: { style: "marble", colors: [G0, G, G, R, G, R1, R, O], scale: 0.72, warp: 3.4, angle: 0.8, gloss: 0.5, veins: 0.55 },
-  story: { style: "streak", colors: [G0, R, R1, E, R, G, G0, O], scale: 0.62, warp: 1.8, angle: 2.1, gloss: 0.35, veins: 0 },
-  pasta: { style: "marble", colors: [G0, G, R, E, R, G, O], scale: 0.7, warp: 3.4, angle: 0.4, gloss: 0.55, veins: 0.5 },
+  post: { style: "marble", colors: [G, C, R, G, R, C, G, C, R, G, E, G, C, R, G, O], scale: 0.66, warp: 3.2, angle: -0.5, gloss: 0.5, veins: 0.5 },
+  carrossel: { style: "streak", colors: [G, C, R, G, C, R, G, C, R, G, C, G, E, G, C, O], scale: 0.7, warp: 1.5, angle: -0.62, gloss: 0.3, veins: 0 },
+  video: { style: "marble", colors: [G, C, G, R, G, C, R, G, C, R, G, E, G, C, G, O], scale: 0.72, warp: 3.4, angle: 0.8, gloss: 0.5, veins: 0.55 },
+  story: { style: "streak", colors: [G, R, C, R, G, C, R, G, G, E, G, C, R, G, G, O], scale: 0.62, warp: 1.8, angle: 2.1, gloss: 0.35, veins: 0 },
 } satisfies Record<string, ArtRecipe>;
 
 /** `#rgb` or `#rrggbb` to a triple. Anything unreadable comes back mid-grey. */

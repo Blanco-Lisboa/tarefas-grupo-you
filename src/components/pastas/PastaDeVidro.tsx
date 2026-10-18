@@ -144,9 +144,11 @@ export function PastaDeVidro({ rotulo, arquivos, arte, variante, seed = 3, defau
   // As mais novas ficam na frente da pilha, perto do vidro.
   const visiveis = arquivos.slice(Math.max(0, arquivos.length - VISIVEIS));
   const n = arquivos.length;
-  const meta = n === 1 ? "1 peça" : `${n} peças`;
+  const meta = n === 0 ? "Pasta vazia" : n === 1 ? "1 peça" : `${n} peças`;
+  const [lista, setLista] = useState(false);
 
   return (
+    <>
     <div
       ref={raiz}
       className="gf-root"
@@ -232,5 +234,26 @@ export function PastaDeVidro({ rotulo, arquivos, arte, variante, seed = 3, defau
         </div>
       </div>
     </div>
+    {n > VISIVEIS && (
+      <>
+        <button type="button" className="gf-todas" aria-expanded={lista} onClick={() => setLista(!lista)}>
+          {lista ? "Esconder lista" : `Ver todas (${n})`}
+        </button>
+        {lista && (
+          <ul className="gf-lista" aria-label={`Todas as peças de ${rotulo}`}>
+            {arquivos.map((f) => (
+              <li key={f.nome}>
+                {f.href ? (
+                  <a href={f.href} target="_blank" rel="noopener noreferrer">{f.nome}<small>{f.meta}</small></a>
+                ) : (
+                  <button type="button" onClick={() => onSelecionar?.(f)}>{f.nome}<small>{f.meta}</small></button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </>
+    )}
+    </>
   );
 }
