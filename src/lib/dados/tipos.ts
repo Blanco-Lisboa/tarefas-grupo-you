@@ -30,6 +30,8 @@ export type Tarefa = {
   fim?: string;
   diaInteiro: boolean;
   cor: Etiqueta;
+  /** Feita? Opcional: ausente = não concluída. */
+  concluida?: boolean;
   notas?: string;
   links: Link[];
   arquivos: Arquivo[];

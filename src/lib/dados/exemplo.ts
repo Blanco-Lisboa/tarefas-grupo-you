@@ -57,6 +57,9 @@ const linhas: Linha[] = [
   [42, "Editar cortes antigos do podcast", "edicao", "beec", "kwai", "edicao", "matheus", "", "", 6],
 ];
 
+// Tarefas antigas (início de outubro) já feitas.
+const CONCLUIDAS = new Set([1, 2, 3, 4]);
+
 export const tarefasExemplo: Tarefa[] = linhas.map(([n, titulo, tipo, empresaId, rede, etapa, responsavel, inicio, fim, cor]) => ({
   id: `t${String(n).padStart(2, "0")}`,
   titulo,
@@ -71,4 +74,5 @@ export const tarefasExemplo: Tarefa[] = linhas.map(([n, titulo, tipo, empresaId,
   cor: `etiqueta-${cor}` as Etiqueta,
   links: tipo === "edicao" || tipo === "postagem" ? [{ rotulo: "Vídeo no Drive", url: "https://drive.google.com/" }] : [],
   arquivos: [],
+  ...(CONCLUIDAS.has(n) && { concluida: true }),
 }));

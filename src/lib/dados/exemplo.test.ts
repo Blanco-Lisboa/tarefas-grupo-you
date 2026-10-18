@@ -18,3 +18,11 @@ describe("dados de exemplo", () => {
     expect(JSON.stringify(tarefasExemplo)).not.toMatch(/[—–]/);
   });
 });
+
+describe("concluida", () => {
+  it("marca só algumas tarefas antigas", () => {
+    const feitas = tarefasExemplo.filter((t) => t.concluida);
+    expect(feitas.length).toBeGreaterThanOrEqual(3);
+    expect(feitas.length).toBeLessThanOrEqual(4);
+  });
+});
