@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -20 218.3 226" role="img" aria-labelledby="t">
+<title id="t">BEEC · ícone adesivo liso</title>
+<defs><filter id="a" x="-25%" y="-30%" width="150%" height="160%"><feMorphology in="SourceAlpha" operator="dilate" radius="20" result="d"/><feFlood flood-color="#F6F2EA"/><feComposite in2="d" operator="in" result="p"/><feMerge><feMergeNode in="p"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<g filter="url(#a)"><path fill="#2A075A" d="M22.22,0L178.22,0L156,55L0,55ZM22.22,65.5L178.22,65.5L156,120.5L0,120.5ZM22.22,131L178.22,131L156,186L0,186Z"/></g>
+</svg>
