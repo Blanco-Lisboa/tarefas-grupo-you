@@ -10,3 +10,4 @@ export { salvarTarefa, removerTarefa, salvarEmpresa, removerEmpresa } from "./re
 export const useTarefas = () => useSyncExternalStore(assinar, lerTarefas, lerTarefas);
 /** Todas as empresas cadastradas. */
 export const useEmpresas = () => useSyncExternalStore(assinar, lerEmpresas, lerEmpresas);
+export * from "./pecas";
