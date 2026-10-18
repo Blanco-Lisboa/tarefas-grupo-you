@@ -111,3 +111,7 @@
 .letras-grade .folha::after { background-position: -12px 0; }
 .letras-grade .linha .detalhe { display: block; margin-left: 0; white-space: normal; font-size: calc(16px * var(--escala)); line-height: var(--passo); margin: 0; }
 @media (max-width: 1099px) { .letras-grade { grid-template-columns: minmax(0, 1fr); } }
+
+.confirmar { flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s-8); max-width: 15em; font-size: calc(18px * var(--escala)); line-height: 1.1; padding-top: 4px; }
+.confirmar button { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; color: var(--grafite); }
+.confirmar .confirmar-sim { color: var(--tinta); font-weight: 700; }

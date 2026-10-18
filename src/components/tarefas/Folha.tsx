@@ -27,6 +27,7 @@ const MIN_LINHAS = 13;
 const giro = (id: string) => (([...id].reduce((s, c) => s + c.charCodeAt(0), 0) % 7) - 3) * 0.12;
 
 export function Folha({ letra, titulo, subtitulo, linhas, vazio, empresas, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoEscrever }: Props) {
+  const [confirmando, setConfirmando] = useState<string | null>(null);
   const [texto, setTexto] = useState("");
   const [empresa, setEmpresa] = useState<string | null>(null);
   const [resp, setResp] = useState<Responsavel>("natham");
@@ -66,11 +67,17 @@ export function Folha({ letra, titulo, subtitulo, linhas, vazio, empresas, empre
                 </button>
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
               </span>
-              {aoApagar && (
-                <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => aoApagar(l.id)}>
+              {aoApagar && (confirmando === l.id ? (
+                <span className="confirmar folha-lapis">
+                  Some do calendário também.
+                  <button type="button" className="confirmar-sim folha-tinta" onClick={() => { aoApagar(l.id); setConfirmando(null); }}>Apagar</button>
+                  <button type="button" className="confirmar-nao" autoFocus onClick={() => setConfirmando(null)}>Manter</button>
+                </span>
+              ) : (
+                <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => setConfirmando(l.id)}>
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4 L16 16 M16 3.5 L4.5 16.5" /></svg>
                 </button>
-              )}
+              ))}
             </div>
           </li>
         ))}

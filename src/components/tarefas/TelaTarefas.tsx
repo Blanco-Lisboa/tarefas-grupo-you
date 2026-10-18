@@ -1,11 +1,10 @@
 "use client";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { removerTarefa, salvarTarefa, useEmpresas, useTarefas, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha } from "@/components/ficha/Ficha";
 import { Folha, type LinhaFolha } from "./Folha";
 import { LETRA_PRINCIPAL } from "./fontes";
-import { useFeitas } from "./feitas";
 import "./caderno.css";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -33,7 +32,15 @@ export function TelaTarefas() {
   const tarefas = useTarefas();
   const empresas = useEmpresas();
   const { aplicar, selecionadas } = useFiltroEmpresa();
-  const { feitas, alternar } = useFeitas();
+
+  // Migração única: a chave antiga do navegador vira o campo concluida e some.
+  useEffect(() => {
+    try {
+      const velhas: unknown = JSON.parse(localStorage.getItem("grade:tarefas-feitas") ?? "[]");
+      if (Array.isArray(velhas)) tarefas.filter((t) => velhas.includes(t.id) && !t.concluida).forEach((t) => void salvarTarefa({ ...t, concluida: true }));
+      localStorage.removeItem("grade:tarefas-feitas");
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!dia) return <section className="tarefas-tela" aria-busy="true" />;
 
@@ -47,7 +54,7 @@ export function TelaTarefas() {
     id: t.id,
     titulo: t.titulo,
     detalhe: [nomeEmpresa(t.empresaId), NOMES[t.responsavel], hora(t)].filter(Boolean).join(" · "),
-    feita: feitas.includes(t.id),
+    feita: !!t.concluida,
   }));
 
   const feitasAqui = linhas.filter((l) => l.feita).length;
@@ -82,8 +89,8 @@ export function TelaTarefas() {
           vazio={aba === "dia" ? "Nada marcado para este dia." : "Nenhuma tarefa sem data."}
           empresas={empresasEscolha}
           empresaPadrao={empresasEscolha[0]?.id ?? ""}
-          aoMarcar={alternar}
           aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
+          aoMarcar={(id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
           aoApagar={(id) => void removerTarefa(id)}
           aoEscrever={(t, empresaId, responsavel) =>
             void salvarTarefa({
