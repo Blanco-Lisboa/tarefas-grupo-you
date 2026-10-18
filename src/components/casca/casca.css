@@ -1,0 +1,105 @@
+/* Casca do app: menu lateral flutuante (vidro roxo, orelhas a 22°) e área de conteúdo. Cores/formas só pelos tokens da Beec. */
+.casca { --menu-w: 232px; --menu-gap: 16px; }
+.casca[data-recolhido="true"] { --menu-w: 64px; }
+@media (max-width: 767px) { .casca { --menu-w: 56px; --menu-gap: 8px; } }
+
+.casca-conteudo {
+  margin-left: calc(var(--menu-w) + var(--menu-gap) * 2);
+  padding: var(--s-24) var(--margem) var(--s-48) var(--s-8);
+  min-height: 100vh;
+  transition: margin-left var(--dur) var(--curva);
+}
+
+.menu-pai {
+  position: fixed; z-index: 30;
+  top: var(--menu-gap); bottom: var(--menu-gap); left: var(--menu-gap);
+  width: var(--menu-w);
+  transition: width var(--dur) var(--curva);
+}
+/* O clip-path corta box-shadow e filter no pai quebraria o desfoque do vidro (backdrop root):
+   por isso a sombra mora numa camada irmã, atrás do vidro. Box-shadow só pinta fora da caixa. */
+.menu-sombra { position: absolute; inset: 0; box-shadow: var(--sombra-menu); pointer-events: none; }
+.menu-vidro {
+  --card-corte: 40px;
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; gap: var(--s-8);
+  padding: var(--s-16) var(--s-8);
+  background: var(--vidro-roxo);
+  backdrop-filter: var(--vidro-desfoque);
+  -webkit-backdrop-filter: var(--vidro-desfoque);
+  color: var(--cor-suave);
+  overflow: hidden;
+}
+.menu-vidro::before { /* borda de luz do vidro, dentro do recorte */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  border: 1px solid var(--vidro-roxo-borda);
+}
+
+.menu-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-8); padding: var(--s-8) var(--s-8) var(--s-16); min-height: 56px; }
+.menu-logo { height: 22px; width: auto; flex: none; }
+.menu-logo-icone { height: 28px; width: auto; flex: none; }
+.menu-alterna {
+  display: grid; gap: 4px; padding: 8px; background: none; border: 0; cursor: pointer; flex: none;
+}
+.menu-alterna span { display: block; width: 18px; height: 3px; background: var(--cor-suave); transform: skewX(var(--angulo)); transition: background var(--dur-rapida) var(--curva); }
+.menu-alterna:hover span { background: var(--cor-ouro); }
+
+.menu-lista { display: flex; flex-direction: column; gap: var(--s-4); list-style: none; margin: 0; padding: 0; }
+.menu-item {
+  position: relative; display: flex; align-items: center; gap: var(--s-12);
+  height: 44px; padding: 0 var(--s-12); color: var(--cor-suave);
+  font-weight: 600; font-size: var(--t-14); text-decoration: none; white-space: nowrap;
+  transition: color var(--dur-rapida) var(--curva), padding var(--dur-rapida) var(--curva);
+}
+.menu-item::before { /* destaque inclina (22°); o texto nunca */
+  content: ""; position: absolute; inset: 0; z-index: 0; background: transparent;
+  transform: skewX(var(--angulo)); transition: background var(--dur-rapida) var(--curva);
+}
+.menu-item:hover { color: var(--cor-bege); }
+.menu-item:hover::before { background: rgba(246, 242, 234, .08); }
+.menu-item[aria-current="page"] { color: var(--cor-ouro); }
+.menu-item[aria-current="page"]::before { background: rgba(255, 191, 47, .14); }
+.menu-item[aria-current="page"]::after { /* ponta de barra */
+  content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
+  background: var(--cor-ouro); transform: skewX(var(--angulo));
+}
+.menu-item > * { position: relative; z-index: 1; }
+.menu-icone {
+  width: 22px; height: 22px; flex: none; background-color: currentColor;
+  -webkit-mask: var(--icone) center / contain no-repeat; mask: var(--icone) center / contain no-repeat;
+}
+[data-recolhido="true"] .menu-rotulo { display: none; }
+[data-recolhido="true"] .menu-item { justify-content: center; padding: 0; }
+[data-recolhido="true"] .menu-topo { flex-direction: column; padding-inline: 0; }
+@media (max-width: 767px) {
+  .menu-rotulo { display: none; }
+  .menu-item { justify-content: center; padding: 0; }
+  .menu-topo { flex-direction: column; padding-inline: 0; }
+  .menu-alterna { display: none; }
+  .menu-logo { display: none; }
+}
+
+.menu-pe { margin-top: auto; display: flex; gap: var(--s-8); padding: var(--s-8); justify-content: center; }
+.menu-vidro[data-recolhido="true"] .menu-pe, [data-recolhido="true"] .menu-pe { flex-direction: column; align-items: center; }
+@media (max-width: 767px) { .menu-pe { flex-direction: column; align-items: center; } }
+.bolinha {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  font-family: var(--fonte-titulo); font-weight: var(--numero-peso); font-size: var(--t-14); color: var(--cor-tinta);
+}
+.bolinha-n { background: var(--cor-bege); }
+.bolinha-m { background: var(--cor-ouro); }
+
+.barra-filtro { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); margin-bottom: var(--s-24); }
+.barra-filtro-rotulo { font-size: var(--t-12); letter-spacing: var(--rotulo-letra); text-transform: uppercase; color: var(--cor-tinta-2); margin-right: var(--s-4); font-weight: 600; }
+.chip-empresa {
+  padding: var(--s-4) var(--s-12); min-height: 32px; border-radius: var(--raio); cursor: pointer;
+  font: 600 var(--t-14) var(--fonte-texto); color: var(--cor-tinta);
+  background: var(--cor-superficie); border: 1px solid var(--cor-linha-forte);
+  transition: background var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva);
+}
+.chip-empresa:hover { border-color: var(--cor-roxo); }
+.chip-empresa[aria-pressed="true"] { background: var(--cor-roxo); color: var(--cor-bege); border-color: var(--cor-roxo); }
+
+.em-construcao { max-width: 640px; }
+.em-construcao h1 { font-size: var(--t-49); color: var(--cor-roxo); margin: 0 0 var(--s-16); }
+.em-construcao .aviso { background: var(--cor-kraft); color: var(--cor-kraft-texto); padding: var(--s-16) var(--s-24); }

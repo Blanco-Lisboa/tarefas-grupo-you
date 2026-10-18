@@ -1,0 +1,48 @@
+@import "tailwindcss";
+@import "../styles/beec-tokens.css";
+@import "../styles/etiquetas.css";
+
+/* Fontes vêm do next/font (layout.tsx). Aqui só apontamos os tokens da Beec para elas. */
+:root {
+  --fonte-titulo: var(--font-bricolage), 'Arial Black', sans-serif;
+  --fonte-texto: var(--font-host), system-ui, sans-serif;
+}
+
+@theme inline {
+  --font-sans: var(--fonte-texto);
+  --font-titulo: var(--fonte-titulo);
+  --color-bege: var(--cor-bege);
+  --color-superficie: var(--cor-superficie);
+  --color-grafite: var(--cor-grafite);
+  --color-roxo: var(--cor-roxo);
+  --color-kraft: var(--cor-kraft);
+  --color-ouro: var(--cor-ouro);
+  --color-eletrico: var(--cor-eletrico);
+  --color-tinta: var(--cor-tinta);
+  --color-tinta-2: var(--cor-tinta-2);
+  --color-suave: var(--cor-suave);
+}
+
+html {
+  background: var(--cor-bege);
+}
+
+body {
+  background: var(--brilho-claro), var(--cor-bege);
+  background-attachment: fixed;
+  color: var(--cor-tinta);
+  font-family: var(--fonte-texto);
+  line-height: var(--texto-entrelinha);
+}
+
+h1, h2, h3 {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--titulo-peso);
+  letter-spacing: var(--titulo-espaco);
+  line-height: var(--titulo-entrelinha);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cor-eletrico);
+  outline-offset: 2px;
+}
