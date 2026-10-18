@@ -35,6 +35,7 @@ export const tarefaEmBranco = (parcial: Partial<NovaTarefa> = {}): NovaTarefa =>
 });
 
 const LINK_VALIDO = /^https?:\/\//i;
+const HORA = 60 * 60_000;
 
 export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () => void }) {
   const empresas = useEmpresas();
@@ -50,14 +51,17 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
   const mudar = <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => setT((x) => ({ ...x, [campo]: valor }));
 
   // Mudou o início: o fim anda junto e a duração fica igual (senão o fim fica antes do início e trava o formulário).
+  // A última duração válida fica guardada para o caminho "limpa a data e escolhe outra" (sem data não dá para medir).
+  const duracao = useRef(HORA);
   function mudarInicio(novaData: string, novaHora: string) {
-    if (data && novaData && horaFim) {
-      const duracao = deTexto(`${dataFim || data}T${horaFim}`).getTime() - deTexto(`${data}T${horaIni}`).getTime();
-      if (duracao > 0) {
-        const fim = paraHora(new Date(deTexto(`${novaData}T${novaHora}`).getTime() + duracao));
-        setDataFim(fim.slice(0, 10));
-        setHoraFim(fim.slice(11, 16));
-      }
+    if (data && horaFim) {
+      const atual = deTexto(`${dataFim || data}T${horaFim}`).getTime() - deTexto(`${data}T${horaIni}`).getTime();
+      if (atual > 0) duracao.current = atual;
+    }
+    if (novaData && horaFim) {
+      const fim = paraHora(new Date(deTexto(`${novaData}T${novaHora}`).getTime() + duracao.current));
+      setDataFim(fim.slice(0, 10));
+      setHoraFim(fim.slice(11, 16));
     }
     setData(novaData);
     setHoraIni(novaHora);
