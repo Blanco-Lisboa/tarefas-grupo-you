@@ -13,8 +13,10 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
   ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, removerTarefa, salvarTarefa, useEmpresas,
-  type Etapa, type Link, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
+  type Etapa, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
 } from "@/lib/dados";
+import Link from "next/link";
+import { deTexto, paraHora } from "@/components/calendario/logica";
 import "./ficha.css";
 
 export const NOMES = {
@@ -42,9 +44,24 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
   const [horaIni, setHoraIni] = useState(tarefa.inicio?.slice(11, 16) || "09:00");
   const [horaFim, setHoraFim] = useState(tarefa.fim?.slice(11, 16) ?? "");
   const [dataFim, setDataFim] = useState(tarefa.fim?.slice(0, 10) ?? "");
-  const [links, setLinks] = useState<Link[]>(tarefa.links);
+  const [links, setLinks] = useState<LinkDrive[]>(tarefa.links);
   const nova = !tarefa.id;
+  const temEmpresa = empresas.some((x) => x.id === t.empresaId);
   const mudar = <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => setT((x) => ({ ...x, [campo]: valor }));
+
+  // Mudou o início: o fim anda junto e a duração fica igual (senão o fim fica antes do início e trava o formulário).
+  function mudarInicio(novaData: string, novaHora: string) {
+    if (data && novaData && horaFim) {
+      const duracao = deTexto(`${dataFim || data}T${horaFim}`).getTime() - deTexto(`${data}T${horaIni}`).getTime();
+      if (duracao > 0) {
+        const fim = paraHora(new Date(deTexto(`${novaData}T${novaHora}`).getTime() + duracao));
+        setDataFim(fim.slice(0, 10));
+        setHoraFim(fim.slice(11, 16));
+      }
+    }
+    setData(novaData);
+    setHoraIni(novaHora);
+  }
 
   useEffect(() => {
     const d = dialogo.current;
@@ -53,7 +70,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
-    if (!t.titulo.trim()) return;
+    if (!t.titulo.trim() || !temEmpresa) return;
     const quando: Pick<NovaTarefa, "inicio" | "fim" | "diaInteiro"> = !data
       ? { inicio: undefined, fim: undefined, diaInteiro: false }
       : t.diaInteiro
@@ -107,9 +124,16 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
               </select>
             </Campo>
             <Campo rotulo="Empresa">
-              <select value={t.empresaId} onChange={(e) => mudar("empresaId", e.target.value)}>
-                {empresas.map((x) => <option key={x.id} value={x.id}>{x.nome}</option>)}
-              </select>
+              {empresas.length ? (
+                <select value={temEmpresa ? t.empresaId : ""} onChange={(e) => mudar("empresaId", e.target.value)} required>
+                  {!temEmpresa && <option value="" disabled>Escolha a empresa</option>}
+                  {empresas.map((x) => <option key={x.id} value={x.id}>{x.nome}</option>)}
+                </select>
+              ) : (
+                <p className="ficha-aviso" role="alert">
+                  Nenhuma empresa cadastrada. <Link href="/configuracoes" onClick={() => dialogo.current?.close()}>Cadastrar em Configurações</Link>
+                </p>
+              )}
             </Campo>
             <Campo rotulo="Rede">
               <select value={t.rede ?? ""} onChange={(e) => mudar("rede", (e.target.value || undefined) as Rede | undefined)}>
@@ -140,7 +164,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
           <fieldset className="ficha-campo">
             <legend>Quando</legend>
             <div className="ficha-quando">
-              <label className="ficha-mini">Data<input type="date" value={data} onChange={(e) => setData(e.target.value)} /></label>
+              <label className="ficha-mini">Data<input type="date" value={data} onChange={(e) => mudarInicio(e.target.value, horaIni)} /></label>
               {data && (
                 <label className="ficha-marcar">
                   <input type="checkbox" checked={t.diaInteiro} onChange={(e) => mudar("diaInteiro", e.target.checked)} />
@@ -149,7 +173,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
               )}
               {data && !t.diaInteiro && (
                 <>
-                  <label className="ficha-mini">Começa<input type="time" value={horaIni} onChange={(e) => setHoraIni(e.target.value || "09:00")} /></label>
+                  <label className="ficha-mini">Começa<input type="time" value={horaIni} onChange={(e) => mudarInicio(data, e.target.value || "09:00")} /></label>
                   <label className="ficha-mini">Termina<input type="time" value={horaFim} onChange={(e) => setHoraFim(e.target.value)} /></label>
                   <label className="ficha-mini">Termina no dia<input type="date" value={dataFim || data} min={data} onChange={(e) => setDataFim(e.target.value)} /></label>
                 </>
@@ -197,7 +221,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
         <footer className="ficha-pe">
           {!nova && <button type="button" className="ficha-texto-botao ficha-excluir" onClick={excluir}>Excluir</button>}
           <button type="button" className="ficha-botao ficha-botao-claro" onClick={() => dialogo.current?.close()}>Cancelar</button>
-          <button type="submit" className="ficha-botao" disabled={!t.titulo.trim()}><span>Salvar</span></button>
+          <button type="submit" className="ficha-botao" disabled={!t.titulo.trim() || !temEmpresa}><span>Salvar</span></button>
         </footer>
       </form>
     </dialog>

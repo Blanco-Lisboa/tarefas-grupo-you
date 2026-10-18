@@ -68,6 +68,8 @@
 .ficha-mini input { width: auto; }
 .ficha-marcar { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; font: 600 var(--t-14) var(--fonte-texto); cursor: pointer; }
 .ficha-marcar input { width: 18px; height: 18px; accent-color: var(--cor-roxo); }
+.ficha-aviso { margin: 0; padding: 8px 10px; background: var(--cor-kraft); color: var(--cor-kraft-texto); border-radius: var(--raio); font-size: var(--t-14); }
+.ficha-aviso a { color: var(--cor-roxo); font-weight: 700; }
 .ficha-dica { margin: 6px 0 0; font-size: var(--t-12); color: var(--cor-tinta-2); }
 
 .ficha-cores { display: flex; flex-wrap: wrap; gap: var(--s-8); }
