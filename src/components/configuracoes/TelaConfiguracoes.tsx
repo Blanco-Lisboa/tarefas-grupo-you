@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { removerEmpresa, salvarEmpresa, useEmpresas, useTarefas, type Empresa } from "@/lib/dados";
+import { removerEmpresa, salvarEmpresa, useEmpresas, usePecas, useTarefas, type Empresa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import "./configuracoes.css";
 
@@ -12,6 +12,7 @@ function sigla(nome: string) {
 export function TelaConfiguracoes() {
   const empresas = useEmpresas();
   const tarefas = useTarefas();
+  const pecas = usePecas();
   const { selecionadas, alternar } = useFiltroEmpresa();
   const [novoNome, setNovoNome] = useState("");
   const [editando, setEditando] = useState<string | null>(null);
@@ -68,6 +69,7 @@ export function TelaConfiguracoes() {
         <ul className="config-lista">
           {empresas.map((empresa) => {
             const quantidade = tarefas.filter((t) => t.empresaId === empresa.id).length;
+            const quantidadePecas = pecas.filter((p) => p.empresaId === empresa.id).length;
             return (
               <li className="config-empresa" key={empresa.id}>
                 <span className="config-monograma" aria-hidden="true">{empresa.sigla}</span>
@@ -82,7 +84,7 @@ export function TelaConfiguracoes() {
                   ) : <><strong>{empresa.nome}</strong><span>{quantidade} {quantidade === 1 ? "tarefa" : "tarefas"}</span></>}
                   {removendo === empresa.id && (
                     <div className="config-confirmacao" role="alertdialog" aria-label={`Confirmar exclusão de ${empresa.nome}`}>
-                      <p>Tirar {empresa.nome}? {quantidade} {quantidade === 1 ? "tarefa será removida" : "tarefas serão removidas"} junto.</p>
+                      <p>Tirar {empresa.nome}? {quantidade} {quantidade === 1 ? "tarefa será removida" : "tarefas serão removidas"} e {quantidadePecas} {quantidadePecas === 1 ? "peça sumirá" : "peças sumirão"} das Pastas. Não dá para recuperar depois.</p>
                       <div><button className="config-botao-perigo" type="button" onClick={() => void tirar(empresa.id)}>Sim, tirar empresa</button><button className="config-botao-texto" type="button" onClick={() => setRemovendo(null)}>Cancelar</button></div>
                     </div>
                   )}
