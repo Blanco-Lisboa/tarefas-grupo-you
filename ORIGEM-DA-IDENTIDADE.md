@@ -6,7 +6,8 @@ Tudo copiado em 18/10/2026 de `C:\Users\Natham Monteiro\Desktop\ID-Visual-ALL\Be
 |---|---|---|
 | `src/styles/beec-tokens.css` | `tokens.css` | Linhas 8 a 170 (bloco FINAL) e 246 a 257 (classes da casa `.destaque`, `.no-escuro`, `.corte-22`, `.corte-22-esq`, `.corte-sombra`, `.corte-sombra-escuro`). Blocos LEGADO ficaram de fora. Uma linha de cabeçalho foi acrescentada. |
 | `public/beec/logo/*.svg` (14 arquivos) | `logo\svg\*.svg` | Pasta inteira: ícones, logos bege, grafite, ouro, roxo, adesivo (com e sem grão) e `favicon.svg`. |
-| `public/beec/icones/*.svg` (66 arquivos) | `icones\svg\*.svg` | 22 ícones em 3 versões (`nome`, `nome-claro`, `nome-liso`). A subpasta `marcas\` (Google, Meta, TikTok, WhatsApp) NÃO foi copiada. |
+| `public/beec/icones/*.svg` (66 arquivos) | `icones\svg\*.svg` | 22 ícones em 3 versões (`nome`, `nome-claro`, `nome-liso`). |
+| `public/beec/icones/marcas/*.svg` (10 arquivos) | `icones\svg\marcas\*.svg` | Subpasta completa copiada em 18/10/2026: Google, Meta, TikTok, WhatsApp e YouTube, nas versões padrão e lisa. |
 
 Arquivos novos do projeto, que NÃO vêm da ID:
 

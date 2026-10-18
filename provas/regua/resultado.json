@@ -1,0 +1,41 @@
+[
+  {
+    "rota": "conteudos",
+    "largura": 1903,
+    "innerWidth": 1903,
+    "erros": []
+  },
+  {
+    "rota": "configuracoes",
+    "largura": 1903,
+    "innerWidth": 1903,
+    "erros": []
+  },
+  {
+    "rota": "conteudos",
+    "largura": 1440,
+    "innerWidth": 1440,
+    "erros": []
+  },
+  {
+    "rota": "configuracoes",
+    "largura": 1440,
+    "innerWidth": 1440,
+    "erros": []
+  },
+  {
+    "rota": "conteudos",
+    "largura": 390,
+    "innerWidth": 390,
+    "erros": []
+  },
+  {
+    "rota": "configuracoes",
+    "largura": 390,
+    "innerWidth": 390,
+    "erros": []
+  },
+  {
+    "interacoes": "filtro, ficha, seletor de etapa, arraste, incluir, renomear, confirmar e tirar: ok"
+  }
+]
