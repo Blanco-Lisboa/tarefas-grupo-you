@@ -58,6 +58,8 @@
 .linha[data-feita="true"] .risco { background-size: 100% 2.5px; opacity: .72; }
 .linha[data-feita="true"] .detalhe { opacity: .6; }
 
+.abrir { display: inline; background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.abrir:disabled { cursor: default; }
 .caixa { flex: none; width: 32px; height: var(--passo); display: grid; place-items: center; background: none; border: 0; padding: 0; cursor: pointer; color: var(--tinta); }
 .caixa:disabled { cursor: default; }
 .caixa svg { width: 26px; height: 26px; overflow: visible; }

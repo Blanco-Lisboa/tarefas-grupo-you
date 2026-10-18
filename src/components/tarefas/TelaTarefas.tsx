@@ -2,6 +2,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { removerTarefa, salvarTarefa, useEmpresas, useTarefas, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
+import { Ficha } from "@/components/ficha/Ficha";
 import { Folha, type LinhaFolha } from "./Folha";
 import { LETRA_PRINCIPAL } from "./fontes";
 import { useFeitas } from "./feitas";
@@ -27,6 +28,7 @@ export function TelaTarefas() {
   const [escolhido, setEscolhido] = useState<string | null>(null);
   const [aba, setAba] = useState<"dia" | "semdata">("dia");
   const dia = escolhido ?? hoje;
+  const [aberta, setAberta] = useState<Tarefa | null>(null);
 
   const tarefas = useTarefas();
   const empresas = useEmpresas();
@@ -81,6 +83,7 @@ export function TelaTarefas() {
           empresas={empresasEscolha}
           empresaPadrao={empresasEscolha[0]?.id ?? ""}
           aoMarcar={alternar}
+          aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
           aoApagar={(id) => void removerTarefa(id)}
           aoEscrever={(t, empresaId, responsavel) =>
             void salvarTarefa({
@@ -90,6 +93,7 @@ export function TelaTarefas() {
           }
         />
       </div>
+      {aberta && <Ficha tarefa={aberta} aoFechar={() => setAberta(null)} />}
     </section>
   );
 }

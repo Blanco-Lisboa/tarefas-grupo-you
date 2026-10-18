@@ -18,6 +18,7 @@ type Props = {
   /** Sem estes três a folha é só para olhar (página de escolha da letra). */
   aoMarcar?: (id: string) => void;
   aoApagar?: (id: string) => void;
+  aoAbrir?: (id: string) => void;
   aoEscrever?: (titulo: string, empresaId: string, responsavel: Responsavel) => void;
 };
 
@@ -25,7 +26,7 @@ const MIN_LINHAS = 13;
 // Giro mínimo e fixo por tarefa: a mão nunca escreve duas linhas idênticas.
 const giro = (id: string) => (([...id].reduce((s, c) => s + c.charCodeAt(0), 0) % 7) - 3) * 0.12;
 
-export function Folha({ letra, titulo, subtitulo, linhas, vazio, empresas, empresaPadrao, aoMarcar, aoApagar, aoEscrever }: Props) {
+export function Folha({ letra, titulo, subtitulo, linhas, vazio, empresas, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoEscrever }: Props) {
   const [texto, setTexto] = useState("");
   const [empresa, setEmpresa] = useState<string | null>(null);
   const [resp, setResp] = useState<Responsavel>("natham");
@@ -60,7 +61,9 @@ export function Folha({ letra, titulo, subtitulo, linhas, vazio, empresas, empre
                 </svg>
               </button>
               <span className="linha-texto">
-                <span className="folha-tinta risco">{l.titulo}</span>
+                <button type="button" className="abrir" disabled={!aoAbrir} title="Abrir a ficha" onClick={() => aoAbrir?.(l.id)}>
+                  <span className="folha-tinta risco">{l.titulo}</span>
+                </button>
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
               </span>
               {aoApagar && (
