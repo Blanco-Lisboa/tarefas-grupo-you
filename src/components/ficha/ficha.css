@@ -1,7 +1,7 @@
 /* Ficha da tarefa: card com orelhas a 22° (sombra no pai, o <dialog>), faixa roxa do título, campos no claro. Só tokens da Beec. */
 .ficha {
   width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 24px);
-  padding: 0; border: 0; background: transparent; overflow: visible; color: var(--cor-tinta);
+  margin: auto; padding: 0; border: 0; background: transparent; overflow: visible; color: var(--cor-tinta);
 }
 .ficha::backdrop { background: rgba(24, 19, 31, .55); }
 .ficha-cartao {
@@ -28,6 +28,7 @@
   color: var(--cor-bege); padding: var(--s-4) 0 var(--s-8);
   font: var(--titulo-peso) var(--t-31) / 1.1 var(--fonte-titulo); letter-spacing: var(--titulo-espaco);
 }
+@media (max-width: 520px) { .ficha-titulo { font-size: var(--t-25); } .ficha-faixa { padding-left: var(--s-24); } }
 .ficha-titulo::placeholder { color: var(--cor-suave); opacity: .7; }
 .ficha-titulo:focus { border-bottom-color: var(--cor-ouro); outline: none; }
 

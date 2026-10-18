@@ -195,7 +195,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
         </div>
 
         <footer className="ficha-pe">
-          {!nova && <button type="button" className="ficha-texto-botao ficha-excluir" onClick={excluir}>Excluir tarefa</button>}
+          {!nova && <button type="button" className="ficha-texto-botao ficha-excluir" onClick={excluir}>Excluir</button>}
           <button type="button" className="ficha-botao ficha-botao-claro" onClick={() => dialogo.current?.close()}>Cancelar</button>
           <button type="submit" className="ficha-botao" disabled={!t.titulo.trim()}><span>Salvar</span></button>
         </footer>
