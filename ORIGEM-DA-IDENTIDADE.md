@@ -8,6 +8,12 @@ Fontes Bricolage e Host saíram; entrou Inter (Google Fonts, OFL, via `next/font
 (nomes velhos apontando para a Névoa até a Fase 2). Os arquivos em `public/beec/` ainda são usados por algumas telas (ícones
 das redes em Conteúdos) até a Fase 2. A tabela abaixo é o histórico de 18/10.
 
+**19/10/2026, fim da Fase 2 (item 60):** todas as telas vestiram a Névoa e `src/styles/ponte-beec.css` foi APAGADO, com o
+`@import` dele no `globals.css`. Varredura em `src/` sem nenhum nome velho (`--cor-*`, `--fonte-titulo/texto/numero`,
+`.corte-22`, `.no-escuro`, `.destaque`, Bricolage, Host Grotesk, `#1A1024`, `#F6F2EA`, kraft, ouro). Nenhuma tela usa mais
+`public/beec/`; a pasta e `beec-tokens.css` ficam só como registro (nada importa os dois). A paleta de etiquetas foi
+re-harmonizada com a Névoa no mesmo dia (`097c83f`).
+
 Tudo copiado em 18/10/2026 de `C:\Users\Natham Monteiro\Desktop\ID-Visual-ALL\Beec\identidade\` (SÓ LEITURA; nada foi alterado lá). Se a ID mudar, copiar de novo e atualizar esta lista.
 
 | Arquivo no projeto | Origem (dentro de `identidade\`) | Observação |

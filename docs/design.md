@@ -10,7 +10,7 @@ A identidade do sistema Tarefas é a **Névoa**, escolhida pelo Natham no item 6
 - Tipografia: Inter, títulos na cor do texto. Azul fica nas ações, na seleção ativa e em um ou dois blocos de destaque por tela.
 - Superfícies: cards brancos com cantos arredondados e sombra macia. Vidro translúcido com desfoque em peças flutuantes ou fixas, como menu e listas que abrem.
 - Controles comuns em `src/app/globals.css`: `.btn` azul, `.btn-2` de vidro claro, `.btn-claro` sobre azul e `.lnk` azul. `.bloco-destaque` é o card cheio azul; `.bloco-numero` e `.bloco-fraco` compõem o número e o texto secundário.
-- `src/styles/ponte-beec.css` é uma ponte temporária para telas ainda em migração. Não usar seus nomes em código novo e não apagá-la até o fim da Fase 2.
+- A ponte temporária `ponte-beec.css` foi apagada no fim da Fase 2 (19/10). Nenhum nome da Beec (`--cor-*`, `.corte-22`, `.no-escuro`, `.destaque`) volta ao código.
 - Etiquetas: `src/styles/etiquetas.css`, com `--etiqueta-1..10` e seus pares de texto. Permanecem para identificar tarefas e eventos.
 
 ## Interação

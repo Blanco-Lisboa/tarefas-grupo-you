@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "../styles/tarefas-tokens.css";
-@import "../styles/ponte-beec.css";   /* temporária: sai no fim da Fase 2 (item 60) */
 @import "../styles/etiquetas.css";
 
 /* ===== Camada do app (item 60): papéis fixos para todas as telas encaixarem igual, montados com tarefas-tokens.css ===== */
@@ -15,7 +14,6 @@
   --app-t-rotulo: var(--t-12);     /* rótulo, metadado */
 
   --app-controle: 40px;            /* uma altura só: todo botão, campo e seleção da mesma barra alinha (o 40 do modelo 1) */
-  --cor-realce-claro: var(--realce);
 }
 @media (max-width: 767px) { :root { --app-margem: var(--s-12); } }
 
