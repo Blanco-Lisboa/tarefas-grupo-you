@@ -45,7 +45,7 @@
 .mod-contraste .card { padding: 16px; background: #0A0A0A; color: #FFFFFF; border-color: transparent; box-shadow: 0 16px 32px -18px rgb(0 0 0 / 0.6); }
 .mod-contraste .card:hover { transform: translateY(-2px); }
 .mod-contraste .card-topo, .mod-contraste .card-pe { color: #A1A1A1; }
-.mod-contraste .selo { background: rgb(255 255 255 / 0.12); color: #FFFFFF; }
+.mod-contraste .card-selo { background: rgb(255 255 255 / 0.12); color: #FFFFFF; }
 .mod-contraste .etapa { padding: 4px 10px 4px 8px; border-radius: 999px; background: rgb(255 255 255 / 0.1); color: #FFFFFF; }
 
 /* Vidro sobre uma esfera iluminada no preto (ref-5, "File Preview") */
@@ -61,7 +61,7 @@
 .mod-contraste .vidro-pe::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: #D7FF3A; vertical-align: 1px; }
 
 /* Menu: painel branco com sombra; ativo = pílula preta; mouse em cima = cinza */
-.mod-contraste .menu-amostra { border-color: transparent; box-shadow: var(--sombra); border-radius: 24px; }
-.mod-contraste .menu-item { border-radius: 999px; font-weight: 500; }
-.mod-contraste .menu-item[aria-current="page"] { --ativo-bg: #0A0A0A; --ativo-tx: #FFFFFF; }
-.mod-contraste .menu-item[aria-current="page"] svg { color: #D7FF3A; }
+.mod-contraste .mm-amostra { border-color: transparent; box-shadow: var(--sombra); border-radius: 24px; }
+.mod-contraste .mm-item { border-radius: 999px; font-weight: 500; }
+.mod-contraste .mm-item[aria-current="page"] { --ativo-bg: #0A0A0A; --ativo-tx: #FFFFFF; }
+.mod-contraste .mm-item[aria-current="page"] svg { color: #D7FF3A; }

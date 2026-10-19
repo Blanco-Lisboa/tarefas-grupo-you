@@ -45,7 +45,7 @@
 }
 .mod-aco .card:hover { border-color: #0D1015; }
 .mod-aco .card-topo { text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; }
-.mod-aco .selo { background: #0D1015; color: #FFFFFF; font-weight: 500; }
+.mod-aco .card-selo { background: #0D1015; color: #FFFFFF; font-weight: 500; }
 .mod-aco .card-titulo { font-weight: 500; font-size: 14px; }
 
 /* Vidro sobre uma peça cromada escura */
@@ -61,10 +61,10 @@
 .mod-aco .vidro-rot { font-size: 10px; letter-spacing: 0.12em; }
 
 /* Menu: caixa de fio fino; ativo = pílula de contorno preto com seta; mouse em cima = cinza claro */
-.mod-aco .menu-amostra { background: transparent; }
-.mod-aco .menu-item { border-radius: 999px; border: 1px solid transparent; font-size: 13px; }
-.mod-aco .menu-item:hover, .mod-aco .menu-item.is-hover { background: var(--sup); color: var(--texto); }
-.mod-aco .menu-item[aria-current="page"] { --ativo-bg: transparent; --ativo-tx: #0D1015; font-weight: 500; border-color: #0D1015; }
-.mod-aco .menu-item[aria-current="page"]::after {
+.mod-aco .mm-amostra { background: transparent; }
+.mod-aco .mm-item { border-radius: 999px; border: 1px solid transparent; font-size: 13px; }
+.mod-aco .mm-item:hover, .mod-aco .mm-item.is-hover { background: var(--sup); color: var(--texto); }
+.mod-aco .mm-item[aria-current="page"] { --ativo-bg: transparent; --ativo-tx: #0D1015; font-weight: 500; border-color: #0D1015; }
+.mod-aco .mm-item[aria-current="page"]::after {
   content: ""; width: 6px; height: 6px; margin-left: auto; border-top: 1.5px solid currentColor; border-right: 1.5px solid currentColor; transform: rotate(45deg);
 }

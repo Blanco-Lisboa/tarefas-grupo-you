@@ -127,7 +127,7 @@ export function Vitrine({ numero, id, nome, ideia, cores }: Props) {
 
       <Bloco titulo="Card de conteúdo">
         <div className="card">
-          <div className="card-topo"><span className="selo">Beec</span><span>Instagram</span></div>
+          <div className="card-topo"><span className="card-selo">Beec</span><span>Instagram</span></div>
           <p className="card-titulo">Bastidores da gravação do episódio 4</p>
           <div className="card-pe"><time dateTime="2026-10-23">qui, 23 out</time><span className="etapa">Edição</span></div>
         </div>
@@ -145,15 +145,15 @@ export function Vitrine({ numero, id, nome, ideia, cores }: Props) {
       </Bloco>
 
       <Bloco titulo="Menu lateral">
-        <nav className="menu-amostra" aria-label={`Menu de exemplo do modelo ${numero}`}>
-          <div className="menu-trilho" aria-hidden="true">
+        <nav className="mm-amostra" aria-label={`Menu de exemplo do modelo ${numero}`}>
+          <div className="mm-trilho" aria-hidden="true">
             <Icone nome="calendario" /><Icone nome="tarefas" /><Icone nome="conteudos" /><Icone nome="mapa" />
           </div>
-          <div className="menu-lista">
-            <button type="button" className="menu-item" aria-current="page"><Icone nome="calendario" />Calendário</button>
-            <button type="button" className="menu-item is-hover"><Icone nome="tarefas" />Tarefas</button>
-            <button type="button" className="menu-item"><Icone nome="conteudos" />Conteúdos</button>
-            <button type="button" className="menu-item"><Icone nome="mapa" />Mapa</button>
+          <div className="mm-lista">
+            <button type="button" className="mm-item" aria-current="page"><Icone nome="calendario" />Calendário</button>
+            <button type="button" className="mm-item is-hover"><Icone nome="tarefas" />Tarefas</button>
+            <button type="button" className="mm-item"><Icone nome="conteudos" />Conteúdos</button>
+            <button type="button" className="mm-item"><Icone nome="mapa" />Mapa</button>
           </div>
         </nav>
         <p className="mod-nota">Calendário ativo; Tarefas com o mouse em cima</p>

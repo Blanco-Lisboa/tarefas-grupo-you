@@ -36,7 +36,7 @@
 .mod-editorial .card { padding: 16px; }
 .mod-editorial .card:hover { border-color: #141414; }
 .mod-editorial .card-titulo { font-family: var(--f-serif); font-weight: 400; font-size: 21px; line-height: 1.1; letter-spacing: -0.005em; }
-.mod-editorial .selo { padding: 0; background: none; border-radius: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; font-size: 11px; }
+.mod-editorial .card-selo { padding: 0; background: none; border-radius: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; font-size: 11px; }
 .mod-editorial .card-topo span:last-child::before { content: "/"; margin-right: 8px; color: var(--borda); }
 .mod-editorial .card-pe { padding-top: 10px; border-top: 1px solid var(--borda); }
 .mod-editorial .etapa::before { border-radius: 0; width: 6px; height: 6px; }
@@ -55,9 +55,9 @@
 .mod-editorial .vidro-titulo { font-family: var(--f-serif); font-weight: 400; font-size: 20px; letter-spacing: 0; }
 
 /* Menu: só texto, sem caixa; ativo = preto com ponto; mouse em cima = sublinhado */
-.mod-editorial .menu-amostra { padding: 4px 0; background: none; border: 0; border-top: 1px solid var(--borda); border-bottom: 1px solid var(--borda); border-radius: 0; }
-.mod-editorial .menu-item { padding: 0; border-radius: 0; font-size: 15px; }
-.mod-editorial .menu-item svg { display: none; }
-.mod-editorial .menu-item:hover, .mod-editorial .menu-item.is-hover { background: none; text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
-.mod-editorial .menu-item[aria-current="page"] { --ativo-bg: transparent; --ativo-tx: #141414; font-weight: 500; }
-.mod-editorial .menu-item[aria-current="page"]::after { content: ""; width: 6px; height: 6px; margin-left: auto; border-radius: 50%; background: #141414; }
+.mod-editorial .mm-amostra { padding: 4px 0; background: none; border: 0; border-top: 1px solid var(--borda); border-bottom: 1px solid var(--borda); border-radius: 0; }
+.mod-editorial .mm-item { padding: 0; border-radius: 0; font-size: 15px; }
+.mod-editorial .mm-item svg { display: none; }
+.mod-editorial .mm-item:hover, .mod-editorial .mm-item.is-hover { background: none; text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.mod-editorial .mm-item[aria-current="page"] { --ativo-bg: transparent; --ativo-tx: #141414; font-weight: 500; }
+.mod-editorial .mm-item[aria-current="page"]::after { content: ""; width: 6px; height: 6px; margin-left: auto; border-radius: 50%; background: #141414; }

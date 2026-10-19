@@ -36,7 +36,7 @@
 /* Card: superfície lisa (conteúdo não é vidro), uma sombra macia e nenhuma borda */
 .mod-nevoa .card { background: #FFFFFF; border-color: transparent; box-shadow: var(--sombra-vidro); }
 .mod-nevoa .card:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgb(0 0 0 / 0.05), 0 16px 32px -14px rgb(0 0 0 / 0.22); }
-.mod-nevoa .selo { background: #EDEDF0; }
+.mod-nevoa .card-selo { background: #EDEDF0; }
 
 .mod-nevoa .vidro-fundo {
   --arte:
@@ -53,13 +53,13 @@
 }
 
 /* Menu: trilho escuro de ícones + lista em vidro; ativo = vidro branco levantado */
-.mod-nevoa .menu-amostra { background: rgb(255 255 255 / 0.45); border-color: var(--vidro-linha); box-shadow: var(--sombra-vidro); }
-.mod-nevoa .menu-trilho {
+.mod-nevoa .mm-amostra { background: rgb(255 255 255 / 0.45); border-color: var(--vidro-linha); box-shadow: var(--sombra-vidro); }
+.mod-nevoa .mm-trilho {
   display: flex; flex-direction: column; align-items: center; gap: 2px; width: 40px; padding: 6px 0;
   border-radius: 12px; background: #2C2C2E; color: rgb(255 255 255 / 0.55);
 }
-.mod-nevoa .menu-trilho svg { width: 18px; height: 18px; margin: 7px 0; }
-.mod-nevoa .menu-trilho svg:first-child { color: #FFFFFF; }
-.mod-nevoa .menu-item { padding: 0 8px; gap: 8px; }
-.mod-nevoa .menu-item[aria-current="page"] { --ativo-bg: #FFFFFF; --ativo-tx: var(--texto); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1); }
-.mod-nevoa .menu-item[aria-current="page"] svg { color: var(--acento); }
+.mod-nevoa .mm-trilho svg { width: 18px; height: 18px; margin: 7px 0; }
+.mod-nevoa .mm-trilho svg:first-child { color: #FFFFFF; }
+.mod-nevoa .mm-item { padding: 0 8px; gap: 8px; }
+.mod-nevoa .mm-item[aria-current="page"] { --ativo-bg: #FFFFFF; --ativo-tx: var(--texto); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1); }
+.mod-nevoa .mm-item[aria-current="page"] svg { color: var(--acento); }
