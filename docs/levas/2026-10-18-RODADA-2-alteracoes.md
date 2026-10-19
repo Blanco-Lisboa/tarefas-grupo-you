@@ -90,3 +90,19 @@ clique fora), presa ao botão, e vira para cima ou para o lado se faltar espaço
 **Aviso.** No servidor de desenvolvimento (porta 3100) o selo "N" do Next fica no canto de baixo à esquerda, por cima do
 "Recolher menu". Some na versão publicada. Se incomodar: `devIndicators: { position: "bottom-right" }` no
 `next.config.ts` (arquivo comum, não mexi).
+
+## PENTE FINO DA ID (item 53) · todos, cada um no seu território
+O Natham reprovou: "muita coisa diferente da ID visual da Beec". Critério agora é FIDELIDADE à ID, elemento por elemento.
+1. Leia a ID COMPLETA (só leitura): `Desktop\ID-Visual-ALL\Beec\BRIEFING.md` inteiro (a seção 14 e o log de decisões vencem),
+   `identidade\tokens.css` (bloco FINAL), `identidade\prancha.html`, e as pranchas de elementos/cards/gráficos/ícones/menu
+   (`identidade\elementos-r*.html` na última rodada aprovada, `cards-r1.html`, `graficos-r*.html`, `icones-r1.html`, `menu-id.*`).
+   Abra as pranchas no navegador (Playwright, fora da tela) e COMPARE com a sua tela lado a lado, por foto.
+2. Monte a lista em `docs/levas/pente-fino-id/<seu-nome>.md`: cada elemento da sua tela → elemento da ID correspondente →
+   BATE / NÃO BATE (o que difere: cor, forma, raio, borda, sombra, fonte, peso, espaçamento, ícone, movimento) → conserto.
+   Elemento sem par na ID: diga qual peça da ID mais perto você usou.
+3. Conserte tudo que NÃO BATE no seu território. Cópia de peça da ID para o projeto: anote a origem (ORIGEM-DA-IDENTIDADE.md é comum: avise o Maestro).
+4. Prova: foto da sua tela ao lado da prancha da ID, em `provas/r2-id-<seu-nome>/`, + build + lint. Commit pelo índice só com os seus arquivos.
+
+Territórios: Sextante = base (tokens app, casca/menu, Selecao) + calendário · Alvenaria = mapa (o NÓ DE CONEXÃO tem que ser a
+conexão 06 "Quadro com ramos" aprovada em 14/10, nas cores decididas, ver BRIEFING) · Pena = tarefas · Vitral = pastas ·
+Régua = conteúdos, configurações e ficha.
