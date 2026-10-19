@@ -26,7 +26,6 @@
 .tarefas-data:focus-visible { outline: 3px solid var(--foco); outline-offset: 1px; }
 /* Bloco de destaque da tela: quantas tarefas feitas (número grande sobre o azul) */
 .tarefas-contador { display: flex; align-items: center; gap: var(--s-12); margin: 0; font-size: var(--app-t-texto); white-space: nowrap; }
-.tarefas-contador .bloco-numero { margin: 0; font-size: var(--t-31); }
 .medidor { display: flex; gap: 3px; }
 .medidor i { width: 8px; height: 14px; border-radius: 3px; background: linear-gradient(to right, var(--no-azul) var(--p), rgb(255 255 255 / 0.25) var(--p)); }
 
@@ -153,7 +152,9 @@
 .ag-bloco-titulo { font: 600 var(--app-t-rotulo) / 1 var(--fonte); letter-spacing: .02em; text-transform: uppercase; color: var(--fraco); }
 .ag-lista { list-style: none; margin: 0 0 var(--s-24); padding: 0; }
 .ag-item { display: grid; grid-template-columns: var(--col-hora) 16px minmax(0, 1fr); column-gap: var(--s-8); align-items: start; }
-.ag-item[data-passou="true"] .ag-card { opacity: .6; }
+/* compromisso passado: esmaece só o fundo e o risco; o texto fica inteiro (contraste mínimo 4,5) */
+.ag-item[data-passou="true"] .ag-card { background: color-mix(in srgb, var(--etq) 5%, var(--sup)); }
+.ag-item[data-passou="true"] .ag-card::before { opacity: .4; }
 .ag-hora { padding-top: var(--s-8); text-align: right; font-size: calc(18px * var(--escala)); line-height: 1.2; }
 .ag-trilho { position: relative; align-self: stretch; }
 .ag-trilho::before { content: ""; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--borda); border-radius: 1px; } /* fio fino ligando as tarefas */

@@ -3,6 +3,7 @@ import { Fragment, useEffect, useState, type CSSProperties } from "react";
 import type { Tarefa } from "@/lib/dados";
 import type { OpcaoLetra } from "./fontes";
 import { horaDe, minutos, somarMinutos } from "./grade";
+import { notaDaChave, type Armazem, type EstadoNota } from "./notas";
 import "./caderno.css";
 
 type Props = {
@@ -22,11 +23,12 @@ type Props = {
 
 const dois = (n: number) => String(n).padStart(2, "0");
 
-// Anotação solta do dia: fica só neste navegador (a Fase 2 leva para o banco).
+const armazem = (): Armazem => { try { return localStorage; } catch { return { getItem: () => null, setItem: () => {} }; } };
 function useNota(chave: string) {
-  const [valor, setValor] = useState(() => { try { return localStorage.getItem(chave) ?? ""; } catch { return ""; } });
-  const mudar = (v: string) => { setValor(v); try { localStorage.setItem(chave, v); } catch {} };
-  return [valor, mudar] as const;
+  const [estado, setEstado] = useState<EstadoNota | null>(null);
+  const atual = notaDaChave(estado, chave, armazem()); // trocou o dia: lê a nota do dia novo, nunca mostra a do anterior
+  const mudar = (valor: string) => { setEstado({ chave, valor }); try { localStorage.setItem(chave, valor); } catch {} };
+  return [atual.valor, mudar] as const;
 }
 
 export function Agenda({ letra, dia, hoje, rotuloDia, tarefas, amanha, nomeEmpresa, aoAbrir }: Props) {

@@ -8,7 +8,7 @@ import { Ficha } from "@/components/ficha/Ficha";
 import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import { copiar, virarFolha } from "./virar";
-import { horaDe, horaDoSlot, montarGrade, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { horaDe, horaDoSlot, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -18,13 +18,21 @@ const paraData = (dia: string) => new Date(+dia.slice(0, 4), +dia.slice(5, 7) - 
 const somarDias = (dia: string, n: number) => { const d = paraData(dia); d.setDate(d.getDate() + n); return iso(d); };
 // "" no servidor: o dia de hoje só existe no navegador de quem abre (evita diferença de fuso na hidratação).
 const hojeLocal = () => iso(new Date());
-const semAssinatura = () => () => {};
+// Avisa a tela quando vira a meia-noite (e ao voltar do repouso), para "Hoje" acompanhar o relógio.
+const virouODia = (avisar: () => void) => {
+  let t: ReturnType<typeof setTimeout>;
+  const agendar = () => { t = setTimeout(() => { avisar(); agendar(); }, msAteMeiaNoite(new Date())); };
+  const voltou = () => { if (!document.hidden) avisar(); };
+  agendar();
+  document.addEventListener("visibilitychange", voltou);
+  return () => { clearTimeout(t); document.removeEventListener("visibilitychange", voltou); };
+};
 
 const NOMES = { natham: "Natham", matheus: "Matheus" } as const;
 const extenso = (dia: string) => paraData(dia).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, (c) => c.toUpperCase());
 
 export function TelaTarefas() {
-  const hoje = useSyncExternalStore(semAssinatura, hojeLocal, () => "");
+  const hoje = useSyncExternalStore(virouODia, hojeLocal, () => "");
   const [escolhido, setEscolhido] = useState<string | null>(null);
   const [aba, setAba] = useState<"dia" | "semdata">("dia");
   const [lado, setLado] = useState<"tarefas" | "agenda">("tarefas"); // só no celular: uma página por vez

@@ -37,3 +37,7 @@ export function montarGrade(tarefas: Tarefa[], porHora: boolean): (Tarefa | null
   }
   return Array.from({ length: Math.max(SLOTS, linhas.length + 1) }, (_, k) => linhas[k] ?? null);
 }
+
+/** Milissegundos até a próxima meia-noite local (mais 500 de folga para o relógio já ter virado). */
+export const msAteMeiaNoite = (agora: Date): number =>
+  new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1).getTime() - agora.getTime() + 500;
