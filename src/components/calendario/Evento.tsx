@@ -2,6 +2,7 @@
 import { useState, type CSSProperties, type DragEvent } from "react";
 import { useEmpresas, type Tarefa } from "@/lib/dados";
 import { NOMES } from "@/components/ficha/Ficha";
+import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { comMinuto, diaCurto, horaCurta, tituloPeriodo, variosDias, type Destino, type Visao } from "./logica";
 
 export type Acoes = {
@@ -17,21 +18,30 @@ function horario(t: Tarefa, longo: boolean) {
   return longo && t.fim ? `${horaCurta(t.inicio)} às ${horaCurta(t.fim)}` : horaCurta(t.inicio);
 }
 
-/** Uma tarefa no calendário, na cor da etiqueta. "bloco" = grade de horários, "chip" = mês e dia inteiro, "cartao" = coluna Sem data.
+/** Cor do bloco (item 78): o bloco inteiro no tom claro da MARCA da empresa (18% da cor sobre o branco; letra escura, AA)
+    e a etapa numa etiqueta pequena. Tarefa sem empresa (ou de empresa apagada) fica na cor escolhida na ficha. */
+function cores(t: Tarefa, temEmpresa: boolean) {
+  if (!temEmpresa) return { "--tarefa-fundo": `var(--${t.cor})`, "--tarefa-texto": `var(--${t.cor}-texto)` };
+  return { "--tarefa-fundo": `color-mix(in srgb, ${tomDaEmpresa(t.empresaId).r} 18%, #fff)`, "--tarefa-texto": "var(--texto)" };
+}
+
+/** Uma tarefa no calendário. "bloco" = grade de horários, "chip" = mês e dia inteiro, "cartao" = coluna Sem data.
     curto = bloco de até 45 min: tudo numa linha só. */
 export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "bloco" | "chip" | "cartao"; abrir: (t: Tarefa) => void; style?: CSSProperties; curto?: boolean }) {
-  const empresa = useEmpresas().find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
+  const dona = useEmpresas().find((e) => e.id === t.empresaId);
+  const empresa = dona?.nome ?? "Sem empresa";
   const pessoa = NOMES.responsavel[t.responsavel];
   const hora = horario(t, modo === "bloco");
   const tipo = NOMES.tipo[t.tipo];
   const etapa = t.etapa && NOMES.etapa[t.etapa];
-  const detalhes = [t.rede && NOMES.rede[t.rede], etapa, modo === "cartao" && tipo !== etapa && tipo].filter(Boolean).join(" · ");
+  const detalhes = [t.rede && NOMES.rede[t.rede], modo === "cartao" && tipo !== etapa && tipo].filter(Boolean).join(" · ");
+  const etiqueta = etapa && <span className={`etapa etapa-${t.etapa}`}>{etapa}</span>;
   return (
     <button
       type="button"
       draggable
       className={`evento evento-${modo}${curto ? " evento-curto" : ""}`}
-      style={{ "--tarefa-fundo": `var(--${t.cor})`, "--tarefa-texto": `var(--${t.cor}-texto)`, ...style } as CSSProperties}
+      style={{ ...cores(t, !!dona), ...style } as CSSProperties}
       title={`${t.titulo}\n${empresa} · ${pessoa}${hora ? ` · ${hora}` : ""}${detalhes ? `\n${detalhes}` : ""}`}
       onDragStart={(e) => { e.dataTransfer.setData("text/plain", t.id); e.dataTransfer.effectAllowed = "move"; }}
       onClick={(e) => { e.stopPropagation(); abrir(t); }}
@@ -40,11 +50,14 @@ export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "blo
         <span className={`evento-bolinha evento-bolinha-${t.responsavel}`} aria-label={pessoa}>{pessoa[0]}</span>
         {hora && (modo !== "bloco" || curto) && <span className="evento-hora">{curto ? hora.slice(0, 5) : hora}</span>}
         <span className="evento-titulo">{t.titulo}</span>
-        {(modo === "chip" || curto) && <span className="selo">{empresa}</span>}
+        {modo === "chip" && <>{etiqueta}<span className="selo">{empresa}</span></>}
+        {/* bloco curto: uma linha só; a etiqueta da etapa toma o lugar do selo (o fundo já diz a empresa) */}
+        {curto && (etiqueta && dona ? etiqueta : <span className="selo">{empresa}</span>)}
       </span>
       {modo !== "chip" && !curto && (
         <span className="evento-detalhes">
           <span className="selo">{empresa}</span>
+          {etiqueta}
           {modo === "bloco" && hora && <span>{hora}</span>}
           {detalhes && <span>{detalhes}</span>}
         </span>

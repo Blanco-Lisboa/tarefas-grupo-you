@@ -17,3 +17,15 @@
   --etiqueta-9:  #8944AB; --etiqueta-9-texto:  #FFFFFF;  /* roxo · branco 6,04 */
   --etiqueta-10: #0A7A84; --etiqueta-10-texto: #FFFFFF;  /* azul-petróleo · branco 5,08 */
 }
+
+/* Etiqueta da ETAPA (item 78): pílula pequena dentro do bloco do calendário, que fica na cor clara da empresa.
+   Tons suaves, um por etapa, letra escura (#1D1D1F) com contraste de 10,3 a 15,1 (mínimo 4,5). Sem roxo e sem laranja
+   cheios, que são das empresas, e sem o azul do que se clica. */
+:root {
+  --etapa-ideia: #F2F2F5;     /* cinza claro · 15,06 */
+  --etapa-roteiro: #FFE08A;   /* amarelo · 13,05 */
+  --etapa-gravacao: #FFB8BE;  /* rosa-coral · 10,30 */
+  --etapa-edicao: #AED9F5;    /* azul-céu · 11,25 */
+  --etapa-aprovado: #ABE5BB;  /* verde · 11,75 */
+  --etapa-postado: #CBD3DF;   /* cinza-azulado · 11,16 */
+}

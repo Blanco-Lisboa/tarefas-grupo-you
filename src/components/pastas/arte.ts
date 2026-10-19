@@ -43,12 +43,7 @@ export function rng(seed: number): () => number {
   }
 }
 
-/** A stable small integer for a string, so a file's art follows its name. */
-export function hashString(s: string): number {
-  let h = 2166136261
-  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619)
-  return h >>> 0
-}
+export { hashString } from "@/lib/cores-empresa" // mora junto da cor da empresa, que também escolhe por ele
 
 /** Seeded gradient noise, summed into fractal octaves with a rotation between each. */
 function makeFbm(seed: number): (x: number, y: number, octaves: number) => number {
