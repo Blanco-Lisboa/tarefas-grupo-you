@@ -3,33 +3,36 @@
 .config-cabecalho h1 { margin: 0; color: var(--cor-roxo); font-size: var(--app-t-titulo); }
 .config-cabecalho p { max-width: 60ch; margin: var(--s-8) 0 0; color: var(--cor-tinta-2); font-size: var(--app-t-texto); }
 .config-erro { padding: var(--s-12) var(--s-16); border: 1px solid var(--cor-roxo); background: var(--cor-superficie); }
-.config-bloco { border: 1px solid var(--cor-linha-forte); border-radius: var(--raio); background: var(--cor-superficie); }
-.config-bloco-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-12); min-height: 64px; padding: var(--s-16) var(--s-24); border-bottom: 1px solid var(--cor-linha); }
+.config-bloco { background: transparent; }
+.config-bloco-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-12); min-height: 64px; padding: var(--s-16) 0; }
 .config-bloco-topo h2 { margin: 0; color: var(--cor-roxo); font-size: var(--app-t-secao); }
 .config-bloco-topo span { color: var(--cor-tinta-2); font-size: var(--app-t-rotulo); }
-.config-lista { margin: 0; padding: 0; list-style: none; }
-.config-empresa { display: flex; align-items: start; gap: var(--s-16); padding: var(--s-16) var(--s-24); border-top: 1px solid var(--cor-linha); }
-.config-empresa:first-child { border-top: 0; }
+.config-lista { display: grid; gap: var(--s-12); margin: 0; padding: 0; list-style: none; }
+.config-empresa-sombra, .config-incluir-sombra { filter: var(--sombra-card-filtro); }
+.config-empresa { --card-corte: 32px; display: flex; align-items: start; gap: var(--s-16); padding: var(--s-24); background: var(--cor-superficie); }
 .config-monograma { display: grid; flex: none; place-items: center; width: 44px; height: 44px; border-radius: var(--raio); background: var(--cor-roxo); color: var(--cor-bege); font: 800 var(--t-16) var(--fonte-titulo); }
 .config-empresa-corpo { display: flex; flex: 1; flex-direction: column; gap: var(--s-4); min-width: 0; }
 .config-empresa-corpo strong { color: var(--cor-tinta); font-size: var(--t-16); overflow-wrap: anywhere; }
 .config-empresa-corpo > span { color: var(--cor-tinta-2); font-size: var(--app-t-texto); }
 .config-acoes { display: flex; gap: var(--s-16); margin-top: var(--s-8); }
-.config-acoes button, .config-botao-texto { min-height: var(--app-controle); padding: var(--s-4); border: 0; background: none; color: var(--cor-roxo); font: 700 var(--app-t-texto) var(--fonte-texto); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.config-acoes button, .config-botao-texto { position: relative; min-height: var(--app-controle); padding: var(--s-4); border: 0; background: none; color: var(--cor-roxo); font: 700 var(--app-t-texto) var(--fonte-texto); cursor: pointer; }
+.config-acoes button::after, .config-botao-texto::after { content: ""; position: absolute; right: var(--s-4); bottom: var(--s-4); left: var(--s-4); height: var(--sub-espessura); background: var(--cor-eletrico); clip-path: var(--ponta-de-barra); }
 .config-acoes button:last-child { color: var(--cor-tinta-2); }
 .config-acoes button:hover, .config-botao-texto:hover { color: var(--cor-eletrico); }
 .config-edicao { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
 .config-edicao input { flex: 1; min-width: 160px; }
-.config-tela input { min-height: var(--app-controle); padding: var(--s-8) var(--s-12); border: 1px solid var(--cor-linha-forte); border-radius: var(--raio); background: var(--cor-superficie); color: var(--cor-tinta); font: var(--t-16) var(--fonte-texto); }
+.config-tela input { min-height: var(--app-controle); padding: var(--s-8) var(--s-12); border: 1.5px solid var(--cor-tinta-2); border-radius: var(--raio); background: var(--cor-superficie); color: var(--cor-tinta); font: var(--t-16) var(--fonte-texto); }
 .config-tela input:focus { border-color: var(--cor-eletrico); }
-.config-botao, .config-botao-perigo { min-height: var(--app-controle); padding: var(--s-8) var(--s-16); border: 1px solid var(--cor-roxo); border-radius: var(--raio); background: var(--cor-roxo); color: var(--cor-bege); font: 700 var(--app-t-texto) var(--fonte-texto); cursor: pointer; }
-.config-botao:hover, .config-botao-perigo:hover { background: var(--cor-grafite); }
+.config-botao, .config-botao-perigo { position: relative; isolation: isolate; min-height: var(--app-controle); padding: var(--s-8) var(--s-16); border: 0; background: none; color: var(--cor-bege); font: 700 var(--app-t-texto) var(--fonte-texto); cursor: pointer; transition: transform var(--dur-rapida) var(--curva); }
+.config-botao::before, .config-botao-perigo::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--cor-roxo); transform: skewX(var(--angulo)); }
+.config-botao:hover, .config-botao-perigo:hover { transform: translateX(var(--anda)); }
 .config-confirmacao { margin-top: var(--s-12); padding: var(--s-16); border-left: 3px solid var(--cor-roxo); background: var(--cor-kraft-claro); }
 .config-confirmacao p { margin: 0 0 var(--s-12); font-weight: 700; }
 .config-confirmacao > div { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12); }
-.config-incluir { margin-top: var(--s-24); padding: var(--s-24); border: 1px solid var(--cor-linha-forte); border-radius: var(--raio); background: var(--cor-superficie); }
+.config-incluir-sombra { margin-top: var(--s-24); }
+.config-incluir { --card-corte: 32px; padding: var(--s-24); background: var(--cor-superficie); }
 .config-incluir h2 { margin: 0 0 var(--s-16); color: var(--cor-roxo); font-size: var(--app-t-secao); }
-.config-incluir label { display: block; margin-bottom: var(--s-8); color: var(--cor-tinta-2); font-size: var(--app-t-rotulo); font-weight: 700; }
+.config-incluir label { display: block; margin-bottom: var(--s-8); color: var(--cor-tinta); font-size: var(--app-t-texto); font-weight: 600; }
 .config-incluir > div { display: flex; gap: var(--app-vao); }
 .config-incluir input { flex: 1; min-width: 0; }
 .config-escondido { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

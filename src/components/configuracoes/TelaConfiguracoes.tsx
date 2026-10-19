@@ -71,7 +71,7 @@ export function TelaConfiguracoes() {
             const quantidade = tarefas.filter((t) => t.empresaId === empresa.id).length;
             const quantidadePecas = pecas.filter((p) => p.empresaId === empresa.id).length;
             return (
-              <li className="config-empresa" key={empresa.id}>
+              <li className="config-empresa-sombra" key={empresa.id}><div className="config-empresa corte-22-esq">
                 <span className="config-monograma" aria-hidden="true">{empresa.sigla}</span>
                 <div className="config-empresa-corpo">
                   {editando === empresa.id ? (
@@ -93,16 +93,16 @@ export function TelaConfiguracoes() {
                   <button type="button" onClick={() => { setEditando(empresa.id); setNomeEditado(empresa.nome); setErro(""); }}>Renomear</button>
                   <button type="button" onClick={() => { setRemovendo(empresa.id); setErro(""); }}>Tirar</button>
                 </div>}
-              </li>
+              </div></li>
             );
           })}
         </ul>
       </section>
-      <form className="config-incluir" onSubmit={(evento) => void incluir(evento)}>
+      <div className="config-incluir-sombra"><form className="config-incluir corte-22" onSubmit={(evento) => void incluir(evento)}>
         <h2>Incluir empresa</h2>
         <label htmlFor="config-nova-empresa">Nome da empresa</label>
         <div><input id="config-nova-empresa" value={novoNome} onChange={(evento) => setNovoNome(evento.target.value)} placeholder="Ex.: Lavoro Piu" maxLength={80} required /><button className="config-botao" type="submit">Incluir</button></div>
-      </form>
+      </form></div>
     </section>
   );
 }

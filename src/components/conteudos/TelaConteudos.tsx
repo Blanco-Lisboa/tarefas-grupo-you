@@ -71,7 +71,7 @@ export function TelaConteudos() {
           <h1>Conteúdos</h1>
           <p>Acompanhe cada conteúdo da ideia à publicação.</p>
         </div>
-        <span className="conteudos-total">{conteudos.length} conteúdos</span>
+        <span className="conteudos-total"><strong>{conteudos.length}</strong> conteúdos</span>
       </header>
       {erro && <p className="conteudos-erro" role="alert">{erro}</p>}
       <div className="conteudos-quadro" aria-label="Quadro de conteúdos por etapa">
@@ -94,16 +94,16 @@ export function TelaConteudos() {
               <div className="conteudos-pilha">
                 {itens.length === 0 && <p className="conteudos-vazio">Solte um conteúdo aqui.</p>}
                 {itens.map((tarefa) => (
+                  <div className="conteudos-cartao-sombra" key={tarefa.id}>
                   <article
-                    className="conteudos-cartao"
+                    className="conteudos-cartao corte-22-esq"
                     data-arrastando={arrastando === tarefa.id}
-                    key={tarefa.id}
                     draggable
                     onDragStart={(evento) => iniciarArraste(evento, tarefa)}
                     onDragEnd={() => { setArrastando(null); setDestino(null); }}
                   >
                     <div className="conteudos-cartao-topo">
-                      <span className="conteudos-empresa">{nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"}</span>
+                      <span className="conteudos-empresa"><span>{nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"}</span></span>
                       {tarefa.rede && <span className="conteudos-rede" title={redes[tarefa.rede].nome}><Image src={redes[tarefa.rede].icone} alt={redes[tarefa.rede].nome} width={24} height={24} /></span>}
                     </div>
                     <button className="conteudos-titulo" type="button" onClick={() => setAberta(tarefa)}>{tarefa.titulo}</button>
@@ -121,6 +121,7 @@ export function TelaConteudos() {
                       />
                     </div>
                   </article>
+                  </div>
                 ))}
               </div>
             </section>
