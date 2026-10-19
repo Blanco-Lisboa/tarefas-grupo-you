@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { deTexto, paraHora } from "@/components/calendario/logica";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
+import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { CampoData } from "@/components/ui/CampoData";
@@ -159,7 +160,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             <div className="ficha-pessoas">
               {RESPONSAVEIS.map((r) => (
                 <button key={r} type="button" className="ficha-pessoa" aria-pressed={t.responsavel === r} onClick={() => mudar("responsavel", r)}>
-                  <span className={`ficha-bolinha ficha-bolinha-${r}`} aria-hidden>{NOMES.responsavel[r][0]}</span>
+                  <Pessoa quem={r} tamanho={28} />
                   {NOMES.responsavel[r]}
                 </button>
               ))}

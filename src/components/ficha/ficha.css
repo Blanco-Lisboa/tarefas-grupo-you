@@ -27,8 +27,6 @@
 .ficha-pessoas { display: flex; gap: var(--s-8); flex-wrap: wrap; }
 .ficha-pessoa { display: inline-flex; align-items: center; gap: var(--s-8); min-height: 38px; padding: 4px 12px 4px 4px; border: 1px solid var(--borda); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); font: 500 var(--t-14) var(--fonte); cursor: pointer; }
 .ficha-pessoa[aria-pressed="true"] { border-color: var(--azul); box-shadow: inset 0 0 0 1px var(--azul); }
-.ficha-bolinha { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--texto); background: var(--sup-2); font: 600 var(--t-12) var(--fonte); }
-.ficha-pessoa[aria-pressed="true"] .ficha-bolinha { background: var(--azul-claro); color: var(--azul); }
 .ficha-quando { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-12); }
 .ficha-mini { display: flex; flex-direction: column; gap: var(--s-4); color: var(--texto); font-size: var(--t-14); font-weight: 600; }
 .ficha-mini input { width: auto; }

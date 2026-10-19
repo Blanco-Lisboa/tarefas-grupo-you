@@ -1,7 +1,8 @@
 "use client";
-import { ETAPAS, REDES, RESPONSAVEIS, TIPOS, type Rede, type Tarefa } from "@/lib/dados";
+import { ETAPAS, REDES, RESPONSAVEIS, TIPOS, type Rede, type Responsavel, type Tarefa } from "@/lib/dados";
 import { IconeRede } from "@/components/ui/Marca";
 import { NOMES } from "@/components/ficha/Ficha";
+import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
 
 // Filtros SÓ do calendário (pessoa, rede, etapa, tipo). Somam com o filtro global de empresa, que a casca desenha.
@@ -34,7 +35,7 @@ export function BarraFiltros({ filtros, mudar }: { filtros: Filtros; mudar: (f: 
           opcoes={valores.map((v) => ({
             valor: v,
             rotulo: (NOMES[g] as Record<string, string>)[v],
-            antes: g === "responsavel" ? <span className={`evento-bolinha evento-bolinha-${v}`} aria-hidden>{v[0].toUpperCase()}</span> : g === "rede" ? <IconeRede rede={v as Rede} tamanho={16} /> : undefined,
+            antes: g === "responsavel" ? <Pessoa quem={v as Responsavel} tamanho={18} /> : g === "rede" ? <IconeRede rede={v as Rede} tamanho={16} /> : undefined,
           }))}
         />
       ))}
