@@ -1,26 +1,19 @@
 "use client";
 import { useEmpresas } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
+import { Selecao } from "@/components/ui/Selecao";
 
 // Só a interface do filtro global. As telas NÃO usam este componente: usam o hook useFiltroEmpresa().
 export function FiltroEmpresa() {
   const empresas = useEmpresas();
-  const { todas, selecionadas, alternar, limpar } = useFiltroEmpresa();
+  const { selecionadas, trocar } = useFiltroEmpresa();
   return (
-    <div className="barra-filtro" role="group" aria-label="Filtro de empresa">
-      <span className="barra-filtro-rotulo">Empresa</span>
-      <button type="button" className="chip-empresa" aria-pressed={todas} onClick={limpar}>Todas</button>
-      {empresas.map((e) => (
-        <button
-          key={e.id}
-          type="button"
-          className="chip-empresa"
-          aria-pressed={selecionadas.includes(e.id)}
-          onClick={() => alternar(e.id)}
-        >
-          {e.nome}
-        </button>
-      ))}
-    </div>
+    <Selecao
+      rotulo="Empresa"
+      rotuloTodos="Todas"
+      opcoes={empresas.map((e) => ({ valor: e.id, rotulo: e.nome }))}
+      valor={selecionadas}
+      aoMudar={trocar}
+    />
   );
 }

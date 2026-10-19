@@ -1,0 +1,82 @@
+"use client";
+import { useId, useRef, type CSSProperties, type ReactNode } from "react";
+import "./selecao.css";
+
+// Botão de seleção (item 42): clica, abre a lista, escolhe uma ou várias opções. Peça ÚNICA do sistema:
+// toda tela que filtra ou escolhe entre opções usa este componente, ninguém faz o seu próprio.
+// A lista abre por cima de tudo (popover do navegador: fecha com Esc ou clique fora) e se prende ao botão (anchor).
+export type Opcao = { valor: string; rotulo: string; antes?: ReactNode };
+
+type Props = {
+  rotulo: string;
+  opcoes: readonly Opcao[];
+  valor: readonly string[];
+  aoMudar: (novo: string[]) => void;
+  /** Várias opções ao mesmo tempo (padrão). Com false, escolher fecha a lista. */
+  multipla?: boolean;
+  /** Primeira linha que limpa a escolha, ex.: "Todas". Sem ela, a lista só tem as opções. */
+  rotuloTodos?: string;
+};
+
+export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotuloTodos }: Props) {
+  const id = useId();
+  const lista = useRef<HTMLDivElement>(null);
+  const ancora = `--selecao-${id.replace(/[^\w-]/g, "")}`;
+  const escolhidas = opcoes.filter((o) => valor.includes(o.valor));
+
+  const escolher = (v: string | null) => {
+    if (v === null) aoMudar([]);
+    else if (multipla) aoMudar(valor.includes(v) ? valor.filter((x) => x !== v) : [...valor, v]);
+    else aoMudar(valor.includes(v) && rotuloTodos ? [] : [v]);
+    if (!multipla) lista.current?.hidePopover();
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        className="selecao-botao"
+        popoverTarget={`${id}-lista`}
+        data-escolhido={escolhidas.length > 0}
+        title={escolhidas.length ? `${rotulo}: ${escolhidas.map((o) => o.rotulo).join(", ")}` : undefined}
+        style={{ anchorName: ancora } as CSSProperties}
+      >
+        <span>{rotulo}</span>
+        {escolhidas.length > 0 &&
+          (multipla ? (
+            <span className="selecao-contador" aria-label={`${escolhidas.length} escolhida${escolhidas.length > 1 ? "s" : ""}`}>
+              {escolhidas.length}
+            </span>
+          ) : (
+            <span className="selecao-escolha">{escolhidas[0].rotulo}</span>
+          ))}
+        <svg className="selecao-seta" viewBox="0 0 12 12" aria-hidden>
+          <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.75" />
+        </svg>
+      </button>
+      <div
+        ref={lista}
+        id={`${id}-lista`}
+        popover="auto"
+        className="selecao-pop"
+        style={{ positionAnchor: ancora } as CSSProperties}
+      >
+        <div className="selecao-lista corte-22-esq" role="group" aria-label={rotulo}>
+          {rotuloTodos && (
+            <button type="button" className="selecao-opcao selecao-todos" aria-pressed={valor.length === 0} onClick={() => escolher(null)}>
+              <span className="selecao-marca" aria-hidden />
+              {rotuloTodos}
+            </button>
+          )}
+          {opcoes.map((o) => (
+            <button key={o.valor} type="button" className="selecao-opcao" aria-pressed={valor.includes(o.valor)} onClick={() => escolher(o.valor)}>
+              <span className="selecao-marca" aria-hidden />
+              {o.antes}
+              <span className="selecao-opcao-rotulo">{o.rotulo}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}

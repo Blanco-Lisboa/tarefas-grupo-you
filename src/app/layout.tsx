@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Host_Grotesk } from "next/font/google";
 import { Casca } from "@/components/casca/Casca";
+import { SCRIPT_MENU } from "@/components/casca/menu-recolhido";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -22,7 +23,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`${bricolage.variable} ${host.variable} h-full antialiased`}>
+    // suppressHydrationWarning: o SCRIPT_MENU muda o data-menu do <html> antes do React chegar (menu recolhido lembrado).
+    <html lang="pt-BR" className={`${bricolage.variable} ${host.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_MENU }} />
+      </head>
       <body className="min-h-full">
         <Casca>{children}</Casca>
       </body>

@@ -1,5 +1,5 @@
 // Filtro GLOBAL de empresa. Lista vazia = Todas. Lembrado entre telas e entre visitas (localStorage).
-// A interface (botões) mora em src/components/casca/FiltroEmpresa.tsx; as telas só usam useFiltroEmpresa().
+// A interface (botão de seleção) mora em src/components/casca/FiltroEmpresa.tsx; as telas só usam useFiltroEmpresa().
 "use client";
 import { useCallback, useSyncExternalStore } from "react";
 
@@ -31,11 +31,12 @@ export function useFiltroEmpresa() {
   const selecionadas = useSyncExternalStore(assinar, ler, () => VAZIO);
   const alternar = useCallback((id: string) => definir(ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]), []);
   const limpar = useCallback(() => definir(VAZIO), []);
+  const trocar = useCallback((novos: readonly string[]) => definir(novos), []);
   /** Aplica o filtro a qualquer lista que tenha empresaId (tarefas, pastas, etc.). */
   const aplicar = useCallback(
     <T extends { empresaId: string }>(lista: readonly T[]): T[] =>
       selecionadas.length ? lista.filter((x) => selecionadas.includes(x.empresaId)) : [...lista],
     [selecionadas],
   );
-  return { selecionadas, todas: selecionadas.length === 0, alternar, limpar, aplicar };
+  return { selecionadas, todas: selecionadas.length === 0, alternar, limpar, trocar, aplicar };
 }

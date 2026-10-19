@@ -8,6 +8,37 @@
   --fonte-texto: var(--font-host), system-ui, sans-serif;
 }
 
+/* ===== Camada do app (rodada 2, item 49) =====
+   beec-tokens.css é cópia fiel da ID e não se edita. Aqui ficam as escolhas do SISTEMA, montadas só com valores da ID:
+   tela de trabalho pede título menor, controles de uma altura só e superfícies em degraus. Telas usam estes nomes. */
+:root {
+  /* Espaço: a grade de 4 da ID (--s-4 a --s-64). Papéis fixos para todas as telas encaixarem igual */
+  --app-respiro: var(--s-16);      /* topo da área de conteúdo e vão entre blocos da tela */
+  --app-margem: var(--s-24);       /* lateral da área de conteúdo (12 no celular) */
+  --app-vao: var(--s-8);           /* entre controles vizinhos numa barra */
+
+  /* Tipo: a escala 1,25 da ID, com papéis de tela de trabalho (o 49 e o 61 ficam para peça de marca) */
+  --app-t-titulo: var(--t-31);     /* título da tela (h1), Bricolage 800 */
+  --app-t-secao: var(--t-20);      /* título de bloco (h2) */
+  --app-t-texto: var(--t-14);      /* texto de controle, lista, cartão */
+  --app-t-rotulo: var(--t-12);     /* rótulo, metadado */
+
+  /* Controles: uma altura só, todo botão, campo e botão de seleção da mesma barra alinha */
+  --app-controle: 36px;
+  --app-controle-p: 28px;          /* opção de lista, chip pequeno */
+
+  /* Superfícies no claro, do fundo para cima: bege (fundo) > superfície (cartão, campo) > kraft claro (faixa, realce) */
+  --cor-realce-claro: color-mix(in srgb, var(--cor-roxo) 6%, transparent);   /* hover no claro: roxo bem leve, nunca cinza */
+  /* Superfícies no escuro, do fundo para cima: grafite > card escuro (hover) > ativo */
+  --cor-escuro-2: var(--cor-card-escuro);   /* #221B2B · bege 14,93 */
+  --cor-escuro-3: #2D2537;                  /* item ativo no grafite, um degrau acima do card escuro · bege 13,1 · ouro 8,9 · suave 8,5 */
+
+  /* Sombra de coisa que flutua (lista aberta, menu suspenso). Caixa com orelha usa a versão filtro, no pai */
+  --sombra-pop: 0 1px 2px rgba(24, 19, 31, .08), 0 12px 32px -8px rgba(24, 19, 31, .24);
+  --sombra-pop-filtro: drop-shadow(0 1px 1px rgba(24, 19, 31, .10)) drop-shadow(0 10px 18px rgba(24, 19, 31, .20));
+}
+@media (max-width: 767px) { :root { --app-margem: var(--s-12); } }
+
 @theme inline {
   --font-sans: var(--fonte-texto);
   --font-titulo: var(--fonte-titulo);
@@ -25,15 +56,21 @@
 
 html {
   background: var(--cor-bege);
+  /* Partes do navegador também vestem a marca: barra de rolagem, cursor de texto, caixa de marcar */
+  scrollbar-color: var(--cor-linha-forte) transparent;
+  accent-color: var(--cor-roxo);
+  caret-color: var(--cor-eletrico);
 }
 
+/* Fundo liso: o brilho roxo deixava o bege sujo no canto (item 49, "cores não estão legais") */
 body {
-  background: var(--brilho-claro), var(--cor-bege);
-  background-attachment: fixed;
+  background: var(--cor-bege);
   color: var(--cor-tinta);
   font-family: var(--fonte-texto);
   line-height: var(--texto-entrelinha);
 }
+
+::selection { background: color-mix(in srgb, var(--cor-eletrico) 22%, transparent); color: var(--cor-tinta); }
 
 h1, h2, h3 {
   font-family: var(--fonte-titulo);

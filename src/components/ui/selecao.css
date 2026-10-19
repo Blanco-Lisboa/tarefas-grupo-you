@@ -1,0 +1,60 @@
+/* Botão de seleção. Mesma altura de todo controle (--app-controle); a lista abre presa ao botão, com orelha a 22° e sombra no pai. */
+.selecao-botao {
+  display: inline-flex; align-items: center; gap: var(--s-8); flex: none;
+  height: var(--app-controle); padding: 0 var(--s-12) 0 var(--s-16);
+  font: 600 var(--app-t-texto) / 1 var(--fonte-texto); color: var(--cor-tinta); white-space: nowrap;
+  background: var(--cor-superficie); border: 1px solid var(--cor-linha-forte); border-radius: var(--raio); cursor: pointer;
+  transition: border-color var(--dur-rapida) var(--curva), background var(--dur-rapida) var(--curva);
+}
+.selecao-botao:hover, .selecao-botao[data-escolhido="true"] { border-color: var(--cor-roxo); }
+.selecao-botao:has(+ .selecao-pop:popover-open) { border-color: var(--cor-roxo); background: var(--cor-kraft-claro); }
+.selecao-seta { width: 12px; height: 12px; flex: none; color: var(--cor-tinta-2); transition: transform var(--dur-rapida) var(--curva); }
+.selecao-botao:has(+ .selecao-pop:popover-open) .selecao-seta { transform: rotate(180deg); }
+
+/* Contador: selo inclinado a 22° (o fundo inclina, o número nunca) */
+.selecao-contador {
+  position: relative; isolation: isolate; display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 7px;
+  font: var(--numero-peso) var(--t-12) / 1 var(--fonte-numero); color: var(--cor-bege);
+}
+.selecao-contador::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--cor-roxo); transform: skewX(var(--angulo)); }
+.selecao-escolha { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; color: var(--cor-roxo); font-weight: 700; }
+
+/* A lista (popover: fica por cima de tudo, fecha com Esc e clique fora) */
+.selecao-pop {
+  inset: auto; margin: 6px 0; padding: 0; border: 0; background: transparent; overflow: visible; color: inherit;
+  position-area: bottom span-right; position-try-fallbacks: flip-block, flip-inline;
+  min-width: max(208px, anchor-size(width)); width: max-content; max-width: min(320px, calc(100vw - 24px));
+  filter: var(--sombra-pop-filtro);
+  transition: opacity var(--dur-rapida) var(--curva), translate var(--dur-rapida) var(--curva);
+}
+@starting-style { .selecao-pop:popover-open { opacity: 0; translate: 0 -4px; } }
+@media (prefers-reduced-motion: reduce) { .selecao-pop { transition: none; } }
+
+.selecao-lista {
+  --card-corte: 16px;
+  display: flex; flex-direction: column; padding: var(--s-4);
+  max-height: min(360px, 60dvh); overflow-y: auto; background: var(--cor-superficie);
+}
+.selecao-opcao {
+  display: flex; align-items: center; gap: var(--s-8); min-height: 32px; padding: 0 var(--s-12) 0 var(--s-8);
+  font: 500 var(--app-t-texto) / 1.2 var(--fonte-texto); color: var(--cor-tinta); text-align: left;
+  background: none; border: 0; border-radius: var(--raio); cursor: pointer;
+  transition: background var(--dur-rapida) var(--curva);
+}
+.selecao-opcao:hover { background: var(--cor-realce-claro); }
+.selecao-opcao:focus-visible { outline-offset: -2px; }
+.selecao-opcao[aria-pressed="true"] { font-weight: 600; }
+.selecao-opcao-rotulo { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.selecao-todos { position: relative; margin-bottom: 9px; }
+.selecao-todos::after { content: ""; position: absolute; left: var(--s-8); right: var(--s-8); bottom: -5px; height: 1px; background: var(--cor-linha); }
+
+/* Caixa de marcar: borda em tinta 2 (contraste 7,29) para ser vista; marcada, roxo com o visto em bege */
+.selecao-marca {
+  display: grid; place-items: center; width: 16px; height: 16px; flex: none;
+  border: 1.5px solid var(--cor-tinta-2); border-radius: var(--raio); background: var(--cor-superficie);
+}
+.selecao-opcao[aria-pressed="true"] .selecao-marca { background: var(--cor-roxo); border-color: var(--cor-roxo); }
+.selecao-opcao[aria-pressed="true"] .selecao-marca::after {
+  content: ""; width: 8px; height: 4px; margin-top: -2px;
+  border: solid var(--cor-bege); border-width: 0 0 2px 2px; transform: rotate(-45deg);
+}
