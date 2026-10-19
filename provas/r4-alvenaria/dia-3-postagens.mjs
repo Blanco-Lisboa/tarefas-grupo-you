@@ -6,7 +6,7 @@ const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "
 const { chromium } = require("playwright");
 const PASTA = fileURLToPath(new URL("./", import.meta.url));
 const nav = await chromium.launch({ headless: true });
-for (const [w, h] of [[1440, 760], [390, 844], [390, 667]]) {
+for (const [w, h] of [[1440, 760], [390, 844]]) {
   const p = await nav.newPage({ viewport: { width: w, height: h } });
   await p.goto("http://localhost:3100/mapa", { waitUntil: "networkidle" });
   await p.waitForTimeout(2000);
