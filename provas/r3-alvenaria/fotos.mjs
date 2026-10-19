@@ -23,6 +23,9 @@ for (const [w, h] of [[1440, 760], [390, 844]]) {
     await p.waitForTimeout(1800);
     await p.evaluate(() => document.getElementById("marca")?.remove());
     await marca(p);
+    // cada marco tem que ficar sobre o rótulo do seu dia: diferença do centro em px
+    const desvio = await p.evaluate(() => [...document.querySelectorAll("[data-marco]")].map((m) => { const x = m.getBoundingClientRect().left; const d = m.dataset.dia; const r = document.querySelector(`.mapa-dia[data-dia="${d}"]`).getBoundingClientRect(); return Math.abs(x - (r.left + r.width / 2)); }).reduce((a, b) => Math.max(a, b), 0));
+    console.log(w, nome, "maior desvio marco x rótulo (px):", desvio.toFixed(2));
     await p.screenshot({ path: join(PASTA, `mapa-${w}-${nome}.png`) });
   }
   console.log(w, "erros de console:", erros.length ? erros : "nenhum");

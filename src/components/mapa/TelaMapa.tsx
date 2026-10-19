@@ -6,7 +6,7 @@ import { SplitText } from "gsap/SplitText";
 import { useEmpresas, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
-import { diaCurto, inicioSemana, nomeMes, nomeSemana } from "@/components/calendario/logica";
+import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
 import { INICIO, conteudos, diasDoPeriodo, foiPostado, objetivoDe, postadosNoMes, ultimoDia } from "./logica";
 import "./mapa.css";
 
@@ -118,7 +118,7 @@ function Linha({ dias, marcos, abrir }: { dias: string[]; marcos: Tarefa[]; abri
           <div ref={faixa} className="mapa-faixa">
             <span className="mapa-linha" aria-hidden />
             {dias.map((d, i) => (
-              <span key={d} className="mapa-dia" data-semana={inicioSemana(d) === d} style={{ left: `calc(${i} * var(--dia-w))` }} aria-hidden>{rotuloDia(d)}</span>
+              <span key={d} className="mapa-dia" data-dia={d} style={{ left: `calc((${i} + 0.5) * var(--dia-w))` }} aria-hidden>{rotuloDia(d)}</span>
             ))}
             {marcos.map((t, i) => <Marco key={t.id} t={t} coluna={dias.indexOf(t.inicio!.slice(0, 10))} lado={i % 2 ? "baixo" : "cima"} abrir={abrir} />)}
           </div>
@@ -135,7 +135,7 @@ function Marco({ t, coluna, lado, abrir }: { t: Tarefa; coluna: number; lado: "c
   const postado = foiPostado(t);
   const dia = t.inicio!.slice(0, 10);
   return (
-    <div className="mapa-marco" data-marco data-lado={lado} data-postado={postado} style={{ left: `calc((${coluna} + 0.5) * var(--dia-w))` }}>
+    <div className="mapa-marco" data-marco data-dia={dia} data-lado={lado} data-postado={postado} style={{ left: `calc((${coluna} + 0.5) * var(--dia-w))` }}>
       <span className="mapa-haste" aria-hidden />
       <span className="mapa-bolinha" aria-hidden />
       <button type="button" className="mapa-card" onClick={() => abrir(t)}>

@@ -34,8 +34,8 @@
 .mapa-faixa { position: absolute; inset: 0 auto 0 0; width: calc((var(--dias) + var(--folga)) * var(--dia-w)); will-change: transform; --haste: clamp(150px, 26dvh, 210px); }
 
 .mapa-linha { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--m-linha); transform-origin: left; }
-.mapa-dia { position: absolute; top: calc(50% + 8px); padding-left: 6px; border-left: 1px solid var(--m-linha); font-size: 11px; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; color: var(--m-fraco); white-space: nowrap; }
-.mapa-dia[data-semana="true"] { border-left-color: var(--m-fraco); color: var(--m-texto); }
+.mapa-dia { position: absolute; top: calc(50% + 12px); transform: translateX(-50%); font-size: 11px; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; color: var(--m-fraco); white-space: nowrap; }
+.mapa-dia::before { content: ""; position: absolute; left: 50%; top: -12px; width: 1px; height: 6px; background: var(--m-linha); }
 
 /* ---------- marco: ponto da linha + haste + bolinha na ponta + texto ao lado ---------- */
 .mapa-marco { position: absolute; top: 50%; height: 0; width: 0; --cor: var(--m-acento); }
@@ -46,7 +46,7 @@
 .mapa-marco[data-postado="true"] .mapa-bolinha { background: var(--m-fundo); border: 1.5px solid var(--cor); }
 .mapa-marco[data-lado="cima"] .mapa-haste { bottom: 0; transform-origin: bottom; }
 .mapa-marco[data-lado="cima"] .mapa-bolinha { top: calc(var(--haste) * -1 - 5px); }
-.mapa-marco[data-lado="baixo"] .mapa-haste { top: 0; transform-origin: top; }
+.mapa-marco[data-lado="baixo"] .mapa-haste { top: 26px; height: calc(var(--haste) - 26px); transform-origin: top; } /* começa abaixo do rótulo do dia */
 .mapa-marco[data-lado="baixo"] .mapa-bolinha { top: calc(var(--haste) - 5px); }
 
 .mapa-card {
