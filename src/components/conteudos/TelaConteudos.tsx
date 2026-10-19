@@ -3,6 +3,7 @@
 import { useState, type DragEvent } from "react";
 import Image from "next/image";
 import { Ficha } from "@/components/ficha/Ficha";
+import { Selecao } from "@/components/ui/Selecao";
 import { ETAPAS, salvarTarefa, useEmpresas, useTarefas, type Etapa, type Rede, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import "./conteudos.css";
@@ -17,6 +18,7 @@ const redes: Record<Rede, { nome: string; icone: string }> = {
   youtube: { nome: "YouTube", icone: "/beec/icones/marcas/youtube-liso.svg" },
   kwai: { nome: "Kwai", icone: "/beec/icones/video-liso.svg" },
 };
+const opcoesEtapa = ETAPAS.map((etapa) => ({ valor: etapa, rotulo: nomes[etapa] }));
 
 function dataLegivel(inicio?: string) {
   if (!inicio) return "Sem data";
@@ -109,12 +111,15 @@ export function TelaConteudos() {
                       <span className="conteudos-responsavel" title={tarefa.responsavel === "natham" ? "Natham" : "Matheus"}>{tarefa.responsavel === "natham" ? "N" : "M"}</span>
                       <time dateTime={tarefa.inicio?.slice(0, 10)}>{dataLegivel(tarefa.inicio)}</time>
                     </div>
-                    <label className="conteudos-mover">
-                      <span>Mover para</span>
-                      <select aria-label={`Mover ${tarefa.titulo} para etapa`} value={tarefa.etapa} onChange={(evento) => void mudarEtapa(tarefa, evento.target.value as Etapa)}>
-                        {ETAPAS.map((opcao) => <option key={opcao} value={opcao}>{nomes[opcao]}</option>)}
-                      </select>
-                    </label>
+                    <div className="conteudos-mover" onPointerDown={(evento) => evento.stopPropagation()}>
+                      <Selecao
+                        rotulo="Etapa"
+                        opcoes={opcoesEtapa}
+                        valor={[tarefa.etapa]}
+                        multipla={false}
+                        aoMudar={([etapa]) => { if (etapa) void mudarEtapa(tarefa, etapa as Etapa); }}
+                      />
+                    </div>
                   </article>
                 ))}
               </div>
