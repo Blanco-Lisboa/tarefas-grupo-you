@@ -12,6 +12,9 @@
 .conteudos-numero { color: var(--fraco); font: 500 var(--t-14) var(--fonte); }
 .conteudos-coluna h2 { flex: 1; margin: 0; color: var(--texto); font-size: var(--app-t-secao); }
 .conteudos-contagem { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 var(--s-4); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); font-size: var(--app-t-rotulo); font-weight: 600; }
+.conteudos-novo { display: grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--raio-b); background: transparent; color: var(--texto); font: 500 var(--t-20)/1 var(--fonte); cursor: pointer; transition: background var(--dur-rapida) var(--curva); }
+.conteudos-novo:hover { background: var(--sup); }
+.conteudos-novo:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
 .conteudos-pilha { display: grid; align-content: start; gap: var(--s-8); padding: var(--s-8); }
 .conteudos-vazio { margin: var(--s-8); color: var(--fraco); font-size: var(--app-t-texto); }
 .conteudos-cartao { touch-action: pan-y; user-select: none; min-width: 0; padding: var(--s-16) var(--s-12) var(--s-12); border-radius: var(--raio-c); background: var(--sup); box-shadow: var(--sombra); cursor: grab; transition: box-shadow var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva); }

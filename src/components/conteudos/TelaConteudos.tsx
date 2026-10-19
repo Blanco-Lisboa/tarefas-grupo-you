@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from "react";
-import { Ficha } from "@/components/ficha/Ficha";
+import { Ficha, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { Pessoa } from "@/components/ui/Pessoa";
-import { ETAPAS, salvarTarefa, useEmpresas, useTarefas, type Etapa, type Tarefa } from "@/lib/dados";
+import { ETAPAS, salvarTarefa, useEmpresas, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import "./conteudos.css";
@@ -40,7 +40,7 @@ export function TelaConteudos() {
   const tarefas = useTarefas();
   const empresas = useEmpresas();
   const { aplicar } = useFiltroEmpresa();
-  const [aberta, setAberta] = useState<Tarefa | null>(null);
+  const [aberta, setAberta] = useState<NovaTarefa | null>(null);
   const [arraste, setArraste] = useState<Arraste | null>(null);
   const [destino, setDestino] = useState<Etapa | null>(null);
   const pegada = useRef<{ id: string; px: number; py: number; caixa: DOMRect; ativo: boolean } | null>(null);
@@ -125,6 +125,7 @@ export function TelaConteudos() {
                 <span className="conteudos-numero">{String(indice + 1).padStart(2, "0")}</span>
                 <h2>{nomes[etapa]}</h2>
                 <span className="conteudos-contagem">{itens.length}</span>
+                <button className="conteudos-novo" type="button" aria-label={`Novo conteúdo em ${nomes[etapa]}`} onClick={() => setAberta(tarefaEmBranco({ etapa }))}>+</button>
               </div>
               <div className="conteudos-pilha">
                 {itens.length === 0 && <p className="conteudos-vazio">Solte um conteúdo aqui.</p>}
