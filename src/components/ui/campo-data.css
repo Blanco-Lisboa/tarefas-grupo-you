@@ -61,9 +61,11 @@
 }
 .campo-data-dois-pontos { position: relative; font: 600 var(--t-16) / 1 var(--fonte); color: var(--azul); }
 /* Roda (item 84): sem rolagem do navegador; o arraste é do próprio componente (touch-action: none deixa o dedo girar a
-   roda sem rolar a página). Cada linha é posta no lugar pela conta (transform); a do meio fica a 64px do topo. */
+   roda sem rolar a página). Cada linha é posta no lugar pela conta (transform); a do meio fica a 64px do topo.
+   overflow: clip, não hidden (item 88): as 7 linhas desenhadas passam da caixa e com hidden sobrava 32px de rolagem
+   escondida; quando o navegador rolava a caixa, o desenho subia uma linha e a faixa deixava de bater com o azul. */
 .roda {
-  position: relative; width: 52px; height: 160px; overflow: hidden; /* 5 linhas de 32px */
+  position: relative; width: 52px; height: 160px; overflow: clip; /* 5 linhas de 32px */
   touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab;
   border-radius: calc(var(--raio-c) - 6px);
   mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent);
