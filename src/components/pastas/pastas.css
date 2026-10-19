@@ -171,7 +171,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 @media (max-width: 1099px) { .pastas-versoes { grid-template-columns: minmax(0, 1fr); } }
 
 /* ver todas: lista completa da pasta, para baixar quando passa das 4 do leque */
-.gf-todas { align-self: center; margin-top: var(--s-8); min-height: var(--app-controle-p); padding: var(--s-4) var(--s-12); border-radius: var(--raio); cursor: pointer; font: 600 var(--app-t-texto) var(--fonte-texto); color: var(--cor-roxo); background: transparent; border: 1px solid var(--cor-linha-forte); }
+.gf-todas { align-self: center; margin-top: var(--s-8); min-height: var(--app-controle); padding: var(--s-4) var(--s-12); border-radius: var(--raio); cursor: pointer; font: 600 var(--app-t-texto) var(--fonte-texto); color: var(--cor-roxo); background: transparent; border: 1px solid var(--cor-linha-forte); }
 .gf-todas:hover { border-color: var(--cor-roxo); background: var(--cor-realce-claro); }
 .gf-lista { list-style: none; margin: var(--s-8) 0 0; padding: 0; display: grid; gap: 1px; background: var(--cor-linha-forte); border: 1px solid var(--cor-linha-forte); }
 .gf-lista a, .gf-lista button { all: unset; box-sizing: border-box; width: 100%; display: flex; justify-content: space-between; gap: var(--s-12); padding: var(--s-8) var(--s-12); cursor: pointer; background: var(--cor-superficie); color: var(--cor-tinta); font: 600 var(--app-t-texto) var(--fonte-texto); }
