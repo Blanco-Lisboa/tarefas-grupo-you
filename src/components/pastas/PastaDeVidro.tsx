@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { hashString, rng, type ArtRecipe } from "./arte";
 import { ArtCanvas } from "./ArteCanvas";
 import "./pastas.css";
@@ -29,6 +29,8 @@ type Props = {
   legenda?: string;
   /** Aviso mostrado dentro da pasta aberta quando ela não tem arquivos. */
   vazio?: string;
+  /** Botão solto no canto da pasta (o ⋮ de renomear e excluir). Fica fora do vidro, então não abre a pasta. */
+  acoes?: ReactNode;
 };
 
 // Geometria nas unidades da pasta: palco de 340 x 272, escalado até `largura`.
@@ -40,7 +42,7 @@ const FRENTE = `M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 
 
 const leque = (i: number, n: number) => (n <= 1 ? 0 : (i / (n - 1)) * 2 - 1);
 
-export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio }: Props) {
+export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes }: Props) {
   const uid = useId().replace(/:/g, "");
   const raiz = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
@@ -222,6 +224,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
           </div>
         </div>
       </div>
+      {acoes && <div className="gf-acoes" style={{ top: (ALTURA_ABA + 44) * k }}>{acoes}</div>}
     </div>
     {n > VISIVEIS && (
       <>

@@ -221,3 +221,16 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 
 /* Estes controles usam "all: unset", que apagaria o contorno da base (globals.css): devolvemos o mesmo, 1px azul sólido. */
 .card-flut-x:focus-visible, .ideias-cats button:focus-visible, .ideias-lista button:focus-visible { outline: 1px solid var(--azul); outline-offset: 1px; }
+
+/* =================== nova pasta, ⋮ da pasta, janelinhas (item 135) =================== */
+.gf-acoes { position: absolute; right: 12px; z-index: 5; }
+.gf-pontos { opacity: .7; height: 32px; border-radius: var(--raio-b); }
+.gf-pontos:hover, .gf-pontos:focus-visible, .gf-pontos:has(+ .mt-pop:popover-open) { opacity: 1; background: rgb(255 255 255 / .5); }
+/* mesmo formato da pasta (340 x 272 com a aba de 54 em cima): vidro discreto com contorno tracejado */
+.pasta-nova { all: unset; box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: min(100%, 340px); margin: calc(54 / 326 * min(100%, 340px)) auto 0; aspect-ratio: 340 / 272; cursor: pointer; border-radius: 22px; color: var(--fraco); font: 500 var(--app-t-texto) var(--fonte); background: var(--vidro); border: 1.5px dashed var(--borda); -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); transition: background var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva), border-color var(--dur-rapida) var(--curva); }
+.pasta-nova:hover { background: var(--vidro-forte); color: var(--texto); border-color: var(--azul); }
+.pasta-nova:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.pasta-nova span { font-size: 22px; font-weight: 400; margin-right: var(--s-8); }
+.pasta-erro { margin: 0; font-size: var(--app-t-rotulo); color: var(--atrasado); }
+.pasta-texto { margin: 0; font-size: var(--app-t-texto); line-height: 1.5; }
+.pasta-perigo { background: var(--atrasado); border-color: var(--atrasado); }

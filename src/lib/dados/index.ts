@@ -14,3 +14,4 @@ export const useEmpresas = () => useSyncExternalStore(assinar, lerEmpresas, lerE
 export const useTags = () => useSyncExternalStore(assinar, lerTags, lerTags);
 export * from "./pecas";
 export * from "./ideias";
+export * from "./pastas";
