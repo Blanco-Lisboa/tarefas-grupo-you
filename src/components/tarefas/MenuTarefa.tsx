@@ -16,9 +16,9 @@ export type Acoes = {
 };
 
 const PESSOAS: { valor: Responsavel; rotulo: string }[] = [{ valor: "natham", rotulo: "Natham" }, { valor: "matheus", rotulo: "Matheus" }];
-// Cores suaves da paleta de etiquetas; "Sem" é a cor padrão (lavanda) mostrada em cinza.
-const ETIQUETAS: { rotulo: string; cor: Etiqueta | null; valor: Etiqueta }[] = [
-  { rotulo: "Prioridade", cor: "etiqueta-6", valor: "etiqueta-6" },
+// Etiquetas do menu; "Sem" é a cor padrão (lavanda) mostrada em cinza. Prioridade é VERMELHA (item 100). A linha da folha mostra as três com nome.
+export const ETIQUETAS: { rotulo: string; cor: Etiqueta | null; valor: Etiqueta }[] = [
+  { rotulo: "Prioridade", cor: "etiqueta-7", valor: "etiqueta-7" },
   { rotulo: "Não esquecer", cor: "etiqueta-1", valor: "etiqueta-1" },
   { rotulo: "Rápida", cor: "etiqueta-3", valor: "etiqueta-3" },
   { rotulo: "Sem", cor: null, valor: "etiqueta-5" },

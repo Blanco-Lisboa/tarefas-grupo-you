@@ -5,8 +5,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { useEmpresas, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
+import { SeloEmpresa, IconeRede } from "@/components/ui/Marca";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
-import { tomDaEmpresa } from "@/components/pastas/cores";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
 import { conteudos, hoje, diasDoPeriodo, foiPostado, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 import "./mapa.css";
@@ -200,14 +200,13 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
           {ts.map((t, i) => {
             const postado = foiPostado(t);
             const empresa = empresas.find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
-            const tom = tomDaEmpresa(t.empresaId);
             return (
-              <button key={t.id} type="button" className="mapa-card" data-postado={postado} style={{ "--i": i, "--tag": tom.r, "--tag-escuro": tom.g } as CSSProperties} onClick={() => clicar(t)}>
+              <button key={t.id} type="button" className="mapa-card" data-postado={postado} style={{ "--i": i } as CSSProperties} onClick={() => clicar(t)}>
                 <span className="mapa-faixa-titulo" aria-hidden>{tituloDe(t)}</span>
                 <span className="mapa-objetivo" data-alvo>{tituloDe(t)}</span>
                 <span className="mapa-info">
-                  <span className="mapa-tag" data-alvo>{empresa}</span>
-                  {t.rede && <span className="mapa-meta" data-alvo>{NOMES.rede[t.rede]}</span>}
+                  <span className="mapa-tag"><SeloEmpresa empresaId={t.empresaId} nome={empresa} tamanho={16} comNome /></span>
+                  {t.rede && <span className="mapa-meta"><IconeRede rede={t.rede} tamanho={16} /></span>}
                   <span className="mapa-estado" data-alvo>{postado ? "Postado" : t.etapa ? NOMES.etapa[t.etapa] : "A postar"}</span>
                 </span>
               </button>

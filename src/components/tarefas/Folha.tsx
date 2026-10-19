@@ -4,7 +4,7 @@ import type { Responsavel } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import type { OpcaoLetra } from "./fontes";
 import { horaDoSlot, SLOTS } from "./grade";
-import { MenuTarefa, type Acoes } from "./MenuTarefa";
+import { ETIQUETAS, MenuTarefa, type Acoes } from "./MenuTarefa";
 import "./caderno.css";
 
 export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; cor?: string; responsavel?: Responsavel };
@@ -151,6 +151,9 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
                   <span className="folha-tinta risco">{l.titulo}</span>
                 </button>
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
+                {(() => { const e = ETIQUETAS.find((x) => x.cor && x.valor === l.cor); return e && (
+                  <span className="linha-etq" style={{ "--e": `var(--${e.valor})`, "--et": `var(--${e.valor}-texto)` } as CSSProperties}>{e.rotulo}</span>
+                ); })()}
               </span>
               {aoApagar && (confirmando === l.id ? (
                 <span className="confirmar folha-lapis">
