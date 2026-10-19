@@ -34,11 +34,12 @@
 .mapa-palco-pai { container-type: inline-size; min-width: 0; --mapa-topo: 150px; }
 .mapa-palco {
   --dia-w: calc(100cqw / var(--visiveis));
+  --ganho: calc(var(--mapa-topo) - var(--app-respiro)); /* quanto o palco sobe até colar no topo */
   --alto: max(520px, calc(100dvh - var(--mapa-topo) - var(--app-respiro))); /* o que sobra da tela abaixo do cabeçalho: o card cabe inteiro */
   /* a altura do card + o quanto a faixa precisa andar: cada px rolado para baixo anda 1px para o lado */
-  height: calc(var(--alto) + (var(--dias) + var(--folga) - var(--visiveis)) * var(--dia-w));
+  height: calc(var(--alto) + var(--ganho) + (var(--dias) + var(--folga) - var(--visiveis)) * var(--dia-w));
 }
-.mapa-fixo { position: sticky; top: var(--mapa-topo); height: var(--alto); display: flex; flex-direction: column; gap: var(--app-respiro); }
+.mapa-fixo { position: sticky; top: var(--app-respiro); height: calc(var(--alto) + var(--ganho) * var(--cresce, 0)); display: flex; flex-direction: column; gap: var(--app-respiro); }
 .mapa-cartao {
   position: relative; flex: 1; min-height: 0; container-type: size; overflow: hidden; border-radius: var(--raio-bloco);
   background: var(--sup); color: var(--texto); box-shadow: var(--sombra);

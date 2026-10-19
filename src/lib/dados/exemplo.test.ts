@@ -35,6 +35,11 @@ describe("postagens do Mapa", () => {
     }
   });
 
+  it("não repetem título", () => {
+    const titulos = tarefasExemplo.map((t) => t.titulo);
+    expect(new Set(titulos).size).toBe(titulos.length);
+  });
+
   it("misturam as empresas, as redes e as etapas", () => {
     expect(new Set(post.map((t) => t.empresaId)).size).toBe(empresasExemplo.length);
     expect(new Set(post.map((t) => t.rede)).size).toBeGreaterThanOrEqual(4);

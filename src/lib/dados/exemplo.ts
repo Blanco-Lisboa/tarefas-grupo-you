@@ -1,5 +1,5 @@
 // DADOS DE EXEMPLO (Fase 1). Só o repositório deste diretório importa este arquivo; telas nunca.
-import { REDES, type Empresa, type Etapa, type Etiqueta, type Rede, type Responsavel, type Tarefa, type TipoTarefa } from "./tipos";
+import type { Empresa, Etapa, Etiqueta, Rede, Responsavel, Tarefa, TipoTarefa } from "./tipos";
 
 export const empresasExemplo: Empresa[] = [
   { id: "beec", nome: "Beec", sigla: "BE" },
@@ -60,17 +60,113 @@ const linhas: Linha[] = [
 // Postagens de todos os dias de 01/10 a 30/11, geradas UMA vez com semente fixa (mesma lista a cada abertura, sem Math.random).
 // Cada dia fecha com 1 a 3 postagens (contando as da lista acima), das duas empresas, em etapas que dependem da distância de HOJE_EXEMPLO.
 const HOJE_EXEMPLO = "2026-10-19";
-const FORMATOS: Record<Rede, string[]> = {
-  instagram: ["Reels", "Carrossel", "Story"], tiktok: ["TikTok"], youtube: ["Vídeo", "Shorts"], kwai: ["Kwai"],
+// Pautas com título próprio (rede, título). Cada uma entra no máximo uma vez: nenhum título repete.
+const PAUTAS: Record<string, [Rede, string][]> = {
+  you: [
+    ["instagram", "Carrossel: 5 erros que o MEI comete"],
+    ["instagram", "Reels: bastidores do escritório"],
+    ["tiktok", "TikTok: o que é pró-labore em 30 segundos"],
+    ["youtube", "Vídeo: como emitir nota fiscal passo a passo"],
+    ["kwai", "Kwai: mito ou verdade sobre o Simples Nacional"],
+    ["instagram", "Story: enquete sobre dúvidas de imposto"],
+    ["youtube", "Shorts: DAS atrasado, e agora?"],
+    ["instagram", "Carrossel: calendário fiscal da semana"],
+    ["tiktok", "TikTok: um dia na rotina de contador"],
+    ["instagram", "Reels: abrir CNPJ em 3 passos"],
+    ["youtube", "Vídeo: MEI pode ter funcionário?"],
+    ["instagram", "Carrossel: quanto custa ter uma contabilidade"],
+    ["kwai", "Kwai: 3 sinais de que seu MEI vai estourar o limite"],
+    ["instagram", "Story: caixa de perguntas com o contador"],
+    ["tiktok", "TikTok: erro de folha que custa caro"],
+    ["youtube", "Shorts: diferença entre MEI e ME"],
+    ["instagram", "Reels: resposta rápida sobre décimo terceiro"],
+    ["youtube", "Vídeo: declaração anual do MEI sem dor de cabeça"],
+    ["instagram", "Carrossel: documentos para guardar por 5 anos"],
+    ["tiktok", "TikTok: reagindo a mitos de contabilidade"],
+    ["instagram", "Story: contagem regressiva do vencimento do DAS"],
+    ["kwai", "Kwai: separar conta pessoal da conta da empresa"],
+    ["youtube", "Vídeo: Simples Nacional ou Lucro Presumido"],
+    ["instagram", "Reels: cliente conta como foi trocar de contador"],
+    ["instagram", "Carrossel: o que é CNAE e por que importa"],
+    ["tiktok", "TikTok: 3 despesas que você pode abater"],
+    ["youtube", "Shorts: nota fiscal de serviço para iniciantes"],
+    ["instagram", "Story: bastidores da entrega de balanço"],
+    ["kwai", "Kwai: como saber se vale a pena sair do MEI"],
+    ["instagram", "Reels: checklist de fim de mês"],
+    ["youtube", "Vídeo: entrevista com um cliente de 10 anos"],
+    ["instagram", "Carrossel: 7 termos contábeis explicados"],
+    ["tiktok", "TikTok: assinatura do contador versus planilha"],
+    ["instagram", "Story: dica do dia sobre pró-labore"],
+    ["youtube", "Shorts: quando contratar um contador"],
+    ["instagram", "Reels: tour pelo escritório da You"],
+    ["kwai", "Kwai: reserva de emergência para pequenos negócios"],
+    ["instagram", "Carrossel: passo a passo para regularizar o CNPJ"],
+    ["tiktok", "TikTok: resposta para a pergunta da semana"],
+    ["youtube", "Vídeo: planejamento tributário explicado"],
+    ["instagram", "Carrossel: 3 impostos que o MEI não paga"],
+    ["tiktok", "TikTok: o que acontece se esquecer o DAS"],
+    ["youtube", "Vídeo: como separar pró-labore e lucro"],
+    ["kwai", "Kwai: o que é regime tributário em 1 minuto"],
+    ["instagram", "Reels: nota fiscal de produto ou de serviço?"],
+    ["instagram", "Story: sua dúvida de imposto respondida"],
+    ["youtube", "Shorts: quanto o MEI pode faturar por ano"],
+    ["tiktok", "TikTok: contador reage a comentários"],
+    ["instagram", "Carrossel: guia do primeiro mês de empresa aberta"],
+    ["youtube", "Vídeo: erros ao contratar o primeiro funcionário"],
+  ],
+  beec: [
+    ["instagram", "Carrossel: antes e depois da organização financeira"],
+    ["instagram", "Reels: um dia com a equipe da Beec"],
+    ["youtube", "Vídeo: podcast com dono de padaria"],
+    ["tiktok", "TikTok: erro que trava o fluxo de caixa"],
+    ["kwai", "Kwai: corte do podcast sobre preço de venda"],
+    ["instagram", "Story: enquete sobre controle de estoque"],
+    ["youtube", "Shorts: como calcular o preço do seu produto"],
+    ["instagram", "Carrossel: tabela de preços dos planos"],
+    ["tiktok", "TikTok: bastidores da gravação do podcast"],
+    ["instagram", "Reels: depoimento de cliente da Beec"],
+    ["youtube", "Vídeo: caso de sucesso de uma loja de roupas"],
+    ["instagram", "Carrossel: 4 relatórios que todo dono precisa olhar"],
+    ["kwai", "Kwai: lucro não é o mesmo que dinheiro no caixa"],
+    ["instagram", "Story: caixa de perguntas sobre gestão"],
+    ["tiktok", "TikTok: planilha bagunçada contra painel organizado"],
+    ["youtube", "Shorts: margem de lucro em 40 segundos"],
+    ["instagram", "Reels: novidade do painel financeiro"],
+    ["youtube", "Vídeo: como montar um orçamento mensal"],
+    ["instagram", "Carrossel: checklist do fechamento do mês"],
+    ["tiktok", "TikTok: reagindo a notas de clientes"],
+    ["instagram", "Story: contagem regressiva da campanha"],
+    ["kwai", "Kwai: como negociar com fornecedor"],
+    ["youtube", "Vídeo: entrevista sobre abrir a segunda loja"],
+    ["instagram", "Reels: cliente mostra o antes e depois do caixa"],
+    ["instagram", "Carrossel: o que é DRE em linguagem simples"],
+    ["tiktok", "TikTok: 3 gastos invisíveis do seu negócio"],
+    ["youtube", "Shorts: capital de giro explicado"],
+    ["instagram", "Story: bastidores do atendimento"],
+    ["kwai", "Kwai: quando é hora de contratar o primeiro funcionário"],
+    ["instagram", "Reels: respondendo dúvida de cliente"],
+    ["youtube", "Vídeo: podcast sobre inadimplência"],
+    ["instagram", "Carrossel: 6 hábitos de empresas que crescem"],
+    ["tiktok", "TikTok: o que fazemos na primeira reunião"],
+    ["instagram", "Story: dica rápida de fluxo de caixa"],
+    ["youtube", "Shorts: ponto de equilíbrio sem complicação"],
+    ["instagram", "Reels: apresentação da equipe nova"],
+    ["kwai", "Kwai: metas financeiras para o próximo trimestre"],
+    ["instagram", "Carrossel: erros ao misturar contas"],
+    ["tiktok", "TikTok: mito sobre pedir empréstimo"],
+    ["youtube", "Vídeo: planejamento financeiro para o fim do ano"],
+    ["instagram", "Carrossel: 5 sinais de que o caixa está no vermelho"],
+    ["tiktok", "TikTok: o que fazemos no fechamento do mês"],
+    ["youtube", "Vídeo: como precificar um serviço"],
+    ["kwai", "Kwai: custo fixo e custo variável sem complicação"],
+    ["instagram", "Reels: cliente fala do primeiro mês com a Beec"],
+    ["instagram", "Story: bastidores da reunião de resultados"],
+    ["youtube", "Shorts: como cobrar cliente atrasado"],
+    ["tiktok", "TikTok: fluxo de caixa em 20 segundos"],
+    ["instagram", "Carrossel: modelo de planilha de contas a pagar"],
+    ["youtube", "Vídeo: podcast sobre crescer sem se endividar"],
+  ],
 };
-const TEMAS: Record<string, string[]> = {
-  you: ["dica de MEI", "erro comum no imposto", "como emitir nota", "pró-labore explicado", "bastidores do escritório", "pergunta de cliente", "calendário fiscal", "mito ou verdade", "abrir CNPJ", "Simples Nacional sem susto"],
-  beec: ["bastidores da Beec", "depoimento de cliente", "antes e depois", "tabela de preços", "organização financeira", "corte do podcast", "dia da equipe", "novidade do serviço", "pergunta da semana", "caso de sucesso"],
-};
-const OBJETIVOS_GERADOS = [
-  "Educar o público e gerar pedidos de orçamento", "Aproximar quem nos segue da equipe", "Ganhar alcance com um tema em alta",
-  "Engajar a base com uma pergunta rápida", "Mostrar um caso real e gerar confiança", "Reforçar a marca e lembrar o que fazemos",
-];
 
 function semente(a: number) { // mulberry32: mesma sequência para a mesma semente
   return () => {
@@ -81,10 +177,10 @@ function semente(a: number) { // mulberry32: mesma sequência para a mesma semen
   };
 }
 
-const geradasObjetivo: Record<number, string> = {};
 const geradas: Linha[] = (() => {
   const sorteio = semente(20261019);
   const escolhe = <T,>(l: readonly T[]) => l[Math.floor(sorteio() * l.length)];
+  const restantes = { you: [...PAUTAS.you], beec: [...PAUTAS.beec] }; // sorteio sem repetição: cada pauta sai uma vez
   const porDia = new Map<string, number>();
   for (const l of linhas) if (l[2] === "postagem" && l[7]) porDia.set(l[7].slice(0, 10), (porDia.get(l[7].slice(0, 10)) ?? 0) + 1);
   const saida: Linha[] = [];
@@ -92,16 +188,17 @@ const geradas: Linha[] = (() => {
   for (let i = 0; i < 61; i++) {
     const dia = new Date(Date.UTC(2026, 9, 1 + i)).toISOString().slice(0, 10); // só aritmética de calendário em UTC, sem fuso
     const r = sorteio();
-    const alvo = r < 0.45 ? 1 : r < 0.85 ? 2 : 3;
+    const alvo = r < 0.65 ? 1 : r < 0.93 ? 2 : 3;
     for (let k = porDia.get(dia) ?? 0; k < alvo; k++) {
-      const empresa = sorteio() < 0.5 ? "you" : "beec";
-      const rede = escolhe(REDES);
+      let empresa: "you" | "beec" = sorteio() < 0.5 ? "you" : "beec";
+      if (!restantes[empresa].length) empresa = empresa === "you" ? "beec" : "you";
+      if (!restantes[empresa].length) throw new Error("faltam pautas de exemplo: acrescente em PAUTAS");
+      const [rede, titulo] = restantes[empresa].splice(Math.floor(sorteio() * restantes[empresa].length), 1)[0];
       const dist = Math.round((Date.parse(dia) - Date.parse(HOJE_EXEMPLO)) / 86400000);
       const etapa: Etapa = dist < 0 ? "postado" : dist <= 3 ? escolhe(["aprovado", "edicao"] as const) : dist <= 9 ? escolhe(["edicao", "gravacao", "aprovado"] as const) : escolhe(["roteiro", "gravacao", "edicao"] as const);
       const hora = String(8 + Math.floor(sorteio() * 12)).padStart(2, "0");
       n++;
-      geradasObjetivo[n] = escolhe(OBJETIVOS_GERADOS);
-      saida.push([n, `${escolhe(FORMATOS[rede])}: ${escolhe(TEMAS[empresa])}`, "postagem", empresa, rede, etapa, sorteio() < 0.5 ? "natham" : "matheus", `${dia}T${hora}:00`, "", 1 + Math.floor(sorteio() * 10)]);
+      saida.push([n, titulo, "postagem", empresa, rede, etapa, sorteio() < 0.5 ? "natham" : "matheus", `${dia}T${hora}:00`, "", 1 + Math.floor(sorteio() * 10)]);
     }
   }
   return saida;
@@ -109,7 +206,6 @@ const geradas: Linha[] = (() => {
 
 // Objetivo das postagens (aparece no Mapa).
 const OBJETIVOS: Record<number, string> = {
-  ...geradasObjetivo,
   5: "Mostrar a equipe por trás da Beec e aproximar quem nos segue",
   9: "Educar o público sobre erros comuns e gerar pedidos de orçamento",
   16: "Humanizar a profissão e ganhar alcance no TikTok",

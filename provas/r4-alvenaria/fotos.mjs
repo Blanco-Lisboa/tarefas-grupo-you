@@ -18,7 +18,7 @@ for (const [w, h] of [[1903, 900], [1440, 760], [390, 844]]) {
   console.log(w, JSON.stringify(info));
   const alto = await p.evaluate(() => document.querySelector(".mapa-palco").offsetHeight - document.querySelector(".mapa-fixo").offsetHeight);
   const meio = await p.evaluate(() => { const m = [...document.querySelectorAll("[data-marco]")]; return m[Math.floor(m.length / 2)].offsetLeft - innerWidth * 0.35; });
-  for (const [nome, y] of [["inicio", 0], ["meio", meio], ["fim", alto]]) {
+  for (const [nome, y] of [["inicio", 0], ["rolou-100px", 100], ["meio", meio], ["fim", alto]]) {
     await p.evaluate((y) => scrollTo(0, y), y);
     await p.waitForTimeout(1800);
     await marca(p);

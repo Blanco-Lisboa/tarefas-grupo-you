@@ -101,8 +101,12 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
           const larg = f.clientWidth;
           const dist = fx.scrollWidth - larg;
           if (dist <= 0) return;
-          const janela = Math.min(0.9, (larg * 0.18) / dist);
-          const tl = gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: p, start: "top top+=" + parseInt(pa.style.getPropertyValue("--mapa-topo")), end: "+=" + dist, scrub: true } });
+          const janela = Math.min(0.9, (larg * 0.14) / dist);
+          // Na primeira rolagem o palco sobe até o topo e o card cresce junto (a base não se mexe): sem faixa vazia em cima.
+          const colado = parseFloat(getComputedStyle(f.parentElement!).top);
+          const ganho = parseFloat(pa.style.getPropertyValue("--mapa-topo")) - colado;
+          if (ganho > 0) ScrollTrigger.create({ start: 0, end: ganho, scrub: true, onUpdate: (st) => pa.style.setProperty("--cresce", String(st.progress)) });
+          const tl = gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: p, start: `top top+=${colado}`, end: "+=" + dist, scrub: true } });
           tl.fromTo(fx, { x: 0 }, { x: -dist, duration: 1 }, 0);
           tl.fromTo(".mapa-progresso", { scaleX: 0 }, { scaleX: 1, duration: 1 }, 0);
 
@@ -117,13 +121,13 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
             return sub;
           };
           gsap.utils.toArray<HTMLElement>("[data-marco]", fx).forEach((el) => {
-            const t = (el.offsetLeft - larg * 0.62) / dist;
+            const t = (el.offsetLeft - larg * 0.98) / dist; // anima ao ENTRAR pela direita: no meio da tela já está inteiro
             if (t <= 0) return; // já está na tela no início: nasce inteiro, a animação fica para os que entram depois
             tl.add(revelar(el).duration(janela), Math.min(t, 1 - janela));
           });
           gsap.fromTo(".mapa-linha", { scaleX: 0 }, { scaleX: 1, duration: 1.1, ease: "power2.out" });
         }, f);
-        return () => ctx.revert();
+        return () => { ctx.revert(); pa.style.removeProperty("--cresce"); };
       };
       let limpar = montar();
       let largura = f.clientWidth;
