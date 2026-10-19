@@ -208,7 +208,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
           </fieldset>
 
           {t.tipo === "postagem" && (
-            <Campo rotulo="Objetivo (aparece no Mapa)">
+            <Campo rotulo="Objetivo">
               <input value={t.objetivo ?? ""} onChange={(e) => mudar("objetivo", e.target.value)} placeholder="Para que serve este conteúdo?" />
             </Campo>
           )}
