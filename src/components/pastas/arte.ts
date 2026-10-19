@@ -13,9 +13,9 @@ export type ArtRecipe = {
   veins?: number;
 };
 
-// Só cores de beec-tokens.css: grafite, card escuro e roxo profundo fazem o líquido; o ouro entra como brilho (último degrau,
-// fino). Elétrico NÃO entra: na Beec ele é só no claro e estas pastas são escuras.
-const G = "#18131F", C = "#221B2B", R = "#2A075A", O = "#FFBF2F";
+// Pastas sobre o bege claro (item 47): roxo profundo e um roxo um pouco mais claro (60% roxo + 40% elétrico, #470E96) fazem o
+// líquido; grafite só nas sombras; o ouro entra como brilho (último degrau, fino).
+const G = "#18131F", C = "#2A075A", R = "#470E96", O = "#FFBF2F";
 export const RECEITAS = {
   post: { style: "marble", colors: [G, C, R, G, R, C, G, C, R, G, R, G, C, R, G, O], scale: 0.66, warp: 3.2, angle: -0.5, gloss: 0.5, veins: 0.5 },
   carrossel: { style: "streak", colors: [G, C, R, G, C, R, G, C, R, G, C, R, R, R, C, O], scale: 0.7, warp: 1.5, angle: -0.62, gloss: 0.3, veins: 0 },

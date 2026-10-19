@@ -4,6 +4,7 @@ import { useEmpresas, usePecas, type Peca, type TipoPeca } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { hashString, RECEITAS } from "./arte";
 import { paint } from "./ArteCanvas";
+import { Selecao } from "@/components/ui/Selecao";
 import { PastaDeVidro } from "./PastaDeVidro";
 
 const PASTAS: { tipo: TipoPeca; rotulo: string }[] = [
@@ -74,21 +75,20 @@ export function TelaPastas() {
           <h1>Pastas</h1>
           <p>Peças prontas de cada empresa. Abra uma pasta e clique na peça: imagem baixa, vídeo abre no Drive.</p>
         </div>
-        <div className="pastas-modos" role="group" aria-label="Versão da pasta">
-          {MODOS.map((m) => (
-            <button key={m.id} type="button" className="pastas-modo" aria-pressed={modo === m.id} onClick={() => setModo(m.id)}>
-              {m.rotulo}
-            </button>
-          ))}
-        </div>
+        <Selecao
+          rotulo="Versão"
+          multipla={false}
+          opcoes={MODOS.map((m) => ({ valor: m.id, rotulo: m.rotulo }))}
+          valor={[modo]}
+          aoMudar={(v) => setModo((v[0] as Modo) ?? "lado")}
+        />
       </header>
 
-      {mostradas.length === 0 && <p>Nenhuma empresa para o filtro atual.</p>}
+      {mostradas.length === 0 && <p className="pastas-vazio">Nenhuma empresa para o filtro atual.</p>}
       {mostradas.map((e) => {
         const dela = visiveis.filter((p) => p.empresaId === e.id);
         return (
-          <div key={e.id} className="pastas-mesa-pai">
-            <div className="pastas-mesa corte-22">
+          <div key={e.id} className="pastas-empresa">
               <h2>
                 {e.nome} <small>{dela.length} peças</small>
               </h2>
@@ -106,7 +106,6 @@ export function TelaPastas() {
                   </div>
                 )}
               </div>
-            </div>
           </div>
         );
       })}
