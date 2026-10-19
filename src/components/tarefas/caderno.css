@@ -77,6 +77,17 @@
 .linha:hover { background-color: var(--realce); }
 .linha-hora { padding-right: var(--s-12); text-align: right; font-size: calc(17px * var(--escala)); line-height: var(--passo); color: var(--fraco); }
 .linha-miolo { display: flex; align-items: flex-start; gap: var(--s-8); min-width: 0; padding-left: var(--s-12); transform-origin: left center; }
+.linha-tarefa { padding-left: 0; }
+/* Alça de arrastar (item 69): aparece ao passar o mouse ou focar; o espaço fica sempre reservado */
+.alca { flex: none; width: 18px; height: var(--passo); display: grid; place-items: center; padding: 0; background: none; border: 0; border-radius: 4px; cursor: grab; opacity: 0; touch-action: none; transition: opacity var(--dur-rapida) var(--curva); }
+.alca svg { width: 10px; height: 16px; fill: var(--fraco); }
+.linha:hover .alca, .alca:focus-visible, .linha[data-arrastada] .alca { opacity: 1; }
+@media (hover: none) { .alca { opacity: .55; } }
+.alca:focus-visible { outline: 3px solid var(--foco); outline-offset: -2px; }
+.folha-linhas[data-arrastando="true"] { user-select: none; -webkit-user-select: none; }
+.folha-linhas[data-arrastando="true"] .alca { cursor: grabbing; }
+.linha[data-arrastada] { position: relative; z-index: 3; background-color: var(--sup); box-shadow: var(--sombra); cursor: grabbing; }
+.linha[data-alvo] { background-color: color-mix(in srgb, var(--azul) 12%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--azul) 45%, transparent); }
 .linha-texto { flex: 1; min-width: 0; font-size: calc(22px * var(--escala)); line-height: var(--passo); }
 .linha .detalhe { font-size: calc(16px * var(--escala)); line-height: 1; margin-left: var(--s-12); white-space: nowrap; }
 
@@ -209,6 +220,7 @@
   .folha { --margem-x: 8px; }
   .folha-quem { padding-inline: var(--s-12); }
   .linha-miolo { padding-left: var(--s-4); }
+  .linha-tarefa { padding-left: 0; }
   .linha .detalhe { display: block; margin: 0; white-space: normal; line-height: 1.1; padding-bottom: var(--s-4); }
   .agenda .pag-miolo { padding-inline: var(--s-12); }
   .ag-blocos { grid-template-columns: minmax(0, 1fr); }

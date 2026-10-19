@@ -1,8 +1,9 @@
 "use client";
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
 import type { Responsavel } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import type { OpcaoLetra } from "./fontes";
+import { SLOTS } from "./grade";
 import "./caderno.css";
 
 export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean };
@@ -23,6 +24,8 @@ type Props = {
   aoMarcar?: (id: string) => void;
   aoApagar?: (id: string) => void;
   aoAbrir?: (id: string) => void;
+  /** Alça de arrastar: leva a tarefa para a linha de horário `linha`. Sem isto não há alça. */
+  aoMover?: (id: string, linha: number) => void;
   aoEscrever?: (titulo: string, empresaId: string, responsavel: Responsavel, linha: number) => void;
 };
 
@@ -32,7 +35,7 @@ const giro = (id: string) => (([...id].reduce((s, c) => s + c.charCodeAt(0), 0) 
 // Estouro do check (mesmas posições do CRM): 12 pontos de tinta e 4 riscos, só ao marcar.
 const PONTOS = [[25, -25], [-25, -25], [25, 25], [-25, 25], [35, 0], [-35, 0], [0, 35], [0, -35], [20, -30], [-20, 30], [30, 20], [-30, -20]];
 
-export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empresas, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoEscrever }: Props) {
+export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empresas, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoMover, aoEscrever }: Props) {
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [estourando, setEstourando] = useState<string | null>(null);
   const [texto, setTexto] = useState<{ linha: number; valor: string }>({ linha: -1, valor: "" });
@@ -40,6 +43,39 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
   const [resp, setResp] = useState<Responsavel>("natham");
   const empresaAtual = empresa && empresas.some((e) => e.id === empresa) ? empresa : empresaPadrao;
   const primeiraVazia = linhas.findIndex((l) => !l);
+
+  // Arrastar pela alça (vertical): a linha acompanha o ponteiro e a linha de horário sob ele fica marcada; soltar move.
+  const lista = useRef<HTMLUListElement>(null);
+  const refoco = useRef<string | null>(null);
+  const [arrasto, setArrasto] = useState<{ id: string; de: number; alvo: number; y0: number; dy: number } | null>(null);
+  useEffect(() => { // depois de mover pelo teclado a linha troca de lugar: a alça volta a ter o foco
+    if (refoco.current) document.querySelector<HTMLElement>(`[data-alca="${CSS.escape(refoco.current)}"]`)?.focus();
+    refoco.current = null;
+  });
+  const comecar = (e: PointerEvent<HTMLButtonElement>, id: string, k: number) => {
+    if (e.button > 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setArrasto({ id, de: k, alvo: k, y0: e.clientY, dy: 0 });
+  };
+  const mover = (e: PointerEvent<HTMLButtonElement>) => {
+    if (!arrasto || !lista.current) return;
+    const caixas = [...lista.current.children].map((li) => li.getBoundingClientRect());
+    const i = e.clientY < caixas[0].top ? 0 : caixas.findIndex((r) => e.clientY >= r.top && e.clientY < r.bottom);
+    setArrasto({ ...arrasto, dy: e.clientY - arrasto.y0, alvo: Math.min(SLOTS - 1, i < 0 ? caixas.length - 1 : i) });
+  };
+  const soltar = (e: PointerEvent<HTMLButtonElement>) => {
+    if (!arrasto) return;
+    if (e.type === "pointerup" && arrasto.alvo !== arrasto.de) aoMover?.(arrasto.id, arrasto.alvo);
+    setArrasto(null);
+  };
+  const teclar = (e: KeyboardEvent<HTMLButtonElement>, id: string, k: number) => {
+    const alvo = e.key === "ArrowUp" ? k - 1 : e.key === "ArrowDown" ? k + 1 : -1;
+    if (alvo < 0 && e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    e.preventDefault();
+    if (alvo < 0 || alvo > SLOTS - 1) return;
+    refoco.current = id;
+    aoMover?.(id, alvo);
+  };
 
   const marcar = (l: LinhaFolha) => {
     aoMarcar?.(l.id);
@@ -68,12 +104,26 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
           </div>
         )}
 
-        <ul className="folha-linhas">
+        <ul ref={lista} className="folha-linhas" data-arrastando={!!arrasto}>
           {linhas.map((l, k) => (
-            <li key={l?.id ?? `v${k}`} className="linha" data-feita={l?.feita}>
+            <li
+              key={l?.id ?? `v${k}`} className="linha" data-feita={l?.feita}
+              data-arrastada={arrasto?.id === l?.id && !!l || undefined} data-alvo={arrasto && arrasto.alvo === k && arrasto.alvo !== arrasto.de || undefined}
+              style={arrasto && arrasto.id === l?.id ? { transform: `translateY(${arrasto.dy}px)` } : undefined}
+            >
               <span className="linha-hora">{rotulos?.[k]}</span>
               {l ? (
-                <div className="linha-miolo" style={{ transform: `rotate(${giro(l.id)}deg)` }}>
+                <div className="linha-miolo linha-tarefa" style={{ transform: `rotate(${giro(l.id)}deg)` }}>
+                  {aoMover && (
+                    <button
+                      type="button" className="alca" data-alca={l.id} title="Arrastar para mudar o horário"
+                      aria-label={`Mudar o horário de ${l.titulo}: setas para cima e para baixo movem meia hora`}
+                      onPointerDown={(e) => comecar(e, l.id, k)} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar}
+                      onKeyDown={(e) => teclar(e, l.id, k)}
+                    >
+                      <svg viewBox="0 0 10 16" aria-hidden="true">{[3, 8, 13].flatMap((y) => [2.5, 7.5].map((x) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.3" />))}</svg>
+                    </button>
+                  )}
                   <button
                     type="button" className={`caixa${estourando === l.id ? " estourando" : ""}`} disabled={!aoMarcar} aria-pressed={l.feita}
                     aria-label={`${l.feita ? "Desmarcar" : "Marcar como feita"}: ${l.titulo}`}

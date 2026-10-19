@@ -10,7 +10,7 @@ import { Ficha } from "@/components/ficha/Ficha";
 import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { horaDe, horaDoSlot, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { horaDe, horaDoSlot, minutos, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -204,6 +204,14 @@ export function TelaTarefas() {
             aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
             aoMarcar={(id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
             aoApagar={(id) => void removerTarefa(id)}
+            aoMover={aba === "dia" ? (id, linha) => {
+              const t = tarefas.find((x) => x.id === id);
+              if (!t) return;
+              // A tarefa vai para o horário da linha e mantém a duração (30 min se era dia inteiro ou sem fim).
+              const h = horaDoSlot(linha);
+              const dur = t.inicio && t.fim && t.inicio.length > 10 && t.fim.length > 10 ? Math.max(15, minutos(t.fim.slice(11, 16)) - minutos(t.inicio.slice(11, 16))) : 30;
+              void salvarTarefa({ ...t, inicio: `${dia}T${h}`, fim: `${dia}T${somarMinutos(h, dur)}`, diaInteiro: false });
+            } : undefined}
             aoEscrever={(t, empresaId, responsavel, linha) => {
               const base = { titulo: t, tipo: "outro" as const, empresaId, responsavel, cor: "etiqueta-5" as const, links: [], arquivos: [] };
               if (aba === "semdata") return void salvarTarefa({ ...base, diaInteiro: false });
