@@ -65,3 +65,22 @@ Território: `src/app/pastas/`, `src/components/pastas/` e arquivo NOVO `src/lib
 ## Régua (Codex) · revisão no fim
 Quando o Maestro chamar: revisão só leitura do delta da rodada 4 (bugs, contraste AA das cores suaves, teclado do
 calendário, arraste no toque). Relatório com achados; quem conserta é o dono do território.
+
+## Rodada 4b (itens 67–71, 19/10 tarde) — fotos 12 a 16
+- **Sextante · 68:** item do menu "Tarefas" vira "Caderno" (o nome do sistema no topo e a rota /tarefas ficam). Foto do menu aberto e recolhido.
+- **Pena · 68, 69, 70** (nesta ordem, um commit por item):
+  - 68: título da tela "Tarefas" vira "Caderno" (e o rótulo do painel da esquerda, se fizer sentido; o painel da direita segue "Agenda do dia").
+  - 69: alça ⠿ à esquerda de cada tarefa (aparece no hover, tooltip "Arrastar para mudar o horário"); arrastar para cima/baixo
+    solta a tarefa na linha do horário escolhida (é o mesmo `posicao` = linha do horário que já existe). Teclado: alça focável +
+    setas cima/baixo. Referência do CRM (só leitura): `Desktop/CRM-You/js/app-tarefas-linhas.js` e `app-tarefas-folha.js`.
+    Não pode brigar com o arraste lateral da folha (item 63): começou na alça = arraste vertical da tarefa.
+  - 70: botão ⋮ no fim de cada tarefa (aparece no hover/foco) abrindo menu com a pele do `Selecao`: Duplicar pro dia seguinte,
+    Mover pro dia seguinte, Marcar horário, Criar tarefa para… (outra pessoa), Marcar pessoa…, Etiqueta (Prioridade, Não esquecer,
+    Rápida, Sem — cores suaves da paleta de etiquetas), separador, Excluir em vermelho. "Ligar a um lead" NÃO entra (aqui não há
+    leads); se der, troque por "Ligar a um conteúdo" usando os conteúdos que já existem, senão deixe de fora e diga no relatório.
+    Referência: `Desktop/CRM-You/js/app-tarefas-menu.js`. Esc e clique fora fecham.
+  - Antes de tudo: a foto 13 do Natham AINDA mostra as bolinhas; confira se o servidor 3100 está servindo o CSS novo (789f7f3).
+- **Vitral · 71:** a cor de cada pasta passa a ser a cor DA MARCA: Beec = roxo da Beec (`Desktop/ID-Visual-ALL/Beec/`, SÓ LEITURA),
+  You = laranja da You (o laranja do CRM: `Desktop/CRM-You/css/`, ou `ID-Visual-ALL` se houver pasta da You). Só a cor; nada da ID
+  delas (fonte, logo, formas). Mantém o vidro e a arte da pasta, a cor tem que ser reconhecível (roxo é roxo, laranja é laranja).
+  Texto da pasta com contraste AA sobre a cor. Anote no relatório os hex usados e de onde vieram.
