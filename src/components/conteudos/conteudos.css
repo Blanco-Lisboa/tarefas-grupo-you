@@ -25,7 +25,6 @@
 .conteudos-titulo { display: block; width: 100%; min-height: 42px; margin: var(--s-12) 0; padding: 0; border: 0; background: none; color: var(--texto); font: 600 var(--t-16)/1.3 var(--fonte); text-align: left; overflow-wrap: anywhere; cursor: pointer; }
 .conteudos-titulo:hover { color: var(--azul); }
 .conteudos-cartao-rodape { color: var(--texto); font-size: var(--app-t-rotulo); font-weight: 500; }
-.conteudos-responsavel { display: grid; flex: none; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: var(--sup-2); color: var(--texto); font: 600 12px var(--fonte); }
 .conteudos-cartao-rodape time { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
 .conteudos-prazo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-8); margin-top: var(--s-12); padding-top: var(--s-8); border-top: 1px solid var(--linha); font-size: var(--app-t-rotulo); font-weight: 500; }
 .conteudos-contagem-dias { color: var(--fraco); }

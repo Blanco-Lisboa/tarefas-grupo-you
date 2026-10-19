@@ -4,6 +4,7 @@ import { useEmpresas, type Tarefa } from "@/lib/dados";
 import { NOMES } from "@/components/ficha/Ficha";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
+import { Pessoa } from "@/components/ui/Pessoa";
 import { comMinuto, diaCurto, horaCurta, tituloPeriodo, variosDias, type Destino, type Visao } from "./logica";
 
 export type Acoes = {
@@ -50,7 +51,7 @@ export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "blo
       onClick={(e) => { e.stopPropagation(); abrir(t); }}
     >
       <span className="evento-linha">
-        <span className={`evento-bolinha evento-bolinha-${t.responsavel}`} aria-label={pessoa}>{pessoa[0]}</span>
+        <Pessoa quem={t.responsavel} tamanho={modo === "cartao" ? 20 : 16} />
         {hora && (modo !== "bloco" || curto) && <span className="evento-hora">{curto ? hora.slice(0, 5) : hora}</span>}
         <span className="evento-titulo">{t.titulo}</span>
         {modo === "chip" && <>{etiqueta}{selo}</>}

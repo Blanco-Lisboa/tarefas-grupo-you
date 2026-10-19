@@ -1,0 +1,2 @@
+.pessoa { display: inline-grid; flex: none; place-items: center; overflow: hidden; border-radius: 50%; background: var(--sup-2); color: var(--texto); font-weight: 600; line-height: 1; vertical-align: middle; }
+.pessoa-foto { width: 100%; height: 100%; object-fit: cover; }

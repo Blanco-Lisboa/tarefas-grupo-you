@@ -3,6 +3,7 @@
 import { useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from "react";
 import { Ficha } from "@/components/ficha/Ficha";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
+import { Pessoa } from "@/components/ui/Pessoa";
 import { ETAPAS, salvarTarefa, useEmpresas, useTarefas, type Etapa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
@@ -148,7 +149,7 @@ export function TelaConteudos() {
                     </div>
                     <button className="conteudos-titulo" type="button" onClick={() => setAberta(tarefa)}>{tarefa.titulo}</button>
                     <div className="conteudos-cartao-rodape">
-                      <span className="conteudos-responsavel" title={tarefa.responsavel === "natham" ? "Natham" : "Matheus"}>{tarefa.responsavel === "natham" ? "N" : "M"}</span>
+                      <Pessoa quem={tarefa.responsavel} tamanho={25} />
                       <time dateTime={tarefa.inicio?.slice(0, 10)}>{dataLegivel(tarefa.inicio)}</time>
                     </div>
                     {(falta || drive) && (

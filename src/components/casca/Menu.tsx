@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Pessoa } from "@/components/ui/Pessoa";
 
 // Ícones de traço fino, no desenho da amostra do modelo 1 Névoa (item 60). currentColor: o item ativo pinta de azul.
 const ICONES = {
@@ -61,8 +62,8 @@ export function Menu({ recolhido, alternar, caminho }: Props) {
           <Item item={CONFIGURACOES} caminho={caminho} />
         </ul>
         <div className="menu-pessoas">
-          <span className="bolinha bolinha-n" title="Natham">N</span>
-          <span className="bolinha bolinha-m" title="Matheus">M</span>
+          <Pessoa quem="natham" tamanho={28} />
+          <Pessoa quem="matheus" tamanho={28} />
         </div>
         <button type="button" className="menu-item menu-alterna" onClick={alternar} aria-label={acao} aria-expanded={!recolhido} title={acao}>
           <Icone nome="recolher" />
