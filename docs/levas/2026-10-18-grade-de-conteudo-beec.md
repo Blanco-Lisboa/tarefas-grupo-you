@@ -35,3 +35,4 @@
 - [x] 8 · Montar pelo Maestri de casa via AnyDesk · estado: DESCARTADO ("na real, deixe, vamos fazer aqui mesmo no pc do escritório")
 - [ ] 32 · DECISÕES PARA O NATHAM ao voltar: (a) letra do caderno em /tarefas/letras (Caveat, Kalam, Patrick Hand; recomendada Patrick Hand); (b) pasta de vidro exata x adaptada Beec em /pastas; (c) nome do sistema; (d) confirmar Kwai e Matheus Gomes; (e) Fase 2: criar o Supabase novo (pode ter custo) · estado: AGUARDA NATHAM
 - [ ] 33 · Pendências conhecidas (não pedidas, anotadas pelos terminais): arrastar com o dedo no celular; tarefa de vários dias não vira barra única como no Google; menu recolhido não é lembrado; sem confirmação testada no celular (390) no caderno · estado: ABERTO
+- [x] 34 · "Salva tudo e dá um clear nos terminais, vou pedir alterações" · estado: FEITO (repo limpo em b825c5b; /clear nos 5 terminais; servidor 3100 seguiu no ar)
