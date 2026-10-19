@@ -24,6 +24,7 @@ describe("mapa", () => {
   it("marca postado e acha o objetivo", () => {
     expect(foiPostado(t("a", "postagem", "2026-10-20", { etapa: "postado" }))).toBe(true);
     expect(foiPostado(t("a", "postagem", "2026-10-20", { etapa: "aprovado" }))).toBe(false);
-    expect(objetivoDe(t("a", "postagem", undefined, { notas: " Vender " }))).toBe("Vender");
+    expect(objetivoDe(t("a", "postagem", undefined, { objetivo: " Vender " }))).toBe("Vender");
+    expect(objetivoDe(t("b", "postagem"))).toBe("b");
   });
 });

@@ -1,0 +1,18 @@
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const nav = await chromium.launch({ headless: true });
+const p = await nav.newPage({ viewport: { width: 1440, height: 760 } });
+await p.goto("http://localhost:3100/mapa", { waitUntil: "networkidle" });
+console.log("cartão:", await p.locator(".mapa-card-objetivo").first().innerText());
+await p.locator(".mapa-card").first().click();
+const campo = p.getByPlaceholder("Para que serve este conteúdo?");
+await campo.fill("Objetivo editado na ficha");
+await p.screenshot({ path: fileURLToPath(new URL("./ficha-objetivo.png", import.meta.url)) });
+await p.getByRole("button", { name: /Salvar/ }).click();
+await p.waitForTimeout(300);
+console.log("depois:", await p.locator(".mapa-card-objetivo").first().innerText());
+await p.screenshot({ path: fileURLToPath(new URL("./mapa-objetivo.png", import.meta.url)) });
+await nav.close();

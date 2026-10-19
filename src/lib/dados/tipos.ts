@@ -32,6 +32,8 @@ export type Tarefa = {
   cor: Etiqueta;
   /** Feita? Opcional: ausente = não concluída. */
   concluida?: boolean;
+  /** Para que serve o conteúdo (só postagem usa): aparece no Mapa. */
+  objetivo?: string;
   notas?: string;
   links: Link[];
   arquivos: Arquivo[];

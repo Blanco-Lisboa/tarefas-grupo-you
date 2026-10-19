@@ -16,7 +16,7 @@ type Props = { recolhido: boolean; alternar: () => void; caminho: string };
 function Item({ item, caminho }: { item: (typeof ITENS)[number]; caminho: string }) {
   return (
     <li>
-      <Link href={item.href} className="menu-item" title={item.rotulo} aria-current={caminho === item.href ? "page" : undefined}>
+      <Link href={item.href} className="menu-item" target="_self" title={item.rotulo} aria-current={caminho === item.href ? "page" : undefined}>
         <span className="menu-icone" aria-hidden style={{ "--icone": `url(/beec/icones/${item.icone}.svg)` } as CSSProperties} />
         <span className="menu-rotulo">{item.rotulo}</span>
       </Link>

@@ -81,7 +81,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
         ? { inicio: data, fim: undefined, diaInteiro: true }
         : { inicio: `${data}T${horaIni}`, fim: fimValido(data, horaIni, dataFim || data, horaFim), diaInteiro: false };
     await salvarTarefa({
-      ...t, ...quando, titulo: t.titulo.trim(), notas: t.notas?.trim() || undefined,
+      ...t, ...quando, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
     aoFechar();
@@ -203,6 +203,12 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
               ))}
             </div>
           </fieldset>
+
+          {t.tipo === "postagem" && (
+            <Campo rotulo="Objetivo (aparece no Mapa)">
+              <input value={t.objetivo ?? ""} onChange={(e) => mudar("objetivo", e.target.value)} placeholder="Para que serve este conteúdo?" />
+            </Campo>
+          )}
 
           <Campo rotulo="Notas">
             <textarea rows={3} value={t.notas ?? ""} onChange={(e) => mudar("notas", e.target.value)} placeholder="Ideias, roteiro, combinados..." />

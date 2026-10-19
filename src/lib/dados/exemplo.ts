@@ -57,6 +57,20 @@ const linhas: Linha[] = [
   [42, "Editar cortes antigos do podcast", "edicao", "beec", "kwai", "edicao", "matheus", "", "", 6],
 ];
 
+// Objetivo das postagens (aparece no Mapa).
+const OBJETIVOS: Record<number, string> = {
+  5: "Mostrar a equipe por trás da Beec e aproximar quem nos segue",
+  9: "Educar o público sobre erros comuns e gerar pedidos de orçamento",
+  16: "Humanizar a profissão e ganhar alcance no TikTok",
+  18: "Dar nova vida ao podcast e alcançar o público do Kwai",
+  22: "Engajar a base com uma enquete rápida",
+  24: "Celebrar o Dia do Contador e reforçar a marca",
+  28: "Começar a série de dicas e atrair novos MEIs",
+  29: "Levar a primeira dica de MEI ao público do TikTok",
+  34: "Apresentar a Beec e o que ela faz em um vídeo só",
+  37: "Converter a atenção da Black Friday em vendas",
+};
+
 // Tarefas antigas (início de outubro) já feitas.
 const CONCLUIDAS = new Set([1, 2, 3, 4]);
 
@@ -74,5 +88,6 @@ export const tarefasExemplo: Tarefa[] = linhas.map(([n, titulo, tipo, empresaId,
   cor: `etiqueta-${cor}` as Etiqueta,
   links: tipo === "edicao" || tipo === "postagem" ? [{ rotulo: "Vídeo no Drive", url: "https://drive.google.com/" }] : [],
   arquivos: [],
+  ...(OBJETIVOS[n] && { objetivo: OBJETIVOS[n] }),
   ...(CONCLUIDAS.has(n) && { concluida: true }),
 }));

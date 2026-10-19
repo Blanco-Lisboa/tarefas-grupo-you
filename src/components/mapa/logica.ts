@@ -14,9 +14,8 @@ export function diasDoPeriodo(inicio = INICIO) {
   return dias;
 }
 
-// ponytail: o modelo ainda não tem o campo "objetivo" (tipos.ts é arquivo comum). Enquanto isso vale a nota, senão o título.
-// Quando o campo existir, é só trocar esta linha.
-export const objetivoDe = (t: Tarefa) => t.notas?.trim() || t.titulo;
+// Sem objetivo preenchido, o cartão mostra o título.
+export const objetivoDe = (t: Tarefa) => t.objetivo?.trim() || t.titulo;
 
 export const foiPostado = (t: Tarefa) => t.etapa === "postado" || !!t.concluida;
 const diaDe = (t: Tarefa) => t.inicio!.slice(0, 10);
