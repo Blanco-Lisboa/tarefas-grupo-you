@@ -2,7 +2,7 @@
 export const TIPOS = ["ideia", "roteiro", "gravacao", "edicao", "postagem", "reuniao", "outro"] as const;
 export const REDES = ["instagram", "tiktok", "youtube", "kwai"] as const;
 export const ETAPAS = ["roteiro", "gravacao", "edicao", "analise", "aprovado", "postado"] as const;
-export const RESPONSAVEIS = ["natham", "matheus"] as const;
+export const RESPONSAVEIS = ["natham", "matheus", "adrian", "lucas"] as const; // as 4 pessoas do banco; só Natham e Matheus têm login
 export const ETIQUETAS = [
   "etiqueta-1", "etiqueta-2", "etiqueta-3", "etiqueta-4", "etiqueta-5",
   "etiqueta-6", "etiqueta-7", "etiqueta-8", "etiqueta-9", "etiqueta-10",
@@ -43,6 +43,10 @@ export type Tarefa = {
   tags?: string[];
   /** Quem aprova este conteúdo (nome livre). Só vale com uma tag de aprovação marcada; fica no conteúdo, não na tag. */
   aprovador?: string;
+  /** Vêm do banco, só leitura. dono = de quem é o caderno; enviadaPor = quem mandou (só se foi enviada). */
+  dono?: Responsavel;
+  criadoPor?: Responsavel;
+  enviadaPor?: Responsavel;
 };
 
 /** Rótulo colorido que se cria e se marca nos conteúdos. aprovacao = marcar pede "Quem aprova". */
@@ -52,4 +56,5 @@ export const APROVADORES = ["Natham", "Matheus", "Adrian"] as const;
 
 export type Empresa = { id: string; nome: string; sigla: string };
 
-export type NovaTarefa = Omit<Tarefa, "id"> & { id?: string };
+/** enviarPara (só ao criar): entrega a tarefa no caderno dessa pessoa; o banco registra quem mandou. Sem ele, fica no seu caderno. */
+export type NovaTarefa = Omit<Tarefa, "id"> & { id?: string; enviarPara?: Responsavel };

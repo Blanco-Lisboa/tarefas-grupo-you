@@ -31,7 +31,7 @@ export const NOMES = {
   tipo: { ideia: "Ideia", roteiro: "Roteiro", gravacao: "Gravação", edicao: "Edição", postagem: "Postagem", reuniao: "Reunião", outro: "Outro" },
   rede: { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", kwai: "Kwai" },
   etapa: { roteiro: "Roteiro", gravacao: "Gravação", edicao: "Edição", analise: "Em análise", aprovado: "Aprovado", postado: "Postado" },
-  responsavel: { natham: "Natham", matheus: "Matheus" },
+  responsavel: { natham: "Natham", matheus: "Matheus", adrian: "Adrian", lucas: "Lucas" },
 } as const satisfies {
   tipo: Record<TipoTarefa, string>; rede: Record<Rede, string>; etapa: Record<Etapa, string>; responsavel: Record<Responsavel, string>;
 };

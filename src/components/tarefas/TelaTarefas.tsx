@@ -32,7 +32,7 @@ const virouODia = (avisar: () => void) => {
   return () => { clearTimeout(t); document.removeEventListener("visibilitychange", voltou); };
 };
 
-const NOMES = { natham: "Natham", matheus: "Matheus" } as const;
+const NOMES = { natham: "Natham", matheus: "Matheus", adrian: "Adrian", lucas: "Lucas" } as const;
 const extenso = (dia: string) => paraData(dia).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, (c) => c.toUpperCase());
 
 export function TelaTarefas() {

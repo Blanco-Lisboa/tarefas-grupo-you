@@ -1,10 +1,25 @@
-// Repositório em memória (Fase 1). Na Fase 2 só ESTE arquivo troca por Supabase; a API pública (index.ts) fica igual.
-import { empresasExemplo, tarefasExemplo } from "./exemplo";
-import type { Empresa, NovaTarefa, Tag, Tarefa } from "./tipos";
+// Repositório no Supabase (Etapa 1 da fase login). A API pública (index.ts) é a mesma de antes; só este arquivo fala com o banco.
+// O app fala com o banco COM a sessão de quem está logado: quem decide o que cada pessoa vê são as travas (RLS) do banco.
+// Escrita otimista: a tela muda na hora; se o banco recusar, volta ao que era e mostra o aviso (ver lerErro).
+import { supabase } from "@/lib/supabase/cliente";
+import type { Empresa, NovaTarefa, Responsavel, Tag, Tarefa } from "./tipos";
 
-let tarefas: Tarefa[] = tarefasExemplo;
-let empresas: Empresa[] = empresasExemplo;
-let tags: Tag[] = [{ id: "tag-esperando-aprovacao", nome: "Esperando aprovação", cor: "etiqueta-1", aprovacao: true }];
+type LinhaTarefa = {
+  id: string; titulo: string; tipo: Tarefa["tipo"]; empresa_id: string | null; rede: Tarefa["rede"] | null; etapa: Tarefa["etapa"] | null;
+  responsavel_id: string; inicio: string | null; fim: string | null; dia_inteiro: boolean; cor: Tarefa["cor"]; concluida: boolean;
+  objetivo: string | null; notas: string | null; links: Tarefa["links"]; aprovador: string | null;
+  dono_id: string; criado_por: string; enviada_por: string | null;
+  tarefa_tags?: { tag_id: string }[];
+};
+type Pessoa = { id: string; slug: Responsavel; user_id: string | null };
+
+let tarefas: Tarefa[] = [];
+let empresas: Empresa[] = [];
+let tags: Tag[] = [];
+let pessoas: Pessoa[] = [];
+let eu: Responsavel | null = null;
+let erro = "";
+let iniciado: Promise<void> | undefined;
 const ouvintes = new Set<() => void>();
 const avisar = () => ouvintes.forEach((f) => f());
 
@@ -12,40 +27,144 @@ const avisar = () => ouvintes.forEach((f) => f());
 export const lerTarefas = () => tarefas;
 export const lerEmpresas = () => empresas;
 export const lerTags = () => tags;
-export const assinar = (f: () => void) => (ouvintes.add(f), () => void ouvintes.delete(f));
+export const lerEu = () => eu;
+export const lerErro = () => erro;
+export const limparErro = () => { erro = ""; avisar(); };
+export const assinar = (f: () => void) => {
+  ouvintes.add(f);
+  iniciar();
+  return () => void ouvintes.delete(f);
+};
+
+const falhou = (mensagem: string) => { erro = mensagem; avisar(); };
+const idDe = (slug: Responsavel) => pessoas.find((p) => p.slug === slug)?.id;
+const slugDe = (id: string | null) => pessoas.find((p) => p.id === id)?.slug;
+
+/** Linha do banco -> Tarefa da tela. Os anexos ainda não vão ao banco (Etapa 2): `arquivos` vem do que já está na tela. */
+export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem: (id: string | null) => Responsavel | undefined = slugDe): Tarefa {
+  const ids = l.tarefa_tags?.map((x) => x.tag_id);
+  return {
+    id: l.id, titulo: l.titulo, tipo: l.tipo, empresaId: l.empresa_id ?? "", rede: l.rede ?? undefined, etapa: l.etapa ?? undefined,
+    responsavel: quem(l.responsavel_id) ?? "natham", inicio: l.inicio ?? undefined, fim: l.fim ?? undefined, diaInteiro: l.dia_inteiro,
+    cor: l.cor, concluida: l.concluida || undefined, objetivo: l.objetivo ?? undefined, notas: l.notas ?? undefined,
+    links: l.links ?? [], arquivos, tags: ids?.length ? ids : undefined, aprovador: l.aprovador ?? undefined,
+    dono: quem(l.dono_id), criadoPor: quem(l.criado_por), enviadaPor: quem(l.enviada_por),
+  };
+}
+
+/** Campos que a pessoa pode mudar depois de criada (dono, criado_por e enviada_por o banco não deixa mudar). */
+export const paraBanco = (t: Tarefa, responsavelId: string | undefined) => ({
+  titulo: t.titulo, tipo: t.tipo, empresa_id: t.empresaId || null, rede: t.rede ?? null, etapa: t.etapa ?? null,
+  responsavel_id: responsavelId, inicio: t.inicio ?? null, fim: t.fim ?? null, dia_inteiro: t.diaInteiro, cor: t.cor,
+  concluida: !!t.concluida, objetivo: t.objetivo ?? null, notas: t.notas ?? null, links: t.links, aprovador: t.aprovador ?? null,
+});
+
+function iniciar() {
+  if (typeof window === "undefined" || iniciado) return;
+  iniciado = carregar();
+  // Voltou para a aba: busca de novo, para ver o que o outro mexeu enquanto isso.
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) void carregar(); });
+}
+
+async function carregar() {
+  const sb = supabase();
+  const [p, e, t, g, sessao] = await Promise.all([
+    sb.from("pessoas").select("id, slug, user_id"),
+    sb.from("empresas").select("id, nome, sigla").order("ordem").order("nome"),
+    sb.from("tarefas").select("*, tarefa_tags(tag_id)").order("created_at"),
+    sb.from("tags").select("id, nome, cor, aprovacao").order("nome"),
+    sb.auth.getClaims(),
+  ]);
+  const problema = p.error ?? e.error ?? t.error ?? g.error;
+  if (problema) return falhou("Não consegui carregar os dados. Recarregue a página.");
+  pessoas = p.data as Pessoa[];
+  eu = pessoas.find((x) => x.user_id === sessao.data?.claims.sub)?.slug ?? null;
+  if (!eu) falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham.");
+  const anexos = new Map(tarefas.map((x) => [x.id, x.arquivos]));
+  empresas = e.data as Empresa[];
+  tags = (g.data as Tag[]).map((x) => ({ id: x.id, nome: x.nome, cor: x.cor, ...(x.aprovacao && { aprovacao: true as const }) }));
+  tarefas = (t.data as LinhaTarefa[]).map((l) => daLinha(l, anexos.get(l.id)));
+  avisar();
+}
+
+const semAcesso = "O banco não deixou salvar (sem permissão ou o item não existe mais).";
 
 export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
-  const tarefa = { ...nova, id: nova.id ?? crypto.randomUUID() } as Tarefa;
-  tarefas = tarefas.some((t) => t.id === tarefa.id)
-    ? tarefas.map((t) => (t.id === tarefa.id ? tarefa : t))
-    : [...tarefas, tarefa];
+  const id = nova.id ?? crypto.randomUUID();
+  const antes = tarefas.find((t) => t.id === id);
+  const dono = antes?.dono ?? nova.enviarPara ?? eu ?? undefined;
+  const { enviarPara: _enviarPara, ...resto } = nova;
+  void _enviarPara;
+  const tarefa: Tarefa = { ...resto, id, dono, criadoPor: antes?.criadoPor ?? eu ?? undefined, enviadaPor: antes ? antes.enviadaPor : dono !== eu ? eu ?? undefined : undefined };
+  if (!eu || !dono) { falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham."); return tarefa; }
+  tarefas = antes ? tarefas.map((t) => (t.id === id ? tarefa : t)) : [...tarefas, tarefa];
   avisar();
+  try {
+    const sb = supabase();
+    const campos = paraBanco(tarefa, idDe(tarefa.responsavel));
+    if (antes) {
+      const { data, error } = await sb.from("tarefas").update(campos).eq("id", id).select("id");
+      if (error) throw error;
+      if (!data?.length) throw new Error(semAcesso);
+    } else {
+      const { error } = await sb.from("tarefas").insert({ id, ...campos, dono_id: idDe(dono), criado_por: idDe(eu), enviada_por: dono !== eu ? idDe(eu) : null });
+      if (error) throw error;
+    }
+    const a = (antes?.tags ?? []).join(), b = (tarefa.tags ?? []).join();
+    if (a !== b) {
+      if (antes) { const { error } = await sb.from("tarefa_tags").delete().eq("tarefa_id", id); if (error) throw error; }
+      if (tarefa.tags?.length) { const { error } = await sb.from("tarefa_tags").insert(tarefa.tags.map((tag_id) => ({ tarefa_id: id, tag_id }))); if (error) throw error; }
+    }
+  } catch (e) {
+    tarefas = antes ? tarefas.map((t) => (t.id === id ? antes : t)) : tarefas.filter((t) => t.id !== id);
+    falhou(e instanceof Error && e.message === semAcesso ? e.message : "Não consegui salvar a tarefa. Tente de novo.");
+  }
   return tarefa;
 }
 
 export async function removerTarefa(id: string): Promise<void> {
+  const antes = tarefas;
   tarefas = tarefas.filter((t) => t.id !== id);
   avisar();
+  const { data, error } = await supabase().from("tarefas").delete().eq("id", id).select("id");
+  if (error || !data?.length) {
+    tarefas = antes;
+    falhou(error ? "Não consegui apagar a tarefa. Tente de novo." : semAcesso);
+  }
 }
 
 export async function salvarEmpresa(empresa: Empresa): Promise<Empresa> {
-  empresas = empresas.some((e) => e.id === empresa.id)
-    ? empresas.map((e) => (e.id === empresa.id ? empresa : e))
-    : [...empresas, empresa];
+  const antes = empresas;
+  const nova = !empresas.some((e) => e.id === empresa.id);
+  empresas = nova ? [...empresas, empresa] : empresas.map((e) => (e.id === empresa.id ? empresa : e));
   avisar();
+  const ordem = nova ? { ordem: empresas.length } : {};
+  const { error } = await supabase().from("empresas").upsert({ id: empresa.id, nome: empresa.nome, sigla: empresa.sigla, ...ordem });
+  if (error) { empresas = antes; avisar(); throw new Error("Não consegui salvar a empresa."); }
   return empresa;
 }
 
-// ponytail: tirar uma empresa leva as tarefas dela junto. Na Fase 2 vira "arquivar" se o Natham preferir.
+// ponytail: tirar uma empresa leva as tarefas que você vê dela junto (como antes). Se sobrar tarefa privada de outra pessoa, o banco recusa.
 export async function removerEmpresa(id: string): Promise<void> {
+  const [antesEmpresas, antesTarefas] = [empresas, tarefas];
   empresas = empresas.filter((e) => e.id !== id);
   tarefas = tarefas.filter((t) => t.empresaId !== id);
   avisar();
+  const sb = supabase();
+  const r1 = await sb.from("tarefas").delete().eq("empresa_id", id);
+  const r2 = r1.error ? r1 : await sb.from("empresas").delete().eq("id", id);
+  if (r2.error) {
+    [empresas, tarefas] = [antesEmpresas, antesTarefas];
+    avisar();
+    throw new Error("Não consegui tirar a empresa: ainda há tarefas dela que só outra pessoa vê.");
+  }
 }
 
 export async function salvarTag(nova: Omit<Tag, "id">): Promise<Tag> {
   const tag = { ...nova, id: crypto.randomUUID() };
   tags = [...tags, tag];
   avisar();
+  const { error } = await supabase().from("tags").insert({ id: tag.id, nome: tag.nome, cor: tag.cor, aprovacao: !!tag.aprovacao });
+  if (error) { tags = tags.filter((t) => t.id !== tag.id); falhou("Não consegui criar a tag. Tente de novo."); }
   return tag;
 }
