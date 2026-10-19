@@ -63,9 +63,12 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
   };
   const mover = (e: PointerEvent<HTMLButtonElement>) => {
     if (!arrasto || !lista.current) return;
-    const caixas = [...lista.current.children].map((li) => li.getBoundingClientRect());
-    const i = e.clientY < caixas[0].top ? 0 : caixas.findIndex((r) => e.clientY >= r.top && e.clientY < r.bottom);
-    setArrasto({ ...arrasto, dy: e.clientY - arrasto.y0, alvo: Math.min(SLOTS - 1, i < 0 ? caixas.length - 1 : i) });
+    // Posição de LAYOUT (offsetTop): a linha arrastada tem transform e o getBoundingClientRect dela anda com o ponteiro,
+    // o que fazia o alvo ser sempre ela mesma (item 87).
+    const topo = lista.current.getBoundingClientRect().top, y = e.clientY - topo;
+    const linhasLi = [...lista.current.children] as HTMLElement[];
+    const i = y < 0 ? 0 : linhasLi.findIndex((li) => y >= li.offsetTop && y < li.offsetTop + li.offsetHeight);
+    setArrasto({ ...arrasto, dy: e.clientY - arrasto.y0, alvo: Math.min(SLOTS - 1, i < 0 ? linhasLi.length - 1 : i) });
   };
   const soltar = (e: PointerEvent<HTMLButtonElement>) => {
     if (!arrasto) return;
@@ -115,19 +118,21 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
               data-arrastada={arrasto?.id === l?.id && !!l || undefined} data-alvo={arrasto && arrasto.alvo === k && arrasto.alvo !== arrasto.de || undefined}
               style={arrasto && arrasto.id === l?.id ? { transform: `translateY(${arrasto.dy}px)` } : undefined}
             >
-              <span className="linha-hora">{rotulos?.[k]}</span>
+              <span className="linha-hora">
+                <span className="linha-hora-txt">{rotulos?.[k]}</span>
+                {l && aoMover && (
+                  <button
+                    type="button" className="alca" data-alca={l.id} title="Arrastar para mudar o horário"
+                    aria-label={`Mudar o horário de ${l.titulo}: setas para cima e para baixo movem meia hora`}
+                    onPointerDown={(e) => comecar(e, l.id, k)} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar}
+                    onKeyDown={(e) => teclar(e, l.id, k)}
+                  >
+                    <svg viewBox="0 0 10 16" aria-hidden="true">{[3, 8, 13].flatMap((y) => [2.5, 7.5].map((x) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.3" />))}</svg>
+                  </button>
+                )}
+              </span>
               {l ? (
-                <div className="linha-miolo linha-tarefa" style={{ transform: `rotate(${giro(l.id)}deg)` }}>
-                  {aoMover && (
-                    <button
-                      type="button" className="alca" data-alca={l.id} title="Arrastar para mudar o horário"
-                      aria-label={`Mudar o horário de ${l.titulo}: setas para cima e para baixo movem meia hora`}
-                      onPointerDown={(e) => comecar(e, l.id, k)} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar}
-                      onKeyDown={(e) => teclar(e, l.id, k)}
-                    >
-                      <svg viewBox="0 0 10 16" aria-hidden="true">{[3, 8, 13].flatMap((y) => [2.5, 7.5].map((x) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.3" />))}</svg>
-                    </button>
-                  )}
+                <div className="linha-miolo" style={{ transform: `rotate(${giro(l.id)}deg)` }}>
                   <button
                     type="button" className={`caixa${estourando === l.id ? " estourando" : ""}`} disabled={!aoMarcar} aria-pressed={l.feita}
                     aria-label={`${l.feita ? "Desmarcar" : "Marcar como feita"}: ${l.titulo}`}

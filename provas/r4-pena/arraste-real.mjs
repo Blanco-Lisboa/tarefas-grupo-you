@@ -1,0 +1,37 @@
+// Itens 86/87: arraste REAL (page.mouse) da tarefa das 09:00 para as 12:00, no Chrome instalado, janela fora da tela. Servidor em 3100.
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const PASTA = fileURLToPath(new URL("./", import.meta.url));
+const PORTA = process.env.PORTA ?? "3100";
+const nav = await chromium.launch({ channel: process.env.CANAL ?? "chrome", headless: false, args: ["--window-position=-3000,0", "--window-size=1500,900"] });
+const ctx = await nav.newContext({ viewport: { width: 1440, height: 760 }, deviceScaleFactor: Number(process.env.DPR ?? 1.25) });
+const p = await ctx.newPage();
+const erros = []; p.on("pageerror", (e) => erros.push(String(e)));
+const marca = () => p.evaluate(() => { document.getElementById("marca-iw")?.remove(); const d = document.createElement("div"); d.id = "marca-iw"; d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:99999;background:#fff;color:#000;font:700 12px monospace;padding:4px 8px"; document.body.append(d); });
+const horas = () => p.evaluate(() => [...document.querySelectorAll(".folha .linha")].map((li) => li.querySelector(".abrir")?.textContent && [li.querySelector(".linha-hora")?.textContent, li.querySelector(".abrir").textContent]).filter(Boolean));
+await p.goto(`http://127.0.0.1:${PORTA}/tarefas`, { waitUntil: "networkidle" });
+await p.waitForTimeout(1500);
+console.log("CSS servido tem alça:", await p.evaluate(() => [...document.styleSheets].some((s) => { try { return [...s.cssRules].some((r) => r.selectorText?.includes(".alca")); } catch { return false; } })));
+const linha = p.locator(".folha .linha").filter({ hasText: "Reunião de pauta" }).first();
+await linha.hover();
+await p.waitForTimeout(300);
+await marca();
+await p.screenshot({ path: join(PASTA, "1440-real-1-hover.png") });
+const alvo = await p.locator(".folha .linha").filter({ hasText: "Reunião de pauta" }).first().locator(process.env.ALCA ?? ".alca").boundingBox();
+const x = alvo.x + alvo.width / 2, y = alvo.y + alvo.height / 2;
+console.log("antes", JSON.stringify(await horas()), "alça em", Math.round(x), Math.round(y));
+await p.mouse.move(x, y); await p.mouse.down();
+for (let i = 1; i <= 24; i++) { await p.mouse.move(x, y + i * 9, { steps: 1 }); await p.waitForTimeout(16); }
+await p.waitForTimeout(200);
+await marca();
+await p.screenshot({ path: join(PASTA, "1440-real-2-no-meio.png") });
+await p.mouse.up();
+await p.waitForTimeout(600);
+await marca();
+await p.screenshot({ path: join(PASTA, "1440-real-3-depois.png") });
+console.log("depois", JSON.stringify(await horas()));
+console.log("erros:", erros.length ? erros : "nenhum");
+await nav.close();

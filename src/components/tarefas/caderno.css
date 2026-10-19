@@ -64,9 +64,9 @@
 .folha-quem-rotulo { font: 600 var(--app-t-rotulo) / 1 var(--fonte); letter-spacing: .02em; text-transform: uppercase; color: var(--fraco); margin-right: var(--s-4); }
 
 .folha-linhas { position: relative; list-style: none; margin: 0; padding: 0 var(--s-24) 0 var(--margem-x); }
-.folha-linhas::before { /* margem dupla, entre o horário e a caixa */
-  content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--margem-x) + var(--col-hora)); width: 4px;
-  border-inline: 1px solid color-mix(in srgb, var(--azul) 40%, transparent); pointer-events: none;
+.folha-linhas::before { /* margem: uma linha só, entre o horário e a caixa */
+  content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--margem-x) + var(--col-hora)); width: 1px;
+  background: color-mix(in srgb, var(--azul) 40%, transparent); pointer-events: none;
 }
 .linha {
   display: grid; grid-template-columns: var(--col-hora) minmax(0, 1fr); min-height: var(--passo);
@@ -77,12 +77,14 @@
 .linha:hover { background-color: var(--realce); }
 .linha-hora { padding-right: var(--s-12); text-align: right; font-size: calc(17px * var(--escala)); line-height: var(--passo); color: var(--fraco); }
 .linha-miolo { display: flex; align-items: flex-start; gap: var(--s-8); min-width: 0; padding-left: var(--s-12); transform-origin: left center; }
-.linha-tarefa { padding-left: 0; }
-/* Alça de arrastar (item 69): aparece ao passar o mouse ou focar; o espaço fica sempre reservado */
-.alca { flex: none; width: 18px; height: var(--passo); display: grid; place-items: center; padding: 0; background: none; border: 0; border-radius: 4px; cursor: grab; opacity: 0; touch-action: none; transition: opacity var(--dur-rapida) var(--curva); }
+/* Alça de arrastar (itens 69 e 86): no lugar do horário, na margem, ao passar o mouse na linha (como no CRM) */
+.linha-hora { position: relative; }
+.alca { position: absolute; top: 0; right: var(--s-8); width: 28px; height: var(--passo); display: grid; place-items: center; padding: 0; background: none; border: 0; border-radius: 4px; cursor: grab; opacity: 0; touch-action: none; transition: opacity var(--dur-rapida) var(--curva); }
 .alca svg { width: 10px; height: 16px; fill: var(--fraco); }
+.linha-hora-txt { transition: opacity var(--dur-rapida) var(--curva); }
 .linha:hover .alca, .alca:focus-visible, .linha[data-arrastada] .alca { opacity: 1; }
-@media (hover: none) { .alca { opacity: .55; } }
+.linha:has(.alca):hover .linha-hora-txt, .linha:has(.alca:focus-visible) .linha-hora-txt, .linha[data-arrastada] .linha-hora-txt { opacity: 0; }
+@media (hover: none) { .alca { display: none; } } /* no toque: o horário se muda pelo menu ⋮ */
 .folha-linhas[data-arrastando="true"] { user-select: none; -webkit-user-select: none; }
 .folha-linhas[data-arrastando="true"] .alca { cursor: grabbing; }
 .linha[data-arrastada] { position: relative; z-index: 3; background-color: var(--sup); box-shadow: var(--sombra); cursor: grabbing; }
@@ -234,8 +236,7 @@
   .folha { --margem-x: 8px; }
   .folha-quem { padding-inline: var(--s-12); }
   .linha-miolo { padding-left: var(--s-4); }
-  .linha-tarefa { padding-left: 0; }
-  .linha .detalhe { display: block; margin: 0; white-space: normal; line-height: 1.1; padding-bottom: var(--s-4); }
+    .linha .detalhe { display: block; margin: 0; white-space: normal; line-height: 1.1; padding-bottom: var(--s-4); }
   .agenda .pag-miolo { padding-inline: var(--s-12); }
   .ag-blocos { grid-template-columns: minmax(0, 1fr); }
 }
