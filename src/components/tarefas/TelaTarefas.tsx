@@ -185,7 +185,7 @@ export function TelaTarefas() {
   const tag = hoje === dia && aba === "dia" ? "Hoje · " : "";
 
   return (
-    <section className="tarefas-tela" data-lado={lado}>
+    <section className="tarefas-tela" data-lado={aba === "semdata" ? "tarefas" : lado}>
       <div className="tarefas-barra">
         <h1 className="tarefas-titulo">Caderno</h1>
         <div className="tarefas-grupo">
@@ -208,7 +208,7 @@ export function TelaTarefas() {
           <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={aba === "dia"} onClick={() => setAba("dia")}>Dia</button>
           <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={aba === "semdata"} onClick={() => setAba("semdata")}>Sem data</button>
         </div>
-        <div className="tarefas-grupo tarefas-lados">
+        <div className="tarefas-grupo tarefas-lados" hidden={aba === "semdata"}>
           <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={lado === "tarefas"} onClick={() => setLado("tarefas")}>Caderno</button>
           <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={lado === "agenda"} onClick={() => setLado("agenda")}>Agenda</button>
         </div>
@@ -228,6 +228,7 @@ export function TelaTarefas() {
             aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
             aoMarcar={(id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
             aoApagar={(id) => void removerTarefa(id)}
+            continua={aba === "semdata"}
             aoMover={aba === "dia" ? moverPara : undefined}
             acoes={acoes}
             aoEscrever={(t, empresaId, responsavel, linha) => {
@@ -239,7 +240,7 @@ export function TelaTarefas() {
               void salvarTarefa({ ...base, inicio: `${dia}T${h}`, fim: `${dia}T${somarMinutos(h, 30)}`, diaInteiro: false });
             }}
           />
-          <Agenda
+          {aba === "dia" && <Agenda
             letra={LETRA_PRINCIPAL}
             dia={dia}
             hoje={hoje}
@@ -248,7 +249,7 @@ export function TelaTarefas() {
             amanha={doDiaSeguinte}
             nomeEmpresa={nomeEmpresa}
             aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
-          />
+          />}
         </div>
       </div>
       {aberta && <Ficha tarefa={aberta} aoFechar={() => setAberta(null)} />}

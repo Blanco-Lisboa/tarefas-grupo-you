@@ -57,6 +57,7 @@
 
 /* ===== Página esquerda: as linhas ===== */
 .folha { --margem-x: 20px; }
+.folha[data-continua] .pag-miolo { padding-bottom: 0; } /* sem folga no pé: o papel pautado vai até a borda nas duas páginas */
 .folha-quem {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao);
   padding: var(--s-12) var(--s-24) var(--s-12) calc(var(--margem-x) + var(--s-24));
