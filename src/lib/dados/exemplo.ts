@@ -1,5 +1,5 @@
 // DADOS DE EXEMPLO (Fase 1). Só o repositório deste diretório importa este arquivo; telas nunca.
-import type { Empresa, Etapa, Etiqueta, Rede, Responsavel, Tarefa, TipoTarefa } from "./tipos";
+import { REDES, type Empresa, type Etapa, type Etiqueta, type Rede, type Responsavel, type Tarefa, type TipoTarefa } from "./tipos";
 
 export const empresasExemplo: Empresa[] = [
   { id: "beec", nome: "Beec", sigla: "BE" },
@@ -57,8 +57,59 @@ const linhas: Linha[] = [
   [42, "Editar cortes antigos do podcast", "edicao", "beec", "kwai", "edicao", "matheus", "", "", 6],
 ];
 
+// Postagens de todos os dias de 01/10 a 30/11, geradas UMA vez com semente fixa (mesma lista a cada abertura, sem Math.random).
+// Cada dia fecha com 1 a 3 postagens (contando as da lista acima), das duas empresas, em etapas que dependem da distância de HOJE_EXEMPLO.
+const HOJE_EXEMPLO = "2026-10-19";
+const FORMATOS: Record<Rede, string[]> = {
+  instagram: ["Reels", "Carrossel", "Story"], tiktok: ["TikTok"], youtube: ["Vídeo", "Shorts"], kwai: ["Kwai"],
+};
+const TEMAS: Record<string, string[]> = {
+  you: ["dica de MEI", "erro comum no imposto", "como emitir nota", "pró-labore explicado", "bastidores do escritório", "pergunta de cliente", "calendário fiscal", "mito ou verdade", "abrir CNPJ", "Simples Nacional sem susto"],
+  beec: ["bastidores da Beec", "depoimento de cliente", "antes e depois", "tabela de preços", "organização financeira", "corte do podcast", "dia da equipe", "novidade do serviço", "pergunta da semana", "caso de sucesso"],
+};
+const OBJETIVOS_GERADOS = [
+  "Educar o público e gerar pedidos de orçamento", "Aproximar quem nos segue da equipe", "Ganhar alcance com um tema em alta",
+  "Engajar a base com uma pergunta rápida", "Mostrar um caso real e gerar confiança", "Reforçar a marca e lembrar o que fazemos",
+];
+
+function semente(a: number) { // mulberry32: mesma sequência para a mesma semente
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const geradasObjetivo: Record<number, string> = {};
+const geradas: Linha[] = (() => {
+  const sorteio = semente(20261019);
+  const escolhe = <T,>(l: readonly T[]) => l[Math.floor(sorteio() * l.length)];
+  const porDia = new Map<string, number>();
+  for (const l of linhas) if (l[2] === "postagem" && l[7]) porDia.set(l[7].slice(0, 10), (porDia.get(l[7].slice(0, 10)) ?? 0) + 1);
+  const saida: Linha[] = [];
+  let n = linhas.length;
+  for (let i = 0; i < 61; i++) {
+    const dia = new Date(Date.UTC(2026, 9, 1 + i)).toISOString().slice(0, 10); // só aritmética de calendário em UTC, sem fuso
+    const r = sorteio();
+    const alvo = r < 0.45 ? 1 : r < 0.85 ? 2 : 3;
+    for (let k = porDia.get(dia) ?? 0; k < alvo; k++) {
+      const empresa = sorteio() < 0.5 ? "you" : "beec";
+      const rede = escolhe(REDES);
+      const dist = Math.round((Date.parse(dia) - Date.parse(HOJE_EXEMPLO)) / 86400000);
+      const etapa: Etapa = dist < 0 ? "postado" : dist <= 3 ? escolhe(["aprovado", "edicao"] as const) : dist <= 9 ? escolhe(["edicao", "gravacao", "aprovado"] as const) : escolhe(["roteiro", "gravacao", "edicao"] as const);
+      const hora = String(8 + Math.floor(sorteio() * 12)).padStart(2, "0");
+      n++;
+      geradasObjetivo[n] = escolhe(OBJETIVOS_GERADOS);
+      saida.push([n, `${escolhe(FORMATOS[rede])}: ${escolhe(TEMAS[empresa])}`, "postagem", empresa, rede, etapa, sorteio() < 0.5 ? "natham" : "matheus", `${dia}T${hora}:00`, "", 1 + Math.floor(sorteio() * 10)]);
+    }
+  }
+  return saida;
+})();
+
 // Objetivo das postagens (aparece no Mapa).
 const OBJETIVOS: Record<number, string> = {
+  ...geradasObjetivo,
   5: "Mostrar a equipe por trás da Beec e aproximar quem nos segue",
   9: "Educar o público sobre erros comuns e gerar pedidos de orçamento",
   16: "Humanizar a profissão e ganhar alcance no TikTok",
@@ -74,7 +125,7 @@ const OBJETIVOS: Record<number, string> = {
 // Tarefas antigas (início de outubro) já feitas.
 const CONCLUIDAS = new Set([1, 2, 3, 4]);
 
-export const tarefasExemplo: Tarefa[] = linhas.map(([n, titulo, tipo, empresaId, rede, etapa, responsavel, inicio, fim, cor]) => ({
+export const tarefasExemplo: Tarefa[] = [...linhas, ...geradas].map(([n, titulo, tipo, empresaId, rede, etapa, responsavel, inicio, fim, cor]) => ({
   id: `t${String(n).padStart(2, "0")}`,
   titulo,
   tipo,

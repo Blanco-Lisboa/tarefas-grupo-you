@@ -6,30 +6,45 @@
 }
 @media (max-width: 767px) { .mapa { --visiveis: 3; --folga: 2; } }
 
+/* Cabeçalho numa faixa só: título e subtítulo à esquerda, os três números à direita, todos da mesma altura. */
+.mapa-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-8) var(--s-32); }
 .mapa-titulo h1 { margin: 0; font-size: var(--app-t-titulo); font-weight: var(--titulo-peso); line-height: var(--titulo-entrelinha); letter-spacing: var(--titulo-espaco); color: var(--texto); }
 .mapa-titulo h1 span { color: var(--fraco); font-weight: 400; }
 .mapa-titulo p { margin: var(--s-4) 0 0; font-size: var(--app-t-texto); color: var(--fraco); }
 
-.mapa-resumo { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--s-16) var(--s-48); margin: 0; }
-.mapa-resumo dt { font-size: var(--app-t-rotulo); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fraco); }
-.mapa-resumo > div:not(.bloco-destaque) dd { margin: var(--s-4) 0 0; font-size: var(--t-39); font-weight: 300; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--texto); }
-.mapa-resumo > div dd.mapa-resumo-data { font-size: var(--t-25); line-height: 1.2; padding-top: var(--s-8); font-weight: 400; }
-.mapa-resumo .bloco-destaque { min-width: 160px; }
+.mapa-resumo { display: flex; align-items: stretch; gap: var(--s-8) var(--s-32); margin: 0; }
+.mapa-resumo > div { display: flex; flex-direction: column; justify-content: center; }
+.mapa-resumo dt { font-size: var(--app-t-rotulo); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fraco); white-space: nowrap; }
+.mapa-resumo dd { margin: var(--s-4) 0 0; font-size: var(--t-31); font-weight: 300; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--texto); }
+.mapa-resumo > div dd.mapa-resumo-data { font-size: var(--t-25); font-weight: 400; line-height: 1; }
+/* o bloco azul tem o porte dos números ao lado: mesma altura, só um pouco de respiro dentro */
+.mapa-resumo .bloco-destaque { padding: var(--s-8) var(--s-16); border-radius: var(--raio-b); }
 .mapa-resumo .bloco-destaque dt { color: var(--no-azul-fraco); }
+.mapa-resumo .bloco-destaque dd.bloco-numero { margin: var(--s-4) 0 0; font-size: var(--t-31); }
 .mapa-vazio { margin: 0; padding: var(--s-32) 0; color: var(--fraco); font-size: var(--app-t-texto); }
+@media (max-width: 767px) {
+  .mapa-resumo { width: 100%; gap: var(--s-12); }
+  .mapa-resumo > div:not(.bloco-destaque) { flex: 1 1 0; min-width: 0; }
+  .mapa-resumo dt { font-size: 10px; letter-spacing: 0.03em; white-space: normal; }
+  .mapa-resumo dd, .mapa-resumo .bloco-destaque dd.bloco-numero { font-size: var(--t-25); }
+  .mapa-resumo > div dd.mapa-resumo-data { font-size: var(--t-16); }
+}
 
 /* ---------- palco: seção alta + miolo preso na tela (sticky) + faixa larga que anda com a rolagem ---------- */
-.mapa-palco-pai { container-type: inline-size; min-width: 0; }
+.mapa-palco-pai { container-type: inline-size; min-width: 0; --mapa-topo: 150px; }
 .mapa-palco {
   --dia-w: calc(100cqw / var(--visiveis));
-  /* 100dvh de tela + o quanto a faixa precisa andar: cada px rolado para baixo anda 1px para o lado */
-  height: calc(100dvh + (var(--dias) + var(--folga) - var(--visiveis)) * var(--dia-w));
+  --alto: max(520px, calc(100dvh - var(--mapa-topo) - var(--app-respiro))); /* o que sobra da tela abaixo do cabeçalho: o card cabe inteiro */
+  /* a altura do card + o quanto a faixa precisa andar: cada px rolado para baixo anda 1px para o lado */
+  height: calc(var(--alto) + (var(--dias) + var(--folga) - var(--visiveis)) * var(--dia-w));
 }
-.mapa-fixo {
-  position: sticky; top: 0; height: 100dvh; overflow: hidden; border-radius: var(--raio-bloco);
+.mapa-fixo { position: sticky; top: var(--mapa-topo); height: var(--alto); display: flex; flex-direction: column; gap: var(--app-respiro); }
+.mapa-cartao {
+  position: relative; flex: 1; min-height: 0; container-type: size; overflow: hidden; border-radius: var(--raio-bloco);
   background: var(--sup); color: var(--texto); box-shadow: var(--sombra);
 }
-.mapa-faixa { position: absolute; inset: 0 auto 0 0; width: calc((var(--dias) + var(--folga)) * var(--dia-w)); will-change: transform; --haste: clamp(150px, 26dvh, 210px); }
+/* hastes altas: a bolinha fica perto da borda do card e os marcos usam a altura toda */
+.mapa-faixa { position: absolute; inset: 0 auto 0 0; width: calc((var(--dias) + var(--folga)) * var(--dia-w)); will-change: transform; --haste: calc(50cqh - 44px); }
 
 .mapa-linha { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--borda); transform-origin: left; }
 .mapa-dia { position: absolute; top: calc(50% + 12px); transform: translateX(-50%); font-size: 11px; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fraco); white-space: nowrap; }
@@ -48,36 +63,45 @@
 .mapa-marco[data-lado="baixo"] .mapa-haste { top: 26px; height: calc(var(--haste) - 26px); transform-origin: top; } /* começa abaixo do rótulo do dia */
 .mapa-marco[data-lado="baixo"] .mapa-bolinha { top: calc(var(--haste) - 5px); }
 
-.mapa-card {
-  position: absolute; left: 18px; width: calc(var(--dia-w) * 1.3); min-width: 150px; max-width: 240px; max-height: calc(var(--haste) - 36px);
-  display: flex; flex-direction: column; gap: 5px; margin: 0; padding: 0; border: 0; background: none; text-align: left; cursor: pointer;
-  color: var(--texto); font: inherit; overflow: hidden;
+/* bloco do dia: data + conteúdos empilhados, ancorado na bolinha (em cima: cresce para baixo; embaixo: cresce para cima) */
+.mapa-bloco {
+  position: absolute; left: 18px; width: calc(var(--dia-w) * 1.3); min-width: 150px; max-width: 240px; max-height: calc(var(--haste) - 6px);
+  display: flex; flex-direction: column; gap: 8px; overflow: hidden;
 }
-.mapa-marco[data-lado="cima"] .mapa-card { top: calc(var(--haste) * -1 - 7px); }
-.mapa-marco[data-lado="baixo"] .mapa-card { bottom: calc(var(--haste) * -1 - 7px); justify-content: flex-end; }
-.mapa-card span { display: block; }
-.mapa-objetivo { font-size: 17px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.mapa-marco[data-lado="cima"] .mapa-bloco { top: calc(var(--haste) * -1 - 7px); }
+.mapa-marco[data-lado="baixo"] .mapa-bloco { bottom: calc(var(--haste) * -1 - 7px); justify-content: flex-end; }
+.mapa-card {
+  --cor: var(--azul);
+  display: flex; flex-direction: column; gap: 3px; margin: 0; padding: 0; border: 0; background: none; text-align: left; cursor: pointer;
+  color: var(--texto); font: inherit; flex: none;
+}
+.mapa-card[data-postado="true"] { --cor: var(--fraco); }
+.mapa-bloco span { display: block; }
+.mapa-objetivo { font-size: 16px; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .mapa-card:hover .mapa-objetivo { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--cor); }
-.mapa-card:focus-visible { outline: 2px solid var(--foco); outline-offset: 4px; border-radius: var(--raio-b); }
-.mapa-data { font-size: 13px; color: var(--texto); }
+.mapa-card:focus-visible { outline: 2px solid var(--foco); outline-offset: 3px; border-radius: var(--raio-b); }
+.mapa-data { font-size: 12px; font-weight: 600; color: var(--texto); }
+.mapa-info { display: flex !important; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }
 .mapa-meta { font-size: 12px; color: var(--fraco); }
 .mapa-estado { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cor); }
-.mapa-marco[data-postado="true"] .mapa-objetivo { color: var(--fraco); }
-.mapa-marco[data-postado="true"] .mapa-estado::before { content: "✓ "; }
+.mapa-card[data-postado="true"] .mapa-objetivo { color: var(--fraco); }
+.mapa-card[data-postado="true"] .mapa-estado::before { content: "✓ "; }
 
 .mapa-dica { position: absolute; left: 20px; bottom: 16px; margin: 0; font-size: 12px; color: var(--fraco); }
 .mapa-progresso { position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: var(--azul); transform-origin: left; }
 
 @media (max-width: 767px) {
-  .mapa-card { left: 14px; width: calc(var(--dia-w) * 1.25); min-width: 120px; }
-  .mapa-objetivo { font-size: 14px; -webkit-line-clamp: 4; }
+  .mapa-faixa { --haste: calc(50cqh - 62px); }
+  .mapa-bloco { left: 14px; width: calc(var(--dia-w) * 1.8); max-width: none; min-width: 120px; gap: 6px; } /* blocos do mesmo lado ficam a 2 dias de distância: cabe */
+  .mapa-objetivo { font-size: 13px; -webkit-line-clamp: 2; }
   .mapa-dica { left: 12px; right: 12px; }
 }
 
 /* ---------- movimento reduzido: sem sticky nem animação; tudo montado e a faixa rola para o lado pela barra normal ---------- */
 @media (prefers-reduced-motion: reduce) {
   .mapa-palco { height: auto; }
-  .mapa-fixo { position: relative; height: min(100dvh, 640px); overflow-x: auto; }
+  .mapa-fixo { position: relative; top: auto; }
+  .mapa-cartao { overflow-x: auto; }
   .mapa-faixa { position: relative; height: 100%; }
   .mapa-dica, .mapa-progresso { display: none; }
 }

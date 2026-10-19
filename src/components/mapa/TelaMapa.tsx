@@ -1,5 +1,5 @@
 "use client";
-import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -41,8 +41,8 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
   const meses = m1 === m2 ? m1 : `${m1} e ${m2}`;
   const proximo = aPostar[0]?.inicio?.slice(0, 10);
 
-  return (
-    <section className="mapa">
+  const topo = (
+    <div className="mapa-topo">
       <header className="mapa-titulo">
         <h1>Mapa de <span>{meses}</span></h1>
         <p>
@@ -50,16 +50,19 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
           {marcos.length ? `${plural(marcos.length, "conteúdo", "conteúdos")} com data de postagem.` : "Nenhum conteúdo com data de postagem neste período."}
         </p>
       </header>
-
       <dl className="mapa-resumo">
         <div className="bloco-destaque"><dt>A postar</dt><dd className="bloco-numero">{aPostar.length}</dd></div>
         <div><dt>Já postados no mês</dt><dd>{postadosNoMes(todos, INICIO)}</dd></div>
         <div><dt>Próxima postagem</dt><dd className="mapa-resumo-data">{proximo ? `${nomeSemana(proximo)}, ${diaCurto(proximo)}` : "Nenhuma"}</dd></div>
       </dl>
+    </div>
+  );
 
+  return (
+    <section className="mapa">
       {marcos.length
-        ? <Linha dias={dias} inicio={INICIO} marcos={marcos} abrir={setAberta} />
-        : <p className="mapa-vazio">Nada para mostrar com os filtros de agora. Crie uma tarefa do tipo Postagem no calendário e ela aparece aqui.</p>}
+        ? <Linha dias={dias} inicio={INICIO} marcos={marcos} abrir={setAberta} topo={topo} />
+        : <>{topo}<p className="mapa-vazio">Nada para mostrar com os filtros de agora. Crie uma tarefa do tipo Postagem no calendário e ela aparece aqui.</p></>}
 
       {aberta && <Ficha key={(aberta as Tarefa).id} tarefa={aberta} aoFechar={() => setAberta(null)} />}
     </section>
@@ -71,14 +74,25 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
  * lado conforme a página rola para baixo (scrub). Cada marco aparece quando chega perto do meio da tela.
  * Largura de um dia = largura do miolo / dias visíveis (CSS, `cqw`), então vale dentro da casca e no celular.
  */
-function Linha({ dias, inicio, marcos, abrir }: { dias: string[]; inicio: string; marcos: Tarefa[]; abrir: (t: Tarefa) => void }) {
+function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: string; marcos: Tarefa[]; abrir: (t: Tarefa) => void; topo: ReactNode }) {
+  const pai = useRef<HTMLDivElement>(null);
   const palco = useRef<HTMLDivElement>(null);
   const fixo = useRef<HTMLDivElement>(null);
   const faixa = useRef<HTMLDivElement>(null);
+  // um marco por dia: os conteúdos do mesmo dia ficam empilhados na mesma haste, então nunca se sobrepõem
+  const porDia = useMemo(() => {
+    const m = new Map<string, Tarefa[]>();
+    for (const t of marcos) m.set(t.inicio!.slice(0, 10), [...(m.get(t.inicio!.slice(0, 10)) ?? []), t]);
+    return [...m];
+  }, [marcos]);
 
   useLayoutEffect(() => {
-    const [p, f, fx] = [palco.current, fixo.current, faixa.current];
-    if (!p || !f || !fx) return;
+    const [pa, p, f, fx] = [pai.current, palco.current, fixo.current, faixa.current];
+    if (!pa || !p || !f || !fx) return;
+    // O palco (cabeçalho + card) gruda onde começa, logo abaixo do filtro, e tem a altura que sobra da tela: tudo cabe na primeira tela.
+    const medir = () => { pa.style.setProperty("--mapa-topo", `${Math.round(pa.getBoundingClientRect().top + scrollY)}px`); };
+    medir();
+    addEventListener("resize", medir);
     const mm = gsap.matchMedia();
     // prefers-reduced-motion: nada daqui roda; tudo já está montado e a faixa rola para o lado pela barra normal.
     mm.add("(prefers-reduced-motion: no-preference)", () => {
@@ -88,7 +102,7 @@ function Linha({ dias, inicio, marcos, abrir }: { dias: string[]; inicio: string
           const dist = fx.scrollWidth - larg;
           if (dist <= 0) return;
           const janela = Math.min(0.9, (larg * 0.18) / dist);
-          const tl = gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: p, start: "top top", end: "bottom bottom", scrub: true } });
+          const tl = gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: p, start: "top top+=" + parseInt(pa.style.getPropertyValue("--mapa-topo")), end: "+=" + dist, scrub: true } });
           tl.fromTo(fx, { x: 0 }, { x: -dist, duration: 1 }, 0);
           tl.fromTo(".mapa-progresso", { scaleX: 0 }, { scaleX: 1, duration: 1 }, 0);
 
@@ -122,42 +136,54 @@ function Linha({ dias, inicio, marcos, abrir }: { dias: string[]; inicio: string
       ro.observe(f);
       return () => { ro.disconnect(); limpar(); };
     });
-    return () => mm.revert();
+    return () => { mm.revert(); removeEventListener("resize", medir); };
   }, [dias, marcos]);
 
   return (
-    <div className="mapa-palco-pai">
+    <div ref={pai} className="mapa-palco-pai">
       <div ref={palco} className="mapa-palco" style={{ "--dias": dias.length } as CSSProperties}>
-        <div ref={fixo} className="mapa-fixo">
-          <div ref={faixa} className="mapa-faixa">
-            <span className="mapa-linha" aria-hidden />
-            {dias.map((d, i) => (
-              <span key={d} className="mapa-dia" data-dia={d} style={{ left: `calc((${i} + 0.5) * var(--dia-w))` }} aria-hidden>{rotuloDia(d, inicio)}</span>
-            ))}
-            {marcos.map((t, i) => <Marco key={t.id} t={t} coluna={dias.indexOf(t.inicio!.slice(0, 10))} lado={i % 2 ? "baixo" : "cima"} abrir={abrir} />)}
+        <div className="mapa-fixo">
+          {topo}
+          <div ref={fixo} className="mapa-cartao">
+            <div ref={faixa} className="mapa-faixa">
+              <span className="mapa-linha" aria-hidden />
+              {dias.map((d, i) => (
+                <span key={d} className="mapa-dia" data-dia={d} style={{ left: `calc((${i} + 0.5) * var(--dia-w))` }} aria-hidden>{rotuloDia(d, inicio)}</span>
+              ))}
+              {porDia.map(([dia, ts], i) => <Marco key={dia} dia={dia} ts={ts} coluna={dias.indexOf(dia)} lado={i % 2 ? "baixo" : "cima"} abrir={abrir} />)}
+            </div>
+            <p className="mapa-dica">Role a página para baixo: a linha do tempo anda para o lado.</p>
+            <span className="mapa-progresso" aria-hidden />
           </div>
-          <p className="mapa-dica">Role a página para baixo: a linha do tempo anda para o lado.</p>
-          <span className="mapa-progresso" aria-hidden />
         </div>
       </div>
     </div>
   );
 }
 
-function Marco({ t, coluna, lado, abrir }: { t: Tarefa; coluna: number; lado: "cima" | "baixo"; abrir: (t: Tarefa) => void }) {
-  const empresa = useEmpresas().find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
-  const postado = foiPostado(t);
-  const dia = t.inicio!.slice(0, 10);
+function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; coluna: number; lado: "cima" | "baixo"; abrir: (t: Tarefa) => void }) {
+  const empresas = useEmpresas();
+  const tudoPostado = ts.every(foiPostado);
   return (
-    <div className="mapa-marco" data-marco data-dia={dia} data-lado={lado} data-postado={postado} style={{ left: `calc((${coluna} + 0.5) * var(--dia-w))` }}>
+    <div className="mapa-marco" data-marco data-dia={dia} data-lado={lado} data-postado={tudoPostado} style={{ left: `calc((${coluna} + 0.5) * var(--dia-w))` }}>
       <span className="mapa-haste" aria-hidden />
       <span className="mapa-bolinha" aria-hidden />
-      <button type="button" className="mapa-card" onClick={() => abrir(t)}>
-        <span className="mapa-objetivo" data-alvo>{objetivoDe(t)}</span>
+      <div className="mapa-bloco">
         <span className="mapa-data" data-alvo>{nomeSemana(dia)}, {diaCurto(dia)}</span>
-        <span className="mapa-meta" data-alvo>{empresa}{t.rede ? ` · ${NOMES.rede[t.rede]}` : ""}</span>
-        <span className="mapa-estado" data-alvo>{postado ? "Postado" : "A postar"}</span>
-      </button>
+        {ts.map((t) => {
+          const postado = foiPostado(t);
+          const empresa = empresas.find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
+          return (
+            <button key={t.id} type="button" className="mapa-card" data-postado={postado} onClick={() => abrir(t)}>
+              <span className="mapa-objetivo" data-alvo>{objetivoDe(t)}</span>
+              <span className="mapa-info">
+                <span className="mapa-meta" data-alvo>{empresa}{t.rede ? ` · ${NOMES.rede[t.rede]}` : ""}</span>
+                <span className="mapa-estado" data-alvo>{postado ? "Postado" : t.etapa ? NOMES.etapa[t.etapa] : "A postar"}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
