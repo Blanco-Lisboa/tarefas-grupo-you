@@ -4,6 +4,7 @@
 
 /* ===== Camada do app (item 60): papéis fixos para todas as telas encaixarem igual, montados com tarefas-tokens.css ===== */
 :root {
+  --atrasado: #B3261E;            /* vermelho de "atrasado" (Conteúdos e Fila do Mapa) */
   --app-respiro: var(--s-16);      /* topo da área de conteúdo e vão entre blocos da tela */
   --app-margem: var(--s-24);       /* lateral da área de conteúdo (12 no celular) */
   --app-vao: var(--s-8);           /* entre controles vizinhos numa barra */

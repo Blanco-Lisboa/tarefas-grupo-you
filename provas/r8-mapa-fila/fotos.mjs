@@ -18,7 +18,7 @@ for (const [w, h] of [[1903, 900], [1440, 760], [390, 844]]) {
   const medir = async (nome) => { m[nome] = { abas: await caixa(p, ".mapa-formato"), titulo: await caixa(p, ".mapa-titulo"), resumo: await caixa(p, ".mapa-resumo"), azul: await caixa(p, ".bloco-destaque"), lista: await caixa(p, ".eo-fila") ?? await caixa(p, ".mapa-cartao"), pagina: await p.evaluate(() => document.documentElement.scrollWidth) }; };
   await etiqueta(p); await medir("linha"); await p.screenshot({ path: join(PASTA, `77-mapa-linha-${w}.png`) });
   await p.getByRole("button", { name: "Fila", exact: true }).click(); await p.waitForTimeout(500);
-  await etiqueta(p); await medir("fila-hoje"); await p.screenshot({ path: join(PASTA, `77-fila-hoje-v2-${w}.png`) });
+  await etiqueta(p); await medir("fila-hoje"); await p.screenshot({ path: join(PASTA, `77-fila-hoje-v3-${w}.png`) });
   // lembrado ao recarregar
   await p.reload({ waitUntil: "networkidle" }); await p.waitForTimeout(500);
   m.lembrou = await p.evaluate(() => document.querySelector(".mapa-formato [aria-pressed=true]")?.textContent);

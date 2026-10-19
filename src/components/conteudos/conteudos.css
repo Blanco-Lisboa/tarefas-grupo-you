@@ -32,7 +32,7 @@
 .conteudos-prazo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-8); margin-top: var(--s-12); padding-top: var(--s-8); border-top: 1px solid var(--linha); font-size: var(--app-t-rotulo); font-weight: 500; }
 .conteudos-contagem-dias { color: var(--fraco); }
 .conteudos-contagem-dias[data-tom="perto"] { color: #8A5A00; }
-.conteudos-contagem-dias[data-tom="atrasado"] { color: #B3261E; }
+.conteudos-contagem-dias[data-tom="atrasado"] { color: var(--atrasado); }
 .conteudos-drive { margin-left: auto; white-space: nowrap; font-weight: 600; color: var(--azul); text-decoration: none; }
 .conteudos-drive:hover { text-decoration: underline; }
 @media (max-width: 767px) {

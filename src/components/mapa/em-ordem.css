@@ -8,7 +8,7 @@
 .mapa :where(button) { font: inherit; text-align: left; color: inherit; cursor: pointer; }
 .eo-marcas { display: inline-flex; align-items: center; gap: var(--s-8); min-width: 0; }
 .eo-prazo { flex: none; font-size: 12px; font-weight: 600; color: var(--fraco); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.eo-prazo[data-urgente="true"] { color: var(--azul); }
+.eo-prazo[data-urgente="true"] { color: var(--atrasado); }
 .eo-passo { flex: none; padding: 3px 10px; border-radius: var(--raio-pilula); background: var(--azul-claro); color: var(--azul); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; }
 .eo-titulo { min-width: 0; font-size: 15px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; color: var(--texto); }
 
