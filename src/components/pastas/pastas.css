@@ -164,7 +164,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .gf-lista a, .gf-lista button { all: unset; box-sizing: border-box; width: 100%; display: flex; justify-content: space-between; gap: var(--s-12); padding: var(--s-8) var(--s-12); border-radius: var(--raio-b); cursor: pointer; color: var(--texto); font: 500 var(--app-t-texto) var(--fonte); }
 .gf-lista a:hover, .gf-lista button:hover { background: var(--realce); }
 .gf-lista a:focus-visible, .gf-lista button:focus-visible { outline: 3px solid var(--azul); outline-offset: -2px; }
-.gf-lista small { color: var(--fraco); font-weight: 400; font-size: var(--app-t-rotulo); }
+.gf-lista small { flex: none; white-space: nowrap; color: var(--fraco); font-weight: 400; font-size: var(--app-t-rotulo); }
 
 /* =================== card flutuante (peça e ideias) =================== */
 .card-flut {
@@ -215,6 +215,8 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .ideia-form label { display: grid; gap: var(--s-4); font-size: var(--app-t-rotulo); font-weight: 500; color: var(--fraco); }
 .ideia-form input, .ideia-form textarea { font: 400 var(--app-t-texto) var(--fonte); color: var(--texto); padding: 10px var(--s-12); background: var(--sup); border: 1px solid var(--borda); border-radius: var(--raio-b); resize: vertical; }
 .ideia-form input { height: var(--app-controle); padding-block: 0; }
-.ideia-form input:focus-visible, .ideia-form textarea:focus-visible { outline: 3px solid var(--azul); outline-offset: 1px; border-color: var(--azul); }
 .ideia-form .selecao-botao { justify-self: start; }
 .ideia-form .btn { justify-self: start; }
+
+/* "Ver referência" dentro de um texto: azul, em negrito, como no Yougram */
+.ver-ref { font-weight: 600; }

@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useIdeias, type Ideia } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import { CardFlutuante } from "./CardFlutuante";
+import { semLinks, TextoComLinks } from "./links";
 
 // Pasta "Ideias de conteúdo" (modelo: Ideias do Yougram do CRM): categorias, ideias de cada uma, "Ver referência".
 type Vista = { v: "categorias" } | { v: "categoria"; cat: string } | { v: "ideia"; id: string } | { v: "form"; id?: string; cat?: string };
@@ -19,7 +20,7 @@ export function CardIdeias({ empresaId, inicio, aoFechar }: { empresaId: string;
   const idAtual = vista.v === "ideia" || vista.v === "form" ? vista.id : undefined;
   const ideia = ideias.find((i) => i.id === idAtual);
   const titulo =
-    vista.v === "categoria" ? vista.cat : vista.v === "ideia" ? (ideia?.titulo ?? "Ideia") : vista.v === "form" ? (vista.id ? "Editar ideia" : "Nova ideia") : "Ideias de conteúdo";
+    vista.v === "categoria" ? vista.cat : vista.v === "ideia" ? (semLinks(ideia?.titulo ?? "Ideia")) : vista.v === "form" ? (vista.id ? "Editar ideia" : "Nova ideia") : "Ideias de conteúdo";
   // Voltar sobe um degrau: ideia -> categoria dela -> categorias; formulário -> a ideia que se edita ou a categoria de onde veio.
   const acima: Vista | undefined =
     vista.v === "categoria" ? { v: "categorias" }
@@ -39,7 +40,7 @@ export function CardIdeias({ empresaId, inicio, aoFechar }: { empresaId: string;
                 <button type="button" onClick={() => setVista({ v: "categoria", cat })}>
                   <strong>{cat}</strong>
                   <span>{nIdeias(da(cat).length)}</span>
-                  <small>{da(cat)[0]?.titulo}</small>
+                  <small>{semLinks(da(cat)[0]?.titulo ?? "")}</small>
                 </button>
               </li>
             ))}
@@ -54,8 +55,8 @@ export function CardIdeias({ empresaId, inicio, aoFechar }: { empresaId: string;
             {da(vista.cat).map((i) => (
               <li key={i.id}>
                 <button type="button" onClick={() => setVista({ v: "ideia", id: i.id })}>
-                  <strong>{i.titulo}</strong>
-                  <span>{i.texto}</span>
+                  <strong>{semLinks(i.titulo)}</strong>
+                  <span>{semLinks(i.texto)}</span>
                 </button>
               </li>
             ))}
@@ -66,7 +67,7 @@ export function CardIdeias({ empresaId, inicio, aoFechar }: { empresaId: string;
       {vista.v === "ideia" && ideia && (
         <article className="ideia-aberta">
           <p className="ideia-cat">{ideia.categoria}</p>
-          <p className="ideia-texto">{ideia.texto || "Sem detalhe."}</p>
+          <p className="ideia-texto">{ideia.texto ? <TextoComLinks texto={ideia.texto} /> : "Sem detalhe."}</p>
           <div className="ideia-acoes">
             {ideia.link && <a className="btn" href={ideia.link} target="_blank" rel="noopener noreferrer">Ver referência</a>}
             <button type="button" className="btn btn-2" onClick={() => setVista({ v: "form", id: ideia.id })}>Editar</button>

@@ -7,6 +7,8 @@ import { CardIdeias } from "./CardIdeias";
 import { CardPeca } from "./CardPeca";
 import { PastaDeVidro } from "./PastaDeVidro";
 
+const nIdeias = (n: number) => (n === 1 ? "1 ideia" : `${n} ideias`);
+
 const PASTAS: { tipo: TipoPeca; rotulo: string }[] = [
   { tipo: "post", rotulo: "Posts" },
   { tipo: "carrossel", rotulo: "Carrosséis" },
@@ -51,12 +53,12 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
         <div className="pastas-cel">
           <PastaDeVidro
             rotulo="Ideias de conteúdo"
-            legenda={`${ideias.length} ideias`}
+            legenda={nIdeias(ideias.length)}
             tom={tom}
             arte={receitaDaEmpresa("story", empresa.id)}
             seed={19}
             atraso={4 * 120}
-            arquivos={categorias.map((c) => ({ nome: c, meta: `${ideias.filter((i) => i.categoria === c).length} ideias`, arte: receitaDaEmpresa("story", empresa.id) }))}
+            arquivos={categorias.map((c) => ({ nome: c, meta: nIdeias(ideias.filter((i) => i.categoria === c).length), arte: receitaDaEmpresa("story", empresa.id) }))}
             onSelecionar={(a) => setAberto({ ideias: a.nome })}
           />
         </div>
