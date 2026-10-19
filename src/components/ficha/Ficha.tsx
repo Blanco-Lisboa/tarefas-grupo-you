@@ -17,6 +17,7 @@ import {
 } from "@/lib/dados";
 import Link from "next/link";
 import { deTexto, paraHora } from "@/components/calendario/logica";
+import { Selecao } from "@/components/ui/Selecao";
 import "./ficha.css";
 
 export const NOMES = {
@@ -122,35 +123,24 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
 
         <div className="ficha-corpo">
           <div className="ficha-grade">
-            <Campo rotulo="Tipo">
-              <select value={t.tipo} onChange={(e) => mudar("tipo", e.target.value as TipoTarefa)}>
-                {TIPOS.map((v) => <option key={v} value={v}>{NOMES.tipo[v]}</option>)}
-              </select>
-            </Campo>
-            <Campo rotulo="Empresa">
+            <div className="ficha-campo ficha-escolha">
+              <Selecao rotulo="Tipo" opcoes={TIPOS.map((v) => ({ valor: v, rotulo: NOMES.tipo[v] }))} valor={[t.tipo]} multipla={false} aoMudar={([v]) => { if (v) mudar("tipo", v as TipoTarefa); }} />
+            </div>
+            <div className="ficha-campo ficha-escolha">
               {empresas.length ? (
-                <select value={temEmpresa ? t.empresaId : ""} onChange={(e) => mudar("empresaId", e.target.value)} required>
-                  {!temEmpresa && <option value="" disabled>Escolha a empresa</option>}
-                  {empresas.map((x) => <option key={x.id} value={x.id}>{x.nome}</option>)}
-                </select>
+                <Selecao rotulo="Empresa" opcoes={empresas.map((x) => ({ valor: x.id, rotulo: x.nome }))} valor={temEmpresa ? [t.empresaId] : []} multipla={false} aoMudar={([v]) => { if (v) mudar("empresaId", v); }} />
               ) : (
                 <p className="ficha-aviso" role="alert">
                   Nenhuma empresa cadastrada. <Link href="/configuracoes" onClick={() => dialogo.current?.close()}>Cadastrar em Configurações</Link>
                 </p>
               )}
-            </Campo>
-            <Campo rotulo="Rede">
-              <select value={t.rede ?? ""} onChange={(e) => mudar("rede", (e.target.value || undefined) as Rede | undefined)}>
-                <option value="">Sem rede</option>
-                {REDES.map((v) => <option key={v} value={v}>{NOMES.rede[v]}</option>)}
-              </select>
-            </Campo>
-            <Campo rotulo="Etapa">
-              <select value={t.etapa ?? ""} onChange={(e) => mudar("etapa", (e.target.value || undefined) as Etapa | undefined)}>
-                <option value="">Sem etapa</option>
-                {ETAPAS.map((v) => <option key={v} value={v}>{NOMES.etapa[v]}</option>)}
-              </select>
-            </Campo>
+            </div>
+            <div className="ficha-campo ficha-escolha">
+              <Selecao rotulo="Rede" opcoes={REDES.map((v) => ({ valor: v, rotulo: NOMES.rede[v] }))} valor={t.rede ? [t.rede] : []} multipla={false} rotuloTodos="Sem rede" aoMudar={([v]) => mudar("rede", v as Rede | undefined)} />
+            </div>
+            <div className="ficha-campo ficha-escolha">
+              <Selecao rotulo="Etapa" opcoes={ETAPAS.map((v) => ({ valor: v, rotulo: NOMES.etapa[v] }))} valor={t.etapa ? [t.etapa] : []} multipla={false} rotuloTodos="Sem etapa" aoMudar={([v]) => mudar("etapa", v as Etapa | undefined)} />
+            </div>
           </div>
 
           <fieldset className="ficha-campo">
@@ -188,13 +178,12 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
 
           <fieldset className="ficha-campo">
             <legend>Cor</legend>
-            <div className="ficha-cores" role="radiogroup" aria-label="Cor da etiqueta">
+            <div className="ficha-cores" role="group" aria-label="Cor da etiqueta">
               {ETIQUETAS.map((c, i) => (
                 <button
                   key={c}
                   type="button"
-                  role="radio"
-                  aria-checked={t.cor === c}
+                  aria-pressed={t.cor === c}
                   aria-label={`Cor ${i + 1}`}
                   className="ficha-cor"
                   style={{ background: `var(--${c})` }}

@@ -3,7 +3,6 @@
 .config-cabecalho h1 { margin: 0; color: var(--texto); font-size: var(--app-t-titulo); }
 .config-cabecalho p { max-width: 60ch; margin: var(--s-8) 0 0; color: var(--fraco); font-size: var(--app-t-texto); }
 .config-total { display: flex; flex: none; align-items: baseline; gap: var(--s-8); min-width: 154px; padding: var(--s-12) var(--s-16); font-size: var(--app-t-texto); }
-.config-total .bloco-numero { font-size: var(--t-39); }
 .config-erro { padding: var(--s-12) var(--s-16); border-radius: var(--raio-b); background: var(--sup); }
 .config-bloco-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-12); min-height: 64px; padding: var(--s-16) 0; }
 .config-bloco-topo h2 { margin: 0; color: var(--texto); font-size: var(--app-t-secao); }

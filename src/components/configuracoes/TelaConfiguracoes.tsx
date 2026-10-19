@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { removerEmpresa, salvarEmpresa, useEmpresas, usePecas, useTarefas, type Empresa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import "./configuracoes.css";
@@ -18,7 +18,17 @@ export function TelaConfiguracoes() {
   const [editando, setEditando] = useState<string | null>(null);
   const [nomeEditado, setNomeEditado] = useState("");
   const [removendo, setRemovendo] = useState<string | null>(null);
+  const focoRetorno = useRef<string | null>(null);
   const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    if (removendo) {
+      document.getElementById(`config-confirmacao-${removendo}`)?.focus();
+    } else if (focoRetorno.current) {
+      document.getElementById(`config-tirar-${focoRetorno.current}`)?.focus();
+      focoRetorno.current = null;
+    }
+  }, [removendo]);
 
   async function incluir(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -83,7 +93,7 @@ export function TelaConfiguracoes() {
                     </form>
                   ) : <><strong>{empresa.nome}</strong><span>{quantidade} {quantidade === 1 ? "tarefa" : "tarefas"}</span></>}
                   {removendo === empresa.id && (
-                    <div className="config-confirmacao" role="alertdialog" aria-label={`Confirmar exclusão de ${empresa.nome}`}>
+                    <div id={`config-confirmacao-${empresa.id}`} className="config-confirmacao" role="alertdialog" aria-label={`Confirmar exclusão de ${empresa.nome}`} tabIndex={-1}>
                       <p>Tirar {empresa.nome}? {quantidade} {quantidade === 1 ? "tarefa será removida" : "tarefas serão removidas"} e {quantidadePecas} {quantidadePecas === 1 ? "peça sumirá" : "peças sumirão"} das Pastas. Não dá para recuperar depois.</p>
                       <div><button className="config-botao-perigo" type="button" onClick={() => void tirar(empresa.id)}>Sim, tirar empresa</button><button className="config-botao-texto" type="button" onClick={() => setRemovendo(null)}>Cancelar</button></div>
                     </div>
@@ -91,7 +101,7 @@ export function TelaConfiguracoes() {
                 </div>
                 {editando !== empresa.id && removendo !== empresa.id && <div className="config-acoes">
                   <button type="button" onClick={() => { setEditando(empresa.id); setNomeEditado(empresa.nome); setErro(""); }}>Renomear</button>
-                  <button type="button" onClick={() => { setRemovendo(empresa.id); setErro(""); }}>Tirar</button>
+                  <button id={`config-tirar-${empresa.id}`} type="button" onClick={() => { focoRetorno.current = empresa.id; setRemovendo(empresa.id); setErro(""); }}>Tirar</button>
                 </div>}
               </div></li>
             );

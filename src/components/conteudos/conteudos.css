@@ -3,7 +3,6 @@
 .conteudos-cabecalho h1 { margin: 0; color: var(--texto); font-size: var(--app-t-titulo); }
 .conteudos-cabecalho p { max-width: 60ch; margin: var(--s-8) 0 0; color: var(--fraco); font-size: var(--app-t-texto); }
 .conteudos-total { display: flex; align-items: baseline; gap: var(--s-8); flex: none; min-width: 154px; padding: var(--s-12) var(--s-16); font-size: var(--app-t-texto); }
-.conteudos-total .bloco-numero { font-size: var(--t-39); }
 .conteudos-erro { padding: var(--s-12); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); }
 .conteudos-quadro { display: grid; grid-template-columns: repeat(6, minmax(216px, 1fr)); align-items: stretch; gap: var(--s-8); overflow-x: auto; padding: 0 0 var(--s-16); scrollbar-color: var(--borda) transparent; }
 .conteudos-coluna { min-width: 0; min-height: 440px; border: 1px solid var(--linha); border-radius: var(--raio-c); background: var(--sup-2); transition: background var(--dur-rapida) var(--curva); }

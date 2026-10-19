@@ -16,6 +16,8 @@
 .ficha-titulo:focus { border-bottom-color: var(--azul); outline: none; }
 .ficha-corpo { display: flex; flex-direction: column; gap: var(--s-24); padding: var(--s-24) var(--s-24) var(--s-16); overflow-y: auto; }
 .ficha-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-16); }
+.ficha-escolha .selecao-botao { width: 100%; justify-content: space-between; }
+.ficha-escolha .selecao-escolha { margin-left: auto; }
 .ficha-campo { display: flex; flex-direction: column; gap: var(--s-8); min-width: 0; margin: 0; padding: 0; border: 0; }
 .ficha-campo legend, .ficha-legenda { padding: 0; margin-bottom: var(--s-8); color: var(--texto); font-size: var(--t-14); font-weight: 600; }
 .ficha-legenda { margin-bottom: 0; }
@@ -38,7 +40,7 @@
 .ficha-dica { margin: 6px 0 0; color: var(--fraco); font-size: var(--t-12); }
 .ficha-cores { display: flex; flex-wrap: wrap; gap: var(--s-8); }
 .ficha-cor { width: 30px; height: 30px; padding: 0; border: 1px solid var(--borda); border-radius: 50%; cursor: pointer; }
-.ficha-cor[aria-checked="true"] { outline: 2px solid var(--azul); outline-offset: 2px; }
+.ficha-cor[aria-pressed="true"] { outline: 2px solid var(--azul); outline-offset: 2px; }
 .ficha-link { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto auto; gap: var(--s-8); align-items: center; margin-bottom: var(--s-8); }
 .ficha-link a { color: var(--azul); font-weight: 600; font-size: var(--t-14); }
 .ficha-texto-botao { align-self: flex-start; padding: 4px 0; border: 0; background: none; color: var(--azul); font: 500 var(--t-14) var(--fonte); cursor: pointer; }
