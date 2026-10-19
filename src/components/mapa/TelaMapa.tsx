@@ -1,5 +1,5 @@
 "use client";
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -7,22 +7,29 @@ import { useEmpresas, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dad
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
-import { INICIO, conteudos, diasDoPeriodo, foiPostado, objetivoDe, postadosNoMes, ultimoDia } from "./logica";
+import { conteudos, hoje, diasDoPeriodo, foiPostado, objetivoDe, postadosNoMes, ultimoDia } from "./logica";
 import "./mapa.css";
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
-const rotuloDia = (d: string) => (d === INICIO || d.endsWith("-01") ? diaCurto(d) : `${nomeSemana(d)} ${Number(d.slice(8))}`);
+const rotuloDia = (d: string, inicio: string) => (d === inicio || d.endsWith("-01") ? diaCurto(d) : `${nomeSemana(d)} ${Number(d.slice(8))}`);
 
+const semAviso = () => () => {};
+// O dia de hoje só existe no navegador (o servidor pode estar em outro fuso): espera montar para não dar diferença na hidratação.
 export function TelaMapa() {
+  const inicio = useSyncExternalStore(semAviso, () => hoje(), () => ""); // servidor: "" até hidratar
+  return inicio ? <Mapa inicio={inicio} /> : null;
+}
+
+function Mapa({ inicio: INICIO }: { inicio: string }) {
   const tarefas = useTarefas();
   const { aplicar } = useFiltroEmpresa();
   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
 
   const todos = useMemo(() => conteudos(aplicar(tarefas)), [aplicar, tarefas]);
-  const marcos = useMemo(() => todos.filter((t) => t.inicio!.slice(0, 10) >= INICIO), [todos]);
-  const dias = useMemo(() => diasDoPeriodo(INICIO, ultimoDia(marcos)), [marcos]);
+  const marcos = useMemo(() => todos.filter((t) => t.inicio!.slice(0, 10) >= INICIO), [todos, INICIO]);
+  const dias = useMemo(() => diasDoPeriodo(INICIO, ultimoDia(marcos)), [marcos, INICIO]);
   const aPostar = marcos.filter((t) => !foiPostado(t));
   const [m1, m2] = [nomeMes(INICIO), nomeMes(dias.at(-1)!)].map((m) => m.toLowerCase());
   const meses = m1 === m2 ? m1 : `${m1} e ${m2}`;
@@ -39,13 +46,13 @@ export function TelaMapa() {
       </header>
 
       <dl className="mapa-resumo">
-        <div className="bloco-destaque"><dt>A postar</dt><dd>{aPostar.length}</dd></div>
-        <div><dt>Já postados no mês</dt><dd>{postadosNoMes(todos)}</dd></div>
+        <div className="bloco-destaque"><dt>A postar</dt><dd className="bloco-numero">{aPostar.length}</dd></div>
+        <div><dt>Já postados no mês</dt><dd>{postadosNoMes(todos, INICIO)}</dd></div>
         <div><dt>Próxima postagem</dt><dd className="mapa-resumo-data">{proximo ? `${nomeSemana(proximo)}, ${diaCurto(proximo)}` : "Nenhuma"}</dd></div>
       </dl>
 
       {marcos.length
-        ? <Linha dias={dias} marcos={marcos} abrir={setAberta} />
+        ? <Linha dias={dias} inicio={INICIO} marcos={marcos} abrir={setAberta} />
         : <p className="mapa-vazio">Nada para mostrar com os filtros de agora. Crie uma tarefa do tipo Postagem no calendário e ela aparece aqui.</p>}
 
       {aberta && <Ficha key={(aberta as Tarefa).id} tarefa={aberta} aoFechar={() => setAberta(null)} />}
@@ -58,7 +65,7 @@ export function TelaMapa() {
  * lado conforme a página rola para baixo (scrub). Cada marco aparece quando chega perto do meio da tela.
  * Largura de um dia = largura do miolo / dias visíveis (CSS, `cqw`), então vale dentro da casca e no celular.
  */
-function Linha({ dias, marcos, abrir }: { dias: string[]; marcos: Tarefa[]; abrir: (t: Tarefa) => void }) {
+function Linha({ dias, inicio, marcos, abrir }: { dias: string[]; inicio: string; marcos: Tarefa[]; abrir: (t: Tarefa) => void }) {
   const palco = useRef<HTMLDivElement>(null);
   const fixo = useRef<HTMLDivElement>(null);
   const faixa = useRef<HTMLDivElement>(null);
@@ -119,7 +126,7 @@ function Linha({ dias, marcos, abrir }: { dias: string[]; marcos: Tarefa[]; abri
           <div ref={faixa} className="mapa-faixa">
             <span className="mapa-linha" aria-hidden />
             {dias.map((d, i) => (
-              <span key={d} className="mapa-dia" data-dia={d} style={{ left: `calc((${i} + 0.5) * var(--dia-w))` }} aria-hidden>{rotuloDia(d)}</span>
+              <span key={d} className="mapa-dia" data-dia={d} style={{ left: `calc((${i} + 0.5) * var(--dia-w))` }} aria-hidden>{rotuloDia(d, inicio)}</span>
             ))}
             {marcos.map((t, i) => <Marco key={t.id} t={t} coluna={dias.indexOf(t.inicio!.slice(0, 10))} lado={i % 2 ? "baixo" : "cima"} abrir={abrir} />)}
           </div>

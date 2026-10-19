@@ -2,11 +2,11 @@
 import type { Tarefa } from "@/lib/dados";
 import { deTexto, paraDia, somarDias } from "@/components/calendario/logica";
 
-// ponytail: começa em 19/10/2026 (o "amanhã" do pedido). Na Fase 2 vira o dia seguinte ao de hoje.
-export const INICIO = "2026-10-19";
+/** Hoje pelo relógio do navegador, em data local (nunca toISOString: em UTC viraria o dia errado à noite no Brasil). */
+export const hoje = (agora = new Date()) => paraDia(agora);
 
 /** Do início até o fim do mês do início, ou até `ate` (a última postagem com data), o que vier depois. */
-export function diasDoPeriodo(inicio = INICIO, ate = "") {
+export function diasDoPeriodo(inicio: string, ate = "") {
   const d = deTexto(inicio);
   const fimDoMes = paraDia(new Date(d.getFullYear(), d.getMonth() + 1, 0));
   const fim = ate > fimDoMes ? ate : fimDoMes;
@@ -27,5 +27,5 @@ export const conteudos = (tarefas: readonly Tarefa[]) =>
   tarefas.filter((t) => t.tipo === "postagem" && t.inicio).sort((a, b) => a.inicio!.localeCompare(b.inicio!));
 
 /** Quantos conteúdos já foram postados no mês do início, mesmo antes do período (a linha só mostra o que vem pela frente). */
-export const postadosNoMes = (lista: readonly Tarefa[], inicio = INICIO) =>
+export const postadosNoMes = (lista: readonly Tarefa[], inicio: string) =>
   lista.filter((t) => foiPostado(t) && diaDe(t).startsWith(inicio.slice(0, 7))).length;
