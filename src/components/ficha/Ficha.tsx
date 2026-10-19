@@ -110,10 +110,17 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             <span className="ficha-rotulo"><span className="ficha-cor-marca" aria-hidden />{nova ? "Nova tarefa" : NOMES.tipo[t.tipo]}</span>
             <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>
           </div>
-          <input
+          <textarea
             className="ficha-titulo"
+            rows={1}
             value={t.titulo}
-            onChange={(e) => mudar("titulo", e.target.value)}
+            onChange={(e) => mudar("titulo", e.target.value.replace(/[\r\n]+/g, " "))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                e.currentTarget.form?.requestSubmit();
+              }
+            }}
             placeholder="Título da tarefa"
             aria-label="Título"
             required

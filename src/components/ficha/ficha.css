@@ -11,10 +11,10 @@
 .ficha-cor-marca { width: 10px; height: 10px; border-radius: 50%; background: var(--etiqueta-atual); }
 .ficha-fechar { min-height: 32px; padding: 4px 10px; border: 1px solid var(--borda); border-radius: var(--raio-b); background: var(--vidro); color: var(--texto); font: 500 var(--t-12) var(--fonte); cursor: pointer; }
 .ficha-fechar:hover { background: var(--sup); }
-.ficha-titulo { width: 100%; padding: var(--s-4) 0 var(--s-8); border: 0; border-bottom: 1px solid var(--borda); border-radius: 0; background: transparent; color: var(--texto); font: var(--titulo-peso) var(--t-31) / 1.1 var(--fonte); letter-spacing: var(--titulo-espaco); }
+.ficha .ficha-titulo { display: block; width: 100%; min-height: 0; padding: var(--s-4) 0 var(--s-8); border: 0; border-bottom: 1px solid var(--borda); border-radius: 0; background: transparent; color: var(--texto); font: var(--titulo-peso) var(--t-31) / 1.1 var(--fonte); letter-spacing: var(--titulo-espaco); field-sizing: content; resize: none; overflow: hidden; }
 .ficha-titulo::placeholder { color: var(--fraco); }
 .ficha-titulo:focus { border-bottom-color: var(--azul); outline: none; }
-.ficha-corpo { display: flex; flex-direction: column; gap: var(--s-24); padding: var(--s-24) var(--s-24) var(--s-16); overflow-y: auto; }
+.ficha-corpo { display: flex; flex-direction: column; gap: var(--s-24); padding: var(--s-32) var(--s-24) var(--s-16); overflow-y: auto; }
 .ficha-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-16); }
 .ficha-escolha .selecao-botao { width: 100%; justify-content: space-between; }
 .ficha-escolha .selecao-escolha { margin-left: auto; }
@@ -49,7 +49,7 @@
 .ficha-excluir { margin-right: auto; color: var(--fraco); }
 .ficha-pe .btn:disabled { opacity: .45; cursor: not-allowed; }
 @media (max-width: 520px) {
-  .ficha-titulo { font-size: var(--t-25); }
+  .ficha .ficha-titulo { font-size: var(--t-25); }
   .ficha-grade { grid-template-columns: 1fr; }
   .ficha-link { grid-template-columns: 1fr auto auto; }
   .ficha-link input:first-child { grid-column: 1 / -1; }
