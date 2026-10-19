@@ -25,12 +25,14 @@
 }
 .tarefas-data:focus-visible { outline: 3px solid var(--foco); outline-offset: 1px; }
 /* Bloco de destaque da tela: quantas tarefas feitas (número grande sobre o azul) */
-.tarefas-contador { display: flex; align-items: center; gap: var(--s-12); margin: 0; font-size: var(--app-t-texto); white-space: nowrap; }
+.tarefas-contador { display: flex; align-items: center; gap: var(--s-8); height: var(--app-controle); padding: 0 var(--s-16); margin: 0; border-radius: var(--raio-b); box-shadow: none; font-size: var(--app-t-texto); white-space: nowrap; }
+.tarefas-contador .bloco-numero { margin: 0; font-size: var(--t-25); font-weight: 400; letter-spacing: -0.02em; }
 .medidor { display: flex; gap: 3px; }
-.medidor i { width: 8px; height: 14px; border-radius: 3px; background: linear-gradient(to right, var(--no-azul) var(--p), rgb(255 255 255 / 0.25) var(--p)); }
+.medidor i { width: 6px; height: 12px; border-radius: 3px; background: linear-gradient(to right, var(--no-azul) var(--p), rgb(255 255 255 / 0.25) var(--p)); }
 
 /* ===== O livro ===== */
-.livro-sombra { flex: 1; min-height: 0; border-radius: var(--raio-v); box-shadow: var(--sombra); }
+.livro-sombra { flex: 1; min-height: 0; border-radius: var(--raio-v); box-shadow: var(--sombra); touch-action: pan-y; } /* pan-y: o dedo na horizontal é do arraste da folha */
+.livro-arrastando { cursor: grabbing; user-select: none; -webkit-user-select: none; }
 .livro {
   position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); height: 100%;
   background: var(--sup); border-radius: var(--raio-v); overflow: hidden;

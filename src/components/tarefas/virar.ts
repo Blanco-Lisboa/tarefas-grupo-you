@@ -116,8 +116,7 @@ function posicionar(folha: Folha, p: number, volta: boolean): number {
   return x;
 }
 
-/** Roda a virada. Devolve a função que cancela e limpa (usada se a tela sair do ar no meio). */
-export function virarFolha(o: Pedido): () => void {
+function montar(o: Omit<Pedido, "aoTerminar">) {
   const { pai, caixa, volta } = o;
   const camada = div("fv-camada");
   camada.setAttribute("aria-hidden", "true");
@@ -154,7 +153,7 @@ export function virarFolha(o: Pedido): () => void {
   camada.querySelectorAll<HTMLElement>("[data-st]").forEach((e) => { e.scrollTop = +(e.dataset.st ?? 0); });
   posicionar(folha, volta ? 0.9995 : 0.0005, volta); // um fio fora do zero: o navegador cria as camadas 3D antes do giro
 
-  let sombraEsq = false, parou = false, raf = 0, t0 = 0, aquecer = 2;
+  let sombraEsq = false, parou = false, raf = 0;
   const quadro = (p: number) => {
     const x = posicionar(folha, p, volta), s = Math.sin(Math.PI * p), dir = x >= 0;
     const larg = Math.max(0, Math.min(30 + 160 * s, dir ? caixa.width - x : caixa.width + x));
@@ -163,15 +162,36 @@ export function virarFolha(o: Pedido): () => void {
     sombra.style.opacity = s.toFixed(3);
   };
   const limpar = () => { parou = true; cancelAnimationFrame(raf); camada.remove(); };
-  const passo = (agora: number) => {
-    if (parou) return;
-    if (aquecer-- > 0) { raf = requestAnimationFrame(passo); return; } // o 1º quadro monta as tiras: fora do relógio, senão vira tranco
-    if (!t0) t0 = agora;
-    const t = limita((agora - t0) / FLIP.duracao);
-    quadro(volta ? 1 - t : t);
-    if (t < 1) raf = requestAnimationFrame(passo);
-    else { limpar(); o.aoTerminar(); }
+  // Anima de p=de até p=para. `aquecer` quadros de espera: o 1º quadro monta as tiras, fora do relógio, senão vira tranco.
+  const animar = (de: number, para: number, duracao: number, aquecer: number, fim: () => void) => {
+    let t0 = 0;
+    const passo = (agora: number) => {
+      if (parou) return;
+      if (aquecer-- > 0) { raf = requestAnimationFrame(passo); return; }
+      if (!t0) t0 = agora;
+      const t = limita((agora - t0) / duracao);
+      quadro(de + (para - de) * t);
+      if (t < 1) raf = requestAnimationFrame(passo);
+      else { limpar(); fim(); }
+    };
+    raf = requestAnimationFrame(passo);
   };
-  raf = requestAnimationFrame(passo);
-  return limpar;
+  return { quadro, limpar, animar };
+}
+
+/** Roda a virada. Devolve a função que cancela e limpa (usada se a tela sair do ar no meio). */
+export function virarFolha(o: Pedido): () => void {
+  const m = montar(o);
+  m.animar(o.volta ? 1 : 0, o.volta ? 0 : 1, FLIP.duracao, 2, o.aoTerminar);
+  return m.limpar;
+}
+
+/** Virada puxada pelo dedo: mover(p) põe a folha em p (0 = deitada à direita, 1 = à esquerda); soltar(de, para, ...) termina o giro. */
+export function arrastarFolha(o: Omit<Pedido, "aoTerminar">) {
+  const m = montar(o);
+  return {
+    mover: m.quadro,
+    soltar: (de: number, para: number, fim: () => void) => m.animar(de, para, Math.max(140, Math.round(FLIP.duracao * Math.abs(para - de))), 0, fim),
+    cancelar: m.limpar,
+  };
 }
