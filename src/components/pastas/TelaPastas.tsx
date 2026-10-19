@@ -51,6 +51,7 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
         <div className="pastas-cel">
           <PastaDeVidro
             rotulo="Ideias de conteúdo"
+            legenda={`${ideias.length} ideias`}
             tom={tom}
             arte={receitaDaEmpresa("story", empresa.id)}
             seed={19}
