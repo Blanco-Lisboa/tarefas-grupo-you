@@ -167,3 +167,4 @@ Fotos dele em `docs/referencias/2026-10-19-rodada-4/` (01 a 11). Instruções: `
 - Itens 88–141 FEITOS e conferidos por foto pelo Maestro (aguardam conferência do Natham). 142 (agendas) e 126/133 (contas separadas) = PRÓXIMA FASE: banco + login + Google Agenda, planejar com /arquitetar antes de codar.
 - Residual para conferir: na foto 110-pastas-1903 só a 1ª pasta da You mostra a textura de mármore; as outras aparecem em degradê liso — ver se é carregamento na foto ou se o 139 tirou as texturas.
 - Lição: linha da leva escrita pelo Maestro e não commitada foi sobrescrita por recruta (120/121); desde então a leva é commitada logo após registrar.
+- Residual das texturas FECHADO 19/10 (Vitral, conferido pelo Maestro na foto provas/r5-textura/pastas-1903.png): não era defeito; as texturas são pintadas uma pasta por vez (~4s) e a foto antiga esperou só 1,5s. Sem mudança de código.
