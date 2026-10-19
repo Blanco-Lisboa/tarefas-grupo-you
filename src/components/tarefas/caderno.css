@@ -14,21 +14,35 @@
 /* ===== Barra: título, navegação do dia, contador e Dia / Sem data. Controles de 36px, vão de 8 ===== */
 .tarefas-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao) var(--app-respiro); }
 .tarefas-titulo { font-size: var(--app-t-titulo); line-height: var(--app-controle); color: var(--cor-roxo); }
-.tarefas-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
+.tarefas-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao) var(--s-16); } /* 16: a placa a 22° invade 7px de cada lado */
 .tarefas-fim { margin-left: auto; }
 .tarefas-lados { display: none; }
-.tarefas-botao, .tarefas-data {
-  height: var(--app-controle); padding: 0 var(--s-12); background: var(--cor-superficie); color: var(--cor-roxo);
-  border: 1px solid var(--cor-linha-forte); border-radius: var(--raio); font: 600 var(--app-t-texto) / 1 var(--fonte-texto); cursor: pointer;
-  transition: background var(--dur-rapida) var(--curva), border-color var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva);
+/* Botão = placa a 22° com texto reto (prancha "Botões, nos 4 estados"): contorno roxo de 2px; o ativo é cheio. Anda 3px no hover. */
+.tarefas-botao {
+  position: relative; isolation: isolate; display: inline-flex; align-items: center; height: var(--app-controle); padding: 0 var(--s-24);
+  background: none; border: 0; color: var(--cor-roxo); font: 700 var(--t-12) / 1 var(--fonte-texto); letter-spacing: .1em; text-transform: uppercase;
+  white-space: nowrap; cursor: pointer; transition: transform var(--dur) var(--curva);
 }
-.tarefas-botao:hover, .tarefas-data:hover { border-color: var(--cor-roxo); background: var(--cor-kraft-claro); }
-.tarefas-botao[aria-pressed="true"] { background: var(--cor-roxo); border-color: var(--cor-roxo); color: var(--cor-bege); }
-.tarefas-data { min-width: 0; font-weight: 500; color: var(--cor-tinta); }
+.tarefas-botao::before { content: ""; position: absolute; inset: 0; z-index: -1; box-shadow: inset 0 0 0 2px var(--cor-roxo); transform: skewX(var(--angulo)); }
+.tarefas-botao:hover { transform: translateX(var(--anda)); }
+.tarefas-botao:focus-visible { outline: none; }
+.tarefas-botao:focus-visible::after { content: ""; position: absolute; inset: -6px; border: 2px solid var(--cor-eletrico); transform: skewX(var(--angulo)); }
+.tarefas-botao[aria-pressed="true"] { color: var(--cor-bege); }
+.tarefas-botao[aria-pressed="true"]::before { background: var(--cor-roxo); }
+/* Campo reto (prancha "Campos de formulário"): borda 1,5px tinta-2, foco com borda roxa e anel elétrico */
+.tarefas-data {
+  height: var(--app-controle); padding: 0 var(--s-12); background: var(--cor-superficie); color: var(--cor-tinta); min-width: 0;
+  border: 1.5px solid var(--cor-tinta-2); border-radius: var(--raio); font: 500 var(--app-t-texto) / 1 var(--fonte-texto);
+}
+.tarefas-data:focus-visible { outline: 2px solid var(--cor-eletrico); outline-offset: 2px; border-color: var(--cor-roxo); }
 .tarefas-contador { display: flex; align-items: center; gap: var(--s-12); margin: 0 var(--s-8) 0 0; font-size: var(--app-t-texto); color: var(--cor-tinta-2); white-space: nowrap; }
-.tarefas-contador strong { color: var(--cor-tinta); font-family: var(--fonte-titulo); font-weight: var(--numero-peso); }
-.tarefas-trilho { display: block; width: 96px; height: 8px; background: var(--cor-kraft); border-radius: var(--raio); overflow: hidden; }
-.tarefas-trilho i { display: block; height: 100%; background: var(--cor-roxo); transition: width var(--dur-lenta) var(--curva); }
+.tarefas-contador strong { color: var(--cor-eletrico); font-family: var(--fonte-titulo); font-size: var(--t-16); font-weight: var(--numero-peso); } /* número em Bricolage 800, destaque elétrico no claro */
+/* Medidor D da ID: 10 barrinhas contornadas, quase grudadas (vão 3), ponta a 22°; cheia em roxo profundo no claro */
+.medidor { display: flex; gap: 3px; padding-left: var(--s-4); }
+.medidor i {
+  width: 10px; height: 14px; border: 1px solid var(--cor-roxo); transform: skewX(var(--angulo));
+  background: linear-gradient(to right, var(--cor-roxo) var(--p), transparent var(--p));
+}
 
 /* ===== O livro ===== */
 .livro-sombra { flex: 1; min-height: 0; }
@@ -135,14 +149,14 @@
   100% { transform: rotate(var(--r)) translateX(30px) scale(0); opacity: 0; }
 }
 .caixa-vazia { cursor: default; }
-.caixa-vazia::before { content: ""; width: 18px; height: 18px; border: 1.5px dashed var(--cor-linha-forte); transform: rotate(-1.5deg); opacity: 0; transition: opacity var(--dur-rapida) var(--curva); }
+.caixa-vazia::before { content: ""; width: 18px; height: 18px; border: 1.5px solid var(--cor-linha-forte); border-radius: var(--raio); opacity: 0; transition: opacity var(--dur-rapida) var(--curva); }
 .linha:hover .caixa-vazia::before, .linha:focus-within .caixa-vazia::before { opacity: 1; }
 
 .apagar { flex: none; width: 32px; height: var(--passo); display: grid; place-items: center; background: none; border: 0; padding: 0; cursor: pointer; opacity: .35; transition: opacity var(--dur-rapida) var(--curva); }
-.apagar svg { width: 16px; height: 16px; fill: none; stroke: var(--cor-tinta-2); stroke-width: 2; stroke-linecap: round; }
+.apagar svg { width: 16px; height: 16px; fill: none; stroke: var(--cor-tinta-2); stroke-width: 2.4; stroke-linecap: square; } /* o X da ID: pontas quadradas */
 .linha:hover .apagar, .apagar:focus-visible { opacity: 1; }
 .confirmar { flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s-8); max-width: 15em; font-size: calc(17px * var(--escala)); line-height: 1.1; padding-top: var(--s-4); }
-.confirmar button { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; color: var(--cor-tinta-2); }
+.confirmar button { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; text-decoration-thickness: 2px; text-decoration-color: var(--cor-eletrico); text-underline-offset: 3px; color: var(--cor-roxo); }
 .confirmar .confirmar-sim { color: var(--cor-tinta); font-weight: 700; }
 
 .campo { flex: 1; min-width: 0; height: var(--passo); background: none; border: 0; padding: 0; font: inherit; font-size: calc(22px * var(--escala)); outline-offset: 0; }
@@ -158,29 +172,40 @@
 .ag-item[data-passou="true"] .ag-card { opacity: .6; }
 .ag-hora { padding-top: var(--s-8); text-align: right; font-size: calc(18px * var(--escala)); line-height: 1.2; }
 .ag-trilho { position: relative; align-self: stretch; }
-.ag-trilho::before { content: ""; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--cor-linha-forte); }
+.ag-trilho::before { /* corda de pontinhos (conexão da ID) */
+  content: ""; position: absolute; left: 6px; top: 0; bottom: 0; width: 4px;
+  background: radial-gradient(circle, var(--cor-roxo) 1.2px, transparent 1.5px) 50% 0 / 4px 8px repeat-y;
+}
 .ag-item:first-child .ag-trilho::before { top: 16px; }
 .ag-item:last-child .ag-trilho::before { bottom: calc(100% - 16px); }
-.ag-ponto { position: absolute; left: 2px; top: 11px; width: 12px; height: 12px; background: var(--cor-superficie); border: 2px solid; box-sizing: border-box; transform: rotate(45deg); }
+.ag-ponto { position: absolute; left: 3px; top: 12px; width: 10px; height: 10px; background: var(--cor-superficie); border: 2px solid; border-radius: 50%; box-sizing: border-box; } /* bolinha de contorno, como a da linha semanal */
 .ag-card, .ag-inteiro {
-  display: flex; align-items: center; gap: var(--s-12); min-width: 0; width: 100%; margin-bottom: var(--s-8); padding: var(--s-8) var(--s-12);
-  background: color-mix(in srgb, var(--cor-card) 14%, var(--cor-superficie)); border: 0; border-left: 3px solid var(--cor-card); border-radius: var(--raio);
+  position: relative; display: flex; align-items: center; gap: var(--s-12); min-width: 0; width: 100%; margin-bottom: var(--s-8); padding: var(--s-12);
+  background: color-mix(in srgb, var(--cor-card) 14%, var(--cor-superficie)); border: 0; border-radius: var(--raio);
   font: inherit; color: inherit; text-align: left; cursor: pointer; box-sizing: border-box;
   transition: background var(--dur-rapida) var(--curva), box-shadow var(--dur-rapida) var(--curva);
+}
+.ag-card::before, .ag-inteiro::before { /* marcador com ponta de barra: paralelogramo a 22°, sem mudar a espessura */
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--cor-card);
+  clip-path: polygon(calc(var(--angulo-tan) * 3px) 0, 100% 0, calc(100% - var(--angulo-tan) * 3px) 100%, 0 100%);
 }
 .ag-card:hover, .ag-inteiro:hover { background: color-mix(in srgb, var(--cor-card) 24%, var(--cor-superficie)); }
 .ag-textos { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .ag-nome { font-size: calc(21px * var(--escala)); line-height: 1.15; overflow-wrap: anywhere; }
 .ag-nome[data-feita="true"] { text-decoration: line-through; text-decoration-thickness: 2px; opacity: .72; }
 .ag-info { font-size: calc(16px * var(--escala)); line-height: 1.1; }
-.ag-selo { flex: none; padding: 3px var(--s-8); font: 600 var(--app-t-rotulo) / 1.2 var(--fonte-texto); border-radius: var(--raio); }
+.ag-selo { position: relative; isolation: isolate; flex: none; padding: 5px var(--s-12); font: 700 var(--t-12) / 1 var(--fonte-texto); letter-spacing: .1em; text-transform: uppercase; }
+.ag-selo::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--cor-card); transform: skewX(var(--angulo)); } /* etiqueta = placa a 22°, texto reto */
 .ag-dia-inteiro { display: grid; gap: var(--s-8); margin-bottom: var(--s-16); }
 .ag-inteiro { margin-bottom: 0; justify-content: space-between; }
 .ag-agora { display: grid; grid-template-columns: var(--col-hora) minmax(0, 1fr); column-gap: var(--s-8); align-items: center; margin: 0 0 var(--s-8); }
 .ag-agora-hora { text-align: right; font: 700 var(--app-t-rotulo) / 1 var(--fonte-texto); color: var(--cor-eletrico); }
-.ag-agora-linha { position: relative; height: 2px; background: var(--cor-eletrico); }
-.ag-agora-linha::before { content: ""; position: absolute; left: 4px; top: -4px; width: 10px; height: 10px; background: var(--cor-eletrico); transform: rotate(45deg); }
-.ag-vazio { padding: var(--s-24) var(--s-16); margin-bottom: var(--s-24); border: 1.5px dashed var(--cor-linha-forte); border-radius: var(--raio); text-align: center; }
+.ag-agora-linha { position: relative; height: 4px; background: radial-gradient(circle, var(--cor-eletrico) 1.2px, transparent 1.5px) 0 50% / 8px 4px repeat-x; }
+.ag-agora-linha::before { /* ponto aceso com anel, como o último ponto da linha semanal */
+  content: ""; position: absolute; left: 4px; top: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--cor-eletrico);
+  box-shadow: 0 0 0 3px var(--cor-superficie), 0 0 0 5px var(--cor-eletrico);
+}
+.ag-vazio { padding: var(--s-24) var(--s-16); margin-bottom: var(--s-24); background: var(--cor-kraft-claro); border-radius: var(--raio); text-align: center; }
 .ag-vazio strong { display: block; font-size: calc(24px * var(--escala)); font-weight: 700; }
 .ag-vazio p { margin: var(--s-4) auto 0; max-width: 28ch; font-size: calc(18px * var(--escala)); line-height: 1.2; }
 .ag-blocos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-16); }

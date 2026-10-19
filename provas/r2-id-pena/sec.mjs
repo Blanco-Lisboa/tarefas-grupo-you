@@ -1,0 +1,10 @@
+import { createRequire } from "node:module";
+import { join } from "node:path";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const n = await chromium.launch({ headless: true });
+const p = await (await n.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+await p.goto("file:///C:/Users/Natham%20Monteiro/Desktop/ID-Visual-ALL/Beec/identidade/" + process.argv[2]);
+await p.waitForTimeout(800);
+console.log(await p.evaluate(() => [...document.querySelectorAll("h2,h3")].map((h) => Math.round(h.getBoundingClientRect().top + scrollY) + " " + h.tagName + " " + h.textContent.trim().slice(0, 70)).join("\n")));
+await n.close();

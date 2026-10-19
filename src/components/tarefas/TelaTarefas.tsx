@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
+import type { CSSProperties } from "react";
 import { removerTarefa, salvarTarefa, useEmpresas, useTarefas, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha } from "@/components/ficha/Ficha";
@@ -109,7 +110,10 @@ export function TelaTarefas() {
           {mostradas.length > 0 && (
             <p className="tarefas-contador" aria-label={`${feitas} de ${mostradas.length} feitas`}>
               <span><strong>{feitas}</strong> de {mostradas.length} feitas</span>
-              <span className="tarefas-trilho"><i style={{ width: `${(feitas / mostradas.length) * 100}%` }} /></span>
+              {/* medidor D da ID: 10 barrinhas a 22°; a do meio enche em parte */}
+              <span className="medidor" aria-hidden="true">
+                {Array.from({ length: 10 }, (_, i) => <i key={i} style={{ "--p": `${Math.round(Math.min(1, Math.max(0, (feitas / mostradas.length) * 10 - i)) * 100)}%` } as CSSProperties} />)}
+              </span>
             </p>
           )}
           <button type="button" className="tarefas-botao" aria-pressed={aba === "dia"} onClick={() => setAba("dia")}>Dia</button>

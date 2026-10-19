@@ -103,7 +103,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
                     </span>
                   ) : (
                     <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => setConfirmando(l.id)}>
-                      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4 L16 16 M16 3.5 L4.5 16.5" /></svg>
+                      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>
                     </button>
                   ))}
                 </div>

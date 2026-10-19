@@ -66,7 +66,7 @@ export function Agenda({ letra, dia, hoje, rotuloDia, tarefas, amanha, nomeEmpre
           <span className="ag-nome folha-tinta" data-feita={!!t.concluida}>{t.titulo}</span>
           <span className="ag-info folha-lapis">{horaDe(t)} a {fimDe(t)} · {t.responsavel === "natham" ? "Natham" : "Matheus"}</span>
         </span>
-        <span className="ag-selo" style={{ background: `var(--${t.cor})`, color: `var(--${t.cor}-texto)` }}>{nomeEmpresa(t.empresaId)}</span>
+        <span className="ag-selo" style={{ "--cor-card": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}>{nomeEmpresa(t.empresaId)}</span>
       </button>
     </li>
   );
@@ -85,7 +85,7 @@ export function Agenda({ letra, dia, hoje, rotuloDia, tarefas, amanha, nomeEmpre
             {diaInteiro.map((t) => (
               <button key={t.id} type="button" className="ag-inteiro" style={{ "--cor-card": `var(--${t.cor})` } as CSSProperties} onClick={() => aoAbrir(t.id)}>
                 <span className="folha-tinta ag-nome" data-feita={!!t.concluida}>{t.titulo}</span>
-                <span className="ag-selo" style={{ background: `var(--${t.cor})`, color: `var(--${t.cor}-texto)` }}>{nomeEmpresa(t.empresaId)}</span>
+                <span className="ag-selo" style={{ "--cor-card": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}>{nomeEmpresa(t.empresaId)}</span>
               </button>
             ))}
           </div>
