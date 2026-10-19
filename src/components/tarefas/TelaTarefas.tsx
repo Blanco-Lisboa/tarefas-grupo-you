@@ -3,12 +3,13 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { PointerEvent as EventoPonteiro } from "react";
 import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
-import { removerTarefa, salvarTarefa, useEmpresas, useTarefas, type Tarefa } from "@/lib/dados";
+import { removerTarefa, salvarTarefa, type Etiqueta, type Responsavel, useEmpresas, useTarefas, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { CampoData } from "@/components/ui/CampoData";
 import { Ficha } from "@/components/ficha/Ficha";
 import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
+import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
 import { horaDe, horaDoSlot, minutos, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
@@ -73,6 +74,8 @@ export function TelaTarefas() {
     titulo: t.titulo,
     detalhe: [nomeEmpresa(t.empresaId), NOMES[t.responsavel], aba === "dia" && !horaDe(t) ? "dia inteiro" : ""].filter(Boolean).join(" · "),
     feita: !!t.concluida,
+    cor: t.cor,
+    responsavel: t.responsavel,
   });
   const rotulos = aba === "dia" ? grade.map((_, k) => rotuloSlot(k)) : undefined;
 
@@ -158,6 +161,27 @@ export function TelaTarefas() {
     const fim = completa ? () => { cancelar.current = null; } : () => { flushSync(() => setEscolhido(a.antigo)); cancelar.current = null; };
     a.ctx.soltar(a.p, destino, fim);
   };
+  // A tarefa vai para o horário da linha (neste dia) e mantém a duração (30 min se era dia inteiro ou sem fim).
+  const moverPara = (id: string, linha: number) => {
+    const t = tarefas.find((x) => x.id === id);
+    if (!t) return;
+    const h = horaDoSlot(linha);
+    const dur = t.inicio && t.fim && t.inicio.length > 10 && t.fim.length > 10 ? Math.max(15, minutos(t.fim.slice(11, 16)) - minutos(t.inicio.slice(11, 16))) : 30;
+    void salvarTarefa({ ...t, inicio: `${dia}T${h}`, fim: `${dia}T${somarMinutos(h, dur)}`, diaInteiro: false });
+  };
+  // Mesma hora, um dia depois (sem data: vira dia inteiro no dia seguinte ao que está aberto).
+  const noDiaSeguinte = (t: Tarefa): Tarefa => t.inicio
+    ? { ...t, inicio: somarDias(t.inicio.slice(0, 10), 1) + t.inicio.slice(10), fim: t.fim && somarDias(t.fim.slice(0, 10), 1) + t.fim.slice(10) }
+    : { ...t, inicio: somarDias(dia, 1), diaInteiro: true };
+  const comTarefa = (f: (t: Tarefa) => void) => (id: string) => { const t = tarefas.find((x) => x.id === id); if (t) f(t); };
+  const acoes: Acoes = {
+    duplicar: comTarefa((t) => void salvarTarefa({ ...noDiaSeguinte(t), id: undefined, concluida: false })),
+    mover: comTarefa((t) => void salvarTarefa(noDiaSeguinte(t))),
+    marcarHora: moverPara,
+    criarPara: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, id: undefined, responsavel: quem, concluida: false }))(id),
+    marcarPessoa: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, responsavel: quem }))(id),
+    etiqueta: (id: string, cor: Etiqueta) => comTarefa((t) => void salvarTarefa({ ...t, cor }))(id),
+  };
   const tag = hoje === dia && aba === "dia" ? "Hoje · " : "";
 
   return (
@@ -204,14 +228,8 @@ export function TelaTarefas() {
             aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
             aoMarcar={(id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
             aoApagar={(id) => void removerTarefa(id)}
-            aoMover={aba === "dia" ? (id, linha) => {
-              const t = tarefas.find((x) => x.id === id);
-              if (!t) return;
-              // A tarefa vai para o horário da linha e mantém a duração (30 min se era dia inteiro ou sem fim).
-              const h = horaDoSlot(linha);
-              const dur = t.inicio && t.fim && t.inicio.length > 10 && t.fim.length > 10 ? Math.max(15, minutos(t.fim.slice(11, 16)) - minutos(t.inicio.slice(11, 16))) : 30;
-              void salvarTarefa({ ...t, inicio: `${dia}T${h}`, fim: `${dia}T${somarMinutos(h, dur)}`, diaInteiro: false });
-            } : undefined}
+            aoMover={aba === "dia" ? moverPara : undefined}
+            acoes={acoes}
             aoEscrever={(t, empresaId, responsavel, linha) => {
               const base = { titulo: t, tipo: "outro" as const, empresaId, responsavel, cor: "etiqueta-5" as const, links: [], arquivos: [] };
               if (aba === "semdata") return void salvarTarefa({ ...base, diaInteiro: false });

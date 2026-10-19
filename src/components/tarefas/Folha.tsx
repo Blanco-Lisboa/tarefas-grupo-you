@@ -3,10 +3,12 @@ import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, ty
 import type { Responsavel } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import type { OpcaoLetra } from "./fontes";
-import { SLOTS } from "./grade";
+import { horaDoSlot, SLOTS } from "./grade";
+import { MenuTarefa, type Acoes } from "./MenuTarefa";
 import "./caderno.css";
 
-export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean };
+export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; cor?: string; responsavel?: Responsavel };
+const HORAS = Array.from({ length: SLOTS }, (_, k) => horaDoSlot(k));
 type Opcao = { id: string; nome: string };
 
 type Props = {
@@ -26,6 +28,8 @@ type Props = {
   aoAbrir?: (id: string) => void;
   /** Alça de arrastar: leva a tarefa para a linha de horário `linha`. Sem isto não há alça. */
   aoMover?: (id: string, linha: number) => void;
+  /** Menu ⋮ de cada tarefa. Sem isto fica só o × de apagar. */
+  acoes?: Acoes;
   aoEscrever?: (titulo: string, empresaId: string, responsavel: Responsavel, linha: number) => void;
 };
 
@@ -35,7 +39,7 @@ const giro = (id: string) => (([...id].reduce((s, c) => s + c.charCodeAt(0), 0) 
 // Estouro do check (mesmas posições do CRM): 12 pontos de tinta e 4 riscos, só ao marcar.
 const PONTOS = [[25, -25], [-25, -25], [25, 25], [-25, 25], [35, 0], [-35, 0], [0, 35], [0, -35], [20, -30], [-20, 30], [30, 20], [-30, -20]];
 
-export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empresas, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoMover, aoEscrever }: Props) {
+export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empresas, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoMover, acoes, aoEscrever }: Props) {
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [estourando, setEstourando] = useState<string | null>(null);
   const [texto, setTexto] = useState<{ linha: number; valor: string }>({ linha: -1, valor: "" });
@@ -151,6 +155,8 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
                       <button type="button" className="confirmar-sim folha-tinta" onClick={() => { aoApagar(l.id); setConfirmando(null); }}>Apagar</button>
                       <button type="button" className="confirmar-nao" autoFocus onClick={() => setConfirmando(null)}>Manter</button>
                     </span>
+                  ) : acoes ? (
+                    <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} horas={HORAS} acoes={acoes} aoExcluir={() => setConfirmando(l.id)} />
                   ) : (
                     <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => setConfirmando(l.id)}>
                       <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>
