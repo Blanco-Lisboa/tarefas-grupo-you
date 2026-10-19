@@ -28,11 +28,7 @@ html[data-menu="recolhido"] { --menu-w: 64px; --menu-p: var(--s-8); --menu-recuo
 @media (prefers-reduced-motion: reduce) { .menu, .casca-conteudo, .menu-item, .menu-nome, .menu-rotulo { transition: none; } }
 
 .menu-marca { display: flex; align-items: center; gap: var(--s-12); flex: none; height: var(--app-controle); padding-left: calc(var(--menu-recuo) - 4px); margin-bottom: var(--app-respiro); }
-.menu-inicial {
-  display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 8px;
-  background: var(--azul); color: var(--no-azul); font: 600 var(--t-14) / 1 var(--fonte);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 2px rgb(0 60 140 / 0.3);
-}
+.menu-logo { width: auto; height: 26px; flex: none; }
 .menu-nome { font: 600 17px / 1 var(--fonte); letter-spacing: -0.02em; color: var(--texto); white-space: nowrap; transition: opacity var(--dur-rapida) var(--curva); }
 
 .menu-lista { display: flex; flex-direction: column; gap: 2px; list-style: none; margin: 0; padding: 0; }

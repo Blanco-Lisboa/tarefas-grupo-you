@@ -9,7 +9,8 @@ import "./globals.css";
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Tarefas",
+  title: "Fivecon",
+  icons: { icon: "/marca/fivecon.png" },
   description: "Calendário, tarefas e conteúdos de todas as empresas do Grupo You.",
 };
 

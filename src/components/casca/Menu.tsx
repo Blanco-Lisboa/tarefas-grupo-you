@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 // Ícones de traço fino, no desenho da amostra do modelo 1 Névoa (item 60). currentColor: o item ativo pinta de azul.
@@ -47,10 +48,10 @@ export function Menu({ recolhido, alternar, caminho }: Props) {
   const acao = recolhido ? "Expandir menu" : "Recolher menu";
   return (
     <nav className="menu" aria-label="Menu principal">
-      {/* Nome do sistema em texto, sem marca (provisório). Recolhido, fica só a inicial; o CSS troca pelo data-menu do <html>. */}
+      {/* Logo + nome. Recolhido, fica só a logo (o CSS esconde o nome pelo data-menu do <html>). */}
       <div className="menu-marca">
-        <span className="menu-inicial" aria-hidden>T</span>
-        <span className="menu-nome">Tarefas</span>
+        <Image className="menu-logo" src="/marca/fivecon.png" alt="" width={483} height={512} priority />
+        <span className="menu-nome">Fivecon</span>
       </div>
       <ul className="menu-lista">
         {ITENS.map((i) => <Item key={i.href} item={i} caminho={caminho} />)}
