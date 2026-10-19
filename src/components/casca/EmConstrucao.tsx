@@ -18,7 +18,7 @@ function Contagem() {
   const { aplicar } = useFiltroEmpresa();
   const visiveis = aplicar(tarefas).length;
   return (
-    <p style={{ marginTop: 16, color: "var(--cor-tinta-2)" }}>
+    <p style={{ marginTop: 16, color: "var(--fraco)" }}>
       Tarefas visíveis com o filtro atual: <strong>{visiveis}</strong> de {tarefas.length}.
     </p>
   );

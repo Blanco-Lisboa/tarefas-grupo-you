@@ -74,3 +74,21 @@ Fonte da verdade da aparência: `src/components/modelos/Modelo1Nevoa.*` + o bloc
 - Sextante: calendário. Alvenaria: mapa (sai o laranja provisório; azul). Pena: tarefas (o caderno MANTÉM a letra de mão
   dentro da folha, pedido antigo dele; o resto em volta veste a Névoa). Vitral: pastas (pasta de vidro na Névoa). Régua: conteúdos,
   configurações e ficha. Critério: a tela parece o modelo 1 da página /modelos; nada da Beec sobra (procure por cor/classe velha).
+
+### Base Névoa pronta (Fase 1, Sextante, 19/10)
+Fotos: `provas/r3-base-nevoa/` (todas as telas em 1903, 1440 e 390; seleção aberta; menu recolhido; bloco e botões).
+- **Tokens** (`src/styles/tarefas-tokens.css`): `--fundo` #E8E9EC, `--sup` #FFF, `--sup-2` #F7F7F9, `--texto` #1D1D1F,
+  `--fraco` #636366, `--borda` #D2D2D7, `--linha`, `--realce` (hover), `--azul` **#0064CC** (branco sobre ele 5,68; ele sobre
+  o fundo 4,68), `--azul-hover`, `--azul-claro`, `--no-azul` (texto sobre azul), `--no-azul-fraco` #DCE8F7 (4,58), `--foco`;
+  vidro `--vidro`, `--vidro-forte`, `--vidro-linha`, `--vidro-desfoque`; raios `--raio-b` 10, `--raio-c` 16, `--raio-v` 20,
+  `--raio-bloco` 22, `--raio-pilula`; sombras `--sombra`, `--sombra-alta`, `--sombra-lista`, `--sombra-bloco`; `--fonte` (Inter),
+  `--titulo-peso/espaco/entrelinha`, escalas `--t-*` e `--s-*`, movimento `--dur*` e `--curva`. Camada `--app-*` igual
+  (só `--app-controle` foi para 40px, o do modelo 1).
+- **Classes** (mesmo nome, nova pele): `.btn` azul cheio · `.btn-2` vidro branco · `.btn-claro` sobre o azul · `.lnk` azul,
+  sublinha no hover · `Selecao` em vidro (contador azul, caixa azul marcada). `.b3` e o sublinhado em ponta de barra saíram.
+- **Bloco de destaque**: `<div class="bloco-destaque">` (azul cheio, canto 22, sombra azulada) com `.bloco-numero` (número
+  grande leve), `.bloco-fraco` (texto secundário) e `.btn-claro` dentro. Poucos por tela: é o que puxa o olho.
+- **Ponte** (`src/styles/ponte-beec.css`, TEMPORÁRIA): os nomes da Beec (`--cor-roxo`, `--cor-bege`, `.corte-22`, `.no-escuro`,
+  `.destaque`...) apontam para a Névoa, para nada quebrar. Por isso hoje os títulos das telas saem azuis (eram roxos) e os
+  blocos escuros saem azuis. Na Fase 2 cada dono troca os nomes velhos no seu território; o último apaga a ponte e o @import.
+- Casca: menu de vidro claro grudado, nome "Tarefas" com a inicial num quadrado azul, ícones de traço, recolher lembra o estado.

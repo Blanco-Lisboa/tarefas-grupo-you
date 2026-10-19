@@ -1,31 +1,22 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Bricolage_Grotesque, Host_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Casca } from "@/components/casca/Casca";
 import { SCRIPT_MENU } from "@/components/casca/menu-recolhido";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
-  subsets: ["latin"],
-  weight: ["800"],
-});
-
-const host = Host_Grotesk({
-  variable: "--font-host",
-  subsets: ["latin"],
-});
+// Letra do modelo 1 Névoa (item 60): Inter, a mais próxima da SF Pro que dá para usar na web.
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Grade de conteúdo",
+  title: "Tarefas",
   description: "Calendário, tarefas e conteúdos de todas as empresas do Grupo You.",
-  icons: { icon: "/beec/logo/favicon.svg" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // suppressHydrationWarning: o SCRIPT_MENU muda o data-menu do <html> antes do React chegar (menu recolhido lembrado).
-    <html lang="pt-BR" className={`${bricolage.variable} ${host.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="pt-BR" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full">
         <Script id="menu-recolhido" strategy="beforeInteractive">{SCRIPT_MENU}</Script>
         <Casca>{children}</Casca>

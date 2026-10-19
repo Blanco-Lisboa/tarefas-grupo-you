@@ -1,0 +1,49 @@
+/* ID do sistema "Tarefas" (item 60, 19/10/2026): modelo 1 Névoa + o contraste do modelo 5 com o bloco em AZUL.
+   Fonte da verdade: src/components/modelos/modelo-1-nevoa.css (pele) + modelo-5-contraste.css (bloco de destaque).
+   Sem preto e sem verde-lima (pedido do Natham). Azul = o #0071E3 do modelo 1, um pouco mais escuro.
+   Contraste (fórmula da W3C, mínimo 4,5): branco sobre azul 5,68 · azul sobre fundo 4,68 · texto fraco sobre fundo 4,95 ·
+   texto do bloco (fraco) sobre azul 4,58. O #0071E3 dava 4,70 com branco e 4,0 sobre o fundo: escurecer fecha os dois. */
+:root {
+  /* Cor */
+  --fundo: #E8E9EC;          /* tela: cinza claro de Mac */
+  --sup: #FFFFFF;            /* card, campo: superfície lisa (conteúdo não é vidro) */
+  --sup-2: #F7F7F9;          /* faixa, cabeçalho de tabela, área de apoio */
+  --texto: #1D1D1F;
+  --fraco: #636366;          /* texto secundário */
+  --borda: #D2D2D7;
+  --linha: rgb(0 0 0 / 0.08); /* divisória fina */
+  --realce: rgb(0 0 0 / 0.05); /* passar o mouse */
+  --azul: #0064CC;           /* o que se clica + o bloco de destaque */
+  --azul-hover: #0070E0;     /* clareia ao passar o mouse, como na Apple */
+  --azul-claro: rgb(0 100 204 / 0.1); /* fundo leve de item escolhido */
+  --no-azul: #FFFFFF;        /* texto sobre o azul */
+  --no-azul-fraco: #DCE8F7;  /* texto secundário sobre o azul */
+  --foco: rgb(0 100 204 / 0.55);
+
+  /* Vidro: branco translúcido + borda de luz + desfoque. Só em peça que flutua ou fica fixa (menu, lista que abre) */
+  --vidro: rgb(255 255 255 / 0.62);
+  --vidro-forte: rgb(248 248 250 / 0.78);
+  --vidro-linha: rgb(255 255 255 / 0.85);
+  --vidro-desfoque: blur(24px) saturate(1.8);
+
+  /* Forma: raios do modelo 1 (botão, card, vidro) e o canto bem redondo do bloco do modelo 5 */
+  --raio-b: 10px; --raio-c: 16px; --raio-v: 20px; --raio-bloco: 22px; --raio-pilula: 999px;
+
+  /* Sombra macia, sem borda junto (ou borda ou sombra) */
+  --sombra: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px -12px rgb(0 0 0 / 0.18);
+  --sombra-alta: 0 2px 4px rgb(0 0 0 / 0.05), 0 16px 32px -14px rgb(0 0 0 / 0.22);
+  --sombra-lista: 0 2px 6px rgb(0 0 0 / 0.06), 0 16px 32px -12px rgb(0 0 0 / 0.25);
+  --sombra-bloco: 0 16px 32px -18px rgb(0 60 140 / 0.55);
+
+  /* Tipo: Inter (a mais próxima da SF Pro na web), vem do next/font no layout.tsx */
+  --fonte: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --titulo-peso: 600; --titulo-espaco: -0.03em; --titulo-entrelinha: 1.1; --texto-entrelinha: 1.5;
+  --t-12: 12px; --t-14: 14px; --t-16: 16px; --t-20: 20px; --t-25: 25px; --t-31: 31px; --t-39: 39px; --t-49: 49px; --t-61: 61px;
+
+  /* Espaço: grade de 4 */
+  --s-4: 4px; --s-8: 8px; --s-12: 12px; --s-16: 16px; --s-24: 24px; --s-32: 32px; --s-48: 48px; --s-64: 64px;
+
+  /* Movimento: macio, sem quique */
+  --dur-rapida: 160ms; --dur: 240ms; --dur-lenta: 420ms;
+  --curva: cubic-bezier(0.32, 0.72, 0, 1);
+}

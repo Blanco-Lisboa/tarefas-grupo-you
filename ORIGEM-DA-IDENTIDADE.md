@@ -1,5 +1,13 @@
 # Origem da identidade visual
 
+**19/10/2026 (item 60): a ID da Beec SAIU do sistema.** O Natham escolheu uma ID neutra para o sistema "Tarefas": modelo 1
+Névoa + o bloco de destaque do modelo 5 em azul (`src/components/modelos/`). Tokens novos em `src/styles/tarefas-tokens.css`
+(escritos no projeto, não vêm de ID nenhuma). `beec-tokens.css` deixou de ser importado no `globals.css`, mas o arquivo fica
+(não foi apagado) como registro; as peças "copiadas da ID" do `globals.css`, a casca e o `Selecao` foram reescritos na Névoa.
+Fontes Bricolage e Host saíram; entrou Inter (Google Fonts, OFL, via `next/font`). `src/styles/ponte-beec.css` é temporário
+(nomes velhos apontando para a Névoa até a Fase 2). Os arquivos em `public/beec/` ainda são usados por algumas telas (ícones
+das redes em Conteúdos) até a Fase 2. A tabela abaixo é o histórico de 18/10.
+
 Tudo copiado em 18/10/2026 de `C:\Users\Natham Monteiro\Desktop\ID-Visual-ALL\Beec\identidade\` (SÓ LEITURA; nada foi alterado lá). Se a ID mudar, copiar de novo e atualizar esta lista.
 
 | Arquivo no projeto | Origem (dentro de `identidade\`) | Observação |

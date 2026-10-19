@@ -1,112 +1,89 @@
 @import "tailwindcss";
-@import "../styles/beec-tokens.css";
+@import "../styles/tarefas-tokens.css";
+@import "../styles/ponte-beec.css";   /* temporária: sai no fim da Fase 2 (item 60) */
 @import "../styles/etiquetas.css";
 
-/* Fontes vêm do next/font (layout.tsx). Aqui só apontamos os tokens da Beec para elas. */
+/* ===== Camada do app (item 60): papéis fixos para todas as telas encaixarem igual, montados com tarefas-tokens.css ===== */
 :root {
-  --fonte-titulo: var(--font-bricolage), 'Arial Black', sans-serif;
-  --fonte-texto: var(--font-host), system-ui, sans-serif;
-}
-
-/* ===== Camada do app (rodada 2, item 49) =====
-   beec-tokens.css é cópia fiel da ID e não se edita. Aqui ficam as escolhas do SISTEMA, montadas só com valores da ID:
-   tela de trabalho pede título menor e controles de uma altura só. Telas usam estes nomes. */
-:root {
-  /* Espaço: a grade de 4 da ID (--s-4 a --s-64). Papéis fixos para todas as telas encaixarem igual */
   --app-respiro: var(--s-16);      /* topo da área de conteúdo e vão entre blocos da tela */
   --app-margem: var(--s-24);       /* lateral da área de conteúdo (12 no celular) */
   --app-vao: var(--s-8);           /* entre controles vizinhos numa barra */
 
-  /* Tipo: a escala 1,25 da ID, com papéis de tela de trabalho (o 49 e o 61 ficam para peça de marca) */
-  --app-t-titulo: var(--t-31);     /* título da tela (h1), Bricolage 800 */
+  --app-t-titulo: var(--t-31);     /* título da tela (h1) */
   --app-t-secao: var(--t-20);      /* título de bloco (h2) */
   --app-t-texto: var(--t-14);      /* texto de controle, lista, cartão */
   --app-t-rotulo: var(--t-12);     /* rótulo, metadado */
 
-  /* Controles: uma altura só, todo botão, campo e botão de seleção da mesma barra alinha.
-     44 = o botão da ID (15 + 14 + 15, prancha seção 10); o campo da ID fica na mesma altura */
-  --app-controle: 44px;
-
-  /* Superfícies no claro, do fundo para cima: bege (fundo) > superfície (cartão, campo) > kraft claro (faixa, realce) */
-  --cor-realce-claro: color-mix(in srgb, var(--cor-roxo) 6%, transparent);   /* hover no claro: roxo bem leve, nunca cinza */
-  /* No escuro não há tom inventado: grafite e card escuro da ID (--cor-grafite, --cor-card-escuro); lista que abre = --vidro-roxo */
+  --app-controle: 40px;            /* uma altura só: todo botão, campo e seleção da mesma barra alinha (o 40 do modelo 1) */
+  --cor-realce-claro: var(--realce);
 }
 @media (max-width: 767px) { :root { --app-margem: var(--s-12); } }
 
 @theme inline {
-  --font-sans: var(--fonte-texto);
-  --font-titulo: var(--fonte-titulo);
-  --color-bege: var(--cor-bege);
-  --color-superficie: var(--cor-superficie);
-  --color-grafite: var(--cor-grafite);
-  --color-roxo: var(--cor-roxo);
-  --color-kraft: var(--cor-kraft);
-  --color-ouro: var(--cor-ouro);
-  --color-eletrico: var(--cor-eletrico);
-  --color-tinta: var(--cor-tinta);
-  --color-tinta-2: var(--cor-tinta-2);
-  --color-suave: var(--cor-suave);
+  --font-sans: var(--fonte);
 }
 
 html {
-  background: var(--cor-bege);
-  /* Partes do navegador também vestem a marca: barra de rolagem, cursor de texto, caixa de marcar */
-  scrollbar-color: var(--cor-linha-forte) transparent;
-  accent-color: var(--cor-roxo);
-  caret-color: var(--cor-eletrico);
+  background: var(--fundo);
+  scrollbar-color: var(--borda) transparent;
+  accent-color: var(--azul);
+  caret-color: var(--azul);
 }
 
-/* Fundo liso: o brilho roxo deixava o bege sujo no canto (item 49, "cores não estão legais") */
 body {
-  background: var(--cor-bege);
-  color: var(--cor-tinta);
-  font-family: var(--fonte-texto);
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--fonte);
   line-height: var(--texto-entrelinha);
 }
 
-::selection { background: var(--cor-roxo); color: var(--cor-bege); }   /* igual à prancha da ID */
+::selection { background: var(--azul); color: var(--no-azul); }
 
 h1, h2, h3 {
-  font-family: var(--fonte-titulo);
+  font-family: var(--fonte);
   font-weight: var(--titulo-peso);
   letter-spacing: var(--titulo-espaco);
   line-height: var(--titulo-entrelinha);
 }
 
-:focus-visible {
-  outline: 2px solid var(--cor-eletrico);
-  outline-offset: 2px;
-}
+:focus-visible { outline: 3px solid var(--foco); outline-offset: 1px; }
 
-/* ===== Peças copiadas da ID (identidade/prancha.html, seção 10 "Botões, campos, cards, etiquetas e menus", em 18/10/2026).
-   O desenho é o da ID; aqui só a altura vem de --app-controle. Telas usam estas classes, ninguém redesenha botão. =====
-   .btn = botão principal (placa roxa a 22°, texto reto em caixa alta; um por tela). .btn-2 = secundário (contorno roxo).
-   .btn-claro = secundário no escuro. Ao passar o mouse anda 3px para a direita; foco = contorno elétrico também a 22°.
-   .lnk + .sub = link com sublinhado em ponta de barra. .seta = seta da ID. .b3 = as 3 barras (marcador, botão de menu). */
+/* ===== Peças comuns no desenho do modelo 1 Névoa (src/components/modelos/modelo-1-nevoa.css). Telas usam estas classes,
+   ninguém redesenha botão. Os nomes são os de antes, então as telas herdam sem trocar o HTML.
+   .btn = principal (azul cheio; um por tela). .btn-2 = secundário (vidro branco). .btn-claro = secundário sobre o azul.
+   .lnk = link azul (sublinha ao passar o mouse). .seta = seta de traço. */
 .btn {
-  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 12px; flex: none;
-  height: var(--app-controle); padding: 0 30px; border: 0; background: none; cursor: pointer; isolation: isolate;
-  font: 700 var(--t-14) / 1 var(--fonte-texto); letter-spacing: .1em; text-transform: uppercase; text-decoration: none; white-space: nowrap;
-  color: var(--cor-bege); transition: transform var(--dur) var(--curva);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-8); flex: none;
+  height: var(--app-controle); padding: 0 var(--s-16); border: 1px solid transparent; border-radius: var(--raio-b);
+  font: 500 var(--t-14) / 1 var(--fonte); text-decoration: none; white-space: nowrap; cursor: pointer;
+  background: var(--azul); color: var(--no-azul);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 2px rgb(0 60 140 / 0.3);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-rapida) var(--curva), border-color var(--dur-rapida) var(--curva),
+    box-shadow var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva);
 }
-.btn::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--cor-roxo); transform: skewX(var(--angulo)); }
-.btn:hover { transform: translateX(var(--anda)); }
-.btn:focus-visible { outline: none; }
-.btn:focus-visible::after { content: ""; position: absolute; inset: -6px; border: 2px solid var(--cor-eletrico); transform: skewX(var(--angulo)); }
-.btn-2 { color: var(--cor-roxo); }
-.btn-2::before { background: transparent; box-shadow: inset 0 0 0 2px var(--cor-roxo); }
-.btn-claro { color: var(--cor-bege); }
-.btn-claro::before { background: transparent; box-shadow: inset 0 0 0 2px var(--cor-bege); }
-.no-escuro .btn:focus-visible::after { border-color: var(--cor-bege); }
-@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+.btn:hover { background: var(--azul-hover); }
+.btn:active { transform: scale(0.97); }
+.btn-2 { background: var(--vidro); border-color: var(--vidro-linha); color: var(--texto); box-shadow: var(--sombra); }
+.btn-2:hover { background: var(--sup); border-color: var(--sup); }
+.btn-claro { background: rgb(255 255 255 / 0.14); border-color: rgb(255 255 255 / 0.35); color: var(--no-azul); box-shadow: none; }
+.btn-claro:hover { background: rgb(255 255 255 / 0.24); }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn:active { transform: none; } }
 
-.lnk { font-weight: 600; text-decoration: none; color: var(--cor-roxo); }
-.sub { position: relative; display: inline-block; }
-.sub::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.06em; height: var(--sub-espessura); background: var(--sub, var(--cor-eletrico)); clip-path: var(--ponta-de-barra); }
-.no-escuro .sub { --sub: var(--cor-ouro); }
+.lnk { font-weight: 500; text-decoration: none; color: var(--azul); }
+.lnk:hover { text-decoration: underline; text-underline-offset: 3px; }
+.sub { display: inline-block; }   /* nome antigo do sublinhado; o sublinhado agora é do .lnk:hover */
 
-.seta { display: inline-block; width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: square; flex: none; }
+.seta { display: inline-block; width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
-.b3 { display: inline-flex; flex-direction: column; gap: calc(var(--b3w, 30px) * var(--barra-vao)); vertical-align: middle; flex: none; }
-.b3 i { display: block; width: var(--b3w, 30px); height: calc(var(--b3w, 30px) * var(--barra-altura)); background: var(--b3c, var(--cor-roxo)); transform: skewX(var(--angulo)); }
-.no-escuro .b3 { --b3c: var(--cor-ouro); }
+/* ===== Bloco de destaque (o contraste do modelo 5, em azul): card cheio, canto bem redondo, número grande por cima.
+   Poucos por tela: é o que puxa o olho. Dentro dele: .bloco-numero (número grande), .bloco-fraco (texto secundário),
+   .btn-claro (botão). Ex.: <div class="bloco-destaque"><p class="bloco-fraco">Neste mês</p><p class="bloco-numero">12</p></div> */
+.bloco-destaque {
+  --foco: rgb(255 255 255 / 0.7);
+  padding: var(--s-16); border-radius: var(--raio-bloco);
+  background: var(--azul); color: var(--no-azul); box-shadow: var(--sombra-bloco);
+}
+.bloco-destaque ::selection { background: var(--no-azul); color: var(--azul); }
+.bloco-numero { margin: var(--s-4) 0; font-size: var(--t-49); font-weight: 300; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.bloco-fraco { color: var(--no-azul-fraco); }

@@ -1,69 +1,66 @@
-/* Botão de seleção, no desenho da ID (identidade/prancha.html seção 10 e aplicacoes-marca.html, menu do site):
-   - botão = campo de seleção: reto (campo nunca inclina), superfície, borda 1,5px em tinta 2, raio 2px, texto 16px,
-     seta da ID; com escolha ou aberto, borda roxa; foco do teclado com o anel elétrico (regra global).
-   - lista = submenu do site: vidro roxo profundo, orelhas a 22° (--card-corte 26px), sem borda nem sombra (o recorte
-     cortaria), texto bege, passar o mouse clareia 7%, escolhido em ouro. */
+/* Botão de seleção, no desenho do modelo 1 Névoa (item 60; src/components/modelos/modelo-1-nevoa.css, .sel-*):
+   - botão = vidro branco com borda de luz e sombra macia; passar o mouse ou aberto = branco cheio; com escolha, contador azul.
+   - lista = vidro de verdade (o guia da Apple põe vidro nos popovers): branco translúcido, desfoque, canto de 16px;
+     escolhido = caixa azul com o visto branco. */
 .selecao-botao {
   display: inline-flex; align-items: center; gap: var(--s-8); flex: none;
   height: var(--app-controle); padding: 0 var(--s-12) 0 14px;
-  font: 400 var(--t-16) / 1 var(--fonte-texto); color: var(--cor-tinta); white-space: nowrap;
-  background: var(--cor-superficie); border: 1.5px solid var(--cor-tinta-2); border-radius: var(--raio); cursor: pointer;
-  transition: border-color var(--dur-rapida) var(--curva);
+  font: 500 var(--t-14) / 1 var(--fonte); color: var(--texto); white-space: nowrap;
+  background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-b); box-shadow: var(--sombra); cursor: pointer;
+  transition: background-color var(--dur-rapida) var(--curva), border-color var(--dur-rapida) var(--curva);
 }
-.selecao-botao:hover, .selecao-botao[data-escolhido="true"], .selecao-botao:has(+ .selecao-pop:popover-open) { border-color: var(--cor-roxo); }
+.selecao-botao:hover, .selecao-botao:has(+ .selecao-pop:popover-open) { background: var(--sup); border-color: var(--sup); }
 .selecao-seta {
-  width: 16px; height: 16px; flex: none; fill: none; stroke: var(--cor-roxo); stroke-width: 2.4; stroke-linecap: square;
-  transition: transform var(--dur-rapida) var(--curva);
+  width: 16px; height: 16px; flex: none; fill: none; stroke: var(--fraco); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  transition: transform var(--dur) var(--curva);
 }
 .selecao-botao:has(+ .selecao-pop:popover-open) .selecao-seta { transform: rotate(180deg); }
-/* Escolha única: rótulo pequeno em caixa alta (o .rotulo da ID) e a escolha no tamanho do campo */
-.selecao-rotulo-p { font-size: var(--t-12); font-weight: 600; letter-spacing: var(--rotulo-letra); text-transform: uppercase; color: var(--cor-tinta-2); }
-.selecao-escolha { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--cor-tinta); }
+/* Escolha única: rótulo pequeno em cinza e a escolha em negrito */
+.selecao-rotulo-p { font-size: var(--t-12); font-weight: 500; color: var(--fraco); }
+.selecao-escolha { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--texto); }
 
-/* Contador: selo da ID (placa roxa a 22°, o número reto, em Bricolage 800) */
 .selecao-contador {
-  position: relative; isolation: isolate; display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 8px;
-  font: var(--numero-peso) var(--t-14) / 1 var(--fonte-numero); color: var(--cor-bege);
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--raio-pilula);
+  font: 600 var(--t-12) / 1 var(--fonte); font-variant-numeric: tabular-nums; background: var(--azul); color: var(--no-azul);
 }
-.selecao-contador::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--cor-roxo); transform: skewX(var(--angulo)); }
 
 /* A lista (popover: fica por cima de tudo, fecha com Esc e clique fora) */
 .selecao-pop {
-  inset: auto; margin: 8px 0; padding: 0; border: 0; background: transparent; overflow: visible; color: inherit;
+  inset: auto; margin: 6px 0; padding: 0; border: 0; background: transparent; overflow: visible; color: inherit;
   position-area: bottom span-right; position-try-fallbacks: flip-block, flip-inline;
-  min-width: max(240px, anchor-size(width)); width: max-content; max-width: min(360px, calc(100vw - 24px));
-  transition: opacity var(--dur-rapida) var(--curva), translate var(--dur-rapida) var(--curva);
+  min-width: max(200px, anchor-size(width)); width: max-content; max-width: min(360px, calc(100vw - 24px));
+  transform-origin: top left;
+  transition: opacity var(--dur-rapida) var(--curva), transform var(--dur) var(--curva);
 }
-@starting-style { .selecao-pop:popover-open { opacity: 0; translate: -4px 0; } }   /* entra da esquerda para a direita, como as barras */
-@media (prefers-reduced-motion: reduce) { .selecao-pop { transition: none; } }
+@starting-style { .selecao-pop:popover-open { opacity: 0; transform: translateY(-4px) scale(0.96); } }
+@media (prefers-reduced-motion: reduce) { .selecao-pop, .selecao-botao, .selecao-seta, .selecao-opcao { transition: none; } }
 
 .selecao-lista {
-  --card-corte: 26px;
-  display: flex; flex-direction: column; padding: 10px;
-  max-height: min(400px, 60dvh); overflow-y: auto; scrollbar-color: var(--cor-linha-escuro) transparent;
-  background: var(--vidro-roxo); -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque);
-  color: var(--cor-bege);
+  display: flex; flex-direction: column; gap: 2px; padding: 6px;
+  max-height: min(400px, 60dvh); overflow-y: auto; scrollbar-color: var(--borda) transparent;
+  background: var(--vidro-forte); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra-lista);
+  -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque);
+  color: var(--texto);
 }
 .selecao-opcao {
-  display: flex; align-items: center; gap: var(--s-12); min-height: 44px; padding: 0 14px;
-  font: 500 var(--t-16) / 1.2 var(--fonte-texto); color: var(--cor-bege); text-align: left;
-  background: none; border: 0; border-radius: var(--raio); cursor: pointer;
-  transition: background var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva);
+  display: flex; align-items: center; gap: var(--s-12); min-height: 36px; padding: 0 10px;
+  font: 400 var(--t-14) / 1.2 var(--fonte); color: var(--texto); text-align: left;
+  background: none; border: 0; border-radius: calc(var(--raio-c) - 6px); cursor: pointer;
+  transition: background-color var(--dur-rapida) var(--curva);
 }
-.selecao-opcao:hover { background: rgba(246, 242, 234, .07); }
-.selecao-opcao:focus-visible { outline: 2px solid var(--cor-bege); outline-offset: -2px; }
-.selecao-opcao[aria-pressed="true"] { color: var(--cor-ouro); font-weight: 700; }
+.selecao-opcao:hover { background: var(--realce); }
+.selecao-opcao:focus-visible { outline-offset: -3px; }
+.selecao-opcao[aria-pressed="true"] { font-weight: 600; }
 .selecao-opcao-rotulo { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.selecao-todos { position: relative; margin-bottom: 11px; }
-.selecao-todos::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -6px; height: 1px; background: var(--cor-linha-escuro); }
+.selecao-todos { position: relative; margin-bottom: 7px; }
+.selecao-todos::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -5px; height: 1px; background: var(--linha); }
 
-/* Caixa de marcar no escuro: contorno em bege suave; marcada, ouro com o visto em tinta (ouro só em detalhe e só no escuro) */
 .selecao-marca {
   display: grid; place-items: center; width: 18px; height: 18px; flex: none;
-  border: 1.5px solid var(--cor-suave); border-radius: var(--raio);
+  border: 1.5px solid var(--borda); border-radius: 5px; background: var(--sup);
 }
-.selecao-opcao[aria-pressed="true"] .selecao-marca { background: var(--cor-ouro); border-color: var(--cor-ouro); }
+.selecao-opcao[aria-pressed="true"] .selecao-marca { background: var(--azul); border-color: var(--azul); }
 .selecao-opcao[aria-pressed="true"] .selecao-marca::after {
   content: ""; width: 9px; height: 4.5px; margin-top: -2px;
-  border: solid var(--cor-tinta); border-width: 0 0 2px 2px; transform: rotate(-45deg);
+  border: solid var(--no-azul); border-width: 0 0 2px 2px; transform: rotate(-45deg);
 }
