@@ -57,13 +57,6 @@
 
 /* ===== Página esquerda: as linhas ===== */
 .folha { --margem-x: 20px; }
-.folha::after { /* três furos do fichário, no vão à esquerda da margem de horários */
-  content: ""; position: absolute; inset: 44px 0 0; pointer-events: none;
-  background:
-    radial-gradient(circle at 18px 14%, var(--fundo) 0 6px, var(--borda) 6px 7px, transparent 7.5px),
-    radial-gradient(circle at 18px 50%, var(--fundo) 0 6px, var(--borda) 6px 7px, transparent 7.5px),
-    radial-gradient(circle at 18px 86%, var(--fundo) 0 6px, var(--borda) 6px 7px, transparent 7.5px);
-}
 .folha-quem {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao);
   padding: var(--s-12) var(--s-24) var(--s-12) calc(var(--margem-x) + var(--s-24));
@@ -214,7 +207,6 @@
   .pag-faixa { padding-inline: var(--s-16); }
   .folha .pag-faixa { padding-left: var(--s-24); }
   .folha { --margem-x: 8px; }
-  .folha::after { display: none; }
   .folha-quem { padding-inline: var(--s-12); }
   .linha-miolo { padding-left: var(--s-4); }
   .linha .detalhe { display: block; margin: 0; white-space: normal; line-height: 1.1; padding-bottom: var(--s-4); }
@@ -234,7 +226,6 @@
 .letras-grade .linha-hora { display: none; }
 .letras-grade .linha { grid-template-columns: minmax(0, 1fr); }
 .letras-grade .folha-linhas::before { display: none; }
-.letras-grade .folha::after { display: none; }
 .letras-grade .pag-miolo { overflow: visible; }
 .letras-nome { font: 500 var(--app-t-texto) / 1.4 var(--fonte); color: var(--fraco); margin-bottom: var(--s-8); }
 @media (max-width: 1099px) { .letras-grade { grid-template-columns: minmax(0, 1fr); } }
