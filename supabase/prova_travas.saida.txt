@@ -1,0 +1,20 @@
+Saída da prova (19/10/2026, projeto uruhjlurcxpjhhgvuzwt). Rodado com supabase/prova_travas.sql; o banco desfez tudo (conferido: 0 usuários, 0 tarefas depois).
+ligacao_por_email: true
+natham_ve_tarefas: 5            natham_ve_eventos: 4
+natham_le_a_que_enviou: 1       natham_altera_a_que_enviou_linhas: 0   (quem mandou só lê)
+natham_forja_dono: barrado (RLS)
+matheus_ve_tarefas_total: 2     (conteúdo COM empresa + a enviada a ele)
+matheus_ve_privadas_do_natham: 0
+matheus_ve_conteudo_COM_empresa: 1
+matheus_ve_conteudo_SEM_empresa_do_natham: 0
+matheus_ve_a_enviada_a_ele: 1
+matheus_ve_notas_do_natham: 0
+matheus_ve_eventos_fonte_natham: 0   matheus_ve_eventos_total: 3 (matheus, adrian, lucas)
+matheus_altera_privada_do_natham_linhas: 0
+matheus_conclui_a_enviada_a_ele_linhas: 1
+matheus_edita_conteudo_COM_empresa_linhas: 1
+matheus_cria_no_caderno_do_natham: barrado (RLS)
+matheus_se_passa_por_natham: barrado (RLS)
+matheus_escreve_agenda: barrado (permission denied)
+anon_ve_tarefas: barrado (permission denied)
+Avisos de segurança do Supabase (get_advisors security): nenhum.
