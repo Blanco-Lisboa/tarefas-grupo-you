@@ -2,7 +2,8 @@
 
 import { useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from "react";
 import { Ficha } from "@/components/ficha/Ficha";
-import { ETAPAS, salvarTarefa, useEmpresas, useTarefas, type Etapa, type Rede, type Tarefa } from "@/lib/dados";
+import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
+import { ETAPAS, salvarTarefa, useEmpresas, useTarefas, type Etapa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import "./conteudos.css";
@@ -10,12 +11,6 @@ import "./conteudos.css";
 const nomes: Record<Etapa, string> = {
   ideia: "Ideia", roteiro: "Roteiro", gravacao: "Gravação",
   edicao: "Edição", aprovado: "Aprovado", postado: "Postado",
-};
-const redes: Record<Rede, { nome: string; sigla: string }> = {
-  instagram: { nome: "Instagram", sigla: "IG" },
-  tiktok: { nome: "TikTok", sigla: "TT" },
-  youtube: { nome: "YouTube", sigla: "YT" },
-  kwai: { nome: "Kwai", sigla: "KW" },
 };
 
 type Arraste = { id: string; x: number; y: number; w: number; h: number };
@@ -148,8 +143,8 @@ export function TelaConteudos() {
                     onPointerCancel={(evento) => soltar(evento, true)}
                   >
                     <div className="conteudos-cartao-topo">
-                      <span className="conteudos-empresa" style={{ "--marca": tomDaEmpresa(tarefa.empresaId).r } as CSSProperties}><span>{nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"}</span></span>
-                      {tarefa.rede && <span className="conteudos-rede" title={redes[tarefa.rede].nome} aria-label={redes[tarefa.rede].nome}>{redes[tarefa.rede].sigla}</span>}
+                      <span className="conteudos-empresa" style={{ "--marca": tomDaEmpresa(tarefa.empresaId).r } as CSSProperties}><SeloEmpresa empresaId={tarefa.empresaId} nome={nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"} tamanho={20} /></span>
+                      {tarefa.rede && <span className="conteudos-rede"><IconeRede rede={tarefa.rede} tamanho={18} /></span>}
                     </div>
                     <button className="conteudos-titulo" type="button" onClick={() => setAberta(tarefa)}>{tarefa.titulo}</button>
                     <div className="conteudos-cartao-rodape">
