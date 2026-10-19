@@ -89,10 +89,9 @@ canvas.gf-art[data-ready] { opacity: 1; filter: none; }
   box-shadow: inset 0 1px 0 rgb(255 255 255 / .45), 0 22px 40px -12px var(--gf-sombra, rgb(0 60 140 / .6));
   transition-delay: 0s;
 }
-/* foco: anel azul cheio (o --foco é translúcido e some sobre o pastel; azul cheio dá mais de 3:1 em todas as cores) */
-.gf-hit:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+/* foco: UM contorno só, azul sólido como na base (globals.css); 2px na folha e na pasta porque a arte roxa/laranja é texturada */
 .gf-sheet:focus-visible { outline: none; z-index: 9 !important; } /* a folha com foco vem para a frente; o anel (azul cheio) é desenhado por cima da arte, no ::after */
-.gf-sheet:focus-visible::after { box-shadow: inset 0 0 0 3px var(--azul), inset 0 0 0 5px rgb(255 255 255 / .85); }
+.gf-sheet:focus-visible::after { box-shadow: inset 0 0 0 var(--gf-foco-w, 2px) var(--gf-foco, var(--azul)); }
 .gf-sheet-art { position: absolute; left: 0; top: 0; width: 272px; height: 184px; max-width: none; object-fit: cover; transition: opacity .9s var(--gf-ease), filter .9s var(--gf-ease); }
 canvas.gf-sheet-art { opacity: 0; filter: blur(10px); }
 canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
@@ -120,7 +119,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .gf-front-rim { width: 340px; height: 198px; opacity: .9; }
 .gf-front-rim path { stroke-width: 2.4; transition: stroke-width .3s var(--gf-ease); }
 .gf-hit { all: unset; position: absolute; inset: 0; z-index: 1; cursor: pointer; }
-.gf-hit:focus-visible { outline-offset: -6px; }
+.gf-hit:focus-visible { outline: 2px solid var(--azul); outline-offset: -12px; } /* contorno único da base (azul sólido), 2px porque o 1px some nas veias escuras da arte */
 
 .gf-label { position: absolute; z-index: 2; left: 28px; bottom: 32px; display: flex; flex-direction: column; gap: 4px; max-width: 280px; pointer-events: none; color: var(--gf-ink); }
 .gf-title { font-size: var(--t-20); font-weight: var(--titulo-peso); line-height: 1.15; letter-spacing: var(--titulo-espaco); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -162,7 +161,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .gf-lista { list-style: none; margin: var(--s-8) 0 0; padding: var(--s-4); display: grid; gap: 1px; background: var(--vidro-forte); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra-lista); -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); }
 .gf-lista a, .gf-lista button { all: unset; box-sizing: border-box; width: 100%; display: flex; justify-content: space-between; gap: var(--s-12); padding: var(--s-8) var(--s-12); border-radius: var(--raio-b); cursor: pointer; color: var(--texto); font: 500 var(--app-t-texto) var(--fonte); }
 .gf-lista a:hover, .gf-lista button:hover { background: var(--realce); }
-.gf-lista a:focus-visible, .gf-lista button:focus-visible { outline-offset: -2px; }
+.gf-lista a:focus-visible, .gf-lista button:focus-visible { outline: 1px solid var(--azul); outline-offset: -2px; }
 .gf-lista small { flex: none; white-space: nowrap; color: var(--fraco); font-weight: 400; font-size: var(--app-t-rotulo); }
 
 /* =================== card flutuante (peça e ideias) =================== */
@@ -216,3 +215,6 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 
 /* "Ver referência" dentro de um texto: azul, em negrito, como no Yougram */
 .ver-ref { font-weight: 600; }
+
+/* Estes controles usam "all: unset", que apagaria o contorno da base (globals.css): devolvemos o mesmo, 1px azul sólido. */
+.card-flut-x:focus-visible, .ideias-cats button:focus-visible, .ideias-lista button:focus-visible { outline: 1px solid var(--azul); outline-offset: 1px; }
