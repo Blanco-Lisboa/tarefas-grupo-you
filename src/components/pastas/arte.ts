@@ -1,7 +1,7 @@
 
 // Arte líquida gerada no navegador (ruído deformado, sombreado como superfície de líquido).
 // Motor copiado do componente Glass Folder Cards (docs/referencias/glass-folder-cards-ORIGINAL.md);
-// aqui só trocamos os presets pelas receitas Beec e tiramos o que a tela não usa.
+// aqui só trocamos os presets pelas receitas azuis da Névoa e tiramos o que a tela não usa.
 
 export type ArtRecipe = {
   style: "marble" | "streak";
@@ -13,9 +13,9 @@ export type ArtRecipe = {
   veins?: number;
 };
 
-// Só cores de beec-tokens.css (item 53): roxo profundo faz o líquido (pasta mais clara que o grafite, item 47), grafite e card
-// escuro aparecem só nas veias, o ouro entra como brilho (último degrau, fino). Elétrico NÃO entra: é só no claro e em detalhe.
-const G = "#18131F", C = "#221B2B", R = "#2A075A", O = "#FFBF2F";
+// Só tons de azul da Névoa (item 60): o azul do sistema (#0064CC) faz o líquido, o azul fundo e o médio aparecem nas veias,
+// e o azul claro entra como brilho (último degrau, fino).
+const G = "#003F80", C = "#1F86F0", R = "#0064CC", O = "#9CC8FF";
 export const RECEITAS = {
   post: { style: "marble", colors: [R, R, C, R, G, R, R, C, R, R, G, R, R, C, R, O], scale: 0.66, warp: 3.2, angle: -0.5, gloss: 0.5, veins: 0.5 },
   carrossel: { style: "streak", colors: [R, R, C, R, R, G, R, R, C, R, R, G, R, R, C, O], scale: 0.7, warp: 1.5, angle: -0.62, gloss: 0.3, veins: 0 },

@@ -4,10 +4,9 @@ import { hashString, rng, type ArtRecipe } from "./arte";
 import { ArtCanvas } from "./ArteCanvas";
 import "./pastas.css";
 
-// Pasta de vidro (componente Glass Folder Cards, tom escuro, cores Beec). Três camadas, de trás para a frente:
-// fundo com arte líquida, os arquivos, e o vidro fosco na frente, que borra o que passa atrás.
-// variante "exata" = formato e movimento do original (cantos redondos, quique).
-// variante "beec"  = aba e cantos cortados a 22°, raio 2px, sem quique, curva da Beec.
+// Pasta de vidro (componente Glass Folder Cards, vestido com a Névoa). Três camadas, de trás para a frente:
+// fundo azul com arte líquida, os arquivos, e o vidro fosco claro na frente, que borra o que passa atrás.
+// Formato e movimento do original: cantos redondos de 22 e um leve quique ao abrir.
 
 export type ArquivoPasta = {
   nome: string;
@@ -21,7 +20,6 @@ type Props = {
   rotulo: string;
   arquivos: ArquivoPasta[];
   arte: ArtRecipe;
-  variante: "exata" | "beec";
   seed?: number;
   defaultOpen?: boolean;
   /** Atraso da entrada, para escalonar uma fileira de pastas. */
@@ -32,19 +30,13 @@ type Props = {
 // Geometria nas unidades da pasta: palco de 340 x 272, escalado até `largura`.
 const W = 340, H = 272, ALTURA_ABA = 54, FRENTE_H = H - 74;
 const FOLHA_W = 272, FOLHA_H = 184, VISIVEIS = 4;
-const T = 0.404; // tan(22°)
 
-const FUNDO_EXATA = "M0 56A22 22 0 0 1 22 34L146 34C170 34 172 0 198 0L318 0A22 22 0 0 1 340 22L340 250A22 22 0 0 1 318 272L22 272A22 22 0 0 1 0 250Z";
-const FRENTE_EXATA = `M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 0 1 340 54L340 ${FRENTE_H - 22}A22 22 0 0 1 318 ${FRENTE_H}L22 ${FRENTE_H}A22 22 0 0 1 0 ${FRENTE_H - 22}Z`;
-// Beec: orelhas (cima à esquerda e baixo à direita) cortadas a 22°, aba em diagonal de 22°, cantos restantes de 2px.
-const C = 22;
-const d = +(C * T).toFixed(1), aba = +(34 * T).toFixed(1), mergulho = +(32 * T).toFixed(1);
-const FUNDO_BEEC = `M0 56L${d} 34L146 34L${146 + aba} 0L338 0A2 2 0 0 1 340 2L340 ${H - C}L${340 - d} ${H}L2 ${H}A2 2 0 0 1 0 ${H - 2}Z`;
-const FRENTE_BEEC = `M0 ${C}L${d} 0L118 0L${118 + mergulho} 32L338 32A2 2 0 0 1 340 34L340 ${FRENTE_H - C}L${340 - d} ${FRENTE_H}L2 ${FRENTE_H}A2 2 0 0 1 0 ${FRENTE_H - 2}Z`;
+const FUNDO = "M0 56A22 22 0 0 1 22 34L146 34C170 34 172 0 198 0L318 0A22 22 0 0 1 340 22L340 250A22 22 0 0 1 318 272L22 272A22 22 0 0 1 0 250Z";
+const FRENTE = `M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 0 1 340 54L340 ${FRENTE_H - 22}A22 22 0 0 1 318 ${FRENTE_H}L22 ${FRENTE_H}A22 22 0 0 1 0 ${FRENTE_H - 22}Z`;
 
 const leque = (i: number, n: number) => (n <= 1 ? 0 : (i / (n - 1)) * 2 - 1);
 
-export function PastaDeVidro({ rotulo, arquivos, arte, variante, seed = 3, defaultOpen = false, atraso = 0, onSelecionar }: Props) {
+export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar }: Props) {
   const uid = useId().replace(/:/g, "");
   const raiz = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
@@ -54,7 +46,6 @@ export function PastaDeVidro({ rotulo, arquivos, arte, variante, seed = 3, defau
   const [largura, setLargura] = useState(340);
   const k = largura / W;
   const densidade = Math.min(1.5, dpr) * k;
-  const exata = variante === "exata";
 
   // Escala conforme o espaço da coluna (a pasta nunca passa de 340 nem some em tela estreita).
   useEffect(() => {
@@ -152,7 +143,6 @@ export function PastaDeVidro({ rotulo, arquivos, arte, variante, seed = 3, defau
     <div
       ref={raiz}
       className="gf-root"
-      data-v={variante}
       data-open={aberta || undefined}
       data-entered={entrou || undefined}
       style={{ width: largura, height: (H + ALTURA_ABA) * k }}
@@ -161,26 +151,26 @@ export function PastaDeVidro({ rotulo, arquivos, arte, variante, seed = 3, defau
         <div className="gf-tilt">
           <div className="gf-shadow" aria-hidden="true" />
 
-          <div className="gf-back" style={{ clipPath: `path('${exata ? FUNDO_EXATA : FUNDO_BEEC}')` }} aria-hidden="true">
+          <div className="gf-back" style={{ clipPath: `path('${FUNDO}')` }} aria-hidden="true">
             <ArtCanvas className="gf-art" art={arte} seed={seed} w={W + 24} h={H + 24} density={densidade} priority={0} />
             <div className="gf-back-sheen" />
           </div>
           <svg className="gf-rim gf-back-rim" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
-            <path d={exata ? FUNDO_EXATA : FUNDO_BEEC} />
+            <path d={FUNDO} />
           </svg>
 
-          <div className="gf-front" style={{ clipPath: `path('${exata ? FRENTE_EXATA : FRENTE_BEEC}')` }}>
+          <div className="gf-front" style={{ clipPath: `path('${FRENTE}')` }}>
             <div className="gf-tint" aria-hidden="true" />
             <div className="gf-spec" aria-hidden="true" />
             <svg className="gf-rim gf-front-rim" viewBox={`0 0 ${W} ${FRENTE_H}`} aria-hidden="true">
               <defs>
                 <linearGradient id={`gf-rim-${uid}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor="#F6F2EA" stopOpacity="0.95" />
-                  <stop offset="0.35" stopColor="#F6F2EA" stopOpacity="0.35" />
-                  <stop offset="1" stopColor="#F6F2EA" stopOpacity="0.12" />
+                  <stop offset="0" stopColor="#FFFFFF" stopOpacity="0.95" />
+                  <stop offset="0.35" stopColor="#FFFFFF" stopOpacity="0.35" />
+                  <stop offset="1" stopColor="#FFFFFF" stopOpacity="0.12" />
                 </linearGradient>
               </defs>
-              <path d={exata ? FRENTE_EXATA : FRENTE_BEEC} stroke={`url(#gf-rim-${uid})`} />
+              <path d={FRENTE} stroke={`url(#gf-rim-${uid})`} />
             </svg>
             <button
               ref={botao}
