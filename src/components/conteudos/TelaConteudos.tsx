@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type DragEvent } from "react";
+import { useState, type CSSProperties, type DragEvent } from "react";
 import { Ficha } from "@/components/ficha/Ficha";
 import { Selecao } from "@/components/ui/Selecao";
 import { ETAPAS, salvarTarefa, useEmpresas, useTarefas, type Etapa, type Rede, type Tarefa } from "@/lib/dados";
+import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import "./conteudos.css";
 
@@ -81,6 +82,7 @@ export function TelaConteudos() {
               className="conteudos-coluna"
               data-destino={destino === etapa}
               key={etapa}
+              style={{ "--etapa": `var(--etapa-${etapa})` } as CSSProperties}
               onDragOver={(evento) => { evento.preventDefault(); evento.dataTransfer.dropEffect = "move"; setDestino(etapa); }}
               onDragLeave={(evento) => { if (!evento.currentTarget.contains(evento.relatedTarget as Node)) setDestino(null); }}
               onDrop={(evento) => soltar(evento, etapa)}
@@ -102,7 +104,7 @@ export function TelaConteudos() {
                     onDragEnd={() => { setArrastando(null); setDestino(null); }}
                   >
                     <div className="conteudos-cartao-topo">
-                      <span className="conteudos-empresa"><span>{nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"}</span></span>
+                      <span className="conteudos-empresa" style={{ "--marca": tomDaEmpresa(tarefa.empresaId).r } as CSSProperties}><span>{nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"}</span></span>
                       {tarefa.rede && <span className="conteudos-rede" title={redes[tarefa.rede].nome} aria-label={redes[tarefa.rede].nome}>{redes[tarefa.rede].sigla}</span>}
                     </div>
                     <button className="conteudos-titulo" type="button" onClick={() => setAberta(tarefa)}>{tarefa.titulo}</button>
