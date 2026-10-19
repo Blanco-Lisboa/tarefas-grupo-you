@@ -115,7 +115,8 @@ export function TelaConteudos() {
       {erro && <p className="conteudos-erro" role="alert">{erro}</p>}
       <div className="conteudos-quadro" ref={quadro} aria-label="Quadro de conteúdos por etapa">
         {ETAPAS.map((etapa, indice) => {
-          const itens = conteudos.filter((t) => t.etapa === etapa);
+          // Mais novo no topo (item 134): a lista chega na ordem de criação, então a coluna a mostra de trás para frente.
+          const itens = conteudos.filter((t) => t.etapa === etapa).reverse();
           return (
             <section
               className="conteudos-coluna"
