@@ -61,12 +61,12 @@ export function Agenda({ letra, dia, hoje, rotuloDia, tarefas, amanha, nomeEmpre
     <li className="ag-item" data-passou={passou(t) || !!t.concluida}>
       <span className="ag-hora folha-lapis">{horaDe(t)}</span>
       <span className="ag-trilho" aria-hidden="true"><span className="ag-ponto" style={{ borderColor: `var(--${t.cor})` }} /></span>
-      <button type="button" className="ag-card" style={{ "--cor-card": `var(--${t.cor})` } as CSSProperties} onClick={() => aoAbrir(t.id)}>
+      <button type="button" className="ag-card" style={{ "--etq": `var(--${t.cor})` } as CSSProperties} onClick={() => aoAbrir(t.id)}>
         <span className="ag-textos">
           <span className="ag-nome folha-tinta" data-feita={!!t.concluida}>{t.titulo}</span>
           <span className="ag-info folha-lapis">{horaDe(t)} a {fimDe(t)} · {t.responsavel === "natham" ? "Natham" : "Matheus"}</span>
         </span>
-        <span className="ag-selo" style={{ "--cor-card": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}>{nomeEmpresa(t.empresaId)}</span>
+        <span className="ag-selo" style={{ "--etq": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}>{nomeEmpresa(t.empresaId)}</span>
       </button>
     </li>
   );
@@ -83,9 +83,9 @@ export function Agenda({ letra, dia, hoje, rotuloDia, tarefas, amanha, nomeEmpre
           <div className="ag-dia-inteiro">
             <span className="ag-bloco-titulo">Dia inteiro</span>
             {diaInteiro.map((t) => (
-              <button key={t.id} type="button" className="ag-inteiro" style={{ "--cor-card": `var(--${t.cor})` } as CSSProperties} onClick={() => aoAbrir(t.id)}>
+              <button key={t.id} type="button" className="ag-inteiro" style={{ "--etq": `var(--${t.cor})` } as CSSProperties} onClick={() => aoAbrir(t.id)}>
                 <span className="folha-tinta ag-nome" data-feita={!!t.concluida}>{t.titulo}</span>
-                <span className="ag-selo" style={{ "--cor-card": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}>{nomeEmpresa(t.empresaId)}</span>
+                <span className="ag-selo" style={{ "--etq": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}>{nomeEmpresa(t.empresaId)}</span>
               </button>
             ))}
           </div>

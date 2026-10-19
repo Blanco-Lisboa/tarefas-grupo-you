@@ -101,32 +101,33 @@ export function TelaTarefas() {
       <div className="tarefas-barra">
         <h1 className="tarefas-titulo">Tarefas</h1>
         <div className="tarefas-grupo">
-          <button type="button" className="tarefas-botao" onClick={() => ir(somarDias(dia, -1))} aria-label="Dia anterior">Anterior</button>
-          <button type="button" className="tarefas-botao" onClick={() => ir(hoje)}>Hoje</button>
-          <button type="button" className="tarefas-botao" onClick={() => ir(somarDias(dia, 1))} aria-label="Próximo dia">Próximo</button>
+          <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(somarDias(dia, -1))} aria-label="Dia anterior">Anterior</button>
+          <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(hoje)}>Hoje</button>
+          <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(somarDias(dia, 1))} aria-label="Próximo dia">Próximo</button>
           <input type="date" className="tarefas-data" value={dia} onChange={(e) => e.target.value && ir(e.target.value)} aria-label="Ir para o dia" />
         </div>
         <div className="tarefas-grupo tarefas-fim">
           {mostradas.length > 0 && (
-            <p className="tarefas-contador" aria-label={`${feitas} de ${mostradas.length} feitas`}>
-              <span><strong>{feitas}</strong> de {mostradas.length} feitas</span>
-              {/* medidor D da ID: 10 barrinhas a 22°; a do meio enche em parte */}
+            <p className="tarefas-contador bloco-destaque" aria-label={`${feitas} de ${mostradas.length} feitas`}>
+              <span className="bloco-numero">{feitas}</span>
+              <span className="bloco-fraco">de {mostradas.length} feitas</span>
+              {/* medidor: 10 barrinhas; a do meio enche em parte */}
               <span className="medidor" aria-hidden="true">
                 {Array.from({ length: 10 }, (_, i) => <i key={i} style={{ "--p": `${Math.round(Math.min(1, Math.max(0, (feitas / mostradas.length) * 10 - i)) * 100)}%` } as CSSProperties} />)}
               </span>
             </p>
           )}
-          <button type="button" className="tarefas-botao" aria-pressed={aba === "dia"} onClick={() => setAba("dia")}>Dia</button>
-          <button type="button" className="tarefas-botao" aria-pressed={aba === "semdata"} onClick={() => setAba("semdata")}>Sem data</button>
+          <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={aba === "dia"} onClick={() => setAba("dia")}>Dia</button>
+          <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={aba === "semdata"} onClick={() => setAba("semdata")}>Sem data</button>
         </div>
         <div className="tarefas-grupo tarefas-lados">
-          <button type="button" className="tarefas-botao" aria-pressed={lado === "tarefas"} onClick={() => setLado("tarefas")}>Tarefas</button>
-          <button type="button" className="tarefas-botao" aria-pressed={lado === "agenda"} onClick={() => setLado("agenda")}>Agenda</button>
+          <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={lado === "tarefas"} onClick={() => setLado("tarefas")}>Tarefas</button>
+          <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={lado === "agenda"} onClick={() => setLado("agenda")}>Agenda</button>
         </div>
       </div>
 
-      <div className="livro-sombra corte-sombra">
-        <div ref={livro} key={aba} className="livro corte-22">
+      <div className="livro-sombra">
+        <div ref={livro} key={aba} className="livro">
           <Folha
             letra={LETRA_PRINCIPAL}
             titulo="Tarefas"
