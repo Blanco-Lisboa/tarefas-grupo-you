@@ -4,8 +4,13 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/cliente";
 import { CampoEntrar, CartaoEntrar } from "./CartaoEntrar";
 
-// O convite do Supabase chega aqui com a sessão no endereço (#access_token=...&type=invite): a pessoa vai definir a senha.
-const veioDeConvite = () => /type=(invite|recovery)/.test(window.location.hash);
+// O convite (e o "esqueci a senha") do painel chega aqui com a sessão no endereço: #access_token=...&refresh_token=...&type=invite.
+// O cliente do navegador usa o fluxo PKCE e IGNORA esse formato ("Not a valid PKCE flow url"), então a sessão é criada aqui, na mão.
+const dadosDoLink = () => {
+  const h = new URLSearchParams(window.location.hash.slice(1));
+  const [access_token, refresh_token] = [h.get("access_token"), h.get("refresh_token")];
+  return /^(invite|recovery)$/.test(h.get("type") ?? "") && access_token && refresh_token ? { access_token, refresh_token } : null;
+};
 const semAssinar = () => () => {};
 const linkVencido = () => /error_code=otp_expired|error=access_denied/.test(window.location.hash);
 
@@ -19,11 +24,15 @@ export function TelaEntrar() {
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
-    if (!veioDeConvite()) return;
-    const { data } = supabase().auth.onAuthStateChange((_evento, sessao) => {
-      if (sessao) router.replace("/entrar/nova-senha");
+    const link = dadosDoLink();
+    if (!link) return;
+    let saiu = false;
+    void supabase().auth.setSession(link).then(({ error }) => {
+      if (saiu) return;
+      if (error) setErro("Este link venceu ou já foi usado. Peça um novo convite ao Natham.");
+      else router.replace("/entrar/nova-senha"); // sem o hash: a sessão já virou cookie
     });
-    return () => data.subscription.unsubscribe();
+    return () => { saiu = true; };
   }, [router]);
 
   async function entrar(e: FormEvent) {

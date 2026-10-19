@@ -1,0 +1,21 @@
+// Rastro do convite: abre o endereço com a sessão no hash (#access_token...) e mostra por onde passa e o que sobra do hash.
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const PASTA = fileURLToPath(new URL("./", import.meta.url));
+const BASE = process.env.BASE ?? "http://127.0.0.1:3100";
+const TIPO = process.argv[2] ?? "invite";
+const nav = await chromium.launch({ headless: true });
+const p = await nav.newPage({ viewport: { width: 1280, height: 800 } });
+const saltos = [];
+p.on("response", (r) => { if ([301, 302, 303, 307, 308].includes(r.status()) && !r.url().includes("_next")) saltos.push(`${r.status()} ${new URL(r.url()).pathname} -> ${r.headers().location}`); });
+p.on("framenavigated", (f) => f === p.mainFrame() && saltos.push(`nav ${f.url().replace(/(access_token=)[^&]{6}[^&]*/, "$1xxxxxx")}`));
+await p.goto(`${BASE}/#access_token=x&refresh_token=y&expires_in=3600&token_type=bearer&type=${TIPO}`, { waitUntil: "networkidle" });
+await p.waitForTimeout(3000);
+console.log(saltos.join("\n"));
+console.log("URL final:", p.url().replace(/(access_token=)[^&]{6}[^&]*/, "$1xxxxxx"));
+console.log("aviso na tela:", (await p.locator(".entrar-erro").allTextContents()).join(" | ") || "(nenhum)");
+await p.screenshot({ path: join(PASTA, `convite-${TIPO}-${process.env.ROTULO ?? "antes"}.png`) });
+await nav.close();
