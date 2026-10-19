@@ -1,0 +1,20 @@
+/* Telas /entrar e /entrar/nova-senha (Névoa): um cartão branco no meio do fundo cinza, sem menu. */
+.entrar { min-height: 100dvh; display: grid; place-items: center; padding: var(--s-24) var(--s-16); }
+.entrar-cartao {
+  width: min(100%, 400px); display: flex; flex-direction: column; gap: var(--s-16);
+  padding: var(--s-32); border-radius: var(--raio-bloco); background: var(--sup); box-shadow: var(--sombra-alta);
+}
+.entrar-marca { display: flex; align-items: center; gap: var(--s-12); }
+.entrar-logo { width: auto; height: 32px; }
+.entrar-nome { font: 600 20px / 1 var(--fonte); letter-spacing: -0.02em; color: var(--texto); }
+.entrar-titulo { margin: 0; font-size: var(--t-25); }
+.entrar-texto { margin: 0; color: var(--fraco); font-size: var(--app-t-texto); }
+.entrar-form { display: flex; flex-direction: column; gap: var(--s-12); }
+.entrar-campo { display: flex; flex-direction: column; gap: var(--s-4); font-size: var(--app-t-rotulo); font-weight: 500; color: var(--fraco); }
+.entrar-campo input {
+  height: var(--app-controle); padding: 0 var(--s-12); border: 1px solid var(--borda); border-radius: var(--raio-b);
+  background: var(--sup); color: var(--texto); font: 400 var(--t-16) / 1 var(--fonte);
+}
+.entrar-erro { margin: 0; padding: var(--s-8) var(--s-12); border-radius: var(--raio-b); background: rgb(179 38 30 / 0.08); color: var(--atrasado); font-size: var(--app-t-texto); }
+.entrar-form .btn { width: 100%; margin-top: var(--s-4); }
+.entrar-form .btn:disabled { opacity: 0.6; cursor: default; }

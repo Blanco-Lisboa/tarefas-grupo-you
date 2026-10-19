@@ -2,6 +2,7 @@
 import { useSyncExternalStore, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { FiltroEmpresa } from "./FiltroEmpresa";
+import { AvisoErro } from "./AvisoErro";
 import { Menu } from "./Menu";
 import { assinar, definirRecolhido, lerRecolhido } from "./menu-recolhido";
 import "./casca.css";
@@ -13,6 +14,7 @@ const SEM_FILTRO = ["/configuracoes", "/tarefas", "/calendario", "/mapa", "/cont
 export function Casca({ children }: { children: ReactNode }) {
   const recolhido = useSyncExternalStore(assinar, lerRecolhido, () => false);
   const caminho = usePathname();
+  if (caminho.startsWith("/entrar")) return <>{children}</>; // entrada: sem menu, sem dados
   return (
     <div className="casca">
       <Menu recolhido={recolhido} alternar={() => definirRecolhido(!recolhido)} caminho={caminho} />
@@ -23,6 +25,7 @@ export function Casca({ children }: { children: ReactNode }) {
           </div>
         )}
         {children}
+        <AvisoErro />
       </main>
     </div>
   );

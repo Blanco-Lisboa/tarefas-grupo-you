@@ -60,3 +60,12 @@ html[data-menu="recolhido"] .menu-pessoas { flex-direction: column; align-items:
 .em-construcao { max-width: 640px; }
 .em-construcao h1 { font-size: var(--app-t-titulo); margin: 0 0 var(--s-16); }
 .em-construcao .aviso { background: var(--sup); color: var(--fraco); padding: var(--s-16) var(--s-24); border-radius: var(--raio-c); box-shadow: var(--sombra); }
+
+/* Aviso de falha do banco (AvisoErro): faixa fixa embaixo, acima de tudo */
+.aviso-erro {
+  position: fixed; z-index: 90; left: 50%; bottom: var(--s-16); transform: translateX(-50%);
+  display: flex; align-items: center; gap: var(--s-12); max-width: min(92vw, 520px);
+  padding: var(--s-8) var(--s-8) var(--s-8) var(--s-16); border-radius: var(--raio-b);
+  background: var(--atrasado); color: #fff; font-size: var(--app-t-texto); box-shadow: var(--sombra-alta);
+}
+.aviso-erro-fechar { border: 0; background: none; color: inherit; font-size: 20px; line-height: 1; padding: 0 var(--s-8); cursor: pointer; }
