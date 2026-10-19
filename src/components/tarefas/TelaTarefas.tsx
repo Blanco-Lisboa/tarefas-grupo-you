@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 import { removerTarefa, salvarTarefa, useEmpresas, useTarefas, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha } from "@/components/ficha/Ficha";
 import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
+import { copiar, virarFolha } from "./virar";
 import { horaDe, horaDoSlot, montarGrade, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
@@ -27,6 +29,9 @@ export function TelaTarefas() {
   const [lado, setLado] = useState<"tarefas" | "agenda">("tarefas"); // só no celular: uma página por vez
   const dia = escolhido ?? hoje;
   const [aberta, setAberta] = useState<Tarefa | null>(null);
+  const livro = useRef<HTMLDivElement>(null);
+  const cancelar = useRef<(() => void) | null>(null); // virada em andamento (a folha ainda está no ar)
+  useEffect(() => () => cancelar.current?.(), []);
 
   const tarefas = useTarefas();
   const empresas = useEmpresas();
@@ -64,7 +69,30 @@ export function TelaTarefas() {
   const titulo = aba === "dia" ? extenso(dia) : "Sem data";
 
   const empresasEscolha = empresas.filter((e) => !selecionadas.length || selecionadas.includes(e.id));
-  const ir = (d: string) => { setEscolhido(d || null); setAba("dia"); };
+  const trocar = (d: string) => { setEscolhido(d || null); setAba("dia"); };
+  // Troca de dia virando a folha, como no CRM. Sem animação: movimento reduzido ou "sem data" aberto.
+  const ir = (d: string) => {
+    const el = livro.current;
+    if (cancelar.current) return; // folha ainda no ar: espera pousar
+    if (!d || d === dia || aba !== "dia" || !el || matchMedia("(prefers-reduced-motion: reduce)").matches) return trocar(d);
+    const paginas = () => [...el.children].filter((c): c is HTMLElement => c instanceof HTMLElement && c.classList.contains("pag") && c.offsetParent !== null);
+    const retrato = (p: HTMLElement) => { const r = p.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
+    const antes = paginas();
+    const velhas = antes.map(copiar), caixas = antes.map(retrato);
+    flushSync(() => trocar(d)); // as páginas vivas já mostram o dia novo, escondidas pela folha e pela cópia da página velha
+    const novas = paginas().map(copiar);
+    const duas = antes.length === 2, volta = d < dia, i = duas ? 1 : 0;
+    cancelar.current = virarFolha({
+      pai: el.closest<HTMLElement>(".tarefas-tela")!,
+      caixa: caixas[i],
+      volta,
+      duasPaginas: duas,
+      frente: volta ? novas[i] : velhas[i],
+      verso: duas ? (volta ? velhas[0] : novas[0]) : null,
+      cobertura: volta ? { el: velhas[i], caixa: caixas[i] } : duas ? { el: velhas[0], caixa: caixas[0] } : null,
+      aoTerminar: () => { cancelar.current = null; },
+    });
+  };
   const tag = hoje === dia && aba === "dia" ? "Hoje · " : "";
 
   return (
@@ -94,7 +122,7 @@ export function TelaTarefas() {
       </div>
 
       <div className="livro-sombra corte-sombra">
-        <div key={aba === "dia" ? dia : "semdata"} className="livro corte-22">
+        <div ref={livro} key={aba} className="livro corte-22">
           <Folha
             letra={LETRA_PRINCIPAL}
             titulo="Tarefas"
