@@ -1,0 +1,31 @@
+/* Base comum dos 3 protótipos da tela de Entrar (item 149). Usa os tokens da Névoa direto da fonte; o .btn e o foco
+   repetem os do globals.css (que não dá para ligar aqui porque passa pelo Tailwind). */
+@import "../../src/styles/tarefas-tokens.css";
+
+:root { --font-inter: "Inter"; }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body { min-height: 100dvh; background: var(--fundo); color: var(--texto); font-family: var(--fonte); line-height: var(--texto-entrelinha); -webkit-font-smoothing: antialiased; }
+h1 { margin: 0; font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); line-height: var(--titulo-entrelinha); }
+p { margin: 0; }
+::selection { background: var(--azul); color: var(--no-azul); }
+:focus-visible { outline: 1px solid var(--azul); outline-offset: 1px; box-shadow: 0 0 0 4px var(--azul-claro); }
+input:focus-visible { outline: 1px solid var(--azul); outline-offset: -1px; border-color: var(--azul); box-shadow: 0 0 0 3px var(--azul-claro); }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-8); width: 100%;
+  height: 44px; padding: 0 var(--s-16); border: 1px solid transparent; border-radius: var(--raio-b);
+  font: 500 var(--t-14) / 1 var(--fonte); cursor: pointer; background: var(--azul); color: var(--no-azul);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 2px rgb(0 60 140 / 0.3);
+  transition: background-color var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva);
+}
+.btn:hover { background: var(--azul-hover); }
+.btn:active { transform: scale(0.97); }
+
+.marca { display: flex; align-items: center; gap: var(--s-12); }
+.marca img { width: auto; height: 32px; }
+.marca span { font: 600 20px / 1 var(--fonte); letter-spacing: -0.02em; }
+
+@keyframes subir { from { opacity: 0; transform: translateY(12px); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar · opção 3 (Linhas em movimento)</title>
+<!-- Base: "Auth Page" (Efferd UI) https://21st.dev/@efferd/components/auth-page
+     O original anima as linhas com framer-motion; aqui é o mesmo desenho com CSS puro (sem biblioteca nova). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../base.css">
+<style>
+  body { display: grid; grid-template-columns: 1fr 1fr; background: var(--sup); }
+  .arte { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; padding: var(--s-32) var(--s-48); background: var(--sup-2); border-right: 1px solid var(--linha); }
+  .arte .marca, .arte .rodape { position: relative; z-index: 1; }
+  .arte .rodape { max-width: 34ch; font-size: var(--t-20); font-weight: 500; letter-spacing: -0.02em; line-height: 1.35; }
+  .arte .rodape span { display: block; margin-top: var(--s-8); font-size: var(--t-14); font-weight: 400; letter-spacing: 0; color: var(--fraco); }
+  .linhas { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--azul); pointer-events: none; }
+  /* --L = comprimento da curva (medido no script): o traço cresce de 30% a 100% e corre ao longo dela */
+  .linhas path { fill: none; stroke: currentColor; animation: correr var(--d) linear infinite; }
+  @keyframes correr {
+    0% { stroke-dasharray: calc(var(--L) * 0.3) var(--L); stroke-dashoffset: 0; opacity: 0.6; }
+    50% { stroke-dasharray: var(--L) var(--L); stroke-dashoffset: calc(var(--L) * -0.5); opacity: 0.3; }
+    100% { stroke-dasharray: calc(var(--L) * 0.3) var(--L); stroke-dashoffset: calc(var(--L) * -1.3); opacity: 0.6; }
+  }
+
+  .lado { position: relative; display: grid; place-items: center; padding: var(--s-48) var(--s-24);
+    background: radial-gradient(70% 60% at 70% 40%, rgb(0 100 204 / 0.06), transparent 70%), var(--sup); }
+  .form-caixa { width: min(100%, 380px); display: flex; flex-direction: column; gap: var(--s-24); animation: subir var(--dur-lenta) var(--curva) both; }
+  .form-caixa .marca { display: none; }
+  .topo { display: flex; flex-direction: column; gap: var(--s-4); }
+  h1 { font-size: var(--t-31); }
+  .topo p { color: var(--fraco); }
+  form { display: flex; flex-direction: column; gap: var(--s-12); }
+  .campo { display: flex; flex-direction: column; gap: var(--s-4); font-size: var(--t-12); font-weight: 500; color: var(--fraco); }
+  .campo input {
+    width: 100%; height: 44px; padding: 0 var(--s-12); border: 1px solid var(--borda); border-radius: var(--raio-b);
+    background: var(--sup); color: var(--texto); font: 400 var(--t-16) / 1 var(--fonte); box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+  }
+  form .btn { margin-top: var(--s-4); }
+  .nota { display: none; padding-top: var(--s-16); border-top: 1px solid var(--linha); color: var(--fraco); font-size: var(--t-14); }
+
+  @media (max-width: 860px) {
+    body { grid-template-columns: 1fr; }
+    .arte { position: fixed; inset: 0; padding: 0; border: 0; background: var(--sup-2); }
+    .arte .marca, .arte .rodape { display: none; }
+    .lado { min-height: 100dvh; padding: var(--s-24) var(--s-16); background: none; }
+    .form-caixa { padding: var(--s-24); border-radius: var(--raio-bloco); background: rgb(255 255 255 / 0.82); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: var(--sombra-alta); }
+    .form-caixa .marca, .nota { display: flex; }
+  }
+</style>
+</head>
+<body>
+  <aside class="arte">
+    <svg class="linhas" viewBox="-400 -250 1100 1200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+    <div class="marca"><img src="../../../public/marca/fivecon.png" alt=""><span>Tarefas</span></div>
+    <p class="rodape">Só entra quem foi convidado.<span>Esqueceu a senha? Peça um novo convite ao Natham.</span></p>
+  </aside>
+  <main class="lado">
+    <div class="form-caixa">
+      <div class="marca"><img src="../../../public/marca/fivecon.png" alt=""><span>Tarefas</span></div>
+      <div class="topo"><h1>Entrar</h1></div>
+      <form onsubmit="event.preventDefault()">
+        <label class="campo">E-mail<input type="email" name="email" autocomplete="username" required></label>
+        <label class="campo">Senha<input type="password" name="senha" autocomplete="current-password" required></label>
+        <button type="submit" class="btn">Entrar</button>
+      </form>
+      <p class="nota">Só entra quem foi convidado. Esqueceu a senha? Peça um novo convite ao Natham.</p>
+    </div>
+  </main>
+<script>
+  // As 2 x 36 curvas do FloatingPaths original (mesma fórmula), cada uma com duração própria entre 20 e 30 s.
+  const svg = document.querySelector(".linhas");
+  for (const lado of [1, -1]) for (let i = 0; i < 36; i++) {
+    const x = (n) => n - i * 5 * lado;
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", `M${x(-380)} ${-189 - i * 6}C${x(-380)} ${-189 - i * 6} ${x(-312)} ${216 - i * 6} ${x(152)} ${343 - i * 6}C${x(616)} ${470 - i * 6} ${x(684)} ${875 - i * 6} ${x(684)} ${875 - i * 6}`);
+    p.setAttribute("stroke-width", 0.5 + i * 0.03);
+    p.style.strokeOpacity = 0.08 + i * 0.012;
+    p.style.setProperty("--d", 20 + Math.random() * 10 + "s");
+    p.style.animationDelay = -Math.random() * 20 + "s";
+    svg.append(p);
+    p.style.setProperty("--L", p.getTotalLength() + "px");
+  }
+</script>
+</body>
+</html>
