@@ -28,6 +28,7 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
     <div className="pastas-empresa">
       <h2>
         <SeloEmpresa empresaId={empresa.id} nome={empresa.nome} tamanho={28} comNome /> <small>{pecas.length} peças</small>
+        <button type="button" className="btn pastas-nova" onClick={() => setNome({})}>+ Nova pasta</button>
       </h2>
       <div className="pastas-grade">
         {pastas.map((pasta, i) => {
@@ -64,11 +65,6 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
             arquivos={categorias.map((c) => ({ nome: c, meta: nIdeias(ideias.filter((i) => i.categoria === c).length), arte: receitaDaEmpresa("story", empresa.id) }))}
             onSelecionar={(a) => setAberto({ ideias: a.nome })}
           />
-        </div>
-        <div className="pastas-cel">
-          <button type="button" className="pasta-nova" onClick={() => setNome({})}>
-            <span aria-hidden="true">+</span> Nova pasta
-          </button>
         </div>
       </div>
       {nome && (

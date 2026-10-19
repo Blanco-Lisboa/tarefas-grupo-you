@@ -14,12 +14,12 @@ for (const [w, h] of [[1440, 760], [390, 844]]) {
   const foto = async (n) => {
     await p.waitForTimeout(900);
     await p.evaluate(() => { document.getElementById("iw")?.remove(); const d = document.createElement("div"); d.id = "iw"; d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:2147483647;background:#fff;font:700 12px monospace;padding:4px 8px"; document.body.append(d); });
-    await p.screenshot({ path: join(PASTA, `101-${n}-${w}.png`) });
+    await p.screenshot({ path: join(PASTA, `101-v2-${n}-${w}.png`) });
   };
   const nomes = () => beec.locator(".gf-title").allTextContents();
-  await beec.locator(".pasta-nova").scrollIntoViewIfNeeded();
+  await beec.locator(".pastas-nova").scrollIntoViewIfNeeded();
   await foto("a-botao");
-  await beec.locator(".pasta-nova").click();
+  await beec.locator(".pastas-nova").click();
   await p.locator("input[name=nome]:focus").waitFor();
   await p.keyboard.type("Teste");
   await foto("b-nome");
