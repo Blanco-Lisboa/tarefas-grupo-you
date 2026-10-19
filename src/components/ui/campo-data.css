@@ -1,0 +1,49 @@
+/* Campo de data (item 64): botão e painel herdam .selecao-botao / .selecao-pop / .selecao-lista (mesma pele, mesmo abrir).
+   Aqui só o que é de calendário: mês com setas, grade de 7 colunas, hoje com anel azul, escolhido = azul cheio. */
+.campo-data-icone {
+  width: 16px; height: 16px; flex: none; fill: none; stroke: var(--fraco); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+}
+.campo-data-valor { font-variant-numeric: tabular-nums; }
+.campo-data-vazio { color: var(--fraco); }
+
+.campo-data-pop { min-width: 0; width: auto; }
+.campo-data-painel { gap: var(--s-4); padding: var(--s-8); max-height: none; overflow: visible; }
+
+.campo-data-topo { display: flex; align-items: center; gap: 2px; padding: 0 0 var(--s-4) 10px; }
+.campo-data-mes { flex: 1; font: 600 var(--t-14) / 1 var(--fonte); color: var(--texto); }
+.campo-data-seta {
+  display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: calc(var(--raio-c) - 6px);
+  background: none; color: var(--fraco); cursor: pointer; transition: background-color var(--dur-rapida) var(--curva);
+}
+.campo-data-seta:hover { background: var(--realce); color: var(--texto); }
+.campo-data-seta svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.campo-data-grade { display: grid; grid-template-columns: repeat(7, 36px); gap: 2px; }
+.campo-data-semana { display: grid; place-items: center; height: 24px; font: 600 var(--t-12) / 1 var(--fonte); color: var(--fraco); }
+.campo-data-dia {
+  display: grid; place-items: center; height: 36px; padding: 0; border: 0; border-radius: calc(var(--raio-c) - 6px);
+  background: none; color: var(--texto); font: 400 var(--t-14) / 1 var(--fonte); font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: background-color var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva);
+}
+.campo-data-dia:hover { background: var(--realce); }
+.campo-data-dia:focus-visible { outline-offset: -3px; }
+.campo-data-dia[data-outro-mes] { color: var(--fraco); }
+.campo-data-dia[aria-current="date"] { color: var(--azul); font-weight: 600; box-shadow: inset 0 0 0 1.5px var(--azul); }
+.campo-data-dia[aria-pressed="true"] { background: var(--azul); color: var(--no-azul); font-weight: 600; box-shadow: none; }
+.campo-data-dia[aria-pressed="true"]:hover { background: var(--azul-hover); }
+.campo-data-dia[aria-disabled] { color: var(--borda); background: none; cursor: default; }
+
+.campo-data-pe {
+  display: flex; justify-content: flex-end; gap: var(--s-4);
+  margin-top: var(--s-4); padding-top: var(--s-8); border-top: 1px solid var(--linha);
+}
+.campo-data-acao {
+  min-height: 32px; padding: 0 10px; border: 0; border-radius: calc(var(--raio-c) - 6px); background: none; cursor: pointer;
+  font: 600 var(--t-14) / 1 var(--fonte); color: var(--azul); transition: background-color var(--dur-rapida) var(--curva);
+}
+.campo-data-acao:hover { background: var(--azul-claro); }
+.campo-data-acao:disabled { color: var(--borda); background: none; cursor: default; }
+.campo-data-limpar { margin-right: auto; color: var(--fraco); }
+.campo-data-limpar:hover { background: var(--realce); color: var(--texto); }
+
+@media (prefers-reduced-motion: reduce) { .campo-data-seta, .campo-data-dia, .campo-data-acao { transition: none; } }
