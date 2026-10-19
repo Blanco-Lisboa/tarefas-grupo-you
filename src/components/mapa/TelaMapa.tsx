@@ -24,12 +24,14 @@ export function TelaMapa() {
   const marcos = useMemo(() => todos.filter((t) => t.inicio!.slice(0, 10) >= INICIO), [todos]);
   const dias = useMemo(() => diasDoPeriodo(INICIO, ultimoDia(marcos)), [marcos]);
   const aPostar = marcos.filter((t) => !foiPostado(t));
+  const [m1, m2] = [nomeMes(INICIO), nomeMes(dias.at(-1)!)].map((m) => m.toLowerCase());
+  const meses = m1 === m2 ? m1 : `${m1} e ${m2}`;
   const proximo = aPostar[0]?.inicio?.slice(0, 10);
 
   return (
     <section className="mapa">
       <header className="mapa-titulo">
-        <h1>Mapa de <span>{nomeMes(INICIO).toLowerCase()}</span></h1>
+        <h1>Mapa de <span>{meses}</span></h1>
         <p>
           De {diaCurto(INICIO)} a {diaCurto(dias.at(-1)!)}.{" "}
           {marcos.length ? `${plural(marcos.length, "conteúdo", "conteúdos")} com data de postagem.` : "Nenhum conteúdo com data de postagem neste período."}
@@ -86,12 +88,10 @@ function Linha({ dias, marcos, abrir }: { dias: string[]; marcos: Tarefa[]; abri
             sub.fromTo(linhas, { yPercent: 100 }, { yPercent: 0, duration: 0.6, ease: "power2.out", stagger: 0.04 }, 0.25);
             return sub;
           };
-          let jaNaTela = 0;
           gsap.utils.toArray<HTMLElement>("[data-marco]", fx).forEach((el) => {
-            const sub = revelar(el);
             const t = (el.offsetLeft - larg * 0.62) / dist;
-            if (t <= 0) sub.delay(0.15 + jaNaTela++ * 0.12); // já está na tela: entra sozinho, sem esperar a rolagem
-            else tl.add(sub.duration(janela), Math.min(t, 1 - janela));
+            if (t <= 0) return; // já está na tela no início: nasce inteiro, a animação fica para os que entram depois
+            tl.add(revelar(el).duration(janela), Math.min(t, 1 - janela));
           });
           gsap.fromTo(".mapa-linha", { scaleX: 0 }, { scaleX: 1, duration: 1.1, ease: "power2.out" });
         }, f);
