@@ -6,7 +6,8 @@
 .campo-data-valor { font-variant-numeric: tabular-nums; }
 .campo-data-vazio { color: var(--fraco); }
 
-.campo-data-pop { min-width: 0; width: auto; }
+/* O painel com hora é alto e largo: além de virar para cima ou para a esquerda, tenta os dois juntos (botão no canto) */
+.campo-data-pop { min-width: 0; width: auto; max-width: calc(100vw - 24px); position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline; }
 .campo-data-painel { gap: var(--s-4); padding: var(--s-8); max-height: none; overflow: visible; }
 
 .campo-data-topo { display: flex; align-items: center; gap: 2px; padding: 0 0 var(--s-4) 10px; }
@@ -46,4 +47,38 @@
 .campo-data-limpar { margin-right: auto; color: var(--fraco); }
 .campo-data-limpar:hover { background: var(--realce); color: var(--texto); }
 
-@media (prefers-reduced-motion: reduce) { .campo-data-seta, .campo-data-dia, .campo-data-acao { transition: none; } }
+.campo-data-pe .btn { height: 36px; }
+
+/* Com hora (item 76): calendário à esquerda, rodas de hora e minuto à direita (como no CRM, foto 24); no celular, embaixo.
+   A faixa azul-clara atravessa as duas rodas na linha do meio, que é a escolhida. */
+.campo-data-corpo { display: flex; align-items: center; gap: var(--s-12); }
+.campo-data-rodas {
+  position: relative; display: flex; align-items: center; gap: 2px;
+  padding-left: var(--s-12); border-left: 1px solid var(--linha);
+}
+.campo-data-rodas::before {
+  content: ""; position: absolute; z-index: 0; left: var(--s-12); right: 0; top: 50%; height: 32px; translate: 0 -50%;
+  border-radius: calc(var(--raio-c) - 6px); background: var(--azul-claro);
+}
+.campo-data-dois-pontos { position: relative; font: 600 var(--t-16) / 1 var(--fonte); color: var(--azul); }
+.roda {
+  position: relative; width: 52px; height: 160px; padding-block: 64px; /* 5 linhas de 32px; 2 de folga em cima e embaixo */
+  overflow-y: auto; scrollbar-width: none; scroll-snap-type: y mandatory; overscroll-behavior: contain;
+  border-radius: calc(var(--raio-c) - 6px);
+  mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent);
+}
+.roda::-webkit-scrollbar { display: none; }
+.roda:focus-visible { outline-offset: -2px; mask-image: none; }
+.roda-item {
+  display: grid; place-items: center; height: 32px; scroll-snap-align: center; cursor: pointer;
+  font: 400 var(--t-16) / 1 var(--fonte); font-variant-numeric: tabular-nums; color: var(--fraco);
+}
+.roda-item[aria-selected="true"] { font-weight: 600; color: var(--azul); }
+@media (max-width: 560px) {
+  .campo-data-pop { margin-inline: var(--s-8); } /* margem conta na hora de caber: o painel não encosta na borda da tela */
+  .campo-data-corpo { flex-direction: column; align-items: stretch; }
+  .campo-data-rodas { justify-content: center; padding: var(--s-8) 0 0; border-left: 0; border-top: 1px solid var(--linha); }
+  .campo-data-rodas::before { left: 50%; right: auto; width: 128px; translate: -50% calc(-50% + 4px); }
+}
+
+@media (prefers-reduced-motion: reduce) { .campo-data-seta, .campo-data-dia, .campo-data-acao { transition: none; } .roda { scroll-behavior: auto; } }

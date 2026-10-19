@@ -166,7 +166,12 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
           <fieldset className="ficha-campo">
             <legend>Quando</legend>
             <div className="ficha-quando">
-              <div className="ficha-mini">Data<CampoData rotulo="Data" valor={data} aoMudar={(d) => mudarInicio(d, horaIni)} /></div>
+              {/* Data e hora no mesmo painel (item 76): calendário + rodas de hora e minuto. Dia inteiro = só o calendário. */}
+              <div className="ficha-mini">
+                {data && !t.diaInteiro ? "Começa" : "Data"}
+                <CampoData rotulo={data && !t.diaInteiro ? "Começa" : "Data"} valor={data} hora={t.diaInteiro ? undefined : data ? horaIni : ""}
+                  aoMudar={(d, h) => mudarInicio(d, h || horaIni)} />
+              </div>
               {data && (
                 <label className="ficha-marcar">
                   <input type="checkbox" checked={t.diaInteiro} onChange={(e) => mudar("diaInteiro", e.target.checked)} />
@@ -174,11 +179,12 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
                 </label>
               )}
               {data && !t.diaInteiro && (
-                <>
-                  <label className="ficha-mini">Começa<input type="time" value={horaIni} onChange={(e) => mudarInicio(data, e.target.value || "09:00")} /></label>
-                  <label className="ficha-mini">Termina<input type="time" value={horaFim} onChange={(e) => setHoraFim(e.target.value)} /></label>
-                  <div className="ficha-mini">Termina no dia<CampoData rotulo="Termina no dia" valor={dataFim || data} min={data} semLimpar aoMudar={setDataFim} /></div>
-                </>
+                <div className="ficha-mini">
+                  Termina
+                  <CampoData rotulo="Termina" valor={horaFim ? dataFim || data : ""} hora={horaFim} min={data} vazio="Sem fim"
+                    horaPadrao={paraHora(new Date(deTexto(`${data}T${horaIni}`).getTime() + HORA)).slice(11, 16)}
+                    aoMudar={(d, h) => { setDataFim(d); setHoraFim(h ?? ""); }} />
+                </div>
               )}
             </div>
             {!data && <p className="ficha-dica">Sem data: a tarefa fica na coluna &quot;Sem data&quot; do calendário.</p>}
