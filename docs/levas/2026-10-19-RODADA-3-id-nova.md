@@ -50,3 +50,27 @@ só essa dependência; SplitText e ScrollTrigger vêm no pacote `gsap`).
    que o Natham escolher. Não use as cores/peças da Beec.
 6. `prefers-reduced-motion`: tudo montado, sem animação, e dá para ver o mês inteiro rolando para o lado normalmente.
 7. Prova extra: fotos em 3 pontos da rolagem (início, meio, fim) em 1440 e 390, mostrando a faixa andando.
+
+## ID ESCOLHIDA (item 60) · aplicar no sistema inteiro
+Leia o item 60 da leva. Resumo: **modelo 1 Névoa** + o **contraste do 5** (alguns cards cheios em destaque, cantos bem
+redondos, número grande sobre o bloco), mas o bloco de destaque é **AZUL**, não preto, e o **verde-lima sai**.
+Azul: o `#0071E3` do modelo 1, **um pouco mais escuro, pouca coisa** (algo como `#0064CC`; confira contraste AA do branco sobre ele).
+A Beec sai de vez: nenhum token, fonte, logo, orelha, corda de pontinhos ou cor da Beec em lugar nenhum.
+Fonte da verdade da aparência: `src/components/modelos/Modelo1Nevoa.*` + o bloco de destaque de `Modelo5Contraste.*`.
+
+### FASE 1 (solo) · Sextante · base + casca. Ninguém começa a Fase 2 antes desta commitada e provada.
+1. Tokens novos do sistema (arquivo novo, ex.: `src/styles/tarefas-tokens.css`) e a camada do app em `globals.css` reescrita
+   com eles: fundo, superfície, vidro (blur + borda clara), texto, texto fraco, borda, azul, azul de destaque (bloco),
+   raios (os do modelo 1/5, NÃO 2px), sombras macias, espaço, tipo. `beec-tokens.css` deixa de ser importado (não apague;
+   anote em ORIGEM-DA-IDENTIDADE.md que saiu e por quê).
+2. Casca: menu no estilo do modelo 1 (vidro claro, item ativo como na amostra), logo vira o nome "Tarefas" (texto, sem marca),
+   recolher continua lembrando o estado. Fonte do modelo 1 no `layout.tsx` no lugar da Bricolage/Host.
+3. `Selecao` e as classes comuns (`.btn`, `.btn-2`, `.btn-claro`, `.lnk`) vestidas com o modelo 1, mesmo nome de classe
+   (as telas não precisam trocar markup para herdar). Um bloco de destaque azul comum (ex.: `.bloco-destaque`) para as telas usarem.
+4. Fotos 1440 e 390 de TODAS as telas depois da base (vão estar meio a meio, é esperado) + build + lint + typecheck.
+5. Escreva aqui embaixo, "Base Névoa pronta": tokens, classes e como usar o bloco de destaque.
+
+### FASE 2 (paralelo, depois da base) · cada um no seu território, só vestir com a base nova
+- Sextante: calendário. Alvenaria: mapa (sai o laranja provisório; azul). Pena: tarefas (o caderno MANTÉM a letra de mão
+  dentro da folha, pedido antigo dele; o resto em volta veste a Névoa). Vitral: pastas (pasta de vidro na Névoa). Régua: conteúdos,
+  configurações e ficha. Critério: a tela parece o modelo 1 da página /modelos; nada da Beec sobra (procure por cor/classe velha).
