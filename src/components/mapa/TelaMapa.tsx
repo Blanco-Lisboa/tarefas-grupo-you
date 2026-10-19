@@ -156,7 +156,7 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
               ))}
               {porDia.map(([dia, ts], i) => <Marco key={dia} dia={dia} ts={ts} coluna={dias.indexOf(dia)} lado={i % 2 ? "baixo" : "cima"} abrir={abrir} />)}
             </div>
-            <p className="mapa-dica">Role a página para baixo: a linha do tempo anda para o lado.</p>
+            <p className="mapa-dica">Role para baixo, a linha anda para o lado.</p>
             <span className="mapa-progresso" aria-hidden />
           </div>
         </div>
