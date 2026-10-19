@@ -36,7 +36,7 @@ async function baixar(p: Peca) {
 
 function Grade({ pecas, variante }: { pecas: Peca[]; variante: "exata" | "beec" }) {
   return (
-    <div className="pastas-grade">
+    <div className="pastas-grade-pai"><div className="pastas-grade corte-22">
       {PASTAS.map(({ tipo, rotulo }, i) => {
         const daPasta = pecas.filter((p) => p.tipo === tipo);
         return (
@@ -56,7 +56,7 @@ function Grade({ pecas, variante }: { pecas: Peca[]; variante: "exata" | "beec" 
           </div>
         );
       })}
-    </div>
+    </div></div>
   );
 }
 

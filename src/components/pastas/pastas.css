@@ -45,13 +45,13 @@
 .gf-shadow {
   position: absolute; left: 18px; right: 18px; bottom: -6px; height: 60px;
   border-radius: var(--gf-raio-sombra);
-  background: rgba(24, 19, 31, .34);
+  background: rgba(24, 19, 31, .42);
   filter: blur(22px);
   transform: translateX(calc(var(--gf-px) * -8px));
   transition: transform .9s var(--gf-ease), opacity .9s var(--gf-ease);
 }
 
-.gf-back { position: absolute; inset: 0; overflow: hidden; background: linear-gradient(180deg, #470E96 0%, var(--cor-roxo) 100%); }
+.gf-back { position: absolute; inset: 0; overflow: hidden; background: var(--brilho-escuro), var(--cor-roxo); }
 .gf-art {
   position: absolute; left: -12px; top: -12px; max-width: none; object-fit: cover;
   transform: translate(calc(var(--gf-px) * -7px), calc(var(--gf-py) * -6px)) scale(1.02);
@@ -164,7 +164,9 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .pastas-versoes[data-modo="exata"], .pastas-versoes[data-modo="beec"] { grid-template-columns: minmax(0, 1fr); }
 .pastas-versao-nome { font: 600 var(--app-t-rotulo) var(--fonte-texto); letter-spacing: var(--rotulo-letra); text-transform: uppercase; color: var(--cor-tinta-2); margin: 0 0 var(--s-8); }
 .pastas-versao-nome b { color: var(--cor-eletrico); font-weight: 600; }
-.pastas-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s-48) var(--s-24); padding: var(--s-32) var(--s-24) var(--s-16); background: var(--cor-superficie); border: 1px solid var(--cor-linha-forte); }
+/* card da ID: superfície, orelhas a 22° (.corte-22) e sombra de card no PAI (regra do item 45 da ID); sem borda junto */
+.pastas-grade-pai { filter: var(--sombra-card-filtro); }
+.pastas-grade { --card-corte: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s-48) var(--s-24); padding: var(--s-32) var(--s-24) var(--s-16); background: var(--cor-superficie); }
 .pastas-cel { min-width: 0; display: flex; flex-direction: column; align-items: stretch; }
 @media (max-width: 1099px) { .pastas-versoes { grid-template-columns: minmax(0, 1fr); } }
 
