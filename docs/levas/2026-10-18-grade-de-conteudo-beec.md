@@ -73,3 +73,13 @@
 - Itens 56, 57, 60 e 52: FEITOS (acima). 58 (efeito do Mapa) FEITO, aguarda conferência dele.
 - Abertos que dependem DELE: 59 (o 2º aviso "2 Issues": texto do 2/2, se ainda aparecer) · 50 (aba nova ao clicar no menu: sabemos que é o Chrome normal; falta reproduzir com ele) · paleta de etiquetas re-harmonizada (097c83f) é decisão do Maestro, ele pode reverter · item 15 (nome definitivo; "Tarefas" é provisório) · item 32 (b) virou moot: pasta de vidro ficou numa versão só (caacfe2/1238109) · Supabase (Fase 2 do sistema, item 32 e) segue parado.
 - Nada publicado: sem push, sem Vercel. Servidor local 127.0.0.1:3100.
+
+## Rodada 4 (19/10, tarde) — ajustes de tela + pastas de informação
+Fotos dele em `docs/referencias/2026-10-19-rodada-4/` (01 a 11). Instruções: `docs/levas/2026-10-19-RODADA-4-ajustes.md`.
+
+- [ ] 61 · Mapa: "Deixe esse 'A postar' menor, quero que o card inteiro das postagens fique na primeira rolagem, sem ter que descer tanto." + "Muito espaço vazio na parte de cima, alinhe tudo isso e deixe muito bem encaixado e organizado." (fotos 01–03) · estado: PEDIDO · Alvenaria
+- [ ] 62 · Mapa: "coloque mais informações pra ver como vai ficar na prática, todos os dias com conteúdos pra gravar, editar, postar, etc... faça algo aleatório pra ver como vai ficar, com mais de uma empresa." · estado: PEDIDO · Alvenaria (dados de exemplo)
+- [ ] 63 · Tarefas: "o '0 de 2 feitas...' fique menor, do tamanho do botão mesmo; quero o caderno mais pra cima, tem muito espaço vazio acima; quero também a opção de pegar a página e arrastar pro lado como no CRM." (fotos 04–05) · estado: PEDIDO · Pena
+- [ ] 64 · "Quero TODOS os calendários com o mesmo efeito dos botões de seleção, assim como no CRM. Acerte isso." O calendário nativo do navegador (foto 06) vira um calendário próprio com a pele do botão de seleção (foto 07) · estado: PEDIDO · Sextante (componente + troca nas telas; Pena troca no caderno)
+- [ ] 65 · Pastas: "pastas com as cores referentes de cada empresa, mas com cores suaves, nada de cor muito forte"; os cards que saem das pastas, "ao invés de baixar alguma coisa, abram algumas informações"; pasta "Ideias de conteúdo" como as Ideias do Yougram do CRM ("onde eu anoto ideias e links de referência pra poder visitar sempre que precisar", fotos 09–10); "Cada empresa deve ter esse tipo de pasta; vai abrir um card flutuante quando clicar nos cards dentro das pastas" (foto 08) · estado: PEDIDO · Vitral
+- [ ] 66 · "Menu lateral tá largo demais, deixe ele um pouco menor, puxado mais pra esquerda, pouca coisa." (foto 11) · estado: PEDIDO · Sextante
