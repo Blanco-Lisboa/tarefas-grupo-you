@@ -27,7 +27,6 @@
   transition: background-color var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva);
 }
 .campo-data-dia:hover { background: var(--realce); }
-.campo-data-dia:focus-visible { outline-offset: -3px; }
 .campo-data-dia[data-outro-mes] { color: var(--fraco); }
 .campo-data-dia[aria-current="date"] { color: var(--azul); font-weight: 600; box-shadow: inset 0 0 0 1.5px var(--azul); }
 .campo-data-dia[aria-pressed="true"] { background: var(--azul); color: var(--no-azul); font-weight: 600; box-shadow: none; }
@@ -68,7 +67,7 @@
   mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent);
 }
 .roda::-webkit-scrollbar { display: none; }
-.roda:focus-visible { outline-offset: -2px; mask-image: none; }
+.roda:focus-visible { mask-image: none; }
 .roda-item {
   display: grid; place-items: center; height: 32px; scroll-snap-align: center; cursor: pointer;
   font: 400 var(--t-16) / 1 var(--fonte); font-variant-numeric: tabular-nums; color: var(--fraco);
@@ -79,6 +78,13 @@
   .campo-data-corpo { flex-direction: column; align-items: stretch; }
   .campo-data-rodas { justify-content: center; padding: var(--s-8) 0 0; border-left: 0; border-top: 1px solid var(--linha); }
   .campo-data-rodas::before { left: 50%; right: auto; width: 128px; translate: -50% calc(-50% + 4px); }
+}
+
+/* Foco (itens 72 e 77): um contorno só, sutil, o mesmo dos campos de escrever da base (1px azul + halo leve), em TODO
+   controle do campo de data, no lugar do anel global de 3px. Fica 1px para fora para aparecer também sobre o azul
+   (dia escolhido, Selecionar). Azul sobre o painel claro: 5,68:1. */
+:is(.campo-data-botao, .campo-data-seta, .campo-data-dia, .roda, .campo-data-acao, .campo-data-pe .btn):focus-visible {
+  outline: 1px solid var(--azul); outline-offset: 1px; box-shadow: 0 0 0 4px var(--azul-claro);
 }
 
 @media (prefers-reduced-motion: reduce) { .campo-data-seta, .campo-data-dia, .campo-data-acao { transition: none; } .roda { scroll-behavior: auto; } }
