@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { conteudos, diasDoPeriodo, foiPostado, hoje, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { conteudos, diasDoPeriodo, emOrdem, faixaDe, foiPostado, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 
 const t = (id: string, tipo: Tarefa["tipo"], inicio?: string, extra: Partial<Tarefa> = {}): Tarefa => ({
   id, titulo: id, tipo, empresaId: "beec", responsavel: "natham", inicio, diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra,
@@ -35,5 +35,23 @@ describe("mapa", () => {
     expect(foiPostado(t("a", "postagem", "2026-10-20", { etapa: "aprovado" }))).toBe(false);
     expect(tituloDe(t("a", "postagem", undefined, { objetivo: "Vender" }))).toBe("a"); // título vence o objetivo
     expect(tituloDe(t("b", "postagem", undefined, { titulo: "  ", objetivo: " Vender " }))).toBe("Vender"); // sem título, o objetivo é a reserva
+  });
+});
+
+describe("em ordem", () => {
+  it("próximo passo, prazo e ordem por urgência", () => {
+    const lista = [
+      t("b", "postagem", "2026-10-21T10:00", { etapa: "edicao" }),
+      t("a", "postagem", "2026-10-21T10:00", { etapa: "roteiro" }),
+      t("velho", "postagem", "2026-10-17", { etapa: "gravacao" }),
+      t("feito", "postagem", "2026-10-19", { etapa: "postado" }),
+      t("longe", "postagem", "2026-11-30", { etapa: "aprovado" }),
+    ];
+    const o = emOrdem(lista, "2026-10-19");
+    expect(o.map((i) => i.t.id)).toEqual(["velho", "a", "b", "longe"]);
+    expect(o.map((i) => i.passo)).toEqual(["Editar", "Gravar", "Aprovar", "Postar"]);
+    expect(prazo(o[0].dias)).toBe("Atrasado 2 dias");
+    expect([prazo(0), prazo(1), prazo(9)]).toEqual(["Hoje", "Amanhã", "Em 9 dias"]);
+    expect([faixaDe(-3), faixaDe(2), faixaDe(7), faixaDe(8)]).toEqual(["agora", "agora", "proximo", "depois"]);
   });
 });
