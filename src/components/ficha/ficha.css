@@ -37,9 +37,6 @@
 .ficha-aviso { margin: 0; padding: 8px 10px; border-radius: var(--raio-b); background: var(--sup-2); color: var(--texto); font-size: var(--t-14); }
 .ficha-aviso a { color: var(--azul); font-weight: 600; }
 .ficha-dica { margin: 6px 0 0; color: var(--fraco); font-size: var(--t-12); }
-.ficha-cores { display: flex; flex-wrap: wrap; gap: var(--s-8); }
-.ficha-cor { width: 30px; height: 30px; padding: 0; border: 1px solid var(--borda); border-radius: 50%; cursor: pointer; }
-.ficha-cor[aria-pressed="true"] { outline: 2px solid var(--azul); outline-offset: 2px; }
 .ficha-link { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto auto; gap: var(--s-8); align-items: center; margin-bottom: var(--s-8); }
 .ficha-link a { color: var(--azul); font-weight: 600; font-size: var(--t-14); }
 .ficha-texto-botao { align-self: flex-start; padding: 4px 0; border: 0; background: none; color: var(--azul); font: 500 var(--t-14) var(--fonte); cursor: pointer; }

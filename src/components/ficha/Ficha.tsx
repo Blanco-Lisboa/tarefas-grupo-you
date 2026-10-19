@@ -12,11 +12,12 @@
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
-  ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, removerTarefa, salvarTarefa, useEmpresas,
+  ETAPAS, REDES, RESPONSAVEIS, TIPOS, removerTarefa, salvarTarefa, useEmpresas,
   type Etapa, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
 import { deTexto, paraHora } from "@/components/calendario/logica";
+import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { Selecao } from "@/components/ui/Selecao";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { CampoData } from "@/components/ui/CampoData";
@@ -96,7 +97,8 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
     aoFechar();
   }
 
-  const corAtual = { "--etiqueta-atual": `var(--${t.cor})` } as CSSProperties;
+  const dona = empresas.find((e) => e.id === t.empresaId);
+  const corAtual = { "--etiqueta-atual": dona ? tomDaEmpresa(dona.id).r : t.etapa ? `var(--etapa-${t.etapa})` : "var(--borda)" } as CSSProperties;
 
   return (
     <dialog
@@ -188,23 +190,6 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
               )}
             </div>
             {!data && <p className="ficha-dica">Sem data: a tarefa fica na coluna &quot;Sem data&quot; do calendário.</p>}
-          </fieldset>
-
-          <fieldset className="ficha-campo">
-            <legend>Cor</legend>
-            <div className="ficha-cores" role="group" aria-label="Cor da etiqueta">
-              {ETIQUETAS.map((c, i) => (
-                <button
-                  key={c}
-                  type="button"
-                  aria-pressed={t.cor === c}
-                  aria-label={`Cor ${i + 1}`}
-                  className="ficha-cor"
-                  style={{ background: `var(--${c})` }}
-                  onClick={() => mudar("cor", c)}
-                />
-              ))}
-            </div>
           </fieldset>
 
           {t.tipo === "postagem" && (

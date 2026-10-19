@@ -20,9 +20,9 @@ function horario(t: Tarefa, longo: boolean) {
 }
 
 /** Cor do bloco (item 78): o bloco inteiro no tom claro da MARCA da empresa (18% da cor sobre o branco; letra escura, AA)
-    e a etapa numa etiqueta pequena. Tarefa sem empresa (ou de empresa apagada) fica na cor escolhida na ficha. */
+    e a etapa numa etiqueta pequena. Tarefa sem empresa (ou de empresa apagada) fica no cinza neutro da ID Névoa. */
 function cores(t: Tarefa, temEmpresa: boolean) {
-  if (!temEmpresa) return { "--tarefa-fundo": `var(--${t.cor})`, "--tarefa-texto": `var(--${t.cor}-texto)` };
+  if (!temEmpresa) return { "--tarefa-fundo": "var(--fundo)", "--tarefa-texto": "var(--texto)" };
   return { "--tarefa-fundo": `color-mix(in srgb, ${tomDaEmpresa(t.empresaId).r} 18%, #fff)`, "--tarefa-texto": "var(--texto)" };
 }
 
