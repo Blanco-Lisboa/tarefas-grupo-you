@@ -32,7 +32,7 @@ await p.getByRole("button", { name: "Anterior" }).click(); await p.waitForTimeou
 console.log("chip depois de voltar:", await p.locator(".linha-etq").allTextContents());
 console.log("cor chip:", await p.locator(".linha-etq").first().evaluate((e) => getComputedStyle(e).backgroundColor));
 await marca(p);
-await p.screenshot({ path: join(PASTA, "r5/52-etiqueta-1440.png") });
+await p.screenshot({ path: join(PASTA, "r5/52-etiqueta-1440-v2.png") });
 await p.locator(".mt-pontos").first().click({ force: true });
 await p.waitForTimeout(300);
 await p.screenshot({ path: join(PASTA, "r5/52-etiqueta-menu-1440.png") });

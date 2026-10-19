@@ -196,7 +196,7 @@
 .ag-nome { font-size: calc(21px * var(--escala)); line-height: 1.15; overflow-wrap: anywhere; }
 .ag-nome[data-feita="true"] { text-decoration: line-through; text-decoration-thickness: 2px; opacity: .72; }
 .ag-info { font-size: calc(16px * var(--escala)); line-height: 1.1; }
-.ag-selo { flex: none; padding: 5px var(--s-12); border-radius: var(--raio-pilula); background: var(--etq); font: 600 var(--t-12) / 1 var(--fonte); letter-spacing: .04em; text-transform: uppercase; }
+.ag-selo { flex: none; display: inline-flex; align-items: center; font: 600 var(--t-12) / 1 var(--fonte); letter-spacing: .04em; text-transform: uppercase; }
 .ag-dia-inteiro { display: grid; gap: var(--s-8); margin-bottom: var(--s-16); }
 .ag-inteiro { margin-bottom: 0; justify-content: space-between; }
 .ag-agora { display: grid; grid-template-columns: var(--col-hora) minmax(0, 1fr); column-gap: var(--s-8); align-items: center; margin: 0 0 var(--s-8); }
