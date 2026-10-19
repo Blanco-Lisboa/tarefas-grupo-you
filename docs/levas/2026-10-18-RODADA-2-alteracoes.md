@@ -51,22 +51,40 @@ Ninguém começa a Fase 2 antes desta estar commitada e provada.
 
 ## Base pronta
 Fase 1 fechada pelo Sextante em 18/10/2026. Provas: `provas/r2-sextante/` (`antes-*` e `depois-*` em 1903, 1440 e 390;
-roteiro `capturar.mjs`). Build, lint, tipos e testes passando.
+roteiro `capturar.mjs`). Build, lint, tipos e testes passando. Valores abaixo atualizados em 19/10 para o pente fino da ID
+(`e10393e`, item 55).
 
 **O que mudou nos tokens.** `src/styles/beec-tokens.css` NÃO mudou (é cópia fiel da ID e não se edita). As escolhas do
 sistema ficam na "camada do app", no topo de `src/app/globals.css`, só com valores da ID:
 - Espaço: `--app-respiro` (16, topo e vão entre blocos), `--app-margem` (24; 12 no celular), `--app-vao` (8, entre controles).
 - Tipo: `--app-t-titulo` (31, título da tela), `--app-t-secao` (20), `--app-t-texto` (14), `--app-t-rotulo` (12).
   Os 49/61 da ID ficam para peça de marca; título de tela de trabalho é 31.
-- Controles: `--app-controle` (36, TODO botão, campo e botão de seleção de uma barra) e `--app-controle-p` (28).
-- Cor: `--cor-realce-claro` (hover no claro, roxo a 6%, nunca cinza); `--cor-escuro-2` (hover no grafite) e
-  `--cor-escuro-3` (ativo no grafite). Raio continua só `--raio` (2px).
-- Sombra: `--sombra-pop` (coisa que flutua) e `--sombra-pop-filtro` (a mesma, para caixa com orelha, no pai).
-- Fundo da tela agora é bege LISO (o brilho roxo saiu do `body`). Barra de rolagem, seleção de texto, cursor e caixa de
-  marcar também vestem a paleta.
+- Controles: `--app-controle` (44, TODO botão, campo e botão de seleção de uma barra; 44 = altura do botão da ID,
+  15 + 14 + 15).
+- Cor: `--cor-realce-claro` (hover no claro, roxo a 6%, nunca cinza). No escuro não há tom inventado: grafite e card
+  escuro da ID (`--cor-grafite`, `--cor-card-escuro`); lista que abre = `--vidro-roxo`. Raio continua só `--raio` (2px).
+- Fundo da tela agora é bege LISO (o brilho roxo saiu do `body`). Barra de rolagem, cursor e caixa de marcar também
+  vestem a paleta; seleção de texto = roxo com letra bege (igual à prancha).
+- Saíram no pente fino (e10393e), por não serem da ID: `--app-controle-p`, `--cor-escuro-2`, `--cor-escuro-3`,
+  `--sombra-pop` e `--sombra-pop-filtro`. Não use.
+
+**Botões e link da ID** (classes comuns em `globals.css`, copiadas da prancha). Toda tela usa estas classes; ninguém
+desenha botão próprio. A altura já vem de `--app-controle`.
+```tsx
+<button className="btn">+ Nova tarefa</button>               // principal: placa roxa a 22°, caixa alta. UM por tela
+<button className="btn btn-2">Hoje</button>                  // secundário: contorno roxo (sempre junto com .btn)
+<button className="btn btn-claro">+ Tarefa sem data</button> // secundário em fundo escuro (vidro, grafite)
+<button className="lnk"><span className="sub">Limpar filtros</span></button>  // link: o .sub dá o sublinhado em ponta de barra
+<svg className="seta" viewBox="0 0 24 24" aria-hidden><path d="M4 12h15M13 6l6 6-6 6" /></svg>  // seta da ID, dentro do botão
+<span className="b3"><i /><i /><i /></span>                  // as 3 barras (marcador, botão de menu)
+```
+Ao passar o mouse o botão anda 3px para a direita; o foco do teclado é contorno elétrico também a 22°. Dentro de
+`.no-escuro` o sublinhado e as 3 barras viram ouro sozinhos. Para mudar só a largura ou o espaço de um botão na sua tela,
+acrescente uma classe sua (ex.: `className="btn cal-nova"`), sem mexer em cor, ângulo ou altura.
 
 **Casca.** Menu grafite grudado na borda (208px; recolhido 64px; celular 56px), ícones na mesma coluna aberto ou recolhido,
-"Recolher menu" no pé, estado lembrado. Entrada "Mapa" leva a `/mapa` (em construção, é da Alvenaria). A área de conteúdo
+"Recolher menu" no pé (com as 3 barras da ID), estado lembrado. Desde o pente fino: logo de 118px e item ativo em ouro e
+negrito, sem bloco de fundo (menu da ID). Entrada "Mapa" leva a `/mapa` (em construção, é da Alvenaria). A área de conteúdo
 não tem largura máxima: quem quiser miolo estreito põe na própria tela. Topo: a barra da casca (filtro de empresa) começa
 a 16px do alto, alinhada com o logo; a tela começa logo abaixo, 16px depois.
 
@@ -83,7 +101,9 @@ import { Selecao } from "@/components/ui/Selecao";
   // rotuloTodos="Todas" primeira linha que limpa a escolha
 />
 ```
-Com escolha, o botão ganha borda roxa e o contador (selo inclinado a 22°). A lista abre por cima de tudo (fecha com Esc ou
+Desde o pente fino o botão é o campo de seleção da ID (reto, borda 1,5px, texto 16px, seta da ID) e a lista é o submenu
+do site (vidro roxo com orelhas a 22°, texto bege, escolhido em ouro). Com escolha, o botão ganha borda roxa e o contador
+(selo inclinado a 22°). A lista abre por cima de tudo (fecha com Esc ou
 clique fora), presa ao botão, e vira para cima ou para o lado se faltar espaço. Para enfileirar vários na mesma barra:
 `display: flex; gap: var(--app-vao)`. O filtro de empresa da casca já usa este componente.
 
