@@ -31,9 +31,10 @@ type Mapa = Record<string, Ideia[]>;
 let memoria = ""; // se o navegador negar o armazenamento, vale até recarregar
 const ouvintes = new Set<() => void>();
 const assinar = (f: () => void) => (ouvintes.add(f), () => void ouvintes.delete(f));
+// A memória vem primeiro: se a gravação no navegador falhou (cota cheia), ela guarda o dado mais novo.
 const bruto = () => {
   try {
-    return localStorage.getItem(CHAVE) ?? memoria;
+    return memoria || (localStorage.getItem(CHAVE) ?? "");
   } catch {
     return memoria;
   }
@@ -46,26 +47,27 @@ const ler = (txt: string): Mapa => {
   }
 };
 
+/** Cria (sem id) ou edita (com id existente) e avisa quem está na tela. Exportada para o teste da falha de gravação. */
+export function gravarIdeia(empresaId: string, nova: Omit<Ideia, "id" | "empresaId"> & { id?: string }): Ideia {
+  const todas = ler(bruto());
+  const lista = todas[empresaId] ?? semente(empresaId);
+  const ideia: Ideia = { ...nova, id: nova.id ?? crypto.randomUUID(), empresaId };
+  todas[empresaId] = lista.some((i) => i.id === ideia.id) ? lista.map((i) => (i.id === ideia.id ? ideia : i)) : [...lista, ideia];
+  memoria = JSON.stringify(todas);
+  try {
+    localStorage.setItem(CHAVE, memoria);
+  } catch {
+    /* sem armazenamento: fica na memória */
+  }
+  ouvintes.forEach((f) => f());
+  return ideia;
+}
+export const lerIdeias = (empresaId: string): Ideia[] => ler(bruto())[empresaId] ?? semente(empresaId);
+
 /** Ideias de uma empresa (reativo ao salvar). Sem nada guardado, mostra os exemplos. */
 export function useIdeias(empresaId: string) {
   const txt = useSyncExternalStore(assinar, bruto, () => "");
   const ideias = useMemo(() => ler(txt)[empresaId] ?? semente(empresaId), [txt, empresaId]);
-
-  /** Cria (sem id) ou edita (com id existente). */
-  const salvar = useCallback((nova: Omit<Ideia, "id" | "empresaId"> & { id?: string }) => {
-    const todas = ler(bruto());
-    const lista = todas[empresaId] ?? semente(empresaId);
-    const ideia: Ideia = { ...nova, id: nova.id ?? crypto.randomUUID(), empresaId };
-    todas[empresaId] = lista.some((i) => i.id === ideia.id) ? lista.map((i) => (i.id === ideia.id ? ideia : i)) : [...lista, ideia];
-    memoria = JSON.stringify(todas);
-    try {
-      localStorage.setItem(CHAVE, memoria);
-    } catch {
-      /* sem armazenamento: fica na memória */
-    }
-    ouvintes.forEach((f) => f());
-    return ideia;
-  }, [empresaId]);
-
+  const salvar = useCallback((nova: Parameters<typeof gravarIdeia>[1]) => gravarIdeia(empresaId, nova), [empresaId]);
   return { ideias, salvar };
 }
