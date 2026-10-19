@@ -1,4 +1,4 @@
-// FICHA DA TAREFA (modal no estilo Beec). Usada pelo Calendário, Tarefas e Conteúdos. Como usar:
+// FICHA DA TAREFA (modal na ID Nevoa). Usada pelo Calendário, Tarefas e Conteúdos. Como usar:
 //
 //   import { Ficha, tarefaEmBranco, NOMES } from "@/components/ficha/Ficha";
 //   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
@@ -93,20 +93,20 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
     aoFechar();
   }
 
-  const corAtual = { "--cor-tarefa": `var(--${t.cor})`, "--cor-tarefa-texto": `var(--${t.cor}-texto)` } as CSSProperties;
+  const corAtual = { "--etiqueta-atual": `var(--${t.cor})` } as CSSProperties;
 
   return (
     <dialog
       ref={dialogo}
-      className="ficha corte-sombra"
+      className="ficha"
       aria-label={nova ? "Nova tarefa" : `Tarefa ${tarefa.titulo}`}
       onClose={aoFechar}
       onClick={(e) => e.target === e.currentTarget && dialogo.current?.close()}
     >
-      <form className="ficha-cartao corte-22" onSubmit={salvar} style={corAtual}>
-        <header className="ficha-faixa no-escuro">
+      <form className="ficha-cartao" onSubmit={salvar} style={corAtual}>
+        <header className="ficha-faixa">
           <div className="ficha-faixa-topo">
-            <span className="ficha-rotulo"><span className="ficha-cor-ponta" aria-hidden />{nova ? "Nova tarefa" : NOMES.tipo[t.tipo]}</span>
+            <span className="ficha-rotulo"><span className="ficha-cor-marca" aria-hidden />{nova ? "Nova tarefa" : NOMES.tipo[t.tipo]}</span>
             <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>
           </div>
           <input
@@ -230,8 +230,8 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
 
         <footer className="ficha-pe">
           {!nova && <button type="button" className="ficha-texto-botao ficha-excluir" onClick={excluir}>Excluir</button>}
-          <button type="button" className="ficha-botao ficha-botao-claro" onClick={() => dialogo.current?.close()}>Cancelar</button>
-          <button type="submit" className="ficha-botao" disabled={!t.titulo.trim() || !temEmpresa}><span>Salvar</span></button>
+          <button type="button" className="btn btn-2" onClick={() => dialogo.current?.close()}>Cancelar</button>
+          <button type="submit" className="btn" disabled={!t.titulo.trim() || !temEmpresa}>Salvar</button>
         </footer>
       </form>
     </dialog>

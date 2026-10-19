@@ -60,18 +60,18 @@ export function TelaConfiguracoes() {
   return (
     <section className="config-tela">
       <header className="config-cabecalho">
-        <h1>Configurações</h1>
-        <p>Cadastre as empresas que aparecem na grade de conteúdo.</p>
+        <div><h1>Configurações</h1><p>Cadastre as empresas que aparecem na grade de conteúdo.</p></div>
+        <div className="config-total bloco-destaque"><strong className="bloco-numero">{empresas.length}</strong><span className="bloco-fraco">{empresas.length === 1 ? "empresa" : "empresas"}</span></div>
       </header>
       {erro && <p className="config-erro" role="alert">{erro}</p>}
       <section className="config-bloco" aria-labelledby="config-empresas-titulo">
-        <div className="config-bloco-topo"><h2 id="config-empresas-titulo">Empresas</h2><span>{empresas.length} cadastradas</span></div>
+        <div className="config-bloco-topo"><h2 id="config-empresas-titulo">Empresas</h2></div>
         <ul className="config-lista">
           {empresas.map((empresa) => {
             const quantidade = tarefas.filter((t) => t.empresaId === empresa.id).length;
             const quantidadePecas = pecas.filter((p) => p.empresaId === empresa.id).length;
             return (
-              <li className="config-empresa-sombra" key={empresa.id}><div className="config-empresa corte-22-esq">
+              <li className="config-empresa-sombra" key={empresa.id}><div className="config-empresa">
                 <span className="config-monograma" aria-hidden="true">{empresa.sigla}</span>
                 <div className="config-empresa-corpo">
                   {editando === empresa.id ? (
@@ -98,7 +98,7 @@ export function TelaConfiguracoes() {
           })}
         </ul>
       </section>
-      <div className="config-incluir-sombra"><form className="config-incluir corte-22" onSubmit={(evento) => void incluir(evento)}>
+      <div className="config-incluir-sombra"><form className="config-incluir" onSubmit={(evento) => void incluir(evento)}>
         <h2>Incluir empresa</h2>
         <label htmlFor="config-nova-empresa">Nome da empresa</label>
         <div><input id="config-nova-empresa" value={novoNome} onChange={(evento) => setNovoNome(evento.target.value)} placeholder="Ex.: Lavoro Piu" maxLength={80} required /><button className="config-botao" type="submit">Incluir</button></div>

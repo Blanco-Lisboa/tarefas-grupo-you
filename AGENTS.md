@@ -21,7 +21,7 @@ Natham não é programador: traduza termo técnico na primeira vez, use analogia
 
 ## Regras do projeto
 
-- Identidade visual SÓ Beec. Leia `docs/design.md` antes de mexer em tela. `ID-Visual-ALL` é só leitura, nunca editar.
+- Identidade visual Névoa, escolhida no item 60. Fonte da decisão e da Fase 2: `docs/levas/2026-10-19-RODADA-3-id-nova.md`. Leia `docs/design.md` antes de mexer em tela.
 - Telas importam dados SÓ de `@/lib/dados` (o lint barra `exemplo` e `repositorio`). Filtro de empresa só pelo hook `useFiltroEmpresa` de `@/lib/filtro-empresa`.
 - Território: cada tela tem a sua rota em `src/app/<tela>/page.tsx` e os componentes em `src/components/<tela>/`. Fora do seu território, pare e avise.
 - Sem Caveman, sem Graphify, nada no escopo da máquina (plugin, hook, ferramenta global). Context7 só no projeto (`.mcp.json`).

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type DragEvent } from "react";
-import Image from "next/image";
 import { Ficha } from "@/components/ficha/Ficha";
 import { Selecao } from "@/components/ui/Selecao";
 import { ETAPAS, salvarTarefa, useEmpresas, useTarefas, type Etapa, type Rede, type Tarefa } from "@/lib/dados";
@@ -12,11 +11,11 @@ const nomes: Record<Etapa, string> = {
   ideia: "Ideia", roteiro: "Roteiro", gravacao: "Gravação",
   edicao: "Edição", aprovado: "Aprovado", postado: "Postado",
 };
-const redes: Record<Rede, { nome: string; icone: string }> = {
-  instagram: { nome: "Instagram", icone: "/beec/icones/instagram-liso.svg" },
-  tiktok: { nome: "TikTok", icone: "/beec/icones/marcas/tiktok-liso.svg" },
-  youtube: { nome: "YouTube", icone: "/beec/icones/marcas/youtube-liso.svg" },
-  kwai: { nome: "Kwai", icone: "/beec/icones/video-liso.svg" },
+const redes: Record<Rede, { nome: string; sigla: string }> = {
+  instagram: { nome: "Instagram", sigla: "IG" },
+  tiktok: { nome: "TikTok", sigla: "TT" },
+  youtube: { nome: "YouTube", sigla: "YT" },
+  kwai: { nome: "Kwai", sigla: "KW" },
 };
 const opcoesEtapa = ETAPAS.map((etapa) => ({ valor: etapa, rotulo: nomes[etapa] }));
 
@@ -71,7 +70,7 @@ export function TelaConteudos() {
           <h1>Conteúdos</h1>
           <p>Acompanhe cada conteúdo da ideia à publicação.</p>
         </div>
-        <span className="conteudos-total"><strong>{conteudos.length}</strong> conteúdos</span>
+        <div className="conteudos-total bloco-destaque"><strong className="bloco-numero">{conteudos.length}</strong><span className="bloco-fraco">conteúdos</span></div>
       </header>
       {erro && <p className="conteudos-erro" role="alert">{erro}</p>}
       <div className="conteudos-quadro" aria-label="Quadro de conteúdos por etapa">
@@ -96,7 +95,7 @@ export function TelaConteudos() {
                 {itens.map((tarefa) => (
                   <div className="conteudos-cartao-sombra" key={tarefa.id}>
                   <article
-                    className="conteudos-cartao corte-22-esq"
+                    className="conteudos-cartao"
                     data-arrastando={arrastando === tarefa.id}
                     draggable
                     onDragStart={(evento) => iniciarArraste(evento, tarefa)}
@@ -104,7 +103,7 @@ export function TelaConteudos() {
                   >
                     <div className="conteudos-cartao-topo">
                       <span className="conteudos-empresa"><span>{nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"}</span></span>
-                      {tarefa.rede && <span className="conteudos-rede" title={redes[tarefa.rede].nome}><Image src={redes[tarefa.rede].icone} alt={redes[tarefa.rede].nome} width={24} height={24} /></span>}
+                      {tarefa.rede && <span className="conteudos-rede" title={redes[tarefa.rede].nome} aria-label={redes[tarefa.rede].nome}>{redes[tarefa.rede].sigla}</span>}
                     </div>
                     <button className="conteudos-titulo" type="button" onClick={() => setAberta(tarefa)}>{tarefa.titulo}</button>
                     <div className="conteudos-cartao-rodape">
