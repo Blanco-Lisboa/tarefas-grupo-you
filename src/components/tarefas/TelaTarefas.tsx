@@ -5,6 +5,7 @@ import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
 import { removerTarefa, salvarTarefa, type Etiqueta, type Responsavel, useEmpresas, useTarefas, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
+import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { CampoData } from "@/components/ui/CampoData";
 import { Ficha } from "@/components/ficha/Ficha";
 import { Agenda } from "./Agenda";
@@ -191,8 +192,11 @@ export function TelaTarefas() {
   return (
     <section className="tarefas-tela" data-lado={aba === "semdata" ? "tarefas" : lado}>
       <div className="tarefas-barra">
-        <h1 className="tarefas-titulo">Caderno</h1>
-        <div className="tarefas-grupo">
+        <div className="tarefas-grupo tarefas-quem">
+          <h1 className="tarefas-titulo">Caderno</h1>
+          <FiltroEmpresa />
+        </div>
+        <div className="tarefas-grupo tarefas-nav">
           <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(somarDias(dia, -1))} aria-label="Dia anterior">Anterior</button>
           <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(hoje)}>Hoje</button>
           <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(somarDias(dia, 1))} aria-label="Próximo dia">Próximo</button>
@@ -209,8 +213,10 @@ export function TelaTarefas() {
               </span>
             </p>
           )}
+          <div className="tarefas-grupo tarefas-abas">
           <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={aba === "dia"} onClick={() => setAba("dia")}>Dia</button>
           <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={aba === "semdata"} onClick={() => setAba("semdata")}>Sem data</button>
+          </div>
         </div>
         <div className="tarefas-grupo tarefas-lados" hidden={aba === "semdata"}>
           <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={lado === "tarefas"} onClick={() => setLado("tarefas")}>Caderno</button>

@@ -6,8 +6,9 @@ import { Menu } from "./Menu";
 import { assinar, definirRecolhido, lerRecolhido } from "./menu-recolhido";
 import "./casca.css";
 
-// Telas em que o filtro de empresa não faz sentido (cadastro de empresas).
-const SEM_FILTRO = ["/configuracoes"];
+// Telas sem a barra de cima: o cadastro de empresas (filtro não faz sentido) e o Caderno (item 132: a própria tela
+// põe o FiltroEmpresa na sua linha do topo).
+const SEM_FILTRO = ["/configuracoes", "/tarefas"];
 
 export function Casca({ children }: { children: ReactNode }) {
   const recolhido = useSyncExternalStore(assinar, lerRecolhido, () => false);

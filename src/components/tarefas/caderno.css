@@ -14,8 +14,13 @@
 .tarefas-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao) var(--app-respiro); }
 .tarefas-titulo { font-size: var(--app-t-titulo); line-height: var(--app-controle); color: var(--texto); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); }
 .tarefas-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao) var(--s-16); }
-.tarefas-fim { margin-left: auto; }
+.tarefas-fim { margin-left: auto; flex-wrap: nowrap; }
+.tarefas-quem { flex-wrap: nowrap; gap: var(--app-respiro); } /* Caderno + filtro Empresa (item 132: tudo numa linha) */
 .tarefas-lados { display: none; }
+/* Linhas verticais suaves entre os grupos da linha do topo (só no computador; no celular os grupos quebram em linhas) */
+@media (min-width: 768px) {
+  .tarefas-nav, .tarefas-abas { padding-left: var(--app-respiro); border-left: 1px solid var(--linha); }
+}
 /* Botões: .btn .btn-2 da base (vidro branco); o ativo (aria-pressed) vira azul cheio */
 .tarefas-botao[aria-pressed="true"] { background: var(--azul); border-color: transparent; color: var(--no-azul); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 2px rgb(0 60 140 / 0.3); }
 .tarefas-botao[aria-pressed="true"]:hover { background: var(--azul-hover); }
@@ -192,8 +197,8 @@
 
 /* ===== Altura: no computador o livro cabe na janela (cada página rola por dentro, como no CRM) ===== */
 @media (min-width: 768px) {
-  /* 100dvh menos o topo da casca: 16 de respiro + 36 do filtro + 16 de vão + 32 de pé */
-  .tarefas-tela { height: calc(100dvh - var(--app-respiro) * 2 - var(--app-controle) - var(--s-32)); }
+  /* 100dvh menos o topo da casca (sem a barra do filtro, que agora mora na linha do Caderno): 16 de respiro + 32 de pé */
+  .tarefas-tela { height: calc(100dvh - var(--app-respiro) - var(--s-32)); }
 }
 
 /* ===== Celular: uma página por vez, escolhida no botão ===== */
@@ -201,7 +206,7 @@
   .tarefas-tela { --col-hora: 44px; }
   .tarefas-barra { gap: var(--app-vao) var(--app-respiro); }
   .tarefas-lados { display: flex; }
-  .tarefas-fim { margin-left: 0; }
+  .tarefas-fim { margin-left: 0; flex-wrap: wrap; }
   .livro { grid-template-columns: minmax(0, 1fr); }
   .livro::before { display: none; }
   .pag + .pag { border-left: 0; }
