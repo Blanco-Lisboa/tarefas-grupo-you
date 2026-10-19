@@ -2,6 +2,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
 import type { Responsavel } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
+import { SeloEmpresa } from "@/components/ui/Marca";
 import type { OpcaoLetra } from "./fontes";
 import { horaDoSlot, SLOTS } from "./grade";
 import { ETIQUETAS, MenuTarefa, type Acoes } from "./MenuTarefa";
@@ -215,7 +216,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
             <span className="folha-quem-rotulo">Nova tarefa em</span>
             <Selecao
               rotulo="Empresa" multipla={false} valor={[empresaAtual]} aoMudar={([v]) => v && setEmpresa(v)}
-              opcoes={empresas.map((e) => ({ valor: e.id, rotulo: e.nome }))}
+              opcoes={empresas.map((e) => ({ valor: e.id, rotulo: e.nome, antes: <SeloEmpresa empresaId={e.id} nome={e.nome} tamanho={18} /> }))}
             />
             <Selecao
               rotulo="Responsável" multipla={false} valor={[resp]} aoMudar={([v]) => v && setResp(v as Responsavel)}

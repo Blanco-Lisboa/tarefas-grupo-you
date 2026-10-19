@@ -1,5 +1,6 @@
 "use client";
-import { ETAPAS, REDES, RESPONSAVEIS, TIPOS, type Tarefa } from "@/lib/dados";
+import { ETAPAS, REDES, RESPONSAVEIS, TIPOS, type Rede, type Tarefa } from "@/lib/dados";
+import { IconeRede } from "@/components/ui/Marca";
 import { NOMES } from "@/components/ficha/Ficha";
 import { Selecao } from "@/components/ui/Selecao";
 
@@ -32,7 +33,7 @@ export function BarraFiltros({ filtros, mudar }: { filtros: Filtros; mudar: (f: 
           opcoes={valores.map((v) => ({
             valor: v,
             rotulo: (NOMES[g] as Record<string, string>)[v],
-            antes: g === "responsavel" ? <span className={`evento-bolinha evento-bolinha-${v}`} aria-hidden>{v[0].toUpperCase()}</span> : undefined,
+            antes: g === "responsavel" ? <span className={`evento-bolinha evento-bolinha-${v}`} aria-hidden>{v[0].toUpperCase()}</span> : g === "rede" ? <IconeRede rede={v as Rede} tamanho={16} /> : undefined,
           }))}
         />
       ))}

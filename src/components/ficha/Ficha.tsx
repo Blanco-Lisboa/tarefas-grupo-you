@@ -166,8 +166,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             </div>
           </fieldset>
 
-          <fieldset className="ficha-campo">
-            <legend>Quando</legend>
+          <fieldset className="ficha-campo" aria-label="Quando">
             <div className="ficha-quando">
               {/* Data e hora no mesmo painel (item 76): calendário + rodas de hora e minuto. Dia inteiro = só o calendário. */}
               <div className="ficha-mini">
@@ -199,7 +198,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
           )}
 
           <Campo rotulo="Notas">
-            <textarea rows={3} value={t.notas ?? ""} onChange={(e) => mudar("notas", e.target.value)} placeholder="Ideias, roteiro, combinados..." />
+            <textarea rows={10} value={t.notas ?? ""} onChange={(e) => mudar("notas", e.target.value)} placeholder="Ideias, roteiro, combinados..." />
           </Campo>
 
           <fieldset className="ficha-campo">

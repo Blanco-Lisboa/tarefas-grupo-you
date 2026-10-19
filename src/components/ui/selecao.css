@@ -17,6 +17,7 @@
 .selecao-botao:has(+ .selecao-pop:popover-open) .selecao-seta { transform: rotate(180deg); }
 /* Escolha única: rótulo pequeno em cinza e a escolha em negrito */
 .selecao-rotulo-p { font-size: var(--t-12); font-weight: 500; color: var(--fraco); }
+.selecao-antes { display: inline-flex; align-items: center; flex: none; }
 .selecao-escolha { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--texto); }
 
 .selecao-contador {

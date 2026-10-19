@@ -45,11 +45,17 @@ export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotul
         {multipla || !escolhidas.length ? <span>{rotulo}</span> : <span className="selecao-rotulo-p">{rotulo}</span>}
         {escolhidas.length > 0 &&
           (multipla ? (
-            <span className="selecao-contador" aria-label={`${escolhidas.length} escolhida${escolhidas.length > 1 ? "s" : ""}`}>
-              {escolhidas.length}
-            </span>
+            <>
+              {escolhidas.slice(0, 3).map((o) => o.antes && <span key={o.valor} className="selecao-antes">{o.antes}</span>)}
+              <span className="selecao-contador" aria-label={`${escolhidas.length} escolhida${escolhidas.length > 1 ? "s" : ""}`}>
+                {escolhidas.length}
+              </span>
+            </>
           ) : (
-            <span className="selecao-escolha">{escolhidas[0].rotulo}</span>
+            <>
+              {escolhidas[0].antes && <span className="selecao-antes">{escolhidas[0].antes}</span>}
+              <span className="selecao-escolha">{escolhidas[0].rotulo}</span>
+            </>
           ))}
         <svg className="selecao-seta" viewBox="0 0 24 24" aria-hidden>
           <path d="M6 9l6 6 6-6" />
