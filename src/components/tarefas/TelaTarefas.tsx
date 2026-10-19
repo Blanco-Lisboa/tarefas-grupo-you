@@ -163,7 +163,7 @@ export function TelaTarefas() {
   return (
     <section className="tarefas-tela" data-lado={lado}>
       <div className="tarefas-barra">
-        <h1 className="tarefas-titulo">Tarefas</h1>
+        <h1 className="tarefas-titulo">Caderno</h1>
         <div className="tarefas-grupo">
           <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(somarDias(dia, -1))} aria-label="Dia anterior">Anterior</button>
           <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(hoje)}>Hoje</button>
@@ -185,7 +185,7 @@ export function TelaTarefas() {
           <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={aba === "semdata"} onClick={() => setAba("semdata")}>Sem data</button>
         </div>
         <div className="tarefas-grupo tarefas-lados">
-          <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={lado === "tarefas"} onClick={() => setLado("tarefas")}>Tarefas</button>
+          <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={lado === "tarefas"} onClick={() => setLado("tarefas")}>Caderno</button>
           <button type="button" className="btn btn-2 tarefas-botao" aria-pressed={lado === "agenda"} onClick={() => setLado("agenda")}>Agenda</button>
         </div>
       </div>
@@ -194,7 +194,7 @@ export function TelaTarefas() {
         <div ref={livro} key={aba} className="livro">
           <Folha
             letra={LETRA_PRINCIPAL}
-            titulo="Tarefas"
+            titulo="Caderno"
             subtitulo={[tag + titulo, resumo].filter(Boolean).join(" · ")}
             linhas={linhas}
             rotulos={rotulos}
