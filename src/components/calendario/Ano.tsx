@@ -3,7 +3,7 @@ import type { Tarefa } from "@/lib/dados";
 import { useSoltar, type Acoes } from "./Evento";
 import { diasDoMes, nomeMes } from "./logica";
 
-// Visão ANO: 12 mini-meses; quanto mais tarefas no dia, mais forte o roxo.
+// Visão ANO: 12 mini-meses; quanto mais tarefas no dia, mais forte o azul.
 const LETRAS = ["D", "S", "T", "Q", "Q", "S", "S"];
 const nivel = (n: number) => Math.min(n, 4);
 

@@ -1,20 +1,20 @@
-/* Calendário (tela principal). Só tokens da Beec e da camada do app (globals.css); as cores das tarefas vêm de --etiqueta-N.
-   Rodada 2: de ponta a ponta, sem coluna ao lado (itens 39 e 40); no computador ocupa a altura que sobra da tela e só a
-   grade rola por dentro. Raio 2px, nada de pílula. */
+/* Calendário (tela principal). Só tokens da Névoa (tarefas-tokens.css) e da camada do app (globals.css); as cores das
+   tarefas vêm de --etiqueta-N. De ponta a ponta, sem coluna ao lado (itens 39 e 40); no computador ocupa a altura que
+   sobra da tela e só a grade rola por dentro. Azul só no que se clica e no "hoje". */
 .cal { --gutter: 56px; display: flex; flex-direction: column; gap: var(--s-12); min-width: 0; }
 .cal[aria-busy="true"] { min-height: 60vh; }
 
 /* ---------- barra de cima: navegação, título, ações ----------
-   Botões = .btn/.btn-2 da ID (globals.css): placa a 22°, texto reto em caixa alta, um principal por tela (+ Nova tarefa).
-   A placa inclinada passa 9px da caixa nos cantos (44 × tan 22° / 2): a barra recua isso nas pontas para alinhar com o painel. */
-.cal-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12) var(--s-24); padding-inline: 9px; }
-.cal-navega { display: flex; align-items: center; gap: var(--s-12); }
-.cal-seta { width: 56px; padding: 0; }
+   Botões = .btn/.btn-2 da base (globals.css), um principal por tela (+ Nova tarefa). */
+.cal-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12) var(--s-24); }
+.cal-navega { display: flex; align-items: center; gap: var(--s-8); }
+.cal-seta { width: var(--app-controle); padding: 0; }
 .cal-seta .seta { width: 18px; height: 18px; }
 .cal-seta-volta .seta { transform: scaleX(-1); }
 .cal-titulo { flex: 1 1 280px; min-width: 0; } /* título e contagem sempre em 2 linhas: trocar de visão não muda a altura da barra */
-.cal-titulo h1 { margin: 0; font-size: var(--app-t-titulo); color: var(--cor-roxo); text-wrap: balance; }
-.cal-titulo p { margin: 2px 0 0; font-size: var(--app-t-texto); color: var(--cor-tinta-2); }
+.cal-titulo h1 { margin: 0; font-size: var(--app-t-titulo); color: var(--texto); text-wrap: balance; }
+.cal-titulo-ano { color: var(--fraco); font-weight: 400; }
+.cal-titulo p { margin: 2px 0 0; font-size: var(--app-t-texto); color: var(--fraco); }
 .cal-nova { margin-left: auto; }
 /* 2ª linha: filtros à esquerda; Sem data e Visão (também escolhas) à direita */
 .cal-linha-filtros { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--app-vao) var(--s-24); }
@@ -22,13 +22,11 @@
 
 /* ---------- filtros da tela: botões de seleção da base ---------- */
 .cal-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
-.cal-limpar { height: var(--app-controle); padding: 0 var(--s-8); border: 0; background: none; cursor: pointer; font: 600 var(--app-t-texto) var(--fonte-texto); }
-/* Bolinha da pessoa dentro da lista em vidro roxo: o roxo do Matheus some no roxo, então ganha o contorno bege suave */
-.selecao-lista .evento-bolinha { box-shadow: 0 0 0 1.5px var(--cor-suave); }
+.cal-limpar { height: var(--app-controle); padding: 0 var(--s-8); border: 0; background: none; cursor: pointer; font: 500 var(--app-t-texto) var(--fonte); }
 
-/* ---------- painel do calendário: de ponta a ponta ---------- */
+/* ---------- painel do calendário: card liso de ponta a ponta ---------- */
 .cal-painel-pai { min-width: 0; }
-.cal-painel { --card-corte: 28px; background: var(--cor-superficie); min-width: 0; }
+.cal-painel { background: var(--sup); border-radius: var(--raio-c); box-shadow: var(--sombra); overflow: clip; min-width: 0; }
 @media (min-width: 768px) {
   /* Altura = tela menos a barra da casca (respiro + controle + respiro) e o respiro de baixo da casca (32 = 2 respiros) */
   .cal { height: calc(100dvh - var(--app-controle) - var(--app-respiro) * 4); min-height: 520px; }
@@ -42,8 +40,8 @@
 /* ---------- tarefa (evento) ---------- */
 .evento {
   display: flex; flex-direction: column; gap: 2px; width: 100%; min-width: 0; text-align: left; cursor: grab;
-  background: var(--cor-tarefa); color: var(--cor-tarefa-texto); border: 0; border-radius: var(--raio);
-  font: 600 var(--t-12) / 1.3 var(--fonte-texto); padding: 3px 6px;
+  background: var(--tarefa-fundo); color: var(--tarefa-texto); border: 0; border-radius: 6px;
+  font: 600 var(--t-12) / 1.3 var(--fonte); padding: 3px 6px;
   transition: filter var(--dur-rapida) var(--curva);
 }
 .evento:hover { filter: brightness(.95); }
@@ -54,17 +52,17 @@
 .evento-detalhes { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-weight: 500; font-size: 11px; min-width: 0; }
 .evento-bolinha {
   flex: none; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%;
-  font: var(--numero-peso) 9px / 1 var(--fonte-titulo); color: var(--cor-bege);
+  font: 600 9px / 1 var(--fonte); color: var(--no-azul);
 }
-.evento-bolinha-natham { background: var(--cor-grafite); }
-.evento-bolinha-matheus { background: var(--cor-roxo); }
-/* Selo da empresa: inclina a 22°, o nome não. */
+/* Natham em cinza (branco sobre ele 6,0), Matheus no azul: as duas pessoas se distinguem sem cor nova */
+.evento-bolinha-natham { background: var(--fraco); }
+.evento-bolinha-matheus { background: var(--azul); }
+/* Selo da empresa: pílula branca dentro da cor da tarefa */
 .selo {
-  position: relative; isolation: isolate; flex: none; padding: 0 6px; margin: 0 3px;
-  font: 700 10px / 15px var(--fonte-texto); letter-spacing: .04em; color: var(--cor-tinta); white-space: nowrap;
+  flex: none; padding: 0 6px; margin: 0 3px; border-radius: var(--raio-pilula); background: var(--sup);
+  font: 600 10px / 15px var(--fonte); letter-spacing: .02em; color: var(--texto); white-space: nowrap;
 }
-.selo::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--cor-superficie); border-radius: var(--raio); transform: skewX(var(--angulo)); }
-.evento-bloco { position: absolute; overflow: hidden; z-index: 1; box-shadow: 0 0 0 1px var(--cor-superficie); justify-content: flex-start; }
+.evento-bloco { position: absolute; overflow: hidden; z-index: 1; box-shadow: 0 0 0 1px var(--sup); justify-content: flex-start; }
 .evento-bloco .evento-linha { align-items: flex-start; }
 .evento-bloco .evento-titulo { white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .evento-chip { flex-direction: row; align-items: center; min-height: 22px; }
@@ -82,7 +80,7 @@
   .evento-chip .evento-hora { order: 2; }
   .evento-chip .selo { order: 3; margin-left: 4px; }
 }
-.evento-cartao { padding: var(--s-8) 10px; gap: 6px; font-size: var(--t-14); }
+.evento-cartao { padding: var(--s-8) 10px; gap: 6px; font-size: var(--t-14); border-radius: var(--raio-b); }
 .evento-cartao .evento-titulo { white-space: normal; }
 .evento-cartao .evento-bolinha { width: 20px; height: 20px; font-size: 10px; }
 
@@ -91,68 +89,68 @@
 .grade { min-width: 0; }
 .grade[data-dias="7"] { min-width: 760px; }
 .grade-cabeca, .grade-corpo { display: grid; grid-template-columns: var(--gutter) repeat(var(--colunas), minmax(0, 1fr)); }
-.grade-cabeca { overflow: hidden; scrollbar-gutter: stable; border-bottom: 1px solid var(--cor-linha-forte); }
-.grade-canto-rotulo { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--cor-tinta-2); font-weight: 600; padding: 6px 4px 6px 8px; line-height: 1.15; }
+.grade-cabeca { overflow: hidden; scrollbar-gutter: stable; border-bottom: 1px solid var(--borda); }
+.grade-canto-rotulo { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--fraco); font-weight: 600; padding: 6px 4px 6px 8px; line-height: 1.15; }
 .grade-dia {
   display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--s-16) 4px var(--s-8);
-  background: none; border: 0; border-left: 1px solid var(--cor-linha); cursor: pointer; color: var(--cor-tinta); min-width: 0;
+  background: none; border: 0; border-left: 1px solid var(--linha); cursor: pointer; color: var(--texto); min-width: 0;
 }
-.grade-dia-nome { font-size: var(--t-12); letter-spacing: var(--rotulo-letra); text-transform: uppercase; color: var(--cor-tinta-2); font-weight: 600; }
-.grade-dia-num { display: grid; place-items: center; min-width: 40px; height: 40px; padding: 0 6px; border-radius: var(--raio); font: var(--numero-peso) var(--t-25) var(--fonte-numero); }
-.grade-dia:hover .grade-dia-num { background: var(--cor-kraft-claro); }
-/* Hoje = selo da ID: placa roxa inclinada a 22°, o número reto */
-.grade-dia-num, .mes-numero { position: relative; isolation: isolate; }
-.grade-dia[data-hoje="true"] .grade-dia-num, .mes-celula[data-hoje="true"] .mes-numero { color: var(--cor-bege); background: none; }
-.grade-dia[data-hoje="true"] .grade-dia-num::before, .mes-celula[data-hoje="true"] .mes-numero::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--cor-roxo); transform: skewX(var(--angulo));
+.grade-dia-nome { font-size: var(--t-12); letter-spacing: .06em; text-transform: uppercase; color: var(--fraco); font-weight: 600; }
+.grade-dia-num {
+  display: grid; place-items: center; min-width: 40px; height: 40px; padding: 0 6px;
+  border-radius: var(--raio-pilula); font: 500 var(--t-25) var(--fonte); font-variant-numeric: tabular-nums;
+  transition: background-color var(--dur-rapida) var(--curva);
 }
-.grade-dia[data-hoje="true"] .grade-dia-nome { color: var(--cor-eletrico); }
-.grade-dia-total { font-size: 11px; color: var(--cor-tinta-2); }
+.grade-dia:hover .grade-dia-num { background: var(--realce); }
+/* Hoje = círculo azul (pílula no mês, onde cabe "1 de out"), como o vermelho do Calendário da Apple */
+.grade-dia[data-hoje="true"] .grade-dia-num, .mes-celula[data-hoje="true"] .mes-numero { background: var(--azul); color: var(--no-azul); }
+.grade-dia[data-hoje="true"]:hover .grade-dia-num, .mes-celula[data-hoje="true"] .mes-numero:hover { background: var(--azul-hover); }
+.grade-dia[data-hoje="true"] .grade-dia-nome { color: var(--azul); }
+.grade-dia-total { font-size: 11px; color: var(--fraco); }
 .grade-topo {
   container-type: inline-size; display: flex; flex-direction: column; gap: 2px; min-height: 40px; max-height: 104px; overflow-y: auto; padding: 4px 3px;
-  border-left: 1px solid var(--cor-linha); border-top: 1px solid var(--cor-linha); min-width: 0; cursor: copy;
+  border-left: 1px solid var(--linha); border-top: 1px solid var(--linha); min-width: 0; cursor: copy;
 }
-.grade-canto-rotulo { border-top: 1px solid var(--cor-linha); }
+.grade-canto-rotulo { border-top: 1px solid var(--linha); }
 .grade-rolagem { max-height: max(420px, calc(100dvh - 330px)); overflow-y: auto; scrollbar-gutter: stable; }
 .grade-corpo { position: relative; height: calc(24 * 48px); }
 .grade-horas { position: relative; }
-.grade-horas span { position: absolute; right: 8px; transform: translateY(-50%); font-size: 11px; color: var(--cor-tinta-2); }
+.grade-horas span { position: absolute; right: 8px; transform: translateY(-50%); font-size: 11px; color: var(--fraco); }
 .grade-coluna {
-  container-type: inline-size; position: relative; min-width: 0; border-left: 1px solid var(--cor-linha); cursor: copy;
+  container-type: inline-size; position: relative; min-width: 0; border-left: 1px solid var(--linha); cursor: copy;
   background:
-    repeating-linear-gradient(to bottom, var(--cor-linha) 0 1px, transparent 1px 48px),
-    repeating-linear-gradient(to bottom, transparent 0 24px, var(--cor-grafico-grade-2) 24px 25px, transparent 25px 48px);
+    repeating-linear-gradient(to bottom, var(--linha) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(to bottom, transparent 0 24px, rgb(0 0 0 / 0.04) 24px 25px, transparent 25px 48px);
 }
-.grade-coluna[data-hoje="true"], .grade-topo[data-hoje="true"] { background-color: rgba(230, 220, 200, .28); }
 .grade-coluna .evento-bloco { cursor: grab; }
 .grade-fantasma {
-  position: absolute; left: 2px; right: 2px; z-index: 2; pointer-events: none; border: 2px dashed var(--cor-eletrico); border-radius: var(--raio);
-  background: rgba(115, 25, 241, .06); color: var(--cor-eletrico); font: 700 11px var(--fonte-texto); padding: 2px 6px;
+  position: absolute; left: 2px; right: 2px; z-index: 2; pointer-events: none; border: 2px dashed var(--azul); border-radius: 6px;
+  background: var(--azul-claro); color: var(--azul); font: 600 11px var(--fonte); padding: 2px 6px;
 }
-.grade-agora { position: absolute; left: 0; right: 0; height: 2px; background: var(--cor-eletrico); z-index: 3; pointer-events: none; }
-.grade-agora::before { content: ""; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; background: var(--cor-eletrico); transform: skewX(var(--angulo)); }
-.grade-topo[data-alvo="true"] { background: rgba(115, 25, 241, .08); outline: 2px dashed var(--cor-eletrico); outline-offset: -2px; }
+.grade-agora { position: absolute; left: 0; right: 0; height: 2px; background: var(--azul); z-index: 3; pointer-events: none; }
+.grade-agora::before { content: ""; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--azul); }
+.grade-topo[data-alvo="true"] { background: var(--azul-claro); outline: 2px dashed var(--azul); outline-offset: -2px; }
 [data-visao="dia"] .evento-bloco { font-size: var(--t-14); padding: 6px 10px; }
 [data-visao="dia"] .evento-detalhes { font-size: var(--t-12); }
 
 /* ---------- mês ---------- */
 .mes { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto repeat(var(--semanas), minmax(124px, auto)); }
-.mes-semana { padding: var(--s-12) var(--s-8) var(--s-8); text-align: center; font-size: var(--t-12); letter-spacing: var(--rotulo-letra); text-transform: uppercase; color: var(--cor-tinta-2); font-weight: 600; border-bottom: 1px solid var(--cor-linha-forte); }
+.mes-semana { padding: var(--s-12) var(--s-8) var(--s-8); text-align: center; font-size: var(--t-12); letter-spacing: .06em; text-transform: uppercase; color: var(--fraco); font-weight: 600; border-bottom: 1px solid var(--borda); }
 .mes-celula {
   container-type: inline-size; display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 4px 4px 6px; cursor: copy;
-  border-right: 1px solid var(--cor-linha); border-bottom: 1px solid var(--cor-linha);
+  border-right: 1px solid var(--linha); border-bottom: 1px solid var(--linha);
 }
 .mes-celula:nth-child(7n + 7) { border-right: 0; }
-.mes-celula[data-fora="true"] { background: rgba(230, 220, 200, .3); }
-.mes-celula[data-fora="true"] .mes-numero { color: var(--cor-tinta-2); }
-.mes-celula[data-alvo="true"] { background: rgba(115, 25, 241, .08); outline: 2px dashed var(--cor-eletrico); outline-offset: -2px; }
+.mes-celula[data-fora="true"] { background: var(--sup-2); }
+.mes-celula[data-fora="true"] .mes-numero { color: var(--fraco); }
+.mes-celula[data-alvo="true"] { background: var(--azul-claro); outline: 2px dashed var(--azul); outline-offset: -2px; }
 .mes-numero {
-  align-self: center; min-width: 28px; height: 26px; padding: 0 6px; margin-bottom: 2px; border: 0; border-radius: var(--raio); background: none; cursor: pointer;
-  font: var(--numero-peso) var(--t-14) var(--fonte-numero); color: var(--cor-tinta);
+  align-self: center; min-width: 28px; height: 26px; padding: 0 8px; margin-bottom: 2px; border: 0; border-radius: var(--raio-pilula); background: none; cursor: pointer;
+  font: 500 var(--t-14) var(--fonte); font-variant-numeric: tabular-nums; color: var(--texto);
 }
-.mes-numero:hover { background: var(--cor-kraft-claro); }
-.mes-mais { align-self: flex-start; border: 0; background: none; padding: 2px 4px; cursor: pointer; font: 700 var(--t-12) var(--fonte-texto); color: var(--cor-roxo); border-radius: var(--raio); }
-.mes-mais:hover { background: var(--cor-kraft-claro); }
+.mes-numero:hover { background: var(--realce); }
+.mes-mais { align-self: flex-start; border: 0; background: none; padding: 2px 4px; cursor: pointer; font: 600 var(--t-12) var(--fonte); color: var(--azul); border-radius: 6px; }
+.mes-mais:hover { background: var(--realce); }
 @media (max-width: 767px) {
   .mes { grid-template-rows: auto repeat(var(--semanas), minmax(72px, auto)); }
   .mes-semana { padding-inline: 0; letter-spacing: 0; }
@@ -167,42 +165,43 @@
 .ano { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--s-24) var(--s-32); }
 .ano-titulo {
   display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-8); width: 100%; padding: 0 0 6px; margin-bottom: 6px;
-  background: none; border: 0; border-bottom: 2px solid var(--cor-linha); cursor: pointer; text-align: left;
-  font: var(--titulo-peso) var(--t-20) var(--fonte-titulo); letter-spacing: var(--titulo-espaco); color: var(--cor-roxo);
+  background: none; border: 0; border-bottom: 2px solid var(--linha); cursor: pointer; text-align: left;
+  font: var(--titulo-peso) var(--t-20) var(--fonte); letter-spacing: var(--titulo-espaco); color: var(--texto);
 }
-.ano-titulo span { font: 600 var(--t-12) var(--fonte-texto); color: var(--cor-tinta-2); letter-spacing: 0; }
+.ano-titulo span { font: 500 var(--t-12) var(--fonte); color: var(--fraco); letter-spacing: 0; }
 .ano-titulo { position: relative; }
-/* Mês atual e passar o mouse: traço elétrico em ponta de barra (pontas cortadas a 22°) por cima da linha */
-.ano-titulo::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px; background: var(--cor-eletrico); clip-path: polygon(1.2px 0, 100% 0, calc(100% - 1.2px) 100%, 0 100%); opacity: 0; transition: opacity var(--dur-rapida) var(--curva); }
+/* Mês atual e passar o mouse: traço azul de ponta redonda por cima da linha */
+.ano-titulo::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px; border-radius: 2px; background: var(--azul); opacity: 0; transition: opacity var(--dur-rapida) var(--curva); }
 .ano-titulo:hover::after, .ano-mes[data-atual="true"] .ano-titulo::after { opacity: 1; }
 .ano-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
-.ano-letra { text-align: center; font-size: 10px; font-weight: 600; color: var(--cor-tinta-2); }
+.ano-letra { text-align: center; font-size: 10px; font-weight: 600; color: var(--fraco); }
 .ano-dia {
-  height: 26px; display: grid; place-items: center; padding: 0; border: 0; border-radius: var(--raio); cursor: pointer;
-  font: 500 11px var(--fonte-texto); color: var(--cor-tinta); background: rgba(26, 16, 36, .03);
+  height: 26px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 6px; cursor: pointer;
+  font: 500 11px var(--fonte); color: var(--texto); background: rgb(0 0 0 / 0.03);
 }
-.ano-dia[data-nivel="1"] { background: rgba(42, 7, 90, .16); }
-.ano-dia[data-nivel="2"] { background: rgba(42, 7, 90, .34); }
-.ano-dia[data-nivel="3"] { background: rgba(42, 7, 90, .62); color: var(--cor-bege); }
-.ano-dia[data-nivel="4"] { background: var(--cor-roxo); color: var(--cor-bege); font-weight: 700; }
-.ano-dia[data-hoje="true"] { outline: 2px solid var(--cor-eletrico); outline-offset: 1px; font-weight: 800; }
-.ano-dia[data-alvo="true"] { outline: 2px dashed var(--cor-eletrico); }
-.ano-dia:hover { outline: 1px solid var(--cor-roxo); }
-.ano-legenda { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin: var(--s-24) 0 0; font-size: var(--t-12); color: var(--cor-tinta-2); }
+/* Mais tarefas, azul mais forte. Até o 3 a letra é a do texto (7,5 sobre o 3); no 4, branco sobre o azul cheio (5,68) */
+.ano-dia[data-nivel="1"] { background: rgb(0 100 204 / 0.12); }
+.ano-dia[data-nivel="2"] { background: rgb(0 100 204 / 0.26); }
+.ano-dia[data-nivel="3"] { background: rgb(0 100 204 / 0.45); }
+.ano-dia[data-nivel="4"] { background: var(--azul); color: var(--no-azul); font-weight: 600; }
+.ano-dia[data-hoje="true"] { outline: 2px solid var(--azul); outline-offset: 1px; font-weight: 700; }
+.ano-dia[data-alvo="true"] { outline: 2px dashed var(--azul); }
+.ano-dia:hover { outline: 1px solid var(--azul); }
+.ano-legenda { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin: var(--s-24) 0 0; font-size: var(--t-12); color: var(--fraco); }
 .ano-legenda .ano-dia { width: 14px; height: 14px; cursor: default; }
 
-/* ---------- Sem data: botão (classes do botão de seleção) + lista em vidro roxo com orelhas (submenu da ID) ---------- */
-.cal-semdata-botao[data-alvo="true"] { border-color: var(--cor-eletrico); outline: 2px dashed var(--cor-eletrico); outline-offset: 3px; }
+/* ---------- Sem data: botão (classes do botão de seleção) + lista em vidro, como a lista da seleção ---------- */
+.cal-semdata-botao[data-alvo="true"] { border-color: var(--azul); outline: 2px dashed var(--azul); outline-offset: 3px; }
 .selecao-pop.cal-semdata-pop { width: min(360px, calc(100vw - 24px)); position-area: bottom span-left; }
 .cal-semdata-pop[data-arrastando="true"] { opacity: .3; pointer-events: none; }
 .cal-semdata {
-  --card-corte: 26px;
   display: flex; flex-direction: column; gap: var(--s-8); max-height: min(620px, calc(100dvh - 150px));
   padding: var(--s-24) var(--s-16) var(--s-16) var(--s-24);
-  background: var(--vidro-roxo); -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); color: var(--cor-bege);
+  background: var(--vidro-forte); border: 1px solid var(--vidro-linha); border-radius: var(--raio-v); box-shadow: var(--sombra-lista);
+  -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); color: var(--texto);
 }
-.cal-semdata h2 { margin: 0; font-size: var(--app-t-secao); color: var(--cor-bege); }
-.cal-semdata > p { margin: 0 0 var(--s-8); font-size: var(--app-t-texto); line-height: 1.45; color: var(--cor-suave); }
-.cal-semdata-lista { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; overflow-y: auto; padding: 2px; margin: 0 -2px; scrollbar-color: var(--cor-linha-escuro) transparent; }
-.cal-semdata-vazio { margin: 0; padding: var(--s-16) 0; font-size: var(--app-t-texto); color: var(--cor-suave); }
-.cal-semdata-nova { align-self: flex-start; margin: var(--s-12) 0 4px 9px; }
+.cal-semdata h2 { margin: 0; font-size: var(--app-t-secao); color: var(--texto); }
+.cal-semdata > p { margin: 0 0 var(--s-8); font-size: var(--app-t-texto); line-height: 1.45; color: var(--fraco); }
+.cal-semdata-lista { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; overflow-y: auto; padding: 2px; margin: 0 -2px; scrollbar-color: var(--borda) transparent; }
+.cal-semdata-vazio { margin: 0; padding: var(--s-16) 0; font-size: var(--app-t-texto); color: var(--fraco); }
+.cal-semdata-nova { align-self: flex-start; margin: var(--s-12) 0 4px; }

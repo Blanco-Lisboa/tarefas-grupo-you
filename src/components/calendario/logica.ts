@@ -51,7 +51,7 @@ export const nomeSemana = (dia: string, tamanho: "short" | "long" = "short") =>
 export const diaCurto = (dia: string) => `${Number(dia.slice(8, 10))}/${dia.slice(5, 7)}`;
 export const horaCurta = (hora: string) => hora.slice(11, 16);
 
-/** Título do período e o ano (o ano vai em destaque na tela). */
+/** Título do período e o ano (o ano sai em cinza ao lado). */
 export function tituloPeriodo(visao: Visao, dia: string): [string, string] {
   const ano = dia.slice(0, 4);
   if (visao === "ano") return ["", ano];

@@ -98,7 +98,7 @@ function Calendario({ agora }: { agora: string }) {
           </button>
         </div>
         <div className="cal-titulo">
-          <h1>{titulo} <span className="destaque">{ano}</span></h1>
+          <h1>{titulo ? <>{titulo} <span className="cal-titulo-ano">{ano}</span></> : ano}</h1>
           <p>{noPeriodo ? `${noPeriodo} ${noPeriodo === 1 ? "tarefa" : "tarefas"} neste período` : "Nenhuma tarefa neste período"}</p>
         </div>
         <button type="button" className="btn cal-nova" onClick={() => acoes.criar(null)}>+ Nova tarefa</button>
@@ -118,8 +118,8 @@ function Calendario({ agora }: { agora: string }) {
         </div>
       </div>
 
-      <div className="cal-painel-pai corte-sombra">
-        <div className="cal-painel corte-22" data-visao={visao}>
+      <div className="cal-painel-pai">
+        <div className="cal-painel" data-visao={visao}>
           {(visao === "dia" || visao === "semana") && (
             <Grade key={visao} dias={visao === "dia" ? [cursor] : diasDaSemana(cursor)} mapa={mapa} agora={agora} acoes={acoes} />
           )}
@@ -134,8 +134,8 @@ function Calendario({ agora }: { agora: string }) {
 }
 
 /** "Sem data" (item 39): botão com contador que abre a lista por cima do calendário. Mesmo visual do botão de seleção
-    da base (reaproveita as classes de ui/selecao.css): campo da ID e lista em vidro roxo com orelhas, como o submenu do
-    site da ID. Soltar uma tarefa NO BOTÃO tira a data dela. */
+    da base (reaproveita as classes de ui/selecao.css), com a lista em vidro como a da seleção.
+    Soltar uma tarefa NO BOTÃO tira a data dela. */
 function SemData({ lista, acoes }: { lista: Tarefa[]; acoes: Acoes }) {
   const id = useId();
   const pop = useRef<HTMLDivElement>(null);
@@ -183,14 +183,14 @@ function SemData({ lista, acoes }: { lista: Tarefa[]; acoes: Acoes }) {
         style={{ positionAnchor: ancora } as CSSProperties}
         onDragStart={comecar}
       >
-        <section className="cal-semdata corte-22 no-escuro" aria-label="Tarefas sem data">
-          <h2>Sem <span className="destaque">data</span></h2>
+        <section className="cal-semdata" aria-label="Tarefas sem data">
+          <h2>Sem data</h2>
           <p>Arraste uma tarefa para um dia ou horário. Para tirar a data, solte a tarefa no botão Sem data.</p>
           <div className="cal-semdata-lista">
             {lista.map((t) => <Evento key={t.id} t={t} modo="cartao" abrir={acoes.abrir} />)}
             {!lista.length && <p className="cal-semdata-vazio">Nada sem data com estes filtros.</p>}
           </div>
-          <button type="button" className="btn btn-claro cal-semdata-nova" onClick={() => acoes.criar(null)}>+ Tarefa sem data</button>
+          <button type="button" className="btn btn-2 cal-semdata-nova" onClick={() => acoes.criar(null)}>+ Tarefa sem data</button>
         </section>
       </div>
     </>

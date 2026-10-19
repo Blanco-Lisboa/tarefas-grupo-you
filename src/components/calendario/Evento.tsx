@@ -31,7 +31,7 @@ export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "blo
       type="button"
       draggable
       className={`evento evento-${modo}${curto ? " evento-curto" : ""}`}
-      style={{ "--cor-tarefa": `var(--${t.cor})`, "--cor-tarefa-texto": `var(--${t.cor}-texto)`, ...style } as CSSProperties}
+      style={{ "--tarefa-fundo": `var(--${t.cor})`, "--tarefa-texto": `var(--${t.cor}-texto)`, ...style } as CSSProperties}
       title={`${t.titulo}\n${empresa} · ${pessoa}${hora ? ` · ${hora}` : ""}${detalhes ? `\n${detalhes}` : ""}`}
       onDragStart={(e) => { e.dataTransfer.setData("text/plain", t.id); e.dataTransfer.effectAllowed = "move"; }}
       onClick={(e) => { e.stopPropagation(); abrir(t); }}
