@@ -70,7 +70,8 @@ export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem
     const passo = PASSO[e.key];
     if (!passo) return;
     e.preventDefault();
-    const novo = passo(foco);
+    // Parte do dia que está de fato focado: depois das setas de mês, o foco do estado ainda é do mês antigo (revisão R4)
+    const novo = passo((e.target as HTMLElement).dataset.dia ?? foco);
     setFoco(novo);
     setMes(mesDe(novo));
   };
