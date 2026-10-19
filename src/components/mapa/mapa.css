@@ -103,7 +103,7 @@
 .mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:last-of-type) .mapa-faixa-titulo { display: block !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
 .mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:last-of-type) :is(.mapa-objetivo, .mapa-info) { display: none !important; }
 }
-.mapa-card:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; z-index: 20; }
+.mapa-card:focus-visible { z-index: 20; } /* o contorno vem da base: 1px azul sólido (globals.css) */
 /* folha fantasma: sugere que o cartão é uma pilha de um */
 .mapa-fantasma {
   position: absolute; left: 7px; right: -7px; top: 6px; height: var(--card-h); border-radius: var(--raio-b); z-index: 0;
@@ -125,7 +125,6 @@
 }
 .mapa-bloco span { display: block; }
 .mapa-objetivo { font-size: 15px; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-.mapa-card:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
 .mapa-data { font-size: 12px; font-weight: 600; color: var(--texto); }
 .mapa-info { display: flex !important; flex-wrap: nowrap; min-width: 0; align-items: center; gap: 0 7px; }
 .mapa-meta { font-size: 12px; color: var(--fraco); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
