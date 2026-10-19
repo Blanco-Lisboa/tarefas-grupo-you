@@ -1,8 +1,10 @@
 "use client";
-import { useEmpresas, usePecas, type Peca, type TipoPeca } from "@/lib/dados";
+import { useState } from "react";
+import { useEmpresas, useIdeias, usePecas, type Empresa, type Peca, type TipoPeca } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
-import { hashString, RECEITAS } from "./arte";
-import { paint } from "./ArteCanvas";
+import { receitaDaEmpresa, tomDaEmpresa } from "./cores";
+import { CardIdeias } from "./CardIdeias";
+import { CardPeca } from "./CardPeca";
 import { PastaDeVidro } from "./PastaDeVidro";
 
 const PASTAS: { tipo: TipoPeca; rotulo: string }[] = [
@@ -11,42 +13,55 @@ const PASTAS: { tipo: TipoPeca; rotulo: string }[] = [
   { tipo: "video", rotulo: "Vídeos" },
   { tipo: "story", rotulo: "Stories" },
 ];
-// Tamanho real de cada formato. Na Fase 2 o arquivo vem do sistema; por enquanto é uma imagem de exemplo gerada aqui.
-const TAMANHO: Record<TipoPeca, [number, number]> = { post: [1080, 1350], carrossel: [1080, 1350], story: [1080, 1920], video: [1080, 1920] };
 
-async function baixar(p: Peca) {
-  const [w, h] = TAMANHO[p.tipo];
-  const tela = await paint(RECEITAS[p.tipo], hashString(p.titulo) % 997, w, h, 2);
-  const blob = await new Promise<Blob | null>((ok) => tela.toBlob(ok, "image/png"));
-  if (!blob) return;
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `${p.titulo.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.png`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
+// Uma empresa: as pastas dela na cor dela e o card flutuante (peça ou ideias) que abre ao clicar num cartão.
+function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
+  const { ideias } = useIdeias(empresa.id);
+  const [aberto, setAberto] = useState<{ peca: Peca } | { ideias: string } | null>(null);
+  const t = tomDaEmpresa(empresa.id);
+  const tom = { base: t.r, sombra: `${t.g}99` };
+  const categorias = [...new Set(ideias.map((i) => i.categoria))];
 
-function Grade({ pecas }: { pecas: Peca[] }) {
   return (
-    <div className="pastas-grade">
-      {PASTAS.map(({ tipo, rotulo }, i) => {
-        const daPasta = pecas.filter((p) => p.tipo === tipo);
-        return (
-          <div key={tipo} className="pastas-cel">
+    <div className="pastas-empresa">
+      <h2>
+        {empresa.nome} <small>{pecas.length} peças</small>
+      </h2>
+      <div className="pastas-grade">
+        {PASTAS.map(({ tipo, rotulo }, i) => {
+          const daPasta = pecas.filter((p) => p.tipo === tipo);
+          const arte = receitaDaEmpresa(tipo, empresa.id);
+          return (
+            <div key={tipo} className="pastas-cel">
+              <PastaDeVidro
+                rotulo={rotulo}
+                tom={tom}
+                arte={arte}
+                seed={3 + i * 4}
+                atraso={i * 120}
+                arquivos={daPasta.map((p) => ({ nome: p.titulo, meta: p.meta, arte }))}
+                onSelecionar={(a) => {
+                  const peca = daPasta.find((p) => p.titulo === a.nome);
+                  if (peca) setAberto({ peca });
+                }}
+              />
+            </div>
+          );
+        })}
+        <div className="pastas-cel">
           <PastaDeVidro
-            rotulo={rotulo}
-            arte={RECEITAS[tipo]}
-            seed={3 + i * 4}
-            atraso={i * 120}
-            arquivos={daPasta.map((p) => ({ nome: p.titulo, meta: p.meta, arte: RECEITAS[tipo], href: p.link }))}
-            onSelecionar={(a) => {
-              const peca = daPasta.find((p) => p.titulo === a.nome);
-              if (peca && !peca.link) void baixar(peca);
-            }}
+            rotulo="Ideias de conteúdo"
+            tom={tom}
+            arte={receitaDaEmpresa("story", empresa.id)}
+            seed={19}
+            atraso={4 * 120}
+            arquivos={categorias.map((c) => ({ nome: c, meta: `${ideias.filter((i) => i.categoria === c).length} ideias`, arte: receitaDaEmpresa("story", empresa.id) }))}
+            onSelecionar={(a) => setAberto({ ideias: a.nome })}
           />
-          </div>
-        );
-      })}
+        </div>
+      </div>
+      {aberto && "peca" in aberto && <CardPeca peca={aberto.peca} empresa={empresa} aoFechar={() => setAberto(null)} />}
+      {aberto && "ideias" in aberto && <CardIdeias empresaId={empresa.id} inicio={aberto.ideias} aoFechar={() => setAberto(null)} />}
     </div>
   );
 }
@@ -62,21 +77,13 @@ export function TelaPastas() {
     <section className="pastas">
       <header className="pastas-topo">
         <h1>Pastas</h1>
-        <p>Peças prontas de cada empresa. Abra uma pasta e clique na peça: imagem baixa, vídeo abre no Drive.</p>
+        <p>Peças prontas e ideias de cada empresa. Abra uma pasta e clique no cartão para ver as informações.</p>
       </header>
 
       {mostradas.length === 0 && <p className="pastas-vazio">Nenhuma empresa para o filtro atual.</p>}
-      {mostradas.map((e) => {
-        const dela = visiveis.filter((p) => p.empresaId === e.id);
-        return (
-          <div key={e.id} className="pastas-empresa">
-            <h2>
-              {e.nome} <small>{dela.length} peças</small>
-            </h2>
-            <Grade pecas={dela} />
-          </div>
-        );
-      })}
+      {mostradas.map((e) => (
+        <Faixa key={e.id} empresa={e} pecas={visiveis.filter((p) => p.empresaId === e.id)} />
+      ))}
     </section>
   );
 }

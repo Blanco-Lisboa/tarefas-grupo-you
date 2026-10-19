@@ -11,3 +11,4 @@ export const useTarefas = () => useSyncExternalStore(assinar, lerTarefas, lerTar
 /** Todas as empresas cadastradas. */
 export const useEmpresas = () => useSyncExternalStore(assinar, lerEmpresas, lerEmpresas);
 export * from "./pecas";
+export * from "./ideias";
