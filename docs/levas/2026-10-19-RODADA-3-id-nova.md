@@ -92,3 +92,18 @@ Fotos: `provas/r3-base-nevoa/` (todas as telas em 1903, 1440 e 390; seleção ab
   `.destaque`...) apontam para a Névoa, para nada quebrar. Por isso hoje os títulos das telas saem azuis (eram roxos) e os
   blocos escuros saem azuis. Na Fase 2 cada dono troca os nomes velhos no seu território; o último apaga a ponte e o @import.
 - Casca: menu de vidro claro grudado, nome "Tarefas" com a inicial num quadrado azul, ícones de traço, recolher lembra o estado.
+
+### FASE 2 · liberada pelo Maestro em 19/10 (base 5e2f4a4 conferida por foto)
+Leia ANTES a seção "Base Névoa pronta" acima (tokens, classes, `.bloco-destaque`, a ponte temporária).
+Para cada dono, no seu território:
+1. Troque todo nome velho da Beec (`--cor-roxo`, `.corte-22`, `.no-escuro`, `.destaque`, `--cor-*`, `--app-*` antigos, orelha,
+   corda de pontinhos, placa, kraft, ouro) pelos tokens/classes da Névoa. Ao fim: `grep` no seu território sem nenhum nome velho.
+2. Referência visual: o modelo 1 de `/modelos` (título em cor de TEXTO, não azul; azul só no que se clica e no bloco de destaque).
+   Use o `.bloco-destaque` azul em 1 ou 2 pontos de destaque da tela (ex.: número do mês), não em tudo.
+3. Achados do Maestro nas fotos da base: título da tela está saindo AZUL (efeito da ponte, deve ser cor de texto);
+   coluna de "hoje" do calendário tem fundo bege (sobra da Beec); paleta de etiquetas (item 25) continua, mas confira se
+   combina com a Névoa (tons um pouco mais suaves se gritar).
+4. Prova: fotos 1903, 1440 e 390 da sua tela em `provas/r3-nevoa-<seu-nome>/` + lint + typecheck. Olhe as fotos antes de dizer pronto.
+5. NÃO apague `ponte-beec.css` nem mexa em base/casca: se faltar algo na base, avise o Maestro.
+Territórios: Sextante = calendário · Alvenaria = mapa (laranja sai, azul entra) · Pena = tarefas (letra de mão fica DENTRO da folha) ·
+Vitral = pastas · Régua = conteúdos, configurações, ficha.
