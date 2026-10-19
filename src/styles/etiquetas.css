@@ -1,18 +1,19 @@
 /* Paleta de etiquetas das tarefas (exceção visual aprovada pelo Natham em 18/10/2026, brief seção 5).
    Cada tarefa tem a sua cor, como no Google Agenda. Usar SÓ em etiqueta/evento, nunca em fundo de tela, botão ou texto solto.
-   Por que estas cores: tons quentes e terrosos, no mesmo "papel e tinta" da Beec (ouro, terracota, sálvia, oliva, kraft)
-   mais dois fechados (floresta, petróleo). Sem azul junto de roxo, sem neon, sem rosa/magenta/lilás.
+   Re-harmonizada com a Névoa (item 60, 19/10): as cores do sistema da Apple, suavizadas. Seis claras com letra escura e
+   quatro fechadas com letra branca. Mesma ordem de antes (cada tarefa guarda a sua cor, só o tom mudou). Sem terrosos e
+   sem o azul #0064CC, que é do que se clica.
    Cada etiqueta tem o par --etiqueta-N (fundo) e --etiqueta-N-texto (letra). Contraste da letra sobre o fundo
    (fórmula da W3C), mínimo exigido 4,5: */
 :root {
-  --etiqueta-1:  #F2C14E; --etiqueta-1-texto:  #1A1024;  /* ouro suave · tinta 10,94 */
-  --etiqueta-2:  #EBA27C; --etiqueta-2-texto:  #1A1024;  /* pêssego · tinta 8,74 */
-  --etiqueta-3:  #A9C79B; --etiqueta-3-texto:  #1A1024;  /* sálvia · tinta 9,91 */
-  --etiqueta-4:  #CCD07F; --etiqueta-4-texto:  #1A1024;  /* oliva claro · tinta 11,28 */
-  --etiqueta-5:  #D7C39B; --etiqueta-5-texto:  #1A1024;  /* areia · tinta 10,64 */
-  --etiqueta-6:  #DE8A72; --etiqueta-6-texto:  #1A1024;  /* terracota claro · tinta 6,98 */
-  --etiqueta-7:  #8E3B2F; --etiqueta-7-texto:  #F6F2EA;  /* tijolo · bege 6,68 */
-  --etiqueta-8:  #2F5D46; --etiqueta-8-texto:  #F6F2EA;  /* floresta · bege 6,78 */
-  --etiqueta-9:  #7A6416; --etiqueta-9-texto:  #F6F2EA;  /* oliva escuro · bege 5,14 */
-  --etiqueta-10: #1F5F63; --etiqueta-10-texto: #F6F2EA;  /* petróleo · bege 6,54 */
+  --etiqueta-1:  #F7CE46; --etiqueta-1-texto:  #1D1D1F;  /* amarelo · texto 11,12 */
+  --etiqueta-2:  #FFB07A; --etiqueta-2-texto:  #1D1D1F;  /* laranja claro · texto 9,41 */
+  --etiqueta-3:  #8FD9A0; --etiqueta-3-texto:  #1D1D1F;  /* verde claro · texto 10,10 */
+  --etiqueta-4:  #7DD8D2; --etiqueta-4-texto:  #1D1D1F;  /* menta · texto 10,12 */
+  --etiqueta-5:  #C9BBF7; --etiqueta-5-texto:  #1D1D1F;  /* lavanda · texto 9,56 */
+  --etiqueta-6:  #FF9FB0; --etiqueta-6-texto:  #1D1D1F;  /* rosa · texto 8,69 */
+  --etiqueta-7:  #C4302B; --etiqueta-7-texto:  #FFFFFF;  /* vermelho · branco 5,52 */
+  --etiqueta-8:  #23813A; --etiqueta-8-texto:  #FFFFFF;  /* verde · branco 4,91 */
+  --etiqueta-9:  #8944AB; --etiqueta-9-texto:  #FFFFFF;  /* roxo · branco 6,04 */
+  --etiqueta-10: #0A7A84; --etiqueta-10-texto: #FFFFFF;  /* azul-petróleo · branco 5,08 */
 }
