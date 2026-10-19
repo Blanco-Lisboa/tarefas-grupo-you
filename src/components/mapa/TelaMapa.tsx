@@ -37,7 +37,7 @@ export function TelaMapa() {
       </header>
 
       <dl className="mapa-resumo">
-        <div><dt>A postar</dt><dd>{aPostar.length}</dd></div>
+        <div className="bloco-destaque"><dt>A postar</dt><dd>{aPostar.length}</dd></div>
         <div><dt>Já postados no mês</dt><dd>{postadosNoMes(todos)}</dd></div>
         <div><dt>Próxima postagem</dt><dd className="mapa-resumo-data">{proximo ? `${nomeSemana(proximo)}, ${diaCurto(proximo)}` : "Nenhuma"}</dd></div>
       </dl>
