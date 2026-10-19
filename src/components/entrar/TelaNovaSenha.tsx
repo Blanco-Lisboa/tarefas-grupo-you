@@ -1,9 +1,8 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/lib/supabase/cliente";
-import "./entrar.css";
+import { CampoEntrar, CartaoEntrar } from "./CartaoEntrar";
 
 const MINIMO = 8;
 
@@ -36,31 +35,20 @@ export function TelaNovaSenha() {
   }
 
   return (
-    <main className="entrar">
-      <div className="entrar-cartao">
-        <div className="entrar-marca">
-          <Image className="entrar-logo" src="/marca/fivecon.png" alt="" width={483} height={512} priority />
-          <span className="entrar-nome">Tarefas</span>
-        </div>
-        <h1 className="entrar-titulo">Escolha sua senha</h1>
-        {pronto === "nao" ? (
-          <>
-            <p className="entrar-texto">Este link venceu ou não é seu. Peça um novo convite ao Natham.</p>
-            <Link className="lnk" href="/entrar">Voltar para Entrar</Link>
-          </>
-        ) : (
-          <form className="entrar-form" onSubmit={definir}>
-            <label className="entrar-campo">Nova senha
-              <input type="password" name="senha" autoComplete="new-password" required minLength={MINIMO} value={senha} onChange={(e) => setSenha(e.target.value)} />
-            </label>
-            <label className="entrar-campo">Repita a senha
-              <input type="password" name="repetida" autoComplete="new-password" required value={repetida} onChange={(e) => setRepetida(e.target.value)} />
-            </label>
-            {erro && <p className="entrar-erro" role="alert">{erro}</p>}
-            <button type="submit" className="btn" disabled={enviando || pronto !== "sim"}>{enviando ? "Salvando…" : "Salvar e entrar"}</button>
-          </form>
-        )}
-      </div>
-    </main>
+    <CartaoEntrar
+      titulo="Escolha sua senha"
+      texto={pronto === "nao" ? "Este link venceu ou não é seu. Peça um novo convite ao Natham." : `Use pelo menos ${MINIMO} caracteres.`}
+    >
+      {pronto === "nao" ? (
+        <Link className="lnk" href="/entrar">Voltar para Entrar</Link>
+      ) : (
+        <form className="entrar-form" onSubmit={definir}>
+          <CampoEntrar rotulo="Nova senha" icone="senha" type="password" name="senha" autoComplete="new-password" required minLength={MINIMO} value={senha} onChange={(e) => setSenha(e.target.value)} />
+          <CampoEntrar rotulo="Repita a senha" icone="senha" type="password" name="repetida" autoComplete="new-password" required value={repetida} onChange={(e) => setRepetida(e.target.value)} />
+          {erro && <p className="entrar-erro" role="alert">{erro}</p>}
+          <button type="submit" className="btn" disabled={enviando || pronto !== "sim"}>{enviando ? "Salvando…" : "Salvar e entrar"}</button>
+        </form>
+      )}
+    </CartaoEntrar>
   );
 }

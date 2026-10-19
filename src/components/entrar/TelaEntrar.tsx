@@ -1,9 +1,8 @@
 "use client";
-import Image from "next/image";
 import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/cliente";
-import "./entrar.css";
+import { CampoEntrar, CartaoEntrar } from "./CartaoEntrar";
 
 // O convite do Supabase chega aqui com a sessão no endereço (#access_token=...&type=invite): a pessoa vai definir a senha.
 const veioDeConvite = () => /type=(invite|recovery)/.test(window.location.hash);
@@ -42,25 +41,13 @@ export function TelaEntrar() {
   }
 
   return (
-    <main className="entrar">
-      <div className="entrar-cartao">
-        <div className="entrar-marca">
-          <Image className="entrar-logo" src="/marca/fivecon.png" alt="" width={483} height={512} priority />
-          <span className="entrar-nome">Tarefas</span>
-        </div>
-        <h1 className="entrar-titulo">Entrar</h1>
-        <form className="entrar-form" onSubmit={entrar}>
-          <label className="entrar-campo">E-mail
-            <input type="email" name="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
-          </label>
-          <label className="entrar-campo">Senha
-            <input type="password" name="senha" autoComplete="current-password" required value={senha} onChange={(e) => setSenha(e.target.value)} />
-          </label>
-          {erro && <p className="entrar-erro" role="alert">{erro}</p>}
-          <button type="submit" className="btn" disabled={enviando}>{enviando ? "Entrando…" : "Entrar"}</button>
-        </form>
-        <p className="entrar-texto">Só entra quem foi convidado. Esqueceu a senha? Peça um novo convite ao Natham.</p>
-      </div>
-    </main>
+    <CartaoEntrar titulo="Entrar" texto="Só entra quem foi convidado. Esqueceu a senha? Peça um novo convite ao Natham.">
+      <form className="entrar-form" onSubmit={entrar}>
+        <CampoEntrar rotulo="E-mail" icone="email" type="email" name="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <CampoEntrar rotulo="Senha" icone="senha" type="password" name="senha" autoComplete="current-password" required value={senha} onChange={(e) => setSenha(e.target.value)} />
+        {erro && <p className="entrar-erro" role="alert">{erro}</p>}
+        <button type="submit" className="btn" disabled={enviando}>{enviando ? "Entrando…" : "Entrar"}</button>
+      </form>
+    </CartaoEntrar>
   );
 }
