@@ -1,0 +1,21 @@
+// Fotos do item 131 (logo Beec 20% menor). Servidor em 3100 ligado.
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const REF = fileURLToPath(new URL("../../docs/referencias/2026-10-19-rodada-4/", import.meta.url));
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const marca = (p) => p.evaluate(() => { const d = document.createElement("div"); d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;right:8px;bottom:8px;z-index:2147483647;background:#fff;font:700 12px monospace;padding:4px 8px"; document.body.append(d); });
+const p = await nav.newPage({ viewport: { width: 1440, height: 760 } });
+const erros = [];
+p.on("pageerror", (e) => erros.push(String(e)));
+const foto = async (nome) => { await p.waitForTimeout(700); await marca(p); await p.screenshot({ path: REF + `97-${nome}-1440.png` }); };
+const medir = async (rot) => console.log(rot, await p.evaluate(() => [...document.querySelectorAll("img.marca-logo[src*=beec]")].filter((i) => i.offsetParent).slice(0, 2).map((i) => { const r = i.getBoundingClientRect(); return `caixa ${r.width}x${r.height} transform ${getComputedStyle(i).transform}`; })));
+await p.goto("http://localhost:3100/tarefas", { waitUntil: "networkidle" }); await medir("caderno"); await foto("caderno");
+await p.goto("http://localhost:3100/conteudos", { waitUntil: "networkidle" }); await medir("conteudos"); await foto("conteudos");
+await p.goto("http://localhost:3100/mapa", { waitUntil: "networkidle" }); await p.getByRole("button", { name: "Fila", exact: true }).click(); await medir("fila"); await foto("fila");
+await p.goto("http://localhost:3100/calendario", { waitUntil: "networkidle" }); await p.waitForTimeout(1000);
+await p.locator(".evento:visible").first().click(); await p.waitForTimeout(800); await medir("ficha"); await foto("ficha");
+console.log("erros", erros);
+await nav.close();
