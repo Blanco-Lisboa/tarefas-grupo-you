@@ -1,6 +1,7 @@
 // Mapa: lê as MESMAS tarefas da agenda. Todo conteúdo (tipo "postagem") com data vira um nó. Só a data conta, sem horário.
 import type { Tarefa } from "@/lib/dados";
 import { deTexto, paraDia, somarDias } from "@/components/calendario/logica";
+import { montarGrade } from "@/components/tarefas/grade";
 
 /** Hoje pelo relógio do navegador, em data local (nunca toISOString: em UTC viraria o dia errado à noite no Brasil). */
 export const hoje = (agora = new Date()) => paraDia(agora);
@@ -30,13 +31,14 @@ export const conteudos = (tarefas: readonly Tarefa[]) =>
 export const postadosNoMes = (lista: readonly Tarefa[], inicio: string) =>
   lista.filter((t) => foiPostado(t) && diaDe(t).startsWith(inicio.slice(0, 7))).length;
 
-// ---------- formato "em ordem": o que fazer agora → próximo → depois ----------
+// ---------- formato "Fila": um card por dia, o que fazer em cada um ----------
 export const ETAPAS_ATE_POSTAR = ["ideia", "roteiro", "gravacao", "edicao", "aprovado"] as const;
 /** Próximo passo pela etapa em que o conteúdo está. Sem etapa conta como ideia. */
 export const PASSO = { ideia: "Roteirizar", roteiro: "Gravar", gravacao: "Editar", edicao: "Aprovar", aprovado: "Postar" } as const;
 
-export type Item = { t: Tarefa; dias: number; passo: string; etapa: number };
-export type Faixa = "agora" | "proximo" | "depois";
+export type Item = { t: Tarefa; dias: number; passo: string };
+/** `dias` = quantos dias faltam para o dia do card (0 = hoje). */
+export type DiaFila = { dia: string; dias: number; itens: Item[] };
 
 export const diasAte = (dia: string, de: string) => Math.round((deTexto(dia).getTime() - deTexto(de).getTime()) / 864e5);
 
@@ -45,13 +47,27 @@ export function prazo(dias: number) {
   return dias === 0 ? "Hoje" : dias === 1 ? "Amanhã" : `Em ${dias} dias`;
 }
 
-/** Agora = atrasado, hoje e os 2 dias seguintes; Próximo = até 7 dias; Depois = o resto. */
-export const faixaDe = (dias: number): Faixa => (dias <= 2 ? "agora" : dias <= 7 ? "proximo" : "depois");
-
-/** Só o que falta postar, por urgência: data mais perto primeiro; no mesmo dia, quem está mais atrás na produção vem antes. */
-export function emOrdem(lista: readonly Tarefa[], de: string): Item[] {
-  return lista.filter((t) => !foiPostado(t)).map((t) => {
+/**
+ * Só o que falta postar, um grupo por dia, do mais perto ao mais longe. O grupo de hoje existe sempre (mesmo vazio) e leva
+ * no topo o que ficou atrasado. Dentro do dia a ordem é a da folha do Caderno: com horário na linha do horário, sem horário
+ * na ordem em que foi criado (a lista chega na ordem de criação, e a ordenação por data é estável).
+ */
+export function filaPorDia(lista: readonly Tarefa[], de: string): DiaFila[] {
+  const itens = new Map<string, Item>();
+  const porDia = new Map<string, Tarefa[]>();
+  for (const t of lista) {
+    if (foiPostado(t)) continue;
     const etapa = Math.max(0, ETAPAS_ATE_POSTAR.indexOf((t.etapa ?? "ideia") as (typeof ETAPAS_ATE_POSTAR)[number]));
-    return { t, dias: diasAte(diaDe(t), de), passo: PASSO[ETAPAS_ATE_POSTAR[etapa]], etapa };
-  }).sort((a, b) => a.dias - b.dias || a.etapa - b.etapa);
+    itens.set(t.id, { t, dias: diasAte(diaDe(t), de), passo: PASSO[ETAPAS_ATE_POSTAR[etapa]] });
+    const dia = diaDe(t) < de ? de : diaDe(t); // atrasado cai em hoje
+    porDia.set(dia, [...(porDia.get(dia) ?? []), t]);
+  }
+  if (!porDia.size) return [];
+  // atrasados primeiro: ordenados pelo dia de origem (o mais antigo no topo), cada dia na ordem da folha
+  const doDia = (ts: Tarefa[]) => montarGrade([...ts].sort((a, b) => a.inicio!.localeCompare(b.inicio!)), true).filter((t): t is Tarefa => !!t);
+  const atrasadas = (porDia.get(de) ?? []).filter((t) => diaDe(t) < de);
+  const dehoje = (porDia.get(de) ?? []).filter((t) => diaDe(t) >= de);
+  const pilhaAtraso = [...new Set(atrasadas.map(diaDe))].sort().flatMap((d) => doDia(atrasadas.filter((t) => diaDe(t) === d)));
+  porDia.set(de, [...pilhaAtraso, ...doDia(dehoje)]);
+  return [...porDia].sort(([a], [b]) => a.localeCompare(b)).map(([dia, ts]) => ({ dia, dias: diasAte(dia, de), itens: ts.map((t) => itens.get(t.id)!) }));
 }

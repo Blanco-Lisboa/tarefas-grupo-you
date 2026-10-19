@@ -62,7 +62,8 @@ export function TelaTarefas() {
   if (!dia) return <section className="tarefas-tela" aria-busy="true" />;
 
   const nomeEmpresa = (id: string) => empresas.find((e) => e.id === id)?.nome ?? id;
-  const porHora = (a: Tarefa, b: Tarefa) => (a.inicio ?? "").localeCompare(b.inicio ?? "") || a.titulo.localeCompare(b.titulo);
+  // Só pela data/hora: a ordenação é estável, então quem não tem horário (mesmo início) fica na ordem em que foi criado, igual à Fila do Mapa.
+  const porHora = (a: Tarefa, b: Tarefa) => (a.inicio ?? "").localeCompare(b.inicio ?? "");
   const visiveis = aplicar(tarefas);
   const doDia = visiveis.filter((t) => t.inicio?.slice(0, 10) === dia).sort(porHora);
   const doDiaSeguinte = visiveis.filter((t) => t.inicio?.slice(0, 10) === somarDias(dia, 1)).sort(porHora);

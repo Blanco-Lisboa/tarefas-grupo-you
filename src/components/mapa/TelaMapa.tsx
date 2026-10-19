@@ -8,7 +8,7 @@ import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { SeloEmpresa, IconeRede } from "@/components/ui/Marca";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
-import { conteudos, hoje, diasDoPeriodo, emOrdem, foiPostado, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { conteudos, hoje, diasDoPeriodo, filaPorDia, foiPostado, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 import { EmOrdem, type Formato } from "./EmOrdem";
 import "./mapa.css";
 
@@ -26,7 +26,11 @@ const rotuloDia = (d: string, inicio: string) => (
 // Posição (% da largura de 7 dias, % da altura) e tamanho de cada brilho do fundo.
 const BRILHOS: [number, number, number][] = [[12, 28, 50], [48, 72, 56], [82, 34, 48]];
 
-const FORMATOS: [Formato, string][] = [["linha", "Linha do tempo"], ["fila", "Fila"], ["foco", "Foco"], ["quadro", "Quadro"]];
+const FORMATOS: [Formato, string][] = [["linha", "Linha do tempo"], ["fila", "Fila"]];
+const CHAVE_FORMATO = "grade:mapa-formato";
+// O formato escolhido fica lembrado ao recarregar. Esta tela só monta no navegador (ver TelaMapa), então ler o armazenamento aqui é seguro.
+const formatoSalvo = (): Formato => { try { return localStorage.getItem(CHAVE_FORMATO) === "fila" ? "fila" : "linha"; } catch { return "linha"; } };
+const lembrar = (f: Formato) => { try { localStorage.setItem(CHAVE_FORMATO, f); } catch {} };
 
 const semAviso = () => () => {};
 // O dia de hoje só existe no navegador (o servidor pode estar em outro fuso): espera montar para não dar diferença na hidratação.
@@ -39,7 +43,7 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
   const tarefas = useTarefas();
   const { aplicar } = useFiltroEmpresa();
   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
-  const [formato, setFormato] = useState<Formato>("linha");
+  const [formato, setFormato] = useState<Formato>(formatoSalvo);
 
   const todos = useMemo(() => conteudos(aplicar(tarefas)), [aplicar, tarefas]);
   const marcos = useMemo(() => todos.filter((t) => t.inicio!.slice(0, 10) >= INICIO), [todos, INICIO]);
@@ -47,12 +51,13 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
   const aPostar = marcos.filter((t) => !foiPostado(t));
   const [m1, m2] = [nomeMes(INICIO), nomeMes(dias.at(-1)!)].map((m) => m.toLowerCase());
   const meses = m1 === m2 ? m1 : `${m1} e ${m2}`;
+  const fila = useMemo(() => filaPorDia(todos, INICIO), [todos, INICIO]);
   const proximo = aPostar[0]?.inicio?.slice(0, 10);
 
   const topo = (
     <div className="mapa-topo">
       <div className="mapa-formato" role="group" aria-label="Formato do mapa">
-        {FORMATOS.map(([f, nome]) => <button key={f} type="button" aria-pressed={formato === f} onClick={() => setFormato(f)}>{nome}</button>)}
+        {FORMATOS.map(([f, nome]) => <button key={f} type="button" aria-pressed={formato === f} onClick={() => { setFormato(f); lembrar(f); }}>{nome}</button>)}
       </div>
       <header className="mapa-titulo">
         <h1>Mapa de <span>{meses}</span></h1>
@@ -72,7 +77,7 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
   return (
     <section className="mapa">
       {formato !== "linha"
-        ? <>{topo}<EmOrdem formato={formato} itens={emOrdem(todos, INICIO)} abrir={setAberta} /></>
+        ? <>{topo}<EmOrdem grupos={fila} abrir={setAberta} /></>
         : marcos.length
         ? <Linha dias={dias} inicio={INICIO} marcos={marcos} abrir={setAberta} topo={topo} />
         : <>{topo}<p className="mapa-vazio">Nada para mostrar com os filtros de agora. Crie uma tarefa do tipo Postagem no calendário e ela aparece aqui.</p></>}

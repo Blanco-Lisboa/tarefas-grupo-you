@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { conteudos, diasDoPeriodo, emOrdem, faixaDe, foiPostado, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { conteudos, diasDoPeriodo, filaPorDia, foiPostado, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 
 const t = (id: string, tipo: Tarefa["tipo"], inicio?: string, extra: Partial<Tarefa> = {}): Tarefa => ({
   id, titulo: id, tipo, empresaId: "beec", responsavel: "natham", inicio, diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra,
@@ -38,20 +38,36 @@ describe("mapa", () => {
   });
 });
 
-describe("em ordem", () => {
-  it("próximo passo, prazo e ordem por urgência", () => {
-    const lista = [
-      t("b", "postagem", "2026-10-21T10:00", { etapa: "edicao" }),
-      t("a", "postagem", "2026-10-21T10:00", { etapa: "roteiro" }),
-      t("velho", "postagem", "2026-10-17", { etapa: "gravacao" }),
-      t("feito", "postagem", "2026-10-19", { etapa: "postado" }),
-      t("longe", "postagem", "2026-11-30", { etapa: "aprovado" }),
-    ];
-    const o = emOrdem(lista, "2026-10-19");
-    expect(o.map((i) => i.t.id)).toEqual(["velho", "a", "b", "longe"]);
-    expect(o.map((i) => i.passo)).toEqual(["Editar", "Gravar", "Aprovar", "Postar"]);
-    expect(prazo(o[0].dias)).toBe("Atrasado 2 dias");
-    expect([prazo(0), prazo(1), prazo(9)]).toEqual(["Hoje", "Amanhã", "Em 9 dias"]);
-    expect([faixaDe(-3), faixaDe(2), faixaDe(7), faixaDe(8)]).toEqual(["agora", "agora", "proximo", "depois"]);
+describe("fila por dia", () => {
+  const lista = [
+    t("c-sem-hora", "postagem", "2026-10-21", { etapa: "aprovado" }),
+    t("b-tarde", "postagem", "2026-10-21T15:00", { etapa: "edicao" }),
+    t("a-sem-hora", "postagem", "2026-10-21", { etapa: "roteiro" }),
+    t("cedo", "postagem", "2026-10-21T08:00", { etapa: "aprovado" }),
+    t("velho2", "postagem", "2026-10-18", { etapa: "gravacao" }),
+    t("velho1", "postagem", "2026-10-17", { etapa: "gravacao" }),
+    t("feito", "postagem", "2026-10-19", { etapa: "postado" }),
+    t("longe", "postagem", "2026-11-30", { etapa: "aprovado" }),
+  ];
+  const f = filaPorDia(conteudos(lista), "2026-10-19");
+
+  it("um card por dia, hoje primeiro com o atrasado no topo e o postado de fora", () => {
+    expect(f.map((g) => [g.dia, g.dias])).toEqual([["2026-10-19", 0], ["2026-10-21", 2], ["2026-11-30", 42]]);
+    expect(f[0].itens.map((i) => i.t.id)).toEqual(["velho1", "velho2"]);
+    expect(f[0].itens.map((i) => i.dias)).toEqual([-2, -1]);
+  });
+
+  it("no dia: sem horário na ordem de criação (no topo, como na folha), com horário na linha do horário", () => {
+    expect(f[1].itens.map((i) => i.t.id)).toEqual(["c-sem-hora", "a-sem-hora", "cedo", "b-tarde"]);
+    expect(f[1].itens.map((i) => i.passo)).toEqual(["Postar", "Gravar", "Postar", "Aprovar"]);
+  });
+
+  it("hoje aparece mesmo sem nada hoje, e sem nada a fazer não há card", () => {
+    expect(filaPorDia([t("x", "postagem", "2026-10-25")], "2026-10-19")[0]).toMatchObject({ dia: "2026-10-19", itens: [] });
+    expect(filaPorDia([t("y", "postagem", "2026-10-25", { etapa: "postado" })], "2026-10-19")).toEqual([]);
+  });
+
+  it("textos de prazo", () => {
+    expect([prazo(-2), prazo(0), prazo(1), prazo(9)]).toEqual(["Atrasado 2 dias", "Hoje", "Amanhã", "Em 9 dias"]);
   });
 });
