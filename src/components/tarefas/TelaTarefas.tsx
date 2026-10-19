@@ -244,12 +244,8 @@ export function TelaTarefas() {
           {aba === "dia" && <Agenda
             letra={LETRA_PRINCIPAL}
             dia={dia}
-            hoje={hoje}
             rotuloDia={tag + extenso(dia)}
-            tarefas={doDia}
             amanha={doDiaSeguinte}
-            nomeEmpresa={nomeEmpresa}
-            aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
           />}
         </div>
       </div>

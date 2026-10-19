@@ -1,10 +1,7 @@
 "use client";
-import { Fragment, useEffect, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import type { Tarefa } from "@/lib/dados";
-import { SeloEmpresa } from "@/components/ui/Marca";
-import { Pessoa } from "@/components/ui/Pessoa";
 import type { OpcaoLetra } from "./fontes";
-import { horaDe, minutos, somarMinutos } from "./grade";
 import { notaDaChave, type Armazem, type EstadoNota } from "./notas";
 import "./caderno.css";
 
@@ -12,18 +9,11 @@ type Props = {
   letra: OpcaoLetra;
   /** Dia mostrado, "AAAA-MM-DD". */
   dia: string;
-  hoje: string;
   /** Texto do canto da faixa (a data por extenso). */
   rotuloDia: string;
-  /** Tarefas do dia, já ordenadas por hora. */
-  tarefas: Tarefa[];
   /** Tarefas do dia seguinte (a lista "Para amanhã"). */
   amanha: Tarefa[];
-  nomeEmpresa: (id: string) => string;
-  aoAbrir: (id: string) => void;
 };
-
-const dois = (n: number) => String(n).padStart(2, "0");
 
 const armazem = (): Armazem => { try { return localStorage; } catch { return { getItem: () => null, setItem: () => {} }; } };
 function useNota(chave: string) {
@@ -33,48 +23,9 @@ function useNota(chave: string) {
   return [atual.valor, mudar] as const;
 }
 
-export function Agenda({ letra, dia, hoje, rotuloDia, tarefas, amanha, nomeEmpresa, aoAbrir }: Props) {
+export function Agenda({ letra, dia, rotuloDia, amanha }: Props) {
   const [notas, setNotas] = useNota(`grade:caderno:${dia}:notas`);
   const [lembrar, setLembrar] = useNota(`grade:caderno:${dia}:lembrar`);
-  // "Agora" só existe no navegador de quem abre: começa vazio e preenche depois (evita diferença de fuso).
-  const [agora, setAgora] = useState<number | null>(null);
-  useEffect(() => {
-    const ler = () => { const d = new Date(); setAgora(d.getHours() * 60 + d.getMinutes()); };
-    ler();
-    const t = setInterval(ler, 60_000);
-    return () => clearInterval(t);
-  }, []);
-
-  const comHora = tarefas.filter((t) => horaDe(t));
-  const diaInteiro = tarefas.filter((t) => !horaDe(t));
-  const ehHoje = dia === hoje;
-  const fimDe = (t: Tarefa) => (t.fim && t.fim.length >= 16 ? t.fim.slice(11, 16) : somarMinutos(horaDe(t), 30));
-  const passou = (t: Tarefa) => dia < hoje || (ehHoje && agora !== null && minutos(fimDe(t)) <= agora);
-  const linhaAgora = ehHoje && agora !== null ? agora : null;
-  const antesDoAgora = (t: Tarefa) => linhaAgora !== null && minutos(horaDe(t)) <= linhaAgora;
-  const marcador = (
-    <li className="ag-agora" aria-label="Agora">
-      <span className="ag-agora-hora">{dois(Math.floor((linhaAgora ?? 0) / 60))}:{dois((linhaAgora ?? 0) % 60)}</span>
-      <span className="ag-agora-linha" />
-    </li>
-  );
-  // O marcador entra antes da primeira tarefa que ainda não começou (ou no fim, se todas já começaram).
-  const posAgora = linhaAgora === null ? -1 : comHora.findIndex((t) => !antesDoAgora(t));
-
-  const card = (t: Tarefa) => (
-    <li className="ag-item" data-passou={passou(t) || !!t.concluida}>
-      <span className="ag-hora folha-lapis">{horaDe(t)}</span>
-      <span className="ag-trilho" aria-hidden="true"><span className="ag-ponto" style={{ borderColor: `var(--${t.cor})` }} /></span>
-      <button type="button" className="ag-card" style={{ "--etq": `var(--${t.cor})` } as CSSProperties} onClick={() => aoAbrir(t.id)}>
-        <span className="ag-textos">
-          <span className="ag-nome folha-tinta" data-feita={!!t.concluida}>{t.titulo}</span>
-          <span className="ag-info folha-lapis">{horaDe(t)} a {fimDe(t)} · <Pessoa quem={t.responsavel} tamanho={18} /> {t.responsavel === "natham" ? "Natham" : "Matheus"}</span>
-        </span>
-        <span className="ag-selo" style={{ "--etq": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}><SeloEmpresa empresaId={t.empresaId} nome={nomeEmpresa(t.empresaId)} tamanho={22} /></span>
-      </button>
-    </li>
-  );
-
   return (
     <section className={`pag agenda ${letra.fonte.className}`} style={{ "--escala": letra.escala } as CSSProperties}>
       <header className="pag-faixa">
@@ -83,29 +34,13 @@ export function Agenda({ letra, dia, hoje, rotuloDia, tarefas, amanha, nomeEmpre
       </header>
 
       <div className="pag-miolo">
-        {diaInteiro.length > 0 && (
-          <div className="ag-dia-inteiro">
-            <span className="ag-bloco-titulo">Dia inteiro</span>
-            {diaInteiro.map((t) => (
-              <button key={t.id} type="button" className="ag-inteiro" style={{ "--etq": `var(--${t.cor})` } as CSSProperties} onClick={() => aoAbrir(t.id)}>
-                <span className="folha-tinta ag-nome" data-feita={!!t.concluida}>{t.titulo}</span>
-                <span className="ag-selo" style={{ "--etq": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}><SeloEmpresa empresaId={t.empresaId} nome={nomeEmpresa(t.empresaId)} tamanho={22} /></span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {comHora.length === 0 && diaInteiro.length === 0 ? (
-          <div className="ag-vazio">
-            <strong className="folha-tinta">Dia livre na agenda</strong>
-            <p className="folha-lapis">Nenhuma tarefa neste dia. Escreva uma na linha de um horário e ela aparece aqui.</p>
-          </div>
-        ) : (
-          <ol className="ag-lista">
-            {comHora.map((t, i) => <Fragment key={t.id}>{posAgora === i && marcador}{card(t)}</Fragment>)}
-            {linhaAgora !== null && posAgora === -1 && comHora.length > 0 && marcador}
-          </ol>
-        )}
+        <div className="ag-vazio">
+          <svg className="ag-vazio-icone" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="3.5" y="5" width="17" height="15.5" rx="3" /><path d="M3.5 10h17M8 3v4M16 3v4" />
+          </svg>
+          <strong className="folha-tinta">Sua agenda do Google aparece aqui</strong>
+          <p className="folha-lapis">Os compromissos marcados no Google Agenda ficarão neste lado do caderno.</p>
+        </div>
 
         <div className="ag-blocos">
           <label className="ag-bloco ag-bloco-notas">

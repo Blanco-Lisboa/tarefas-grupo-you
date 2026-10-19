@@ -173,37 +173,8 @@
 /* ===== Página direita: agenda do dia ===== */
 .agenda .pag-miolo { padding: var(--s-16) var(--s-24) var(--s-24); }
 .ag-bloco-titulo { font: 600 var(--app-t-rotulo) / 1 var(--fonte); letter-spacing: .02em; text-transform: uppercase; color: var(--fraco); }
-.ag-lista { list-style: none; margin: 0 0 var(--s-24); padding: 0; }
-.ag-item { display: grid; grid-template-columns: var(--col-hora) 16px minmax(0, 1fr); column-gap: var(--s-8); align-items: start; }
-/* compromisso passado: esmaece só o fundo e o risco; o texto fica inteiro (contraste mínimo 4,5) */
-.ag-item[data-passou="true"] .ag-card { background: color-mix(in srgb, var(--etq) 5%, var(--sup)); }
-.ag-item[data-passou="true"] .ag-card::before { opacity: .4; }
-.ag-hora { padding-top: var(--s-8); text-align: right; font-size: calc(18px * var(--escala)); line-height: 1.2; }
-.ag-trilho { position: relative; align-self: stretch; }
-.ag-trilho::before { content: ""; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--borda); border-radius: 1px; } /* fio fino ligando as tarefas */
-.ag-item:first-child .ag-trilho::before { top: 16px; }
-.ag-item:last-child .ag-trilho::before { bottom: calc(100% - 16px); }
-.ag-ponto { position: absolute; left: 3px; top: 12px; width: 10px; height: 10px; background: var(--sup); border: 2px solid; border-radius: 50%; box-sizing: border-box; }
-.ag-card, .ag-inteiro {
-  position: relative; display: flex; align-items: center; gap: var(--s-12); min-width: 0; width: 100%; margin-bottom: var(--s-8); padding: var(--s-12) var(--s-12) var(--s-12) var(--s-16);
-  background: color-mix(in srgb, var(--etq) 14%, var(--sup)); border: 0; border-radius: var(--raio-b);
-  font: inherit; color: inherit; text-align: left; cursor: pointer; box-sizing: border-box;
-  transition: background var(--dur-rapida) var(--curva), box-shadow var(--dur-rapida) var(--curva);
-}
-.ag-card::before, .ag-inteiro::before { content: ""; position: absolute; left: 6px; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; background: var(--etq); } /* risco de cor da etiqueta */
-.ag-card:hover, .ag-inteiro:hover { background: color-mix(in srgb, var(--etq) 24%, var(--sup)); }
-.ag-textos { flex: 1; min-width: 0; display: grid; gap: 2px; }
-.ag-nome { font-size: calc(21px * var(--escala)); line-height: 1.15; overflow-wrap: anywhere; }
-.ag-nome[data-feita="true"] { text-decoration: line-through; text-decoration-thickness: 2px; opacity: .72; }
-.ag-info { font-size: calc(16px * var(--escala)); line-height: 1.1; }
-.ag-selo { flex: none; display: inline-flex; align-items: center; font: 600 var(--t-12) / 1 var(--fonte); letter-spacing: .04em; text-transform: uppercase; }
-.ag-dia-inteiro { display: grid; gap: var(--s-8); margin-bottom: var(--s-16); }
-.ag-inteiro { margin-bottom: 0; justify-content: space-between; }
-.ag-agora { display: grid; grid-template-columns: var(--col-hora) minmax(0, 1fr); column-gap: var(--s-8); align-items: center; margin: 0 0 var(--s-8); }
-.ag-agora-hora { text-align: right; font: 600 var(--app-t-rotulo) / 1 var(--fonte); color: var(--azul); }
-.ag-agora-linha { position: relative; height: 2px; background: var(--azul); border-radius: 1px; }
-.ag-agora-linha::before { content: ""; position: absolute; left: 0; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--azul); box-shadow: 0 0 0 3px var(--sup); }
-.ag-vazio { padding: var(--s-24) var(--s-16); margin-bottom: var(--s-24); background: var(--sup-2); border-radius: var(--raio-b); text-align: center; }
+.ag-vazio { display: grid; justify-items: center; gap: var(--s-4); padding: var(--s-32) var(--s-16); margin-bottom: var(--s-24); background: var(--sup-2); border-radius: var(--raio-b); text-align: center; }
+.ag-vazio-icone { color: var(--azul); margin-bottom: var(--s-8); }
 .ag-vazio strong { display: block; font-size: calc(24px * var(--escala)); font-weight: 700; }
 .ag-vazio p { margin: var(--s-4) auto 0; max-width: 28ch; font-size: calc(18px * var(--escala)); line-height: 1.2; }
 .ag-blocos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-16); }
