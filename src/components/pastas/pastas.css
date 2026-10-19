@@ -159,11 +159,10 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 /* ver todas: lista completa da pasta, para baixar quando passa das 4 do leque */
 .gf-todas { align-self: center; margin-top: var(--s-8); min-height: var(--app-controle); padding: var(--s-4) var(--s-16); border-radius: var(--raio-b); cursor: pointer; font: 500 var(--app-t-texto) var(--fonte); color: var(--texto); background: var(--vidro); border: 1px solid var(--vidro-linha); box-shadow: var(--sombra); transition: background var(--dur-rapida) var(--curva); }
 .gf-todas:hover { background: var(--sup); }
-.gf-todas:focus-visible { outline: 3px solid var(--azul); outline-offset: 1px; }
 .gf-lista { list-style: none; margin: var(--s-8) 0 0; padding: var(--s-4); display: grid; gap: 1px; background: var(--vidro-forte); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra-lista); -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); }
 .gf-lista a, .gf-lista button { all: unset; box-sizing: border-box; width: 100%; display: flex; justify-content: space-between; gap: var(--s-12); padding: var(--s-8) var(--s-12); border-radius: var(--raio-b); cursor: pointer; color: var(--texto); font: 500 var(--app-t-texto) var(--fonte); }
 .gf-lista a:hover, .gf-lista button:hover { background: var(--realce); }
-.gf-lista a:focus-visible, .gf-lista button:focus-visible { outline: 3px solid var(--azul); outline-offset: -2px; }
+.gf-lista a:focus-visible, .gf-lista button:focus-visible { outline-offset: -2px; }
 .gf-lista small { flex: none; white-space: nowrap; color: var(--fraco); font-weight: 400; font-size: var(--app-t-rotulo); }
 
 /* =================== card flutuante (peça e ideias) =================== */
@@ -183,10 +182,8 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .card-flut-topo h2 { flex: 1; min-width: 0; margin: 0; font-size: var(--app-t-secao); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); line-height: 1.2; overflow-wrap: anywhere; }
 .card-flut-x { all: unset; box-sizing: border-box; flex: none; width: var(--app-controle); height: var(--app-controle); display: grid; place-items: center; border-radius: var(--raio-b); cursor: pointer; background: var(--vidro); border: 1px solid var(--vidro-linha); box-shadow: var(--sombra); }
 .card-flut-x:hover { background: var(--sup); }
-.card-flut-x:focus-visible { outline: 3px solid var(--azul); outline-offset: 1px; }
 .card-flut-x svg { width: 16px; height: 16px; fill: none; stroke: var(--fraco); stroke-width: 1.8; stroke-linecap: round; }
 .card-flut-corpo { display: grid; gap: var(--s-16); align-content: start; padding: var(--s-16) var(--s-24) var(--s-24); overflow-y: auto; scrollbar-color: var(--borda) transparent; }
-.card-flut .btn:focus-visible, .card-flut a:focus-visible, .card-flut button:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
 
 .peca-arte { border-radius: var(--raio-c); overflow: hidden; aspect-ratio: 21 / 10; background: var(--sup-2); }
 .peca-arte canvas { display: block; width: 100% !important; height: 100% !important; object-fit: cover; opacity: 0; transition: opacity var(--dur-lenta) var(--curva); }
@@ -202,7 +199,6 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .ideias-cats { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 .ideias-cats button, .ideias-lista button { all: unset; box-sizing: border-box; width: 100%; display: grid; gap: var(--s-4); padding: var(--s-12) var(--s-16); cursor: pointer; background: var(--sup); border-radius: var(--raio-c); box-shadow: var(--sombra); transition: background var(--dur-rapida) var(--curva); }
 .ideias-cats button:hover, .ideias-lista button:hover { background: var(--sup-2); }
-.ideias-cats button:focus-visible, .ideias-lista button:focus-visible { outline: 3px solid var(--azul); outline-offset: 1px; }
 .ideias-cats strong, .ideias-lista strong { font-size: var(--app-t-texto); font-weight: 600; }
 .ideias-cats span { font-size: var(--app-t-rotulo); font-weight: 600; color: var(--azul); }
 .ideias-cats small, .ideias-lista span { font-size: var(--app-t-rotulo); color: var(--fraco); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }

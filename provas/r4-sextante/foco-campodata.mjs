@@ -50,7 +50,7 @@ for (const [w, h] of [[1440, 760], [390, 844]]) {
   await p.keyboard.press("Shift+Tab");
   await p.keyboard.press("Shift+Tab");
   visto.push(await contorno(p)); // seta de mês
-  for (const v of visto) if (v.largura !== "1px" || !v.sombra.includes("4px")) erros.push(`[${w}] ${v.nome}: ${v.largura} ${v.sombra}`);
+  for (const v of visto) if (v.largura !== "1px") erros.push(`[${w}] ${v.nome}: ${v.largura} ${v.sombra}`);
   console.log(`[${w}] paradas conferidas: ${visto.map((v) => v.nome).join(" | ")}`);
   // Foto: coluna de minutos focada (o caso da 1440-data-hora-comeca.png)
   await p.locator('.campo-data-pop:popover-open [role=listbox][aria-label="Minuto"]').focus();

@@ -44,7 +44,12 @@ h1, h2, h3 {
   line-height: var(--titulo-entrelinha);
 }
 
-:focus-visible { outline: 3px solid var(--foco); outline-offset: 1px; }
+/* Foco (itens 72 e 77): UM contorno só, sutil e igual em todo o sistema. 1px azul, 1px para fora (aparece também sobre o
+   azul), contraste 5,68:1 sobre o branco e 4,68:1 sobre o fundo (mínimo 3:1), e um halo azul leve. O halo tem peso zero
+   (:where): onde o controle tem sombra própria (botão, seleção, cor escolhida), a sombra dele fica e só o contorno entra.
+   As telas não redesenham o foco; só ajustam o recuo (outline-offset) quando o controle está dentro de uma lista. */
+:focus-visible { outline: 1px solid var(--cor-foco, var(--azul)); outline-offset: 1px; } /* --cor-foco: branco dentro do bloco azul */
+:where(:focus-visible) { box-shadow: 0 0 0 4px var(--azul-claro); }
 /* Campo de escrever com foco (item 72): borda de 1px azul (5,68:1 sobre o branco) + halo leve, no lugar do anel grosso.
    Vale para todo campo do sistema; as telas não redesenham. O contorno (outline) cobre a borda do campo, então funciona
    também em campo sem borda (linha do caderno). Botões, pastas e opções seguem com o anel acima. */
@@ -84,7 +89,7 @@ h1, h2, h3 {
    Poucos por tela: é o que puxa o olho. Dentro dele: .bloco-numero (número grande), .bloco-fraco (texto secundário),
    .btn-claro (botão). Ex.: <div class="bloco-destaque"><p class="bloco-fraco">Neste mês</p><p class="bloco-numero">12</p></div> */
 .bloco-destaque {
-  --foco: rgb(255 255 255 / 0.7);
+  --foco: rgb(255 255 255 / 0.7); --cor-foco: var(--no-azul);
   padding: var(--s-16); border-radius: var(--raio-bloco);
   background: var(--azul); color: var(--no-azul); box-shadow: var(--sombra-bloco);
 }

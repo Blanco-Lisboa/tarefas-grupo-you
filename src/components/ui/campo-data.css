@@ -80,11 +80,4 @@
   .campo-data-rodas::before { left: 50%; right: auto; width: 128px; translate: -50% calc(-50% + 4px); }
 }
 
-/* Foco (itens 72 e 77): um contorno só, sutil, o mesmo dos campos de escrever da base (1px azul + halo leve), em TODO
-   controle do campo de data, no lugar do anel global de 3px. Fica 1px para fora para aparecer também sobre o azul
-   (dia escolhido, Selecionar). Azul sobre o painel claro: 5,68:1. */
-:is(.campo-data-botao, .campo-data-seta, .campo-data-dia, .roda, .campo-data-acao, .campo-data-pe .btn):focus-visible {
-  outline: 1px solid var(--azul); outline-offset: 1px; box-shadow: 0 0 0 4px var(--azul-claro);
-}
-
 @media (prefers-reduced-motion: reduce) { .campo-data-seta, .campo-data-dia, .campo-data-acao { transition: none; } .roda { scroll-behavior: auto; } }
