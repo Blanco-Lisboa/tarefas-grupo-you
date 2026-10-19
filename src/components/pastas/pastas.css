@@ -243,4 +243,4 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .card-flut .ficha-anexos { padding-top: 0; }
 
 /* Nova folha e Ver todas: lado a lado, no vão embaixo da pasta (não ocupam linha) */
-.gf-barra { display: flex; justify-content: center; gap: var(--s-8); margin: calc(-1 * var(--s-4)) 0 calc(-1 * var(--app-controle)); position: relative; z-index: 2; }
+.gf-barra { display: flex; justify-content: center; gap: var(--s-8); margin: var(--s-8) 0 calc(-1 * var(--app-controle)); position: relative; z-index: 2; }
