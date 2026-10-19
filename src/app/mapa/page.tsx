@@ -1,5 +1,5 @@
-import { EmConstrucao } from "@/components/casca/EmConstrucao";
+import { TelaMapa } from "@/components/mapa/TelaMapa";
 
 export default function Page() {
-  return <EmConstrucao titulo="Mapa" />;
+  return <TelaMapa />;
 }
