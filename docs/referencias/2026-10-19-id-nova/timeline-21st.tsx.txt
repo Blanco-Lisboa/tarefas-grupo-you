@@ -1,0 +1,70 @@
+// Componente que o Natham colou em 19/10/2026 (21st.dev, "Built using Hyperiux Vault: https://vault.hyperiux.com").
+// Guardado como .txt para NÃO entrar no build. Referência de EFEITO para o Mapa (item 58), não para copiar a aparência.
+// Dependência: gsap (ScrollTrigger + SplitText). Foto do efeito: ref-1.png.
+// timeline.tsx
+"use client";
+
+import {
+  type CSSProperties,
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+} from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger, SplitText);
+}
+
+function useGSAP(
+  callback: () => void | (() => void),
+  options?: {
+    dependencies?: unknown[];
+    scope?: { current: Element | null } | Element | null;
+  }
+) {
+  const deps = options?.dependencies ?? [];
+  const scope = options?.scope;
+  const ctxRef = useRef<gsap.Context | null>(null);
+  const cleanupRef = useRef<(() => void) | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    const el =
+      scope && typeof scope === "object" && "current" in scope
+        ? scope.current
+        : (scope as Element | null);
+    ctxRef.current = gsap.context(() => {}, el ?? undefined);
+    return () => {
+      cleanupRef.current?.();
+      cleanupRef.current = undefined;
+      ctxRef.current?.revert();
+      ctxRef.current = null;
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!ctxRef.current) return;
+    cleanupRef.current?.();
+    const ret = ctxRef.current.add(callback);
+    cleanupRef.current = typeof ret === "function" ? ret : undefined;
+  }, deps);
+}
+
+// (dados de exemplo do original: topJourneyData / bottomJourneyData, itens alternando em cima e embaixo da linha)
+
+export default function Timeline(/* title, periodLabel, textColor, mutedTextColor, activeColor, backgroundColor, imageUrl, duration */) {
+  // Essência do efeito:
+  // 1) <section> alta (h-[200vw]; celular h-[400vh]) com um filho "sticky top-0 h-screen overflow-hidden".
+  // 2) Dentro, uma faixa larga (w-[240vw]) que anda para o lado: gsap.timeline com
+  //    scrollTrigger { trigger: section, start: "top top", end: "92% bottom", scrub: true }
+  //    e .fromTo(faixa, { xPercent: 0 }, { xPercent: -65 }).  => rolar para BAIXO move para o LADO.
+  // 3) Linha horizontal (.journey-line) cresce de width 0% a 98% com scrub.
+  // 4) Cada marco alterna EM CIMA e EMBAIXO da linha: bolinha (scale 0->1) + haste vertical
+  //    (scaleY 0->1, origem na linha) + título e descrição que sobem linha a linha (SplitText, mask "lines",
+  //    y 100->0, power2.out, stagger 0.02), cada um na sua janela de rolagem (start `${a}% 30%`, end `${b}% 50%`).
+  // 5) prefers-reduced-motion: tudo aparece já montado, sem animação.
+  // 6) ScrollTrigger.refresh() no resize.
+  return null;
+}
