@@ -31,6 +31,8 @@ type Props = {
   vazio?: string;
   /** Botão solto no canto da pasta (o ⋮ de renomear e excluir). Fica fora do vidro, então não abre a pasta. */
   acoes?: ReactNode;
+  /** Com a pasta aberta (ou a lista "Ver todas"), mostra "+ Nova folha". */
+  aoNovaFolha?: () => void;
 };
 
 // Geometria nas unidades da pasta: palco de 340 x 272, escalado até `largura`.
@@ -42,7 +44,7 @@ const FRENTE = `M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 
 
 const leque = (i: number, n: number) => (n <= 1 ? 0 : (i / (n - 1)) * 2 - 1);
 
-export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes }: Props) {
+export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes, aoNovaFolha }: Props) {
   const uid = useId().replace(/:/g, "");
   const raiz = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
@@ -129,7 +131,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
     };
     const fora = (e: PointerEvent) => {
       const alvo = e.target as Element;
-      if (!raiz.current?.contains(alvo) && !alvo.closest("dialog")) setAberta(false);
+      if (!raiz.current?.contains(alvo) && !alvo.closest("dialog, .gf-nova")) setAberta(false);
     };
     document.addEventListener("keydown", tecla);
     document.addEventListener("pointerdown", fora);
@@ -224,8 +226,9 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
           </div>
         </div>
       </div>
-      {acoes && <div className="gf-acoes" style={{ top: (ALTURA_ABA + 44) * k }}>{acoes}</div>}
+      {acoes && <div className="gf-acoes" style={{ top: (ALTURA_ABA + 232) * k - 16, right: 20 * k }}>{acoes}</div>}
     </div>
+    {aoNovaFolha && (aberta || lista) && <button type="button" className="gf-todas gf-nova" onClick={aoNovaFolha}>+ Nova folha</button>}
     {n > VISIVEIS && (
       <>
         <button type="button" className="gf-todas" aria-expanded={lista} onClick={() => setLista(!lista)}>

@@ -2,7 +2,7 @@
 // Pastas de cada empresa (item 135). Sem banco ainda (Fase 2 = Supabase): as pastas de fábrica + o que o Natham criar,
 // renomear ou excluir ficam no navegador (localStorage). Só este arquivo troca na Fase 2.
 import { useCallback, useMemo, useSyncExternalStore } from "react";
-import type { TipoPeca } from "./pecas";
+import type { Peca, TipoPeca } from "./pecas";
 
 /** tipo = guarda as peças daquele tipo; sem tipo = pasta criada à mão, nasce vazia. vazio = aviso quando não tem peça e não aceita nenhuma. */
 export type Pasta = { id: string; nome: string; tipo?: TipoPeca; vazio?: string };
@@ -49,6 +49,9 @@ function gravar(empresaId: string, mudar: (lista: Pasta[]) => Pasta[]) {
 }
 
 export const lerPastas = (empresaId: string): Pasta[] => ler(bruto())[empresaId] ?? semente(empresaId);
+
+/** Peças guardadas numa pasta: as que foram postas nela, ou (peças de exemplo) as do tipo dela. A pasta com aviso `vazio` só tem o que foi posto nela. */
+export const pecasDaPasta = (pecas: Peca[], pasta: Pasta) => pecas.filter((p) => (p.pastaId ? p.pastaId === pasta.id : !pasta.vazio && !!pasta.tipo && p.tipo === pasta.tipo));
 
 /** Já existe outra pasta com esse nome na empresa? (ignora maiúsculas e a própria pasta em `exceto`) */
 export const nomeEmUso = (pastas: Pasta[], nome: string, exceto?: string) => pastas.some((p) => p.id !== exceto && p.nome.trim().toLowerCase() === nome.trim().toLowerCase());

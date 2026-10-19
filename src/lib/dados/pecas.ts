@@ -1,5 +1,9 @@
 // Peças prontas (Fase 1: exemplo). Uma peça é um arquivo finalizado de uma empresa, guardado numa pasta por tipo.
 // Na Fase 2 só este arquivo troca por Supabase/Drive; a tela não muda.
+"use client";
+import { useSyncExternalStore } from "react";
+import type { Arquivo } from "./tipos";
+
 export const TIPOS_PECA = ["post", "carrossel", "video", "story"] as const;
 export type TipoPeca = (typeof TIPOS_PECA)[number];
 
@@ -12,6 +16,11 @@ export type Peca = {
   meta?: string;
   /** Vídeo = link do Google Drive. Imagem não tem link: baixa pelo sistema. */
   link?: string;
+  notas?: string;
+  /** Imagem ou vídeo anexado. Sem banco, fica só na memória do navegador (blob:), como os anexos da ficha. */
+  arquivo?: Arquivo;
+  /** Pasta onde foi guardada; sem ela, vale o tipo (peças de exemplo). */
+  pastaId?: string;
 };
 
 const p = (empresaId: string, tipo: TipoPeca, n: number, titulo: string, meta: string, link?: string): Peca => ({
@@ -44,5 +53,22 @@ export const pecasExemplo: Peca[] = [
   p("you", "story", 3, "Depoimento", "PNG 1080x1920"),
 ];
 
-/** Todas as peças. Na Fase 2 vira leitura reativa, como useTarefas. */
-export const usePecas = () => pecasExemplo;
+// Fase 1: em memória; some ao recarregar. Na Fase 2 só este arquivo troca por Supabase/Drive.
+let pecas: Peca[] = pecasExemplo;
+const ouvintes = new Set<() => void>();
+const assinar = (f: () => void) => (ouvintes.add(f), () => void ouvintes.delete(f));
+
+/** Cria (sem id) ou edita (com id) uma peça e avisa quem está na tela. */
+export function salvarPeca(nova: Omit<Peca, "id"> & { id?: string }): Peca {
+  const peca: Peca = { ...nova, id: nova.id ?? crypto.randomUUID() };
+  pecas = pecas.some((x) => x.id === peca.id) ? pecas.map((x) => (x.id === peca.id ? peca : x)) : [...pecas, peca];
+  ouvintes.forEach((f) => f());
+  return peca;
+}
+export function excluirPeca(id: string) {
+  pecas = pecas.filter((x) => x.id !== id);
+  ouvintes.forEach((f) => f());
+}
+
+/** Todas as peças (reativo: criar, editar e excluir atualizam na hora). */
+export const usePecas = () => useSyncExternalStore(assinar, () => pecas, () => pecas);

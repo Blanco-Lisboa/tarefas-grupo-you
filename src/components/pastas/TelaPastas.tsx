@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { nomeEmUso, useEmpresas, useIdeias, usePastas, usePecas, type Empresa, type Pasta, type Peca } from "@/lib/dados";
+import { excluirPeca, nomeEmUso, pecasDaPasta, salvarPeca, useEmpresas, useIdeias, usePastas, usePecas, type Empresa, type Pasta, type Peca } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { SeloEmpresa } from "@/components/ui/Marca";
 import { receitaDaEmpresa, tomDaEmpresa } from "./cores";
 import { CardIdeias } from "./CardIdeias";
 import { CardPeca } from "./CardPeca";
+import { CardFolha } from "./CardFolha";
 import { CardFlutuante } from "./CardFlutuante";
 import { MenuPasta } from "./MenuPasta";
 import { PastaDeVidro } from "./PastaDeVidro";
@@ -16,7 +17,9 @@ const nIdeias = (n: number) => (n === 1 ? "1 ideia" : `${n} ideias`);
 function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
   const { ideias } = useIdeias(empresa.id);
   const { pastas, criar, renomear, excluir } = usePastas(empresa.id);
-  const [aberto, setAberto] = useState<{ peca: Peca } | { ideias: string } | null>(null);
+  const [aberto, setAberto] = useState<{ peca: Peca; pasta: Pasta } | { ideias: string } | null>(null);
+  // folha: criando (sem peca) ou editando, dentro de uma pasta
+  const [folha, setFolha] = useState<{ pasta: Pasta; peca?: Peca } | null>(null);
   // nome: pasta nova (id vazio) ou renomeando; excluir: pedindo a confirmação
   const [nome, setNome] = useState<{ id?: string } | null>(null);
   const [excluir_, setExcluir] = useState<Pasta | null>(null);
@@ -33,7 +36,7 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
       <div className="pastas-grade">
         {pastas.map((pasta, i) => {
           const { rotulo, vazio } = { rotulo: pasta.nome, vazio: pasta.vazio };
-          const daPasta = vazio || !pasta.tipo ? [] : pecas.filter((p) => p.tipo === pasta.tipo);
+          const daPasta = pecasDaPasta(pecas, pasta);
           const arte = receitaDaEmpresa(pasta.tipo ?? "post", empresa.id);
           return (
             <div key={pasta.id} className="pastas-cel">
@@ -44,11 +47,12 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
                 arte={arte}
                 seed={3 + i * 4}
                 atraso={i * 120}
+                aoNovaFolha={() => setFolha({ pasta })}
                 acoes={<MenuPasta nome={rotulo} aoRenomear={() => setNome({ id: pasta.id })} aoExcluir={() => setExcluir(pasta)} />}
                 arquivos={daPasta.map((p) => ({ nome: p.titulo, meta: p.meta, arte }))}
                 onSelecionar={(a) => {
                   const peca = daPasta.find((p) => p.titulo === a.nome);
-                  if (peca) setAberto({ peca });
+                  if (peca) setAberto({ peca, pasta });
                 }}
               />
             </div>
@@ -79,12 +83,33 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
       {excluir_ && (
         <CardExcluir
           pasta={excluir_}
-          pecas={excluir_.vazio || !excluir_.tipo ? 0 : pecas.filter((p) => p.tipo === excluir_.tipo).length}
+          pecas={pecasDaPasta(pecas, excluir_).length}
           aoConfirmar={() => { excluir(excluir_.id); setExcluir(null); }}
           aoFechar={() => setExcluir(null)}
         />
       )}
-      {aberto && "peca" in aberto && <CardPeca peca={aberto.peca} empresa={empresa} aoFechar={() => setAberto(null)} />}
+      {folha && (
+        <CardFolha
+          key={folha.peca?.id ?? "nova"}
+          peca={folha.peca}
+          emUso={(t) => pecasDaPasta(pecas, folha.pasta).some((p) => p.id !== folha.peca?.id && p.titulo.trim().toLowerCase() === t.toLowerCase())}
+          aoSalvar={(d) => {
+            salvarPeca({ ...d, id: folha.peca?.id, empresaId: empresa.id, tipo: folha.peca?.tipo ?? folha.pasta.tipo ?? "post", pastaId: folha.peca?.pastaId ?? folha.pasta.id });
+            setFolha(null);
+          }}
+          aoFechar={() => setFolha(null)}
+        />
+      )}
+      {aberto && "peca" in aberto && (
+        <CardPeca
+          peca={aberto.peca}
+          empresa={empresa}
+          pasta={aberto.pasta.nome}
+          aoEditar={() => { setFolha({ pasta: aberto.pasta, peca: aberto.peca }); setAberto(null); }}
+          aoExcluir={() => { excluirPeca(aberto.peca.id); setAberto(null); }}
+          aoFechar={() => setAberto(null)}
+        />
+      )}
       {aberto && "ideias" in aberto && <CardIdeias empresaId={empresa.id} inicio={aberto.ideias} aoFechar={() => setAberto(null)} />}
     </div>
   );
