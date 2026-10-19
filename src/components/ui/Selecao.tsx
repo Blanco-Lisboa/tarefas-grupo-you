@@ -17,7 +17,7 @@ type Props = {
   multipla?: boolean;
   /** Primeira linha que limpa a escolha, ex.: "Todas". Sem ela, a lista só tem as opções. */
   rotuloTodos?: string;
-  /** Com escolha, o botão fechado mostra só o ícone/logo da escolha + seta; o nome fica no title e no aria-label (item 106). */
+  /** Com escolha, o botão fechado mostra o rótulo e, colado na seta, só o ícone/logo da escolha; o nome fica no title e no aria-label (itens 106 e 108). */
   soIcone?: boolean;
 };
 
@@ -46,10 +46,10 @@ export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotul
         title={escolhidas.length ? `${rotulo}: ${escolhidas.map((o) => o.rotulo).join(", ")}` : undefined}
         style={{ anchorName: ancora } as CSSProperties}
       >
-        {icone ? null : multipla || !escolhidas.length ? <span>{rotulo}</span> : <span className="selecao-rotulo-p">{rotulo}</span>}
+        {multipla || !escolhidas.length ? <span>{rotulo}</span> : <span className="selecao-rotulo-p">{rotulo}</span>}
         {escolhidas.length > 0 &&
           (icone ? (
-            escolhidas.slice(0, 3).map((o) => <span key={o.valor} className="selecao-antes">{o.antes}</span>)
+            escolhidas.slice(0, 3).map((o) => <span key={o.valor} className="selecao-antes selecao-antes-fim">{o.antes}</span>)
           ) : multipla ? (
             <>
               {escolhidas.slice(0, 3).map((o) => o.antes && <span key={o.valor} className="selecao-antes">{o.antes}</span>)}

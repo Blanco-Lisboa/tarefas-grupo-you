@@ -18,6 +18,9 @@
 /* Escolha única: rótulo pequeno em cinza e a escolha em negrito */
 .selecao-rotulo-p { font-size: var(--t-12); font-weight: 500; color: var(--fraco); }
 .selecao-antes { display: inline-flex; align-items: center; flex: none; }
+/* ícone da escolha colado na seta, rótulo fica à esquerda */
+.selecao-antes-fim { margin-left: auto; margin-right: calc(var(--s-4) - var(--s-8)); }
+.selecao-antes-fim ~ .selecao-antes-fim { margin-left: 0; }
 .selecao-escolha { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--texto); }
 
 .selecao-contador {
