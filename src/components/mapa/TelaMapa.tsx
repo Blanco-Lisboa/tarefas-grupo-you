@@ -79,9 +79,10 @@ function Linha({ dias, marcos, abrir }: { dias: string[]; marcos: Tarefa[]; abri
           tl.fromTo(fx, { x: 0 }, { x: -dist, duration: 1 }, 0);
           tl.fromTo(".mapa-progresso", { scaleX: 0 }, { scaleX: 1, duration: 1 }, 0);
 
-          // um marco = bolinha, haste que cresce a partir da linha e texto que sobe linha a linha
+          // um marco = ponto da linha, bolinha, haste que cresce a partir da linha e texto que sobe linha a linha
           const revelar = (el: HTMLElement) => {
             const sub = gsap.timeline();
+            sub.fromTo(el, { "--ponto": 0 }, { "--ponto": 1, duration: 0.3, ease: "power2.out" }, 0); // ponto da linha cresce junto
             sub.fromTo(el.querySelector(".mapa-haste"), { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: "power2.out" }, 0);
             sub.fromTo(el.querySelector(".mapa-bolinha"), { scale: 0 }, { scale: 1, duration: 0.3, ease: "power2.out" }, 0.1);
             const linhas = [...el.querySelectorAll("[data-alvo]")].flatMap((a) => SplitText.create(a, { type: "lines", mask: "lines" }).lines);

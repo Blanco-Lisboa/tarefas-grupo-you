@@ -39,7 +39,7 @@
 /* ---------- marco: ponto da linha + haste + bolinha na ponta + texto ao lado ---------- */
 .mapa-marco { position: absolute; top: 50%; height: 0; width: 0; --cor: var(--azul); }
 .mapa-marco[data-postado="true"] { --cor: var(--fraco); }
-.mapa-marco::before { content: ""; position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--cor); }
+.mapa-marco::before { content: ""; position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--cor); transform: scale(var(--ponto, 1)); }
 .mapa-haste { position: absolute; left: -1px; width: 2px; height: var(--haste); background: var(--cor); }
 .mapa-bolinha { position: absolute; left: -5px; width: 10px; height: 10px; border-radius: 50%; background: var(--cor); }
 .mapa-marco[data-postado="true"] .mapa-bolinha { background: var(--sup); border: 1.5px solid var(--cor); }
