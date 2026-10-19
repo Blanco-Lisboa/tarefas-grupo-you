@@ -13,7 +13,13 @@ import "./mapa.css";
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
-const rotuloDia = (d: string, inicio: string) => (d === inicio || d.endsWith("-01") ? diaCurto(d) : `${nomeSemana(d)} ${Number(d.slice(8))}`);
+// Dia da semana + número; no primeiro dia do período e no dia 1 de cada mês entra o mês, para dar para saber onde está no meio da rolagem.
+const rotuloDia = (d: string, inicio: string) => (
+  <>
+    {nomeSemana(d)} {Number(d.slice(8))}
+    {(d === inicio || d.endsWith("-01")) && <b className="mapa-mes">{nomeMes(d).slice(0, 3)}</b>}
+  </>
+)
 
 const semAviso = () => () => {};
 // O dia de hoje só existe no navegador (o servidor pode estar em outro fuso): espera montar para não dar diferença na hidratação.

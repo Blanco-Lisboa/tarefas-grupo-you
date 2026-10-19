@@ -33,6 +33,7 @@
 
 .mapa-linha { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--borda); transform-origin: left; }
 .mapa-dia { position: absolute; top: calc(50% + 12px); transform: translateX(-50%); font-size: 11px; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fraco); white-space: nowrap; }
+.mapa-mes { margin-left: 0.5em; font-weight: 700; color: var(--azul); }
 .mapa-dia::before { content: ""; position: absolute; left: 50%; top: -12px; width: 1px; height: 6px; background: var(--borda); }
 
 /* ---------- marco: ponto da linha + haste + bolinha na ponta + texto ao lado ---------- */
