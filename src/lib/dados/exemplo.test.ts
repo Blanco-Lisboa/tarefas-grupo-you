@@ -27,11 +27,11 @@ describe("dados de exemplo", () => {
 });
 
 describe("conteúdos do Kanban", () => {
-  const etapas = ["roteiro", "gravacao", "edicao", "aprovado", "postado"] as const;
+  const etapas = ["roteiro", "gravacao", "edicao", "analise", "aprovado", "postado"] as const;
 
   it("têm 3 por etapa e nenhum em Ideia", () => {
     for (const e of etapas) expect(conteudos.filter((t) => t.etapa === e).length, e).toBe(3);
-    expect(conteudos.length).toBe(15);
+    expect(conteudos.length).toBe(18);
   });
 
   it("misturam empresas, responsáveis e redes", () => {
@@ -42,7 +42,7 @@ describe("conteúdos do Kanban", () => {
 
   it("cada etapa aberta tem 1 atrasado, 1 hoje/amanhã e 1 mais à frente; Postado fica no passado", () => {
     const dia = (t: { inicio?: string }) => t.inicio!.slice(0, 10);
-    for (const e of etapas.slice(0, 4)) {
+    for (const e of etapas.slice(0, 5)) {
       const l = conteudos.filter((t) => t.etapa === e);
       expect(l.filter((t) => dia(t) < HOJE).length, `${e} atrasado`).toBe(1);
       expect(l.filter((t) => dia(t) === HOJE || dia(t) === "2026-10-20").length, `${e} hoje/amanhã`).toBe(1);

@@ -10,7 +10,7 @@
 .conteudos-coluna[data-destino="true"] { background: var(--azul-claro); outline: 2px solid var(--foco); outline-offset: -2px; }
 .conteudos-coluna-topo { display: flex; align-items: center; gap: var(--s-8); min-height: 48px; padding: var(--s-8) var(--s-12); border-bottom: 1px solid var(--linha); border-radius: var(--raio-c) var(--raio-c) 0 0; background: color-mix(in srgb, var(--etapa) 60%, var(--sup-2)); }
 .conteudos-numero { color: var(--fraco); font: 500 var(--t-14) var(--fonte); }
-.conteudos-coluna h2 { flex: 1; margin: 0; color: var(--texto); font-size: var(--app-t-secao); }
+.conteudos-coluna h2 { flex: 1; white-space: nowrap; margin: 0; color: var(--texto); font-size: var(--app-t-secao); }
 .conteudos-contagem { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 var(--s-4); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); font-size: var(--app-t-rotulo); font-weight: 600; }
 .conteudos-novo { display: grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--raio-b); background: transparent; color: var(--texto); font: 500 var(--t-20)/1 var(--fonte); cursor: pointer; transition: background var(--dur-rapida) var(--curva); }
 .conteudos-novo:hover { background: var(--sup); }
@@ -26,6 +26,8 @@
 .conteudos-cartao-rodape { display: flex; align-items: center; justify-content: space-between; gap: var(--s-8); }
 .conteudos-empresa { display: inline-flex; align-items: center; min-width: 0; max-width: calc(100% - 40px); color: var(--texto); font-size: var(--app-t-rotulo); font-weight: 600; }
 .conteudos-rede { display: grid; flex: none; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: var(--sup-2); }
+.conteudos-clipe { display: inline-flex; align-items: center; gap: 3px; height: 28px; padding: 0 var(--s-8); border-radius: 7px; background: var(--sup-2); color: var(--texto); font-size: var(--t-12); font-weight: 600; margin-left: auto; }
+.conteudos-clipe svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .conteudos-titulo { display: block; width: 100%; min-height: 42px; margin: var(--s-12) 0; padding: 0; border: 0; background: none; color: var(--texto); font: 600 var(--t-16)/1.3 var(--fonte); text-align: left; overflow-wrap: anywhere; cursor: pointer; }
 .conteudos-titulo:hover { color: var(--azul); }
 .conteudos-cartao-rodape { color: var(--texto); font-size: var(--app-t-rotulo); font-weight: 500; }

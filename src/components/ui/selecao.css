@@ -17,6 +17,10 @@
 .selecao-botao:has(+ .selecao-pop:popover-open) .selecao-seta { transform: rotate(180deg); }
 /* Escolha única: rótulo pequeno em cinza e a escolha em negrito */
 .selecao-rotulo-p { font-size: var(--t-12); font-weight: 500; color: var(--fraco); }
+/* Escolhas pelo nome (chips): ocupam o que sobra do botão, o que não cabe vira "+N" */
+.selecao-chips { position: relative; display: flex; flex: 1 1 0; gap: var(--s-4); min-width: 0; overflow: hidden; }
+.selecao-chip { display: flex; flex: none; max-width: 100%; min-width: 0; }
+.selecao-mais { flex: none; font-size: var(--t-12); font-weight: 600; color: var(--fraco); }
 .selecao-antes { display: inline-flex; align-items: center; flex: none; }
 /* ícone da escolha colado na seta, rótulo fica à esquerda */
 .selecao-antes-fim { margin-left: auto; margin-right: calc(var(--s-4) - var(--s-8)); }
@@ -60,6 +64,10 @@
 .selecao-opcao-rotulo { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .selecao-todos { position: relative; margin-bottom: 7px; }
 .selecao-todos::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -5px; height: 1px; background: var(--linha); }
+
+.selecao-acao { position: relative; margin-top: 7px; color: var(--azul); font-weight: 600; }
+.selecao-acao::before { content: ""; position: absolute; left: 10px; right: 10px; top: -5px; height: 1px; background: var(--linha); }
+.selecao-mais-icone { display: grid; place-items: center; width: 18px; flex: none; font-size: var(--t-16); line-height: 1; }
 
 .selecao-marca {
   display: grid; place-items: center; width: 18px; height: 18px; flex: none;

@@ -16,16 +16,23 @@
   --etiqueta-8:  #23813A; --etiqueta-8-texto:  #FFFFFF;  /* verde · branco 4,91 */
   --etiqueta-9:  #8944AB; --etiqueta-9-texto:  #FFFFFF;  /* roxo · branco 6,04 */
   --etiqueta-10: #0A7A84; --etiqueta-10-texto: #FFFFFF;  /* azul-petróleo · branco 5,08 */
+  /* Versões fortes das seis claras (item 128), só para tags; mesma ordem: amarelo, laranja, verde, menta, lavanda, rosa */
+  --etiqueta-11: #E0A800; --etiqueta-11-texto: #1D1D1F;  /* amarelo forte · texto 7,83 */
+  --etiqueta-12: #C2490A; --etiqueta-12-texto: #FFFFFF;  /* laranja forte · branco 4,94 */
+  --etiqueta-13: #1E7F37; --etiqueta-13-texto: #FFFFFF;  /* verde forte · branco 5,06 */
+  --etiqueta-14: #0E7C7B; --etiqueta-14-texto: #FFFFFF;  /* menta forte · branco 5,01 */
+  --etiqueta-15: #6B4FD6; --etiqueta-15-texto: #FFFFFF;  /* lavanda forte · branco 5,65 */
+  --etiqueta-16: #C72A62; --etiqueta-16-texto: #FFFFFF;  /* rosa forte · branco 5,34 */
 }
 
 /* Etiqueta da ETAPA (item 78): pílula pequena dentro do bloco do calendário, que fica na cor clara da empresa.
    Tons suaves, um por etapa, letra escura (#1D1D1F) com contraste de 10,3 a 15,1 (mínimo 4,5). Sem roxo e sem laranja
    cheios, que são das empresas, e sem o azul do que se clica. */
 :root {
-  --etapa-ideia: #F2F2F5;     /* cinza claro · 15,06 */
   --etapa-roteiro: #FFE08A;   /* amarelo · 13,05 */
   --etapa-gravacao: #FFB8BE;  /* rosa-coral · 10,30 */
   --etapa-edicao: #AED9F5;    /* azul-céu · 11,25 */
+  --etapa-analise: #EBDDC0;   /* areia · 13,6 (suave, só dela) */
   --etapa-aprovado: #ABE5BB;  /* verde · 11,75 */
   --etapa-postado: #CBD3DF;   /* cinza-azulado · 11,16 */
 }

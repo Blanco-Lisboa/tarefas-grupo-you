@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { conteudos, diasDoPeriodo, filaPorDia, foiPostado, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { ETAPAS_ATE_POSTAR, PASSO, conteudos, diasDoPeriodo, filaPorDia, foiPostado, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 
 const t = (id: string, tipo: Tarefa["tipo"], inicio?: string, extra: Partial<Tarefa> = {}): Tarefa => ({
   id, titulo: id, tipo, empresaId: "beec", responsavel: "natham", inicio, diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra,
@@ -61,7 +61,11 @@ describe("fila por dia", () => {
 
   it("no dia: sem horário na ordem de criação (no topo, como na folha), com horário na linha do horário", () => {
     expect(f[1].itens.map((i) => i.t.id)).toEqual(["c-sem-hora", "a-sem-hora", "cedo", "b-tarde"]);
-    expect(f[1].itens.map((i) => i.passo)).toEqual(["Postar", "Gravar", "Postar", "Aprovar"]);
+    expect(f[1].itens.map((i) => i.passo)).toEqual(["Postar", "Gravar", "Postar", "Enviar para análise"]);
+  });
+
+  it("o próximo passo segue a ordem das etapas", () => {
+    expect(ETAPAS_ATE_POSTAR.map((e) => PASSO[e])).toEqual(["Gravar", "Editar", "Enviar para análise", "Aprovar", "Postar"]);
   });
 
   it("hoje aparece mesmo sem nada hoje, e sem nada a fazer não há card", () => {

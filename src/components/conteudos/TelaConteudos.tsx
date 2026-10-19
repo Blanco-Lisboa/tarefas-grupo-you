@@ -12,8 +12,8 @@ import { diasDeAtraso } from "@/lib/atraso";
 import "./conteudos.css";
 
 const nomes: Record<Etapa, string> = {
-  ideia: "Ideia", roteiro: "Roteiro", gravacao: "Gravação",
-  edicao: "Edição", aprovado: "Aprovado", postado: "Postado",
+  roteiro: "Roteiro", gravacao: "Gravação", edicao: "Edição",
+  analise: "Em análise", aprovado: "Aprovado", postado: "Postado",
 };
 
 type Arraste = { id: string; x: number; y: number; w: number; h: number };
@@ -108,7 +108,7 @@ export function TelaConteudos() {
       <header className="conteudos-cabecalho">
         <div>
           <h1>Conteúdos</h1>
-          <p>Acompanhe cada conteúdo da ideia à publicação.</p>
+          <p>Acompanhe cada conteúdo do roteiro à publicação.</p>
         </div>
         <div className="conteudos-total bloco-destaque"><strong className="bloco-numero">{conteudos.length}</strong><span className="bloco-fraco">conteúdos</span></div>
       </header>
@@ -150,6 +150,12 @@ export function TelaConteudos() {
                     <div className="conteudos-cartao-topo">
                       <span className="conteudos-empresa" style={{ "--marca": tomDaEmpresa(tarefa.empresaId).r } as CSSProperties}><SeloEmpresa empresaId={tarefa.empresaId} nome={nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"} tamanho={20} /></span>
                       {tarefa.rede && <span className="conteudos-rede"><IconeRede rede={tarefa.rede} tamanho={18} /></span>}
+                      {tarefa.arquivos.length > 0 && (
+                        <span className="conteudos-clipe" title={`${tarefa.arquivos.length} anexo${tarefa.arquivos.length > 1 ? "s" : ""}`} aria-label={`${tarefa.arquivos.length} anexo${tarefa.arquivos.length > 1 ? "s" : ""}`}>
+                          <svg viewBox="0 0 24 24" aria-hidden><path d="M21 12.5l-8.5 8.5a5.5 5.5 0 01-7.8-7.8L13.2 4.7a3.7 3.7 0 015.2 5.2l-8.5 8.5a1.9 1.9 0 01-2.6-2.6L14.6 7.5" /></svg>
+                          {tarefa.arquivos.length}
+                        </span>
+                      )}
                     </div>
                     <button className="conteudos-titulo" type="button" onClick={() => setAberta(tarefa)}>{tarefa.titulo}</button>
                     {tarefa.tags?.some((id) => tags.some((g) => g.id === id)) && (

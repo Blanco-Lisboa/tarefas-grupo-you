@@ -3,7 +3,7 @@
 //   import { Ficha, tarefaEmBranco, NOMES } from "@/components/ficha/Ficha";
 //   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
 //   <button onClick={() => setAberta(tarefa)}>…</button>                       // editar uma tarefa existente
-//   <button onClick={() => setAberta(tarefaEmBranco({ etapa: "ideia" }))}>…</button>  // criar (sem id = nova)
+//   <button onClick={() => setAberta(tarefaEmBranco({ etapa: "roteiro" }))}>…</button>  // criar (sem id = nova)
 //   {aberta && <Ficha tarefa={aberta} aoFechar={() => setAberta(null)} />}
 //
 // - Renderize só quando houver tarefa (o estado interno nasce da tarefa recebida).
@@ -21,14 +21,16 @@ import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
-import { Aprovador } from "@/components/ui/Tag";
+import { Aprovador, TagChip } from "@/components/ui/Tag";
+import { Anexos } from "./Anexos";
+import { TextoComLinks } from "@/components/pastas/links";
 import { CampoData } from "@/components/ui/CampoData";
 import "./ficha.css";
 
 export const NOMES = {
   tipo: { ideia: "Ideia", roteiro: "Roteiro", gravacao: "Gravação", edicao: "Edição", postagem: "Postagem", reuniao: "Reunião", outro: "Outro" },
   rede: { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", kwai: "Kwai" },
-  etapa: { ideia: "Ideia", roteiro: "Roteiro", gravacao: "Gravação", edicao: "Edição", aprovado: "Aprovado", postado: "Postado" },
+  etapa: { roteiro: "Roteiro", gravacao: "Gravação", edicao: "Edição", analise: "Em análise", aprovado: "Aprovado", postado: "Postado" },
   responsavel: { natham: "Natham", matheus: "Matheus" },
 } as const satisfies {
   tipo: Record<TipoTarefa, string>; rede: Record<Rede, string>; etapa: Record<Etapa, string>; responsavel: Record<Responsavel, string>;
@@ -40,6 +42,7 @@ export const tarefaEmBranco = (parcial: Partial<NovaTarefa> = {}): NovaTarefa =>
   cor: "etiqueta-1", links: [], arquivos: [], ...parcial,
 });
 
+const NENHUMA = "nenhuma"; // valor do seletor Empresa; a tarefa sem empresa guarda empresaId ""
 const LINK_VALIDO = /^https?:\/\//i;
 const HORA = 60 * 60_000;
 
@@ -50,12 +53,14 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
   const [novaTag, setNovaTag] = useState<{ nome: string; cor: Etiqueta } | null>(null);
   const [novoNome, setNovoNome] = useState<string | null>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
-  const [t, setT] = useState<NovaTarefa>(() => ({ ...tarefa, empresaId: tarefa.empresaId || empresas[0]?.id || "" }));
+  const [t, setT] = useState<NovaTarefa>(() => ({ ...tarefa, empresaId: tarefa.id ? tarefa.empresaId : tarefa.empresaId || empresas[0]?.id || "" })); // tarefa já existente sem empresa continua sem empresa (item 125)
   const [data, setData] = useState(tarefa.inicio?.slice(0, 10) ?? "");
   const [horaIni, setHoraIni] = useState(tarefa.inicio?.slice(11, 16) || "09:00");
   const [horaFim, setHoraFim] = useState(tarefa.fim?.slice(11, 16) ?? "");
   const [dataFim, setDataFim] = useState(tarefa.fim?.slice(0, 10) ?? "");
   const [links, setLinks] = useState<LinkDrive[]>(tarefa.links);
+  const [arquivos, setArquivos] = useState(tarefa.arquivos);
+  const [editandoNotas, setEditandoNotas] = useState(false);
   const nova = !tarefa.id;
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
@@ -67,6 +72,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
     setNovaTag(null);
   }
   const temEmpresa = empresas.some((x) => x.id === t.empresaId);
+  const empresaOk = !t.empresaId || temEmpresa; // "" = sem empresa
   const mudar = <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => setT((x) => ({ ...x, [campo]: valor }));
 
   // Mudou o início: o fim anda junto e a duração fica igual (senão o fim fica antes do início e trava o formulário).
@@ -93,14 +99,14 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
-    if (!t.titulo.trim() || !temEmpresa) return;
+    if (!t.titulo.trim() || !empresaOk) return;
     const quando: Pick<NovaTarefa, "inicio" | "fim" | "diaInteiro"> = !data
       ? { inicio: undefined, fim: undefined, diaInteiro: false }
       : t.diaInteiro
         ? { inicio: data, fim: undefined, diaInteiro: true }
         : { inicio: `${data}T${horaIni}`, fim: fimValido(data, horaIni, dataFim || data, horaFim), diaInteiro: false };
     await salvarTarefa({
-      ...t, ...quando, aprovador: pedeAprovador ? t.aprovador : undefined, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
+      ...t, ...quando, arquivos, aprovador: pedeAprovador ? t.aprovador : undefined, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
     aoFechar();
@@ -154,7 +160,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             </div>
             <div className="ficha-campo ficha-escolha">
               {empresas.length ? (
-                <Selecao rotulo="Empresa" soIcone opcoes={empresas.map((x) => ({ valor: x.id, rotulo: x.nome, antes: <SeloEmpresa empresaId={x.id} nome={x.nome} tamanho={18} /> }))} valor={temEmpresa ? [t.empresaId] : []} multipla={false} aoMudar={([v]) => { if (v) mudar("empresaId", v); }} />
+                <Selecao rotulo="Empresa" soIcone opcoes={[...empresas.map((x) => ({ valor: x.id, rotulo: x.nome, antes: <SeloEmpresa empresaId={x.id} nome={x.nome} tamanho={18} /> })), { valor: NENHUMA, rotulo: "Nenhuma" }]} valor={t.empresaId ? (temEmpresa ? [t.empresaId] : []) : [NENHUMA]} multipla={false} aoMudar={([v]) => { if (v) mudar("empresaId", v === NENHUMA ? "" : v); }} />
               ) : (
                 <p className="ficha-aviso" role="alert">
                   Nenhuma empresa cadastrada. <Link href="/configuracoes" onClick={() => dialogo.current?.close()}>Cadastrar em Configurações</Link>
@@ -169,7 +175,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             </div>
           </div>
 
-          <div className="ficha-grade ficha-grade-fim">
+          <div className="ficha-quem-quando">
             <fieldset className="ficha-campo">
               <legend>Responsável</legend>
               <div className="ficha-pessoas">
@@ -184,18 +190,12 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
 
             <fieldset className="ficha-campo" aria-label="Quando">
               <div className="ficha-quando">
-                {/* Data e hora no mesmo painel (item 76): calendário + rodas de hora e minuto. Dia inteiro = só o calendário. */}
+                {/* Data e hora no mesmo painel (item 76): calendário + rodas de hora e minuto. Conteúdo antigo de dia inteiro mostra só a data. */}
                 <div className="ficha-mini">
                   {data && !t.diaInteiro ? "Começa" : "Data"}
                   <CampoData rotulo={data && !t.diaInteiro ? "Começa" : "Data"} valor={data} hora={t.diaInteiro ? undefined : data ? horaIni : ""}
                     aoMudar={(d, h) => mudarInicio(d, h || horaIni)} />
                 </div>
-                {data && (
-                  <label className="ficha-marcar">
-                    <input type="checkbox" checked={t.diaInteiro} onChange={(e) => mudar("diaInteiro", e.target.checked)} />
-                    Dia inteiro
-                  </label>
-                )}
                 {data && !t.diaInteiro && (
                   <div className="ficha-mini">
                     Termina
@@ -208,20 +208,29 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             </fieldset>
           </div>
 
-          <div className="ficha-grade ficha-tags">
+          {t.tipo === "postagem" && (
+            <Campo rotulo="Objetivo">
+              <input value={t.objetivo ?? ""} onChange={(e) => mudar("objetivo", e.target.value)} placeholder="Para que serve este conteúdo?" />
+            </Campo>
+          )}
+
+          <div className="ficha-opcional" aria-hidden>Opcional</div>
+          <div className="ficha-tags">
             {novaTag ? (
-              <div className="ficha-campo ficha-tag-nova" style={{ gridColumn: "1 / -1" }}>
+              <div className="ficha-campo ficha-tag-nova">
                 <input aria-label="Nome da nova tag" placeholder="Nome da nova tag" value={novaTag.nome} autoFocus
                   onChange={(e) => setNovaTag({ ...novaTag, nome: e.target.value })}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void criarTag(); } if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setNovaTag(null); } }} />
-                {ETIQUETAS.slice(0, 6).map((c) => (
-                  <button key={c} type="button" className="ficha-cor" aria-label={`Cor ${c.slice(9)}`} aria-pressed={novaTag.cor === c} style={{ background: `var(--${c})` }} onClick={() => setNovaTag({ ...novaTag, cor: c })} />
-                ))}
+                <div className="ficha-cores">
+                  {[...ETIQUETAS.slice(0, 6), ...ETIQUETAS.slice(10, 16)].map((c) => (
+                    <button key={c} type="button" className="ficha-cor" aria-label={`Cor ${c.slice(9)}`} aria-pressed={novaTag.cor === c} style={{ background: `var(--${c})` }} onClick={() => setNovaTag({ ...novaTag, cor: c })} />
+                  ))}
+                </div>
                 <button type="button" className="ficha-texto-botao" onClick={() => void criarTag()}>Criar</button>
                 <button type="button" className="ficha-mais" aria-label="Cancelar" onClick={() => setNovaTag(null)}>×</button>
               </div>
             ) : novoNome !== null ? (
-              <div className="ficha-campo ficha-tag-nova" style={{ gridColumn: "1 / -1" }}>
+              <div className="ficha-campo ficha-tag-nova">
                 <input aria-label="Nome de quem aprova" placeholder="Nome de quem aprova" value={novoNome} autoFocus
                   onChange={(e) => setNovoNome(e.target.value)}
                   onKeyDown={(e) => {
@@ -233,29 +242,17 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
               </div>
             ) : (
               <>
-                <div className="ficha-campo ficha-escolha ficha-com-mais">
-                  <Selecao rotulo="Tags" opcoes={tags.map((g) => ({ valor: g.id, rotulo: g.nome, antes: <span className="ficha-ponto" style={{ background: `var(--${g.cor})` }} /> }))} valor={marcadas} aoMudar={(v) => mudar("tags", v)} />
-                  <button type="button" className="ficha-mais" aria-label="Criar nova tag" onClick={() => setNovaTag({ nome: "", cor: "etiqueta-3" })}>+</button>
+                <div className="ficha-campo ficha-escolha">
+                  <Selecao rotulo="Tags" opcoes={tags.map((g) => ({ valor: g.id, rotulo: g.nome, antes: <span className="ficha-ponto" style={{ background: `var(--${g.cor})` }} />, chip: <TagChip tag={g} /> }))} valor={marcadas} aoMudar={(v) => mudar("tags", v)} acao={{ rotulo: "Nova tag", aoClicar: () => setNovaTag({ nome: "", cor: "etiqueta-3" }) }} />
                 </div>
                 {pedeAprovador && (
-                  <div className="ficha-campo ficha-escolha ficha-com-mais">
-                    <Selecao rotulo="Quem aprova" opcoes={aprovadores.map((nome) => ({ valor: nome, rotulo: nome, antes: <Aprovador nome={nome} tamanho={18} /> }))} valor={t.aprovador ? [t.aprovador] : []} multipla={false} rotuloTodos="Ninguém" aoMudar={([v]) => mudar("aprovador", v)} />
-                    <button type="button" className="ficha-mais" aria-label="Adicionar nome de quem aprova" onClick={() => setNovoNome("")}>+</button>
+                  <div className="ficha-campo ficha-escolha">
+                    <Selecao rotulo="Quem aprova" opcoes={aprovadores.map((nome) => ({ valor: nome, rotulo: nome, antes: <Aprovador nome={nome} tamanho={18} /> }))} valor={t.aprovador ? [t.aprovador] : []} multipla={false} rotuloTodos="Ninguém" aoMudar={([v]) => mudar("aprovador", v)} acao={{ rotulo: "Novo nome", aoClicar: () => setNovoNome("") }} />
                   </div>
                 )}
               </>
             )}
           </div>
-
-          {t.tipo === "postagem" && (
-            <Campo rotulo="Objetivo">
-              <input value={t.objetivo ?? ""} onChange={(e) => mudar("objetivo", e.target.value)} placeholder="Para que serve este conteúdo?" />
-            </Campo>
-          )}
-
-          <Campo rotulo="Notas">
-            <textarea rows={10} value={t.notas ?? ""} onChange={(e) => mudar("notas", e.target.value)} placeholder="Ideias, roteiro, combinados..." />
-          </Campo>
 
           <fieldset className="ficha-campo">
             <legend>Links do Drive</legend>
@@ -269,12 +266,28 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             ))}
             <button type="button" className="ficha-texto-botao" onClick={() => setLinks([...links, { rotulo: "", url: "" }])}>+ Adicionar link</button>
           </fieldset>
+          <Anexos valor={arquivos} aoMudar={setArquivos} />
+
+          <div className="ficha-campo ficha-notas">
+            <label className="ficha-legenda" htmlFor="ficha-notas">Notas</label>
+            {/* Link escrito nas notas aparece como "Ver referência" (mesmo componente das Ideias das Pastas); ao clicar no texto volta o texto cru para editar. */}
+            {!editandoNotas && /https?:\/\//.test(t.notas ?? "") ? (
+              <div className="ficha-notas-ver" tabIndex={0} role="textbox" aria-label="Notas (clique para editar)"
+                onClick={(e) => { if (!(e.target as HTMLElement).closest("a")) setEditandoNotas(true); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && e.target === e.currentTarget) { e.preventDefault(); setEditandoNotas(true); } }}>
+                <TextoComLinks texto={t.notas ?? ""} />
+              </div>
+            ) : (
+              <textarea id="ficha-notas" rows={10} value={t.notas ?? ""} autoFocus={editandoNotas} onChange={(e) => mudar("notas", e.target.value)} onBlur={() => setEditandoNotas(false)} placeholder="Ideias, roteiro, combinados..." />
+            )}
+          </div>
+
         </div>
 
         <footer className="ficha-pe">
           {!nova && <button type="button" className="ficha-texto-botao ficha-excluir" onClick={excluir}>Excluir</button>}
           <button type="button" className="btn btn-2" onClick={() => dialogo.current?.close()}>Cancelar</button>
-          <button type="submit" className="btn" disabled={!t.titulo.trim() || !temEmpresa}>Salvar</button>
+          <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk}>Salvar</button>
         </footer>
       </form>
     </dialog>

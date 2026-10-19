@@ -14,7 +14,7 @@ export function Aprovador({ nome, tamanho = 16 }: { nome: string; tamanho?: numb
 export function TagChip({ tag, aprovador }: { tag: TagDado; aprovador?: string }) {
   const quem = tag.aprovacao ? aprovador : undefined;
   return (
-    <span className="tag-chip" style={{ "--tag": `var(--${tag.cor})`, "--tag-texto": `var(--${tag.cor}-texto)` } as CSSProperties}>
+    <span className="tag-chip" style={{ "--tag": `var(--${tag.cor})`, "--tag-texto": `var(--${tag.cor}-texto)`, "--tag-mistura": Number(tag.cor.slice(9)) >= 7 ? "100%" : "45%" } as CSSProperties}>
       {tag.nome}
       {quem && <>{" · "}{RESPONSAVEIS.includes(quem.toLowerCase() as Responsavel) && <Aprovador nome={quem} />}{quem}</>}
     </span>

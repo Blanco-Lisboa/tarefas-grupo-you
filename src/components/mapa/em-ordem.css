@@ -27,7 +27,7 @@
 .eo-dia li + li { border-top: 1px solid var(--linha); }
 .eo-linha { width: 100%; display: flex; align-items: center; gap: var(--s-12); padding: var(--s-12) var(--s-16); border: 0; background: transparent; }
 .eo-linha:hover { background: var(--realce); }
-.eo-linha .eo-passo { width: 92px; text-align: center; }
+.eo-linha .eo-passo { width: 148px; text-align: center; }
 .eo-dia[data-hoje="true"] .eo-passo { background: var(--azul); color: var(--no-azul); }
 .eo-linha .eo-titulo { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .eo-linha .eo-prazo { width: 108px; text-align: right; }

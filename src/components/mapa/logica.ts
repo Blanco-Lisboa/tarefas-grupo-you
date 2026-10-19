@@ -33,9 +33,9 @@ export const postadosNoMes = (lista: readonly Tarefa[], inicio: string) =>
   lista.filter((t) => foiPostado(t) && diaDe(t).startsWith(inicio.slice(0, 7))).length;
 
 // ---------- formato "Fila": um card por dia, o que fazer em cada um ----------
-export const ETAPAS_ATE_POSTAR = ["ideia", "roteiro", "gravacao", "edicao", "aprovado"] as const;
-/** Próximo passo pela etapa em que o conteúdo está. Sem etapa conta como ideia. */
-export const PASSO = { ideia: "Roteirizar", roteiro: "Gravar", gravacao: "Editar", edicao: "Aprovar", aprovado: "Postar" } as const;
+export const ETAPAS_ATE_POSTAR = ["roteiro", "gravacao", "edicao", "analise", "aprovado"] as const;
+/** Próximo passo pela etapa em que o conteúdo está. Sem etapa conta como roteiro. */
+export const PASSO = { roteiro: "Gravar", gravacao: "Editar", edicao: "Enviar para análise", analise: "Aprovar", aprovado: "Postar" } as const;
 
 export type Item = { t: Tarefa; dias: number; passo: string };
 /** `dias` = quantos dias faltam para o dia do card (0 = hoje). */
@@ -59,7 +59,7 @@ export function filaPorDia(lista: readonly Tarefa[], de: string): DiaFila[] {
   for (const t of lista) {
     // entra o que vem pela frente (postagem a postar) e todo atrasado, mesmo de antes do período do Mapa (mesma regra do Conteúdos)
     if (!t.inicio || (!diasDeAtraso(t, de) && (t.tipo !== "postagem" || foiPostado(t)))) continue;
-    const etapa = Math.max(0, ETAPAS_ATE_POSTAR.indexOf((t.etapa ?? "ideia") as (typeof ETAPAS_ATE_POSTAR)[number]));
+    const etapa = Math.max(0, ETAPAS_ATE_POSTAR.indexOf((t.etapa ?? "roteiro") as (typeof ETAPAS_ATE_POSTAR)[number]));
     itens.set(t.id, { t, dias: diasAte(diaDe(t), de), passo: PASSO[ETAPAS_ATE_POSTAR[etapa]] });
     const dia = diaDe(t) < de ? de : diaDe(t); // atrasado cai em hoje
     porDia.set(dia, [...(porDia.get(dia) ?? []), t]);

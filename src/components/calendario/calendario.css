@@ -67,10 +67,10 @@
   flex: none; padding: 0 6px; border-radius: var(--raio-pilula); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .1);
   font: 600 10px / 15px var(--fonte); letter-spacing: .02em; color: var(--texto); white-space: nowrap;
 }
-.etapa-ideia { background: var(--etapa-ideia); }
 .etapa-roteiro { background: var(--etapa-roteiro); }
 .etapa-gravacao { background: var(--etapa-gravacao); }
 .etapa-edicao { background: var(--etapa-edicao); }
+.etapa-analise { background: var(--etapa-analise); }
 .etapa-aprovado { background: var(--etapa-aprovado); }
 .etapa-postado { background: var(--etapa-postado); }
 .evento-bloco { position: absolute; overflow: hidden; z-index: 1; box-shadow: 0 0 0 1px var(--sup); justify-content: flex-start; }
