@@ -66,29 +66,57 @@
 
 /* bloco do dia: data + conteúdos empilhados, ancorado na bolinha (em cima: cresce para baixo; embaixo: cresce para cima) */
 .mapa-bloco {
-  position: absolute; left: 14px; padding: 3px 8px 10px 4px; /* folga para a sombra e o hover não serem cortados pela rolagem do bloco */
+  position: absolute; left: 14px; padding: 6px 12px 10px 4px; /* folga para a sombra e o hover não serem cortados pela rolagem do bloco */
   width: calc(var(--dia-w) * 1.3); min-width: 160px; max-width: 256px; max-height: calc(var(--haste) - 14px);
   display: flex; flex-direction: column; gap: 6px;
   overflow-y: auto; scrollbar-width: thin; /* nunca esconde cartão: se o dia tiver mais do que cabe, o bloco rola por dentro */
 }
 .mapa-marco[data-lado="cima"] .mapa-bloco { top: calc(var(--haste) * -1 - 7px); max-height: calc(var(--haste) + 2px); } /* em cima o bloco pode ir até perto da linha */
 .mapa-marco[data-lado="baixo"] .mapa-bloco { bottom: calc(var(--haste) * -1 - 7px); justify-content: flex-end; }
-/* cada conteúdo é um cartão: fundo branco, borda de 1px sutil, sombra macia e cantos da base da Névoa; clica (ou Enter) e abre a ficha */
+/* Cartão de VIDRO (tokens da base). Dia com 2 ou 3: pilha em cascata, cada cartão mostra a faixa do título e o da frente vem inteiro;
+   passar o mouse, focar (teclado) ou tocar abre em leque. Dia com 1: cartão com uma folha fantasma atrás. */
+.mapa-pilha { --card-h: 64px; --faixa: 25px; --vao: 4px; position: relative; display: flex; flex-direction: column; padding-top: 6px; }
 .mapa-card {
   --cor: var(--azul);
-  display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 6px 10px; flex: none; text-align: left; cursor: pointer;
-  color: var(--texto); font: inherit;
-  background: var(--sup); border: 1px solid rgb(0 0 0 / 0.07); border-radius: var(--raio-b); box-shadow: var(--sombra);
-  transition: transform var(--dur) var(--curva), box-shadow var(--dur) var(--curva), border-color var(--dur) var(--curva);
+  position: relative; z-index: calc(var(--i, 0) + 1); height: var(--card-h); flex: none;
+  display: flex; flex-direction: column; gap: 1px; margin: var(--vao) 0 0; padding: 4px 10px; text-align: left; cursor: pointer;
+  color: var(--texto); font: inherit; overflow: hidden;
+  background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-b); box-shadow: var(--sombra);
+  -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque);
+  transition: margin-top var(--dur) var(--curva), transform var(--dur) var(--curva), box-shadow var(--dur) var(--curva);
 }
-.mapa-card:hover { transform: translateY(-1px); box-shadow: var(--sombra-alta); border-color: rgb(0 0 0 / 0.12); }
+.mapa-card:first-of-type { margin-top: 0; }
+.mapa-card:hover, .mapa-card:focus-visible { transform: translateY(-1px); box-shadow: var(--sombra-alta); }
 .mapa-card:active { transform: none; }
 .mapa-card[data-postado="true"] { --cor: var(--fraco); }
+/* pilha fechada: o cartão de trás só mostra a faixa do título (o da frente cobre o resto) */
+.mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:first-of-type) { margin-top: calc(var(--faixa) - var(--card-h)); }
+.mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:last-of-type) { background: var(--vidro-forte); }
+.mapa-card:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; z-index: 20; }
+/* folha fantasma: sugere que o cartão é uma pilha de um */
+.mapa-fantasma {
+  position: absolute; left: 7px; right: -7px; top: 6px; height: var(--card-h); border-radius: var(--raio-b); z-index: 0;
+  background: var(--vidro); border: 1px solid var(--vidro-linha); box-shadow: var(--sombra); opacity: .7; transform: rotate(1.6deg);
+}
+
+/* manchas de cor atrás da linha do tempo, para o vidro ler */
+.mapa-mancha {
+  position: absolute; z-index: 0; width: calc(var(--dia-w) * var(--d) / 14); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c) 17%, transparent), transparent 68%);
+}
+.mapa-dica, .mapa-progresso { z-index: 1; }
+
+/* tag da empresa: tom da marca com texto escuro da mesma cor (AA) */
+.mapa-tag {
+  flex: none; padding: 0 6px; border-radius: var(--raio-pilula); font-size: 11px; font-weight: 600; line-height: 15px;
+  background: color-mix(in srgb, var(--tag) 16%, #fff); color: color-mix(in srgb, var(--tag-escuro) 55%, #000);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tag) 32%, #fff); /* contorno sem ocupar altura */
+}
 .mapa-bloco span { display: block; }
 .mapa-objetivo { font-size: 15px; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .mapa-card:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
 .mapa-data { font-size: 12px; font-weight: 600; color: var(--texto); }
-.mapa-info { display: flex !important; flex-wrap: nowrap; min-width: 0; align-items: baseline; gap: 0 8px; }
+.mapa-info { display: flex !important; flex-wrap: nowrap; min-width: 0; align-items: center; gap: 0 7px; }
 .mapa-meta { font-size: 12px; color: var(--fraco); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mapa-estado { flex: none; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cor); }
 .mapa-card[data-postado="true"] .mapa-objetivo { color: var(--fraco); }
@@ -100,7 +128,8 @@
 @media (max-width: 767px) {
   .mapa-bloco { left: 10px; width: calc(var(--dia-w) * 1.9); max-width: none; min-width: 120px; } /* blocos do mesmo lado ficam a 2 dias de distância: cabe */
   .mapa-objetivo { font-size: 13px; -webkit-line-clamp: 2; }
-  .mapa-card { padding: 6px 8px; }
+  .mapa-pilha { --card-h: 60px; --faixa: 23px; }
+  .mapa-card { padding: 4px 8px; }
   .mapa-dica { left: 12px; right: 12px; }
 }
 
@@ -111,4 +140,9 @@
   .mapa-cartao { overflow-x: auto; }
   .mapa-faixa { position: relative; height: 100%; }
   .mapa-dica, .mapa-progresso { display: none; }
+  /* sem leque animado: os cartões ficam abertos, um abaixo do outro, todos legíveis */
+  .mapa-card { transition: none; margin-top: var(--vao) !important; }
+  .mapa-card:first-of-type { margin-top: 0 !important; }
+  .mapa-card:not(:last-of-type) { background: var(--vidro) !important; }
+
 }

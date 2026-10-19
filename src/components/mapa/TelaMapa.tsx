@@ -1,11 +1,12 @@
 "use client";
-import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { useEmpresas, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
+import { tomDaEmpresa } from "@/components/pastas/cores";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
 import { conteudos, hoje, diasDoPeriodo, foiPostado, objetivoDe, postadosNoMes, ultimoDia } from "./logica";
 import "./mapa.css";
@@ -20,6 +21,9 @@ const rotuloDia = (d: string, inicio: string) => (
     {(d === inicio || d.endsWith("-01")) && <b className="mapa-mes">{nomeMes(d).slice(0, 3)}</b>}
   </>
 )
+
+// Posição (% da largura de 7 dias, % da altura) e tamanho das manchas de cada empresa; a segunda empresa se desloca na horizontal.
+const MANCHAS: [number, number, number][] = [[12, 22, 46], [48, 70, 52], [82, 30, 44]];
 
 const semAviso = () => () => {};
 // O dia de hoje só existe no navegador (o servidor pode estar em outro fuso): espera montar para não dar diferença na hidratação.
@@ -79,6 +83,7 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
   const palco = useRef<HTMLDivElement>(null);
   const fixo = useRef<HTMLDivElement>(null);
   const faixa = useRef<HTMLDivElement>(null);
+  const empresas = useEmpresas();
   // um marco por dia: os conteúdos do mesmo dia ficam empilhados na mesma haste, então nunca se sobrepõem
   const porDia = useMemo(() => {
     const m = new Map<string, Tarefa[]>();
@@ -150,6 +155,10 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
           {topo}
           <div ref={fixo} className="mapa-cartao">
             <div ref={faixa} className="mapa-faixa">
+              {/* manchas bem leves nas cores das empresas, repetidas a cada 7 dias e andando com a faixa: é o que o vidro dos cartões desfoca */}
+              {Array.from({ length: Math.ceil((dias.length + 1) / 7) }, (_, b) => empresas.flatMap((e, i) => MANCHAS.map(([x, y, d], k) => (
+                <span key={`${b}-${e.id}-${k}`} className="mapa-mancha" aria-hidden style={{ "--c": tomDaEmpresa(e.id).r, "--d": d, left: `calc(${b * 7 + ((x + i * 37) % 100) / 100 * 7} * var(--dia-w))`, top: `${y}%` } as CSSProperties} />
+              )))) }
               <span className="mapa-linha" aria-hidden />
               {dias.map((d, i) => (
                 <span key={d} className="mapa-dia" data-dia={d} style={{ left: `calc((${i} + 0.5) * var(--dia-w))` }} aria-hidden>{rotuloDia(d, inicio)}</span>
@@ -168,25 +177,44 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
 function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; coluna: number; lado: "cima" | "baixo"; abrir: (t: Tarefa) => void }) {
   const empresas = useEmpresas();
   const tudoPostado = ts.every(foiPostado);
+  const raiz = useRef<HTMLDivElement>(null);
+  // Celular: o 1º toque abre o leque da pilha, o 2º abre a ficha. Com mouse o leque abre ao passar (CSS) e o clique já abre a ficha.
+  const [leque, setLeque] = useState(false);
+  useEffect(() => {
+    if (!leque) return;
+    const fora = (e: PointerEvent) => { if (!raiz.current?.contains(e.target as Node)) setLeque(false); };
+    document.addEventListener("pointerdown", fora);
+    return () => document.removeEventListener("pointerdown", fora);
+  }, [leque]);
+  const clicar = (t: Tarefa) => {
+    if (ts.length > 1 && !leque && matchMedia("(hover: none)").matches) return setLeque(true);
+    setLeque(false);
+    abrir(t);
+  };
   return (
-    <div className="mapa-marco" data-marco data-dia={dia} data-lado={lado} data-postado={tudoPostado} style={{ left: `calc((${coluna} + 0.5) * var(--dia-w))` }}>
+    <div ref={raiz} className="mapa-marco" data-marco data-dia={dia} data-lado={lado} data-postado={tudoPostado} style={{ left: `calc((${coluna} + 0.5) * var(--dia-w))` }}>
       <span className="mapa-haste" aria-hidden />
       <span className="mapa-bolinha" aria-hidden />
       <div className="mapa-bloco">
         <span className="mapa-data" data-alvo>{nomeSemana(dia)}, {diaCurto(dia)}</span>
-        {ts.map((t) => {
-          const postado = foiPostado(t);
-          const empresa = empresas.find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
-          return (
-            <button key={t.id} type="button" className="mapa-card" data-postado={postado} onClick={() => abrir(t)}>
-              <span className="mapa-objetivo" data-alvo>{objetivoDe(t)}</span>
-              <span className="mapa-info">
-                <span className="mapa-meta" data-alvo>{empresa}{t.rede ? ` · ${NOMES.rede[t.rede]}` : ""}</span>
-                <span className="mapa-estado" data-alvo>{postado ? "Postado" : t.etapa ? NOMES.etapa[t.etapa] : "A postar"}</span>
-              </span>
-            </button>
-          );
-        })}
+        <div className="mapa-pilha" data-n={ts.length} data-aberta={leque}>
+          {ts.length === 1 && <span className="mapa-fantasma" aria-hidden />}
+          {ts.map((t, i) => {
+            const postado = foiPostado(t);
+            const empresa = empresas.find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
+            const tom = tomDaEmpresa(t.empresaId);
+            return (
+              <button key={t.id} type="button" className="mapa-card" data-postado={postado} style={{ "--i": i, "--tag": tom.r, "--tag-escuro": tom.g } as CSSProperties} onClick={() => clicar(t)}>
+                <span className="mapa-objetivo" data-alvo>{objetivoDe(t)}</span>
+                <span className="mapa-info">
+                  <span className="mapa-tag" data-alvo>{empresa}</span>
+                  {t.rede && <span className="mapa-meta" data-alvo>{NOMES.rede[t.rede]}</span>}
+                  <span className="mapa-estado" data-alvo>{postado ? "Postado" : t.etapa ? NOMES.etapa[t.etapa] : "A postar"}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
