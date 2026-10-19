@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { salvarTarefa, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha, tarefaEmBranco } from "@/components/ficha/Ficha";
@@ -89,34 +89,38 @@ function Calendario({ agora }: { agora: string }) {
       <header className="cal-barra">
         <div className="cal-navega">
           <button type="button" className="cal-botao" onClick={() => setCursor(hoje)} title="Hoje (T)">Hoje</button>
-          <button type="button" className="cal-seta" onClick={() => setCursor(andar(visao, cursor, -1))} aria-label="Anterior">‹</button>
-          <button type="button" className="cal-seta" onClick={() => setCursor(andar(visao, cursor, 1))} aria-label="Próximo">›</button>
+          <button type="button" className="cal-seta" onClick={() => setCursor(andar(visao, cursor, -1))} aria-label="Anterior" title="Anterior (seta para a esquerda)">
+            <svg viewBox="0 0 12 12" aria-hidden><path d="M7.5 2.5 4 6l3.5 3.5" /></svg>
+          </button>
+          <button type="button" className="cal-seta" onClick={() => setCursor(andar(visao, cursor, 1))} aria-label="Próximo" title="Próximo (seta para a direita)">
+            <svg viewBox="0 0 12 12" aria-hidden><path d="M4.5 2.5 8 6l-3.5 3.5" /></svg>
+          </button>
         </div>
         <div className="cal-titulo">
           <h1>{titulo} <span className="destaque">{ano}</span></h1>
           <p>{noPeriodo ? `${noPeriodo} ${noPeriodo === 1 ? "tarefa" : "tarefas"} neste período` : "Nenhuma tarefa neste período"}</p>
         </div>
-        <div className="cal-visoes" role="group" aria-label="Visão do calendário">
-          {VISOES.map(({ v, rotulo, tecla }) => (
-            <button key={v} type="button" aria-pressed={visao === v} onClick={() => setVisao(v)} title={`${rotulo} (${tecla.toUpperCase()})`}>{rotulo}</button>
-          ))}
+        <div className="cal-acoes">
+          <SemData lista={semData} acoes={acoes} />
+          <div className="cal-visoes" role="group" aria-label="Visão do calendário">
+            {VISOES.map(({ v, rotulo, tecla }) => (
+              <button key={v} type="button" aria-pressed={visao === v} onClick={() => setVisao(v)} title={`${rotulo} (${tecla.toUpperCase()})`}>{rotulo}</button>
+            ))}
+          </div>
+          <button type="button" className="ficha-botao cal-nova" onClick={() => acoes.criar(null)}><span>+ Nova tarefa</span></button>
         </div>
-        <button type="button" className="ficha-botao cal-nova" onClick={() => acoes.criar(null)}><span>+ Nova tarefa</span></button>
       </header>
 
       <BarraFiltros filtros={filtros} mudar={setFiltros} />
 
-      <div className="cal-corpo">
-        <div className="cal-painel-pai corte-sombra">
-          <div className="cal-painel corte-22" data-visao={visao}>
-            {(visao === "dia" || visao === "semana") && (
-              <Grade key={visao} dias={visao === "dia" ? [cursor] : diasDaSemana(cursor)} mapa={mapa} agora={agora} acoes={acoes} />
-            )}
-            {visao === "mes" && <Mes cursor={cursor} mapa={mapa} hoje={hoje} acoes={acoes} />}
-            {visao === "ano" && <Ano cursor={cursor} mapa={mapa} hoje={hoje} acoes={acoes} />}
-          </div>
+      <div className="cal-painel-pai corte-sombra">
+        <div className="cal-painel corte-22" data-visao={visao}>
+          {(visao === "dia" || visao === "semana") && (
+            <Grade key={visao} dias={visao === "dia" ? [cursor] : diasDaSemana(cursor)} mapa={mapa} agora={agora} acoes={acoes} />
+          )}
+          {visao === "mes" && <Mes cursor={cursor} mapa={mapa} hoje={hoje} acoes={acoes} />}
+          {visao === "ano" && <Ano cursor={cursor} mapa={mapa} hoje={hoje} acoes={acoes} />}
         </div>
-        <SemData lista={semData} acoes={acoes} />
       </div>
 
       {aberta && <Ficha key={aberta.id ?? "nova"} tarefa={aberta} aoFechar={() => setAberta(null)} />}
@@ -124,20 +128,65 @@ function Calendario({ agora }: { agora: string }) {
   );
 }
 
+/** "Sem data" (item 39): botão com contador que abre a lista por cima do calendário. Mesmo visual do botão de seleção
+    da base (reaproveita as classes de ui/selecao.css). Soltar uma tarefa NO BOTÃO tira a data dela. */
 function SemData({ lista, acoes }: { lista: Tarefa[]; acoes: Acoes }) {
+  const id = useId();
+  const pop = useRef<HTMLDivElement>(null);
+  const [arrastando, setArrastando] = useState(false);
   const { marcado, alvo } = useSoltar(acoes.soltar);
+  const ancora = `--semdata-${id.replace(/[^\w-]/g, "")}`;
+
+  // Arrastar da lista: ela fica transparente e deixa o mouse passar, para soltar no calendário que está embaixo.
+  // Fecha quando a tarefa cai (drop) ou o arrasto é cancelado (dragend); os dois chegam na janela.
+  const comecar = () => {
+    setTimeout(() => setArrastando(true)); // depois do navegador tirar a "foto" da tarefa arrastada
+    const fim = () => {
+      setArrastando(false);
+      pop.current?.hidePopover();
+      window.removeEventListener("drop", fim);
+      window.removeEventListener("dragend", fim);
+    };
+    window.addEventListener("drop", fim);
+    window.addEventListener("dragend", fim);
+  };
+
   return (
-    <aside className="cal-semdata no-escuro corte-22" data-alvo={marcado === "sem-data"} {...alvo("sem-data", null)} aria-label="Tarefas sem data">
-      <header>
-        <h2>Sem <span className="destaque">data</span></h2>
-        <span className="cal-semdata-total">{lista.length}</span>
-      </header>
-      <p>Arraste para um dia ou horário. Solte aqui para tirar a data.</p>
-      <div className="cal-semdata-lista">
-        {lista.map((t) => <Evento key={t.id} t={t} modo="cartao" abrir={acoes.abrir} />)}
-        {!lista.length && <p className="cal-semdata-vazio">Nada sem data com estes filtros.</p>}
+    <>
+      <button
+        type="button"
+        className="selecao-botao cal-semdata-botao"
+        popoverTarget={`${id}-lista`}
+        data-alvo={marcado === "sem-data"}
+        title="Tarefas sem data. Solte aqui uma tarefa do calendário para tirar a data dela."
+        style={{ anchorName: ancora } as CSSProperties}
+        {...alvo("sem-data", null)}
+      >
+        <span>Sem data</span>
+        {lista.length > 0 && <span className="selecao-contador">{lista.length}</span>}
+        <svg className="selecao-seta" viewBox="0 0 12 12" aria-hidden>
+          <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.75" />
+        </svg>
+      </button>
+      <div
+        ref={pop}
+        id={`${id}-lista`}
+        popover="auto"
+        className="selecao-pop cal-semdata-pop"
+        data-arrastando={arrastando}
+        style={{ positionAnchor: ancora } as CSSProperties}
+        onDragStart={comecar}
+      >
+        <section className="cal-semdata corte-22-esq" aria-label="Tarefas sem data">
+          <h2>Sem <span className="destaque">data</span></h2>
+          <p>Arraste uma tarefa para um dia ou horário. Para tirar a data, solte a tarefa no botão Sem data.</p>
+          <div className="cal-semdata-lista">
+            {lista.map((t) => <Evento key={t.id} t={t} modo="cartao" abrir={acoes.abrir} />)}
+            {!lista.length && <p className="cal-semdata-vazio">Nada sem data com estes filtros.</p>}
+          </div>
+          <button type="button" className="cal-semdata-nova" onClick={() => acoes.criar(null)}>+ Tarefa sem data</button>
+        </section>
       </div>
-      <button type="button" className="cal-semdata-nova" onClick={() => acoes.criar(null)}>+ Tarefa sem data</button>
-    </aside>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 import { ETAPAS, REDES, RESPONSAVEIS, TIPOS, type Tarefa } from "@/lib/dados";
 import { NOMES } from "@/components/ficha/Ficha";
+import { Selecao } from "@/components/ui/Selecao";
 
 // Filtros SÓ do calendário (pessoa, rede, etapa, tipo). Somam com o filtro global de empresa, que a casca desenha.
 // Grupo vazio = sem filtro naquele grupo.
@@ -17,22 +18,23 @@ const GRUPOS = [
   { g: "tipo", rotulo: "Tipo", valores: TIPOS },
 ] as const;
 
+// Cada grupo é um botão de seleção (item 42, componente da base).
 export function BarraFiltros({ filtros, mudar }: { filtros: Filtros; mudar: (f: Filtros) => void }) {
   const ativos = Object.values(filtros).flat().length;
-  const alternar = (g: keyof Filtros, v: string) =>
-    mudar({ ...filtros, [g]: filtros[g].includes(v) ? filtros[g].filter((x) => x !== v) : [...filtros[g], v] });
   return (
-    <div className="cal-filtros">
+    <div className="cal-filtros" role="group" aria-label="Filtros do calendário">
       {GRUPOS.map(({ g, rotulo, valores }) => (
-        <div key={g} className="cal-filtro" role="group" aria-label={`Filtro de ${rotulo.toLowerCase()}`}>
-          <span className="cal-filtro-rotulo">{rotulo}</span>
-          {valores.map((v) => (
-            <button key={v} type="button" className="cal-chip" aria-pressed={filtros[g].includes(v)} onClick={() => alternar(g, v)}>
-              {g === "responsavel" && <span className={`evento-bolinha evento-bolinha-${v}`} aria-hidden>{v[0].toUpperCase()}</span>}
-              {(NOMES[g] as Record<string, string>)[v]}
-            </button>
-          ))}
-        </div>
+        <Selecao
+          key={g}
+          rotulo={rotulo}
+          valor={filtros[g]}
+          aoMudar={(v) => mudar({ ...filtros, [g]: v })}
+          opcoes={valores.map((v) => ({
+            valor: v,
+            rotulo: (NOMES[g] as Record<string, string>)[v],
+            antes: g === "responsavel" ? <span className={`evento-bolinha evento-bolinha-${v}`} aria-hidden>{v[0].toUpperCase()}</span> : undefined,
+          }))}
+        />
       ))}
       {ativos > 0 && (
         <button type="button" className="cal-limpar" onClick={() => mudar(SEM_FILTROS)}>
