@@ -74,7 +74,8 @@ export function TelaPastas() {
   const pecas = usePecas();
   const { aplicar, todas, selecionadas } = useFiltroEmpresa();
   const visiveis = aplicar(pecas);
-  const mostradas = empresas.filter((e) => todas || selecionadas.includes(e.id));
+  // só nas Pastas: a You vem primeiro, as demais empresas seguem na ordem do cadastro
+  const mostradas = empresas.filter((e) => todas || selecionadas.includes(e.id)).sort((a, b) => Number(b.id === "you") - Number(a.id === "you"));
 
   return (
     <section className="pastas">

@@ -1,0 +1,13 @@
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const p = await nav.newPage({ viewport: { width: 1440, height: 760 } });
+await p.goto("http://localhost:3100/pastas", { waitUntil: "networkidle" });
+await p.waitForTimeout(3500);
+console.log(await p.locator(".pastas-empresa h2").allInnerTexts());
+await p.evaluate(() => { const d = document.createElement("div"); d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;right:8px;top:8px;z-index:99999;background:#fff;font:700 12px monospace;padding:4px 8px"; document.body.append(d); });
+await p.screenshot({ path: fileURLToPath(new URL("./15-you-primeiro-1440.png", import.meta.url)) });
+await nav.close();
