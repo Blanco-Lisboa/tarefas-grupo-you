@@ -66,7 +66,7 @@
 
 /* bloco do dia: data + conteúdos empilhados, ancorado na bolinha (em cima: cresce para baixo; embaixo: cresce para cima) */
 .mapa-bloco {
-  position: absolute; left: 14px; padding: 6px 22px 10px 4px; /* folga para a sombra e o hover não serem cortados pela rolagem do bloco */
+  position: absolute; left: 10px; padding: 6px 22px 12px 8px; /* folga para a sombra e o hover não serem cortados pela rolagem do bloco */
   width: calc(var(--dia-w) * 1.3); min-width: 160px; max-width: 256px; max-height: calc(var(--haste) - 14px);
   display: flex; flex-direction: column; gap: 6px;
   overflow-y: auto; scrollbar-width: thin; /* nunca esconde cartão: se o dia tiver mais do que cabe, o bloco rola por dentro */
@@ -74,19 +74,20 @@
 .mapa-marco[data-lado="cima"] .mapa-bloco { top: calc(var(--haste) * -1 - 7px); max-height: calc(var(--haste) + 2px); } /* em cima o bloco pode ir até perto da linha */
 .mapa-marco[data-lado="baixo"] .mapa-bloco { bottom: calc(var(--haste) * -1 - 7px); justify-content: flex-end; }
 /* Cartão de VIDRO (tokens da base). Dia com 2 ou 3: pilha em cascata, cada cartão mostra a faixa do título e o da frente vem inteiro;
-   passar o mouse, focar (teclado) ou tocar abre em leque. Dia com 1: cartão com uma folha fantasma atrás. */
-.mapa-pilha { --card-h: 64px; --faixa: 25px; --vao: 4px; position: relative; display: flex; flex-direction: column; padding-top: 6px; }
+   passar o mouse, focar (teclado) ou tocar abre em leque. Dia com 1: só o cartão, sem folha atrás. */
+/* sombra curta: cabe na folga do bloco (que rola por dentro) e por isso não é cortada numa linha reta embaixo do cartão */
+.mapa-pilha { --sombra-cartao: 0 1px 2px rgb(0 0 0 / 0.06), 0 3px 8px -3px rgb(0 0 0 / 0.16); --sombra-cartao-alta: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 10px -4px rgb(0 0 0 / 0.22); --desl: 9px; --card-h: 64px; --faixa: 25px; --vao: 4px; position: relative; display: flex; flex-direction: column; padding-top: 6px; }
 .mapa-card {
   --cor: var(--azul);
   position: relative; z-index: calc(var(--i, 0) + 1); height: var(--card-h); flex: none;
   display: flex; flex-direction: column; gap: 1px; margin: var(--vao) 0 0; padding: 4px 10px; text-align: left; cursor: pointer;
   color: var(--texto); font: inherit; overflow: hidden;
-  background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-b); box-shadow: var(--sombra);
+  background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-b); box-shadow: var(--sombra-cartao);
   -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque);
   transition: margin-top var(--dur) var(--curva), transform var(--dur) var(--curva), box-shadow var(--dur) var(--curva);
 }
 .mapa-card:first-of-type { margin-top: 0; }
-.mapa-card:hover, .mapa-card:focus-visible { transform: translateY(-1px); box-shadow: var(--sombra-alta); }
+.mapa-card:hover, .mapa-card:focus-visible { transform: translateY(-1px); box-shadow: var(--sombra-cartao-alta); }
 .mapa-card:active { transform: none; }
 .mapa-card[data-postado="true"] { --cor: var(--fraco); }
 /* pilha fechada: folhas uma sobre a outra, como saindo da pasta. Cada folha de trás vai um pouco para o lado (9px por nível),
@@ -95,25 +96,19 @@
 @media (prefers-reduced-motion: no-preference) { /* com movimento reduzido a pilha nasce aberta */
 .mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card {
   --d: calc(var(--n) - 1 - var(--i));
-  transform-origin: 0 0; transform: translateX(calc(var(--d) * 9px)) scale(calc(1 - var(--d) * 0.035));
+  transform-origin: 0 0; transform: translateX(calc(var(--d) * var(--desl))) scale(calc(1 - var(--d) * 0.035));
 }
-.mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:first-of-type) { margin-top: calc(var(--faixa) - var(--card-h)); }
-.mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:last-of-type) { background: var(--vidro-forte); opacity: calc(1 - var(--d) * 0.1); }
-.mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:first-of-type) { box-shadow: 0 -3px 9px -3px rgb(0 0 0 / .22), var(--sombra); }
+.mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:first-of-type) { margin-top: -12px; } /* sobe sobre a folha de trás (que tem faixa + 12px) */
+.mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:last-of-type) { background: var(--vidro-forte); opacity: calc(1 - var(--d) * 0.1); height: calc(var(--faixa) + 12px); } /* folha de trás: só a faixa, sem borda de baixo aparecendo */
+.mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:first-of-type) { box-shadow: 0 -3px 9px -3px rgb(0 0 0 / .22), var(--sombra-cartao); }
 .mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:last-of-type) .mapa-faixa-titulo { display: block !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
 .mapa-pilha:not([data-n="1"]):not(:hover):not(:focus-within):not([data-aberta="true"]) .mapa-card:not(:last-of-type) :is(.mapa-objetivo, .mapa-info) { display: none !important; }
 }
 .mapa-card:focus-visible { z-index: 20; } /* o contorno vem da base: 1px azul sólido (globals.css) */
-/* folha fantasma: sugere que o cartão é uma pilha de um */
-.mapa-fantasma {
-  position: absolute; left: 7px; right: -7px; top: 6px; height: var(--card-h); border-radius: var(--raio-b); z-index: 0;
-  background: var(--vidro); border: 1px solid var(--vidro-linha); box-shadow: var(--sombra); opacity: .7; transform: rotate(1.6deg);
-}
-
-/* manchas de cor atrás da linha do tempo, para o vidro ler */
+/* brilho frio e quase imperceptível atrás da linha do tempo (azul da Névoa), só para o vidro ler */
 .mapa-mancha {
   position: absolute; z-index: 0; width: calc(var(--dia-w) * var(--d) / 14); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none;
-  background: radial-gradient(circle, color-mix(in srgb, var(--c) 17%, transparent), transparent 68%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--azul) 7%, transparent), transparent 68%);
 }
 .mapa-dica, .mapa-progresso { z-index: 1; }
 
@@ -136,9 +131,10 @@
 .mapa-progresso { position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: var(--azul); transform-origin: left; }
 
 @media (max-width: 767px) {
-  .mapa-bloco { left: 10px; width: calc(var(--dia-w) * 1.9); max-width: none; min-width: 120px; } /* blocos do mesmo lado ficam a 2 dias de distância: cabe */
+  .mapa-bloco { left: 6px; width: calc(var(--dia-w) * 1.9); max-width: none; min-width: 120px; } /* blocos do mesmo lado ficam a 2 dias de distância: cabe */
   .mapa-objetivo { font-size: 13px; -webkit-line-clamp: 2; }
-  .mapa-pilha { --card-h: 60px; --faixa: 23px; }
+  .mapa-pilha { --desl: 5px; --card-h: 60px; --faixa: 23px; }
+  .mapa-bloco { padding-right: 12px; }
   .mapa-card { padding: 4px 8px; }
   .mapa-dica { left: 12px; right: 12px; }
 }

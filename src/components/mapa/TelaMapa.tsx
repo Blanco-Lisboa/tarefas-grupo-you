@@ -22,8 +22,8 @@ const rotuloDia = (d: string, inicio: string) => (
   </>
 )
 
-// Posição (% da largura de 7 dias, % da altura) e tamanho das manchas de cada empresa; a segunda empresa se desloca na horizontal.
-const MANCHAS: [number, number, number][] = [[12, 22, 46], [48, 70, 52], [82, 30, 44]];
+// Posição (% da largura de 7 dias, % da altura) e tamanho de cada brilho do fundo.
+const BRILHOS: [number, number, number][] = [[12, 28, 50], [48, 72, 56], [82, 34, 48]];
 
 const semAviso = () => () => {};
 // O dia de hoje só existe no navegador (o servidor pode estar em outro fuso): espera montar para não dar diferença na hidratação.
@@ -83,7 +83,6 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
   const palco = useRef<HTMLDivElement>(null);
   const fixo = useRef<HTMLDivElement>(null);
   const faixa = useRef<HTMLDivElement>(null);
-  const empresas = useEmpresas();
   // um marco por dia: os conteúdos do mesmo dia ficam empilhados na mesma haste, então nunca se sobrepõem
   const porDia = useMemo(() => {
     const m = new Map<string, Tarefa[]>();
@@ -155,10 +154,10 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
           {topo}
           <div ref={fixo} className="mapa-cartao">
             <div ref={faixa} className="mapa-faixa">
-              {/* manchas bem leves nas cores das empresas, repetidas a cada 7 dias e andando com a faixa: é o que o vidro dos cartões desfoca */}
-              {Array.from({ length: Math.ceil((dias.length + 1) / 7) }, (_, b) => empresas.flatMap((e, i) => MANCHAS.map(([x, y, d], k) => (
-                <span key={`${b}-${e.id}-${k}`} className="mapa-mancha" aria-hidden style={{ "--c": tomDaEmpresa(e.id).r, "--d": d, left: `calc(${b * 7 + ((x + i * 37) % 100) / 100 * 7} * var(--dia-w))`, top: `${y}%` } as CSSProperties} />
-              )))) }
+              {/* brilho de fundo bem leve, azul-acinzentado, repetido a cada 7 dias e andando com a faixa: é o que o vidro dos cartões desfoca */}
+              {Array.from({ length: Math.ceil((dias.length + 1) / 7) }, (_, b) => BRILHOS.map(([x, y, d], k) => (
+                <span key={`${b}-${k}`} className="mapa-mancha" aria-hidden style={{ "--d": d, left: `calc(${b * 7 + x / 100 * 7} * var(--dia-w))`, top: `${y}%` } as CSSProperties} />
+              )))}
               <span className="mapa-linha" aria-hidden />
               {dias.map((d, i) => (
                 <span key={d} className="mapa-dia" data-dia={d} style={{ left: `calc((${i} + 0.5) * var(--dia-w))` }} aria-hidden>{rotuloDia(d, inicio)}</span>
@@ -198,7 +197,6 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
       <div className="mapa-bloco">
         <span className="mapa-data" data-alvo>{nomeSemana(dia)}, {diaCurto(dia)}</span>
         <div className="mapa-pilha" data-n={ts.length} data-aberta={leque} style={{ "--n": ts.length } as CSSProperties}>
-          {ts.length === 1 && <span className="mapa-fantasma" aria-hidden />}
           {ts.map((t, i) => {
             const postado = foiPostado(t);
             const empresa = empresas.find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
