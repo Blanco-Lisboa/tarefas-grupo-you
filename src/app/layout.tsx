@@ -16,9 +16,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    // suppressHydrationWarning: o SCRIPT_MENU muda o data-menu do <html> antes do React chegar (menu recolhido lembrado).
-    <html lang="pt-BR" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
-      <body className="min-h-full">
+    // suppressHydrationWarning: o SCRIPT_MENU muda o data-menu do <html> antes do React chegar (menu recolhido lembrado),
+    // e extensões de tradução do Chrome acrescentam classes (translator-hidden...) no <html> e no <body>. translate="no":
+    // a tela já está em português, então o Chrome não oferece traduzir nem mexe no texto.
+    <html lang="pt-BR" translate="no" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
+      <body className="min-h-full" suppressHydrationWarning>
         <Script id="menu-recolhido" strategy="beforeInteractive">{SCRIPT_MENU}</Script>
         <Casca>{children}</Casca>
       </body>
