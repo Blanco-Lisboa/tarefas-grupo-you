@@ -45,6 +45,12 @@ h1, h2, h3 {
 }
 
 :focus-visible { outline: 3px solid var(--foco); outline-offset: 1px; }
+/* Campo de escrever com foco (item 72): borda de 1px azul (5,68:1 sobre o branco) + halo leve, no lugar do anel grosso.
+   Vale para todo campo do sistema; as telas não redesenham. O contorno (outline) cobre a borda do campo, então funciona
+   também em campo sem borda (linha do caderno). Botões, pastas e opções seguem com o anel acima. */
+:is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), textarea, select):focus-visible {
+  outline: 1px solid var(--azul); outline-offset: -1px; border-color: var(--azul); box-shadow: 0 0 0 3px var(--azul-claro);
+}
 
 /* ===== Peças comuns no desenho do modelo 1 Névoa (src/components/modelos/modelo-1-nevoa.css). Telas usam estas classes,
    ninguém redesenha botão. Os nomes são os de antes, então as telas herdam sem trocar o HTML.

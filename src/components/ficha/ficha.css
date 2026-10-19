@@ -13,7 +13,7 @@
 .ficha-fechar:hover { background: var(--sup); }
 .ficha .ficha-titulo { display: block; width: 100%; min-height: 0; padding: var(--s-4) 0 var(--s-8); border: 0; border-bottom: 1px solid var(--borda); border-radius: 0; background: transparent; color: var(--texto); font: var(--titulo-peso) var(--t-31) / 1.1 var(--fonte); letter-spacing: var(--titulo-espaco); field-sizing: content; resize: none; overflow: hidden; }
 .ficha-titulo::placeholder { color: var(--fraco); }
-.ficha-titulo:focus { border-bottom-color: var(--azul); outline: none; }
+.ficha .ficha-titulo:focus-visible { border-bottom-color: var(--azul); outline: none; box-shadow: none; } /* título em linha: o foco é o sublinhado azul */
 .ficha-corpo { display: flex; flex-direction: column; gap: var(--s-24); padding: var(--s-32) var(--s-24) var(--s-16); overflow-y: auto; }
 .ficha-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-16); }
 .ficha-escolha .selecao-botao { width: 100%; justify-content: space-between; }
@@ -24,7 +24,6 @@
 .ficha select, .ficha textarea, .ficha-corpo input:not([type="checkbox"]) { width: 100%; min-height: var(--app-controle); padding: var(--s-8) var(--s-12); border: 1px solid var(--borda); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); font: var(--t-16) var(--fonte); }
 .ficha textarea { resize: vertical; line-height: var(--texto-entrelinha); }
 .ficha select:hover, .ficha textarea:hover, .ficha-corpo input:hover { border-color: var(--azul); }
-.ficha :is(select, textarea, .ficha-corpo input):focus-visible { border-color: var(--azul); outline: 2px solid var(--foco); outline-offset: 2px; }
 .ficha-pessoas { display: flex; gap: var(--s-8); flex-wrap: wrap; }
 .ficha-pessoa { display: inline-flex; align-items: center; gap: var(--s-8); min-height: 38px; padding: 4px 12px 4px 4px; border: 1px solid var(--borda); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); font: 500 var(--t-14) var(--fonte); cursor: pointer; }
 .ficha-pessoa[aria-pressed="true"] { border-color: var(--azul); box-shadow: inset 0 0 0 1px var(--azul); }

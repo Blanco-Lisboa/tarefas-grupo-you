@@ -20,7 +20,6 @@
 .config-edicao { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
 .config-edicao input { flex: 1; min-width: 160px; }
 .config-tela input { min-height: var(--app-controle); padding: var(--s-8) var(--s-12); border: 1px solid var(--borda); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); font: var(--t-16) var(--fonte); }
-.config-tela input:focus { border-color: var(--azul); }
 .config-botao, .config-botao-perigo { min-height: var(--app-controle); padding: var(--s-8) var(--s-16); border: 1px solid transparent; border-radius: var(--raio-b); background: var(--azul); color: var(--no-azul); font: 500 var(--app-t-texto) var(--fonte); cursor: pointer; transition: background var(--dur-rapida) var(--curva); }
 .config-botao:hover, .config-botao-perigo:hover { background: var(--azul-hover); }
 .config-confirmacao { margin-top: var(--s-12); padding: var(--s-16); border-radius: var(--raio-b); background: var(--sup-2); }
