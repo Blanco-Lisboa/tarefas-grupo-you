@@ -10,12 +10,18 @@ import { PastaDeVidro } from "./PastaDeVidro";
 
 const nIdeias = (n: number) => (n === 1 ? "1 ideia" : `${n} ideias`);
 
-const PASTAS: { tipo: TipoPeca; rotulo: string }[] = [
+type Pasta = { tipo: TipoPeca; rotulo: string; vazio?: string };
+
+// "Adrian - Aprovar" é só da You e começa vazia: ainda não há onde guardar o que espera a aprovação, então não aceita peça de nenhum tipo.
+const PASTA_ADRIAN: Pasta = { tipo: "video", rotulo: "Adrian - Aprovar", vazio: "Nenhum vídeo esperando o Adrian aprovar." };
+
+const PASTAS: Pasta[] = [
   { tipo: "post", rotulo: "Posts" },
   { tipo: "carrossel", rotulo: "Carrosséis" },
   { tipo: "video", rotulo: "Vídeos" },
   { tipo: "story", rotulo: "Stories" },
 ];
+const PASTAS_YOU: Pasta[] = [PASTAS[0], PASTAS[1], PASTAS[2], PASTA_ADRIAN, PASTAS[3]];
 
 // Uma empresa: as pastas dela na cor dela e o card flutuante (peça ou ideias) que abre ao clicar num cartão.
 function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
@@ -23,6 +29,7 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
   const [aberto, setAberto] = useState<{ peca: Peca } | { ideias: string } | null>(null);
   const t = tomDaEmpresa(empresa.id);
   const tom = { base: t.r, sombra: `${t.g}99` };
+  const pastasDaEmpresa = empresa.id === "you" ? PASTAS_YOU : PASTAS;
   const categorias = [...new Set(ideias.map((i) => i.categoria))];
 
   return (
@@ -31,13 +38,14 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
         <SeloEmpresa empresaId={empresa.id} nome={empresa.nome} tamanho={28} comNome /> <small>{pecas.length} peças</small>
       </h2>
       <div className="pastas-grade">
-        {PASTAS.map(({ tipo, rotulo }, i) => {
-          const daPasta = pecas.filter((p) => p.tipo === tipo);
+        {pastasDaEmpresa.map(({ tipo, rotulo, vazio }, i) => {
+          const daPasta = vazio ? [] : pecas.filter((p) => p.tipo === tipo);
           const arte = receitaDaEmpresa(tipo, empresa.id);
           return (
-            <div key={tipo} className="pastas-cel">
+            <div key={rotulo} className="pastas-cel">
               <PastaDeVidro
                 rotulo={rotulo}
+                vazio={vazio}
                 tom={tom}
                 arte={arte}
                 seed={3 + i * 4}
@@ -58,7 +66,7 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
             tom={tom}
             arte={receitaDaEmpresa("story", empresa.id)}
             seed={19}
-            atraso={4 * 120}
+            atraso={pastasDaEmpresa.length * 120}
             arquivos={categorias.map((c) => ({ nome: c, meta: nIdeias(ideias.filter((i) => i.categoria === c).length), arte: receitaDaEmpresa("story", empresa.id) }))}
             onSelecionar={(a) => setAberto({ ideias: a.nome })}
           />

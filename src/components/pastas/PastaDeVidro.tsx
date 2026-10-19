@@ -27,6 +27,8 @@ type Props = {
   tom?: { base: string; sombra: string };
   /** Texto sob o nome, quando não são "N peças" (ex.: "10 ideias"). */
   legenda?: string;
+  /** Aviso mostrado dentro da pasta aberta quando ela não tem arquivos. */
+  vazio?: string;
 };
 
 // Geometria nas unidades da pasta: palco de 340 x 272, escalado até `largura`.
@@ -38,7 +40,7 @@ const FRENTE = `M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 
 
 const leque = (i: number, n: number) => (n <= 1 ? 0 : (i / (n - 1)) * 2 - 1);
 
-export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda }: Props) {
+export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio }: Props) {
   const uid = useId().replace(/:/g, "");
   const raiz = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
@@ -191,6 +193,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
 
           {/* o conteúdo: depois do vidro na ordem do Tab, atrás dele na tela */}
           <div className="gf-files" role="list" aria-label={`Peças de ${rotulo}`} inert={!aberta}>
+            {n === 0 && vazio && <p className="gf-vazio">{vazio}</p>}
             {visiveis.map((f, v) => {
               const jitter = rng(hashString(f.nome));
               return (
