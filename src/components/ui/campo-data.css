@@ -6,9 +6,12 @@
 .campo-data-valor { font-variant-numeric: tabular-nums; }
 .campo-data-vazio { color: var(--fraco); }
 
-/* O painel com hora é alto e largo: além de virar para cima ou para a esquerda, tenta os dois juntos (botão no canto) */
-.campo-data-pop { min-width: 0; width: auto; max-width: calc(100vw - 24px); position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline; }
-.campo-data-painel { gap: var(--s-4); padding: var(--s-8); max-height: none; overflow: visible; }
+/* O painel com hora é alto e largo: além de virar para cima ou para a esquerda, tenta os dois juntos (botão no canto); se
+   nada couber, o navegador empurra a janela para dentro da tela. Duas classes de propósito (item 109, foto 65): com uma só,
+   quando o selecao.css carregava depois (recarregamento a quente, ordem dos arquivos), o max-width de 360px e a rolagem da
+   lista venciam, e a coluna dos minutos ficava cortada com barra de rolagem. */
+.selecao-pop.campo-data-pop { min-width: 0; width: auto; max-width: calc(100vw - 24px); position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline; }
+.selecao-lista.campo-data-painel { gap: var(--s-4); padding: var(--s-8); max-height: none; overflow: visible; }
 
 .campo-data-topo { display: flex; align-items: center; gap: 2px; padding: 0 0 var(--s-4) 10px; }
 .campo-data-mes { flex: 1; font: 600 var(--t-14) / 1 var(--fonte); color: var(--texto); }
@@ -78,7 +81,7 @@
 }
 .roda-item[data-meio] { font-weight: 600; color: var(--azul); }
 @media (max-width: 560px) {
-  .campo-data-pop { margin-inline: var(--s-8); } /* margem conta na hora de caber: o painel não encosta na borda da tela */
+  .selecao-pop.campo-data-pop { margin-inline: var(--s-8); } /* margem conta na hora de caber: o painel não encosta na borda da tela */
   .campo-data-corpo { flex-direction: column; align-items: stretch; }
   .campo-data-rodas { justify-content: center; padding: var(--s-8) 0 0; border-left: 0; border-top: 1px solid var(--linha); }
   .campo-data-rodas::before { left: 50%; right: auto; width: 128px; translate: -50% calc(-50% + 4px); }
