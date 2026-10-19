@@ -1,0 +1,28 @@
+// Prova do item 122: Conteúdos, Mapa (Fila) e Calendário com os 15 conteúdos de exemplo, em 1440.
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const PASTA = fileURLToPath(new URL("./", import.meta.url));
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const etiqueta = (p) => p.evaluate(() => { document.getElementById("iw")?.remove(); const d = document.createElement("div"); d.id = "iw"; d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:2147483647;background:#fff;font:700 12px monospace;padding:4px 8px"; document.body.append(d); });
+const p = await nav.newPage({ viewport: { width: 1440, height: 760 } });
+const base = "http://localhost:3100";
+await p.goto(base + "/conteudos", { waitUntil: "networkidle" }); await p.waitForTimeout(600);
+console.log("colunas", JSON.stringify(await p.evaluate(() => [...document.querySelectorAll("[data-etapa]")].map((c) => [c.dataset.etapa, c.querySelectorAll("article, .cartao, [data-id]").length]))));
+await etiqueta(p); await p.screenshot({ path: join(PASTA, "85-conteudos-1440.png") });
+await p.goto(base + "/mapa", { waitUntil: "networkidle" }); await p.waitForTimeout(1500);
+await p.evaluate(() => localStorage.setItem("grade:mapa-formato", "fila"));
+await p.reload({ waitUntil: "networkidle" }); await p.waitForTimeout(1500);
+for (const topo of await p.locator(".eo-dia-topo").all()) if (await topo.getAttribute("aria-expanded") === "false") await topo.click();
+await p.waitForTimeout(1500);
+console.log("fila", JSON.stringify(await p.evaluate(() => [...document.querySelectorAll(".eo-dia")].map((d) => [d.querySelector(".eo-dia-data").textContent, [...d.querySelectorAll(".eo-linha")].map((l) => l.querySelector(".eo-titulo").textContent + " @" + l.querySelector(".eo-prazo").textContent)]))));
+await etiqueta(p); await p.screenshot({ path: join(PASTA, "85-mapa-fila-1440.png") });
+await p.goto(base + "/calendario", { waitUntil: "networkidle" }); await p.waitForTimeout(800);
+await p.evaluate(() => { for (const el of document.querySelectorAll("*")) if (el.scrollHeight > el.clientHeight + 50 && /auto|scroll/.test(getComputedStyle(el).overflowY)) el.scrollTop = 300; window.scrollTo(0, 9999); });
+await p.waitForTimeout(300);
+await etiqueta(p); await p.screenshot({ path: join(PASTA, "85-calendario-1440.png") });
+await p.mouse.move(700, 600); await p.mouse.wheel(0, 400); await p.waitForTimeout(500);
+await etiqueta(p); await p.screenshot({ path: join(PASTA, "85-calendario-tarde-1440.png") });
+await nav.close();

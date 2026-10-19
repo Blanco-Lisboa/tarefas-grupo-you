@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import { empresasExemplo, tarefasExemplo } from "./exemplo";
 import { ETIQUETAS } from "./tipos";
 
+const HOJE = "2026-10-19";
+const conteudos = tarefasExemplo.filter((t) => t.etapa);
+
 describe("dados de exemplo", () => {
-  it("têm cerca de 40 tarefas, ids únicos, empresas e etiquetas válidas", () => {
-    expect(tarefasExemplo.length).toBeGreaterThanOrEqual(40);
+  it("têm ids únicos, empresas e etiquetas válidas", () => {
     expect(new Set(tarefasExemplo.map((t) => t.id)).size).toBe(tarefasExemplo.length);
     const empresas = empresasExemplo.map((e) => e.id);
     for (const t of tarefasExemplo) {
@@ -13,51 +15,43 @@ describe("dados de exemplo", () => {
     }
   });
 
-  it("têm tarefas sem data e travessão nenhum", () => {
+  it("têm tarefa sem data, títulos únicos e travessão nenhum", () => {
     expect(tarefasExemplo.some((t) => !t.inicio)).toBe(true);
+    expect(new Set(tarefasExemplo.map((t) => t.titulo)).size).toBe(tarefasExemplo.length);
     expect(JSON.stringify(tarefasExemplo)).not.toMatch(/[—–]/);
   });
-});
 
-describe("postagens do Mapa", () => {
-  const post = tarefasExemplo.filter((t) => t.tipo === "postagem" && t.inicio);
-  const dias = (de: string, ate: string) => {
-    const l: string[] = [];
-    for (let d = new Date(`${de}T00:00:00Z`); d <= new Date(`${ate}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + 1)) l.push(d.toISOString().slice(0, 10));
-    return l;
-  };
-
-  it("têm conteúdo em TODOS os dias de 01/10 a 30/11, de 1 a 3 por dia", () => {
-    for (const d of dias("2026-10-01", "2026-11-30")) {
-      const n = post.filter((t) => t.inicio!.startsWith(d)).length;
-      expect(n, d).toBeGreaterThanOrEqual(1);
-      expect(n, d).toBeLessThanOrEqual(3);
-    }
-  });
-
-  it("todo conteúdo tem título curto (é só ele que o cartão do Mapa mostra)", () => {
-    for (const t of post) {
-      expect(t.titulo.trim().length, t.id).toBeGreaterThan(0);
-      expect(t.titulo.length, t.titulo).toBeLessThanOrEqual(60);
-    }
-  });
-
-  it("não repetem título", () => {
-    const titulos = tarefasExemplo.map((t) => t.titulo);
-    expect(new Set(titulos).size).toBe(titulos.length);
-  });
-
-  it("misturam as empresas, as redes e as etapas", () => {
-    expect(new Set(post.map((t) => t.empresaId)).size).toBe(empresasExemplo.length);
-    expect(new Set(post.map((t) => t.rede)).size).toBeGreaterThanOrEqual(4);
-    for (const e of ["roteiro", "gravacao", "edicao", "aprovado", "postado"]) expect(post.some((t) => t.etapa === e), e).toBe(true);
+  it("todo título é curto (o cartão do Mapa só mostra ele)", () => {
+    for (const t of tarefasExemplo) expect(t.titulo.length, t.titulo).toBeLessThanOrEqual(60);
   });
 });
 
-describe("concluida", () => {
-  it("marca só algumas tarefas antigas", () => {
-    const feitas = tarefasExemplo.filter((t) => t.concluida);
-    expect(feitas.length).toBeGreaterThanOrEqual(3);
-    expect(feitas.length).toBeLessThanOrEqual(4);
+describe("conteúdos do Kanban", () => {
+  const etapas = ["roteiro", "gravacao", "edicao", "aprovado", "postado"] as const;
+
+  it("têm 3 por etapa e nenhum em Ideia", () => {
+    for (const e of etapas) expect(conteudos.filter((t) => t.etapa === e).length, e).toBe(3);
+    expect(conteudos.length).toBe(15);
+  });
+
+  it("misturam empresas, responsáveis e redes", () => {
+    expect(new Set(conteudos.map((t) => t.empresaId)).size).toBe(empresasExemplo.length);
+    expect(new Set(conteudos.map((t) => t.responsavel)).size).toBe(2);
+    expect(new Set(conteudos.map((t) => t.rede)).size).toBe(4);
+  });
+
+  it("cada etapa aberta tem 1 atrasado, 1 hoje/amanhã e 1 mais à frente; Postado fica no passado", () => {
+    const dia = (t: { inicio?: string }) => t.inicio!.slice(0, 10);
+    for (const e of etapas.slice(0, 4)) {
+      const l = conteudos.filter((t) => t.etapa === e);
+      expect(l.filter((t) => dia(t) < HOJE).length, `${e} atrasado`).toBe(1);
+      expect(l.filter((t) => dia(t) === HOJE || dia(t) === "2026-10-20").length, `${e} hoje/amanhã`).toBe(1);
+      expect(l.filter((t) => dia(t) > "2026-10-20").length, `${e} à frente`).toBe(1);
+    }
+    for (const t of conteudos.filter((c) => c.etapa === "postado")) expect(dia(t) < HOJE).toBe(true);
+  });
+
+  it("têm 1 conteúdo hoje com horário", () => {
+    expect(conteudos.filter((t) => t.inicio?.startsWith(`${HOJE}T`)).length).toBe(1);
   });
 });
