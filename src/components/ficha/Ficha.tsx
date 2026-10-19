@@ -12,8 +12,8 @@
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
-  ETAPAS, REDES, RESPONSAVEIS, TIPOS, removerTarefa, salvarTarefa, useEmpresas,
-  type Etapa, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
+  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useTags, useTarefas,
+  type Etapa, type Etiqueta, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
 import { deTexto, paraHora } from "@/components/calendario/logica";
@@ -21,6 +21,7 @@ import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
+import { Aprovador } from "@/components/ui/Tag";
 import { CampoData } from "@/components/ui/CampoData";
 import "./ficha.css";
 
@@ -44,6 +45,10 @@ const HORA = 60 * 60_000;
 
 export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () => void }) {
   const empresas = useEmpresas();
+  const tags = useTags();
+  const todas = useTarefas();
+  const [novaTag, setNovaTag] = useState<{ nome: string; cor: Etiqueta } | null>(null);
+  const [novoNome, setNovoNome] = useState<string | null>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
   const [t, setT] = useState<NovaTarefa>(() => ({ ...tarefa, empresaId: tarefa.empresaId || empresas[0]?.id || "" }));
   const [data, setData] = useState(tarefa.inicio?.slice(0, 10) ?? "");
@@ -52,6 +57,15 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
   const [dataFim, setDataFim] = useState(tarefa.fim?.slice(0, 10) ?? "");
   const [links, setLinks] = useState<LinkDrive[]>(tarefa.links);
   const nova = !tarefa.id;
+  const marcadas = t.tags ?? [];
+  const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
+  const aprovadores = [...new Set<string>([...APROVADORES, ...todas.flatMap((x) => (x.aprovador ? [x.aprovador] : [])), ...(t.aprovador ? [t.aprovador] : [])])];
+  async function criarTag() {
+    if (!novaTag?.nome.trim()) return;
+    const g = await salvarTag({ nome: novaTag.nome.trim(), cor: novaTag.cor });
+    mudar("tags", [...marcadas, g.id]);
+    setNovaTag(null);
+  }
   const temEmpresa = empresas.some((x) => x.id === t.empresaId);
   const mudar = <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => setT((x) => ({ ...x, [campo]: valor }));
 
@@ -86,7 +100,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
         ? { inicio: data, fim: undefined, diaInteiro: true }
         : { inicio: `${data}T${horaIni}`, fim: fimValido(data, horaIni, dataFim || data, horaFim), diaInteiro: false };
     await salvarTarefa({
-      ...t, ...quando, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
+      ...t, ...quando, aprovador: pedeAprovador ? t.aprovador : undefined, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
     aoFechar();
@@ -192,6 +206,45 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
               </div>
               {!data && <p className="ficha-dica">Sem data: fica na coluna &quot;Sem data&quot; do calendário.</p>}
             </fieldset>
+          </div>
+
+          <div className="ficha-grade ficha-tags">
+            {novaTag ? (
+              <div className="ficha-campo ficha-tag-nova" style={{ gridColumn: "1 / -1" }}>
+                <input aria-label="Nome da nova tag" placeholder="Nome da nova tag" value={novaTag.nome} autoFocus
+                  onChange={(e) => setNovaTag({ ...novaTag, nome: e.target.value })}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void criarTag(); } if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setNovaTag(null); } }} />
+                {ETIQUETAS.slice(0, 6).map((c) => (
+                  <button key={c} type="button" className="ficha-cor" aria-label={`Cor ${c.slice(9)}`} aria-pressed={novaTag.cor === c} style={{ background: `var(--${c})` }} onClick={() => setNovaTag({ ...novaTag, cor: c })} />
+                ))}
+                <button type="button" className="ficha-texto-botao" onClick={() => void criarTag()}>Criar</button>
+                <button type="button" className="ficha-mais" aria-label="Cancelar" onClick={() => setNovaTag(null)}>×</button>
+              </div>
+            ) : novoNome !== null ? (
+              <div className="ficha-campo ficha-tag-nova" style={{ gridColumn: "1 / -1" }}>
+                <input aria-label="Nome de quem aprova" placeholder="Nome de quem aprova" value={novoNome} autoFocus
+                  onChange={(e) => setNovoNome(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); if (novoNome.trim()) mudar("aprovador", novoNome.trim()); setNovoNome(null); }
+                    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setNovoNome(null); }
+                  }} />
+                <button type="button" className="ficha-texto-botao" onClick={() => { if (novoNome.trim()) mudar("aprovador", novoNome.trim()); setNovoNome(null); }}>Adicionar</button>
+                <button type="button" className="ficha-mais" aria-label="Cancelar" onClick={() => setNovoNome(null)}>×</button>
+              </div>
+            ) : (
+              <>
+                <div className="ficha-campo ficha-escolha ficha-com-mais">
+                  <Selecao rotulo="Tags" opcoes={tags.map((g) => ({ valor: g.id, rotulo: g.nome, antes: <span className="ficha-ponto" style={{ background: `var(--${g.cor})` }} /> }))} valor={marcadas} aoMudar={(v) => mudar("tags", v)} />
+                  <button type="button" className="ficha-mais" aria-label="Criar nova tag" onClick={() => setNovaTag({ nome: "", cor: "etiqueta-3" })}>+</button>
+                </div>
+                {pedeAprovador && (
+                  <div className="ficha-campo ficha-escolha ficha-com-mais">
+                    <Selecao rotulo="Quem aprova" opcoes={aprovadores.map((nome) => ({ valor: nome, rotulo: nome, antes: <Aprovador nome={nome} tamanho={18} /> }))} valor={t.aprovador ? [t.aprovador] : []} multipla={false} rotuloTodos="Ninguém" aoMudar={([v]) => mudar("aprovador", v)} />
+                    <button type="button" className="ficha-mais" aria-label="Adicionar nome de quem aprova" onClick={() => setNovoNome("")}>+</button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {t.tipo === "postagem" && (

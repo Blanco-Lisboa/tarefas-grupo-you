@@ -37,7 +37,16 @@ export type Tarefa = {
   notas?: string;
   links: Link[];
   arquivos: Arquivo[];
+  /** Ids das tags marcadas (ver Tag). */
+  tags?: string[];
+  /** Quem aprova este conteúdo (nome livre). Só vale com uma tag de aprovação marcada; fica no conteúdo, não na tag. */
+  aprovador?: string;
 };
+
+/** Rótulo colorido que se cria e se marca nos conteúdos. aprovacao = marcar pede "Quem aprova". */
+export type Tag = { id: string; nome: string; cor: Etiqueta; aprovacao?: boolean };
+/** Quem aprova por padrão; outros nomes entram pela ficha. */
+export const APROVADORES = ["Natham", "Matheus", "Adrian"] as const;
 
 export type Empresa = { id: string; nome: string; sigla: string };
 

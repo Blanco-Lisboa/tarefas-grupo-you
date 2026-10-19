@@ -1,15 +1,17 @@
 // Repositório em memória (Fase 1). Na Fase 2 só ESTE arquivo troca por Supabase; a API pública (index.ts) fica igual.
 import { empresasExemplo, tarefasExemplo } from "./exemplo";
-import type { Empresa, NovaTarefa, Tarefa } from "./tipos";
+import type { Empresa, NovaTarefa, Tag, Tarefa } from "./tipos";
 
 let tarefas: Tarefa[] = tarefasExemplo;
 let empresas: Empresa[] = empresasExemplo;
+let tags: Tag[] = [{ id: "tag-esperando-aprovacao", nome: "Esperando aprovação", cor: "etiqueta-1", aprovacao: true }];
 const ouvintes = new Set<() => void>();
 const avisar = () => ouvintes.forEach((f) => f());
 
 // Snapshots imutáveis: cada escrita troca o array (exigência do useSyncExternalStore).
 export const lerTarefas = () => tarefas;
 export const lerEmpresas = () => empresas;
+export const lerTags = () => tags;
 export const assinar = (f: () => void) => (ouvintes.add(f), () => void ouvintes.delete(f));
 
 export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
@@ -39,4 +41,11 @@ export async function removerEmpresa(id: string): Promise<void> {
   empresas = empresas.filter((e) => e.id !== id);
   tarefas = tarefas.filter((t) => t.empresaId !== id);
   avisar();
+}
+
+export async function salvarTag(nova: Omit<Tag, "id">): Promise<Tag> {
+  const tag = { ...nova, id: crypto.randomUUID() };
+  tags = [...tags, tag];
+  avisar();
+  return tag;
 }
