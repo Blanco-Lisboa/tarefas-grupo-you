@@ -7,27 +7,29 @@
 @media (max-width: 767px) { .mapa { --visiveis: 3; --folga: 2; } }
 
 /* Cabeçalho numa faixa só: título e subtítulo à esquerda, os três números à direita, todos da mesma altura. */
-.mapa-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-8) var(--s-32); }
+.mapa-topo { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: space-between; gap: var(--s-8) var(--s-32); }
 .mapa-titulo h1 { margin: 0; font-size: var(--app-t-titulo); font-weight: var(--titulo-peso); line-height: var(--titulo-entrelinha); letter-spacing: var(--titulo-espaco); color: var(--texto); }
 .mapa-titulo h1 span { color: var(--fraco); font-weight: 400; }
 .mapa-titulo p { margin: var(--s-4) 0 0; font-size: var(--app-t-texto); color: var(--fraco); }
 
+/* Resumo: rótulo no topo e número embaixo, em todos os itens, então rótulos ficam na mesma linha e números na mesma linha de base.
+   No desktop a coluna estica até a altura do título: o rótulo começa na linha do "Mapa de…" e o número termina na do subtítulo. */
 .mapa-resumo { display: flex; align-items: stretch; gap: var(--s-8) var(--s-32); margin: 0; }
-.mapa-resumo > div { display: flex; flex-direction: column; justify-content: center; }
-.mapa-resumo dt { font-size: var(--app-t-rotulo); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fraco); white-space: nowrap; }
-.mapa-resumo dd { margin: var(--s-4) 0 0; font-size: var(--t-31); font-weight: 300; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--texto); }
-.mapa-resumo > div dd.mapa-resumo-data { font-size: var(--t-25); font-weight: 400; line-height: 1; }
-/* o bloco azul tem o porte dos números ao lado: mesma altura, só um pouco de respiro dentro */
-.mapa-resumo .bloco-destaque { padding: var(--s-8) var(--s-16); border-radius: var(--raio-b); }
+.mapa-resumo > div { display: flex; flex-direction: column; justify-content: space-between; gap: var(--s-4); }
+.mapa-resumo dt { font-size: var(--app-t-rotulo); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fraco); white-space: nowrap; }
+.mapa-resumo dd { margin: 0; font-size: var(--t-31); font-weight: 700; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--texto); }
+.mapa-resumo > div dd.mapa-resumo-data { white-space: nowrap; }
+/* o bloco azul cresce para fora com margem negativa: o texto dele fica alinhado com o dos outros dois, só o fundo sobra */
+.mapa-resumo .bloco-destaque { margin-block: calc(var(--s-8) * -1); padding: var(--s-8) var(--s-16); border-radius: var(--raio-b); }
 .mapa-resumo .bloco-destaque dt { color: var(--no-azul-fraco); }
-.mapa-resumo .bloco-destaque dd.bloco-numero { margin: var(--s-4) 0 0; font-size: var(--t-31); }
+.mapa-resumo .bloco-destaque dd.bloco-numero { color: var(--no-azul); }
 .mapa-vazio { margin: 0; padding: var(--s-32) 0; color: var(--fraco); font-size: var(--app-t-texto); }
 @media (max-width: 767px) {
-  .mapa-resumo { width: 100%; gap: var(--s-12); }
+  .mapa-resumo { width: 100%; gap: var(--s-12); padding-block: var(--s-8); }
   .mapa-resumo > div:not(.bloco-destaque) { flex: 1 1 0; min-width: 0; }
   .mapa-resumo dt { font-size: 10px; letter-spacing: 0.03em; white-space: normal; }
   .mapa-resumo dd, .mapa-resumo .bloco-destaque dd.bloco-numero { font-size: var(--t-25); }
-  .mapa-resumo > div dd.mapa-resumo-data { font-size: var(--t-16); }
+  .mapa-resumo > div dd.mapa-resumo-data { font-size: var(--t-16); margin-bottom: 2px; } /* a linha de base do texto menor fica junto com a dos números (medido no navegador) */
 }
 
 /* ---------- palco: seção alta + miolo preso na tela (sticky) + faixa larga que anda com a rolagem ---------- */
