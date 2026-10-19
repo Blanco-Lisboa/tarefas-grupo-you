@@ -7,7 +7,7 @@ import { Ano } from "./Ano";
 import { Evento, useSoltar, type Acoes } from "./Evento";
 import { BarraFiltros, passa, SEM_FILTROS, type Filtros } from "./Filtros";
 import { Grade } from "./Grade";
-import { andar, comMinuto, diasDaSemana, diasDoMes, mover, paraHora, porDia, tituloPeriodo, type Destino, type Visao } from "./logica";
+import { andar, comMinuto, diasDaSemana, diasDoMes, esperarFimDoArraste, mover, paraHora, porDia, tituloPeriodo, type Destino, type Visao } from "./logica";
 import { Mes } from "./Mes";
 import { Selecao } from "@/components/ui/Selecao";
 import "./calendario.css";
@@ -145,16 +145,16 @@ function SemData({ lista, acoes }: { lista: Tarefa[]; acoes: Acoes }) {
 
   // Arrastar da lista: ela fica transparente e deixa o mouse passar, para soltar no calendário que está embaixo.
   // Fecha quando a tarefa cai (drop) ou o arrasto é cancelado (dragend); os dois chegam na janela.
+  // Se a tela sair no meio do arraste, para de esperar (os ouvintes não ficam presos na janela).
+  const parar = useRef<() => void>(undefined);
+  useEffect(() => () => parar.current?.(), []);
   const comecar = () => {
     setTimeout(() => setArrastando(true)); // depois do navegador tirar a "foto" da tarefa arrastada
-    const fim = () => {
+    parar.current?.();
+    parar.current = esperarFimDoArraste(window, () => {
       setArrastando(false);
       pop.current?.hidePopover();
-      window.removeEventListener("drop", fim);
-      window.removeEventListener("dragend", fim);
-    };
-    window.addEventListener("drop", fim);
-    window.addEventListener("dragend", fim);
+    });
   };
 
   return (

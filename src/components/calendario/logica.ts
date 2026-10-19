@@ -115,3 +115,13 @@ export function faixas<T extends { ini: number; fim: number }>(itens: T[]) {
   fechar();
   return saida;
 }
+
+/** Espera o fim de um arraste (drop ou dragend, os dois chegam na janela) e chama `fim` uma vez só. Devolve como parar
+    de esperar, para quem sai da tela no meio do arraste: sem isso os ouvintes ficavam presos na janela. */
+export function esperarFimDoArraste(janela: EventTarget, fim: () => void) {
+  const ouvintes = new AbortController();
+  const uma = () => { ouvintes.abort(); fim(); };
+  janela.addEventListener("drop", uma, { signal: ouvintes.signal });
+  janela.addEventListener("dragend", uma, { signal: ouvintes.signal });
+  return () => ouvintes.abort();
+}

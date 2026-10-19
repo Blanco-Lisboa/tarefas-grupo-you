@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { andar, diasCobertos, diasDoMes, faixas, inicioSemana, mover, paraDia, tituloPeriodo } from "./logica";
+import { andar, diasCobertos, diasDoMes, esperarFimDoArraste, faixas, inicioSemana, mover, paraDia, tituloPeriodo } from "./logica";
 
 const base: Tarefa = {
   id: "x", titulo: "Gravar", tipo: "gravacao", empresaId: "beec", responsavel: "matheus",
@@ -41,5 +41,18 @@ describe("calendário", () => {
     expect(diasCobertos({ ...base, fim: "2026-10-11T12:00" })).toEqual(["2026-10-09", "2026-10-10", "2026-10-11"]);
     const r = faixas([{ ini: 0, fim: 60 }, { ini: 30, fim: 90 }, { ini: 120, fim: 150 }]);
     expect(r.map((x) => [x.faixa, x.total])).toEqual([[0, 2], [1, 2], [0, 1]]);
+  });
+
+  it("fim do arraste: chama uma vez só e, parado (tela saiu), não chama mais", () => {
+    const janela = new EventTarget();
+    let vezes = 0;
+    esperarFimDoArraste(janela, () => vezes++);
+    janela.dispatchEvent(new Event("drop"));
+    janela.dispatchEvent(new Event("dragend"));
+    expect(vezes).toBe(1);
+    const parar = esperarFimDoArraste(janela, () => vezes++);
+    parar();
+    janela.dispatchEvent(new Event("dragend"));
+    expect(vezes).toBe(1);
   });
 });

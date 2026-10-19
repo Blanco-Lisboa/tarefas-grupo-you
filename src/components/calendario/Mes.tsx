@@ -1,7 +1,7 @@
 "use client";
 import type { CSSProperties } from "react";
 import type { Tarefa } from "@/lib/dados";
-import { Evento, useSoltar, type Acoes } from "./Evento";
+import { CriarAqui, Evento, useSoltar, type Acoes } from "./Evento";
 import { diasDoMes, nomeMes, nomeSemana } from "./logica";
 
 // Visão MÊS: uma célula por dia, até 3 tarefas e "+N" para o resto (leva ao dia).
@@ -31,6 +31,7 @@ export function Mes({ cursor, mapa, hoje, acoes }: { cursor: string; mapa: Map<s
             <button type="button" className="mes-numero" onClick={() => acoes.irPara("dia", dia)} title="Ver o dia">
               {n === 1 ? `1 de ${nomeMes(dia).slice(0, 3).toLowerCase()}` : n}
             </button>
+            <CriarAqui destino={{ dia }} criar={acoes.criar} />
             {lista.slice(0, sobra > 0 ? CABEM - 1 : CABEM).map((t) => <Evento key={t.id} t={t} modo="chip" abrir={acoes.abrir} />)}
             {sobra > 0 && (
               <button type="button" className="mes-mais" onClick={() => acoes.irPara("dia", dia)}>+{sobra + 1} mais</button>

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, type CSSProperties, type DragEvent, type MouseEvent } from "react";
 import type { Tarefa } from "@/lib/dados";
-import { Evento, useSoltar, type Acoes } from "./Evento";
+import { CriarAqui, Evento, useSoltar, type Acoes } from "./Evento";
 import { comMinuto, faixas, minutoDoDia, nomeSemana, variosDias } from "./logica";
 
 // Visões DIA e SEMANA: grade de horários (1 hora = 48px), tarefas de dia inteiro no topo.
@@ -53,6 +53,7 @@ export function Grade({ dias, mapa, agora, acoes }: Props) {
               onClick={(e) => e.target === e.currentTarget && acoes.criar({ dia, diaInteiro: true })}
               {...alvo(`topo-${dia}`, { dia, diaInteiro: true })}
             >
+              <CriarAqui destino={{ dia, diaInteiro: true }} criar={acoes.criar} />
               {doDia(dia).filter(noTopo).map((t) => <Evento key={t.id} t={t} modo="chip" abrir={acoes.abrir} />)}
             </div>
           ))}
@@ -82,6 +83,7 @@ export function Grade({ dias, mapa, agora, acoes }: Props) {
                     return { chave: comMinuto(dia, minuto), destino: { dia, minuto } };
                   })}
                 >
+                  <CriarAqui destino={{ dia, minuto: 9 * 60 }} criar={acoes.criar} style={{ top: 9 * HORA + 4 }} />
                   {itens.map(({ t, ini, fim, faixa, total }) => (
                     <Evento
                       key={t.id}

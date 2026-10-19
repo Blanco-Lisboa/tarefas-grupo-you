@@ -2,7 +2,7 @@
 import { useState, type CSSProperties, type DragEvent } from "react";
 import { useEmpresas, type Tarefa } from "@/lib/dados";
 import { NOMES } from "@/components/ficha/Ficha";
-import { diaCurto, horaCurta, variosDias, type Destino, type Visao } from "./logica";
+import { comMinuto, diaCurto, horaCurta, tituloPeriodo, variosDias, type Destino, type Visao } from "./logica";
 
 export type Acoes = {
   abrir: (t: Tarefa) => void;
@@ -49,6 +49,17 @@ export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "blo
           {detalhes && <span>{detalhes}</span>}
         </span>
       )}
+    </button>
+  );
+}
+
+/** Criar pelo teclado: o clique no vazio da grade não recebe foco, então cada dia (e cada coluna de horário) tem este
+    botão, que só aparece quando o Tab chega nele. Na coluna de horário cria às 9h; a ficha deixa trocar. */
+export function CriarAqui({ destino, criar, style }: { destino: NonNullable<Destino>; criar: Acoes["criar"]; style?: CSSProperties }) {
+  const quando = destino.minuto !== undefined ? `, ${comMinuto(destino.dia, destino.minuto).slice(11)}` : destino.diaInteiro ? ", dia inteiro" : "";
+  return (
+    <button type="button" className="cal-criar" style={style} aria-label={`Nova tarefa: ${tituloPeriodo("dia", destino.dia)[0]}${quando}`} onClick={() => criar(destino)}>
+      + Nova tarefa
     </button>
   );
 }
