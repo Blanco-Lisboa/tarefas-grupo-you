@@ -47,14 +47,16 @@ describe("fila por dia", () => {
     t("velho2", "postagem", "2026-10-18", { etapa: "gravacao" }),
     t("velho1", "postagem", "2026-10-17", { etapa: "gravacao" }),
     t("feito", "postagem", "2026-10-19", { etapa: "postado" }),
+    t("roteiro-velho", "roteiro", "2026-10-07T10:00", { etapa: "roteiro" }), // não é postagem, mas é conteúdo atrasado
+    t("reuniao-velha", "reuniao", "2026-10-07T10:00"), // sem etapa: não é conteúdo
     t("longe", "postagem", "2026-11-30", { etapa: "aprovado" }),
   ];
-  const f = filaPorDia(conteudos(lista), "2026-10-19");
+  const f = filaPorDia(lista, "2026-10-19");
 
   it("um card por dia, hoje primeiro com o atrasado no topo e o postado de fora", () => {
     expect(f.map((g) => [g.dia, g.dias])).toEqual([["2026-10-19", 0], ["2026-10-21", 2], ["2026-11-30", 42]]);
-    expect(f[0].itens.map((i) => i.t.id)).toEqual(["velho1", "velho2"]);
-    expect(f[0].itens.map((i) => i.dias)).toEqual([-2, -1]);
+    expect(f[0].itens.map((i) => i.t.id)).toEqual(["roteiro-velho", "velho1", "velho2"]);
+    expect(f[0].itens.map((i) => i.dias)).toEqual([-12, -2, -1]);
   });
 
   it("no dia: sem horário na ordem de criação (no topo, como na folha), com horário na linha do horário", () => {

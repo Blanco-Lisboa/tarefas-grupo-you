@@ -1,6 +1,7 @@
 // Mapa: lê as MESMAS tarefas da agenda. Todo conteúdo (tipo "postagem") com data vira um nó. Só a data conta, sem horário.
 import type { Tarefa } from "@/lib/dados";
 import { deTexto, paraDia, somarDias } from "@/components/calendario/logica";
+import { diasDeAtraso } from "@/lib/atraso";
 import { montarGrade } from "@/components/tarefas/grade";
 
 /** Hoje pelo relógio do navegador, em data local (nunca toISOString: em UTC viraria o dia errado à noite no Brasil). */
@@ -48,7 +49,7 @@ export function prazo(dias: number) {
 }
 
 /**
- * Só o que falta postar, um grupo por dia, do mais perto ao mais longe. O grupo de hoje existe sempre (mesmo vazio) e leva
+ * O que falta fazer, um grupo por dia, do mais perto ao mais longe. O grupo de hoje existe sempre (mesmo vazio) e leva
  * no topo o que ficou atrasado. Dentro do dia a ordem é a da folha do Caderno: com horário na linha do horário, sem horário
  * na ordem em que foi criado (a lista chega na ordem de criação, e a ordenação por data é estável).
  */
@@ -56,7 +57,8 @@ export function filaPorDia(lista: readonly Tarefa[], de: string): DiaFila[] {
   const itens = new Map<string, Item>();
   const porDia = new Map<string, Tarefa[]>();
   for (const t of lista) {
-    if (foiPostado(t)) continue;
+    // entra o que vem pela frente (postagem a postar) e todo atrasado, mesmo de antes do período do Mapa (mesma regra do Conteúdos)
+    if (!t.inicio || (!diasDeAtraso(t, de) && (t.tipo !== "postagem" || foiPostado(t)))) continue;
     const etapa = Math.max(0, ETAPAS_ATE_POSTAR.indexOf((t.etapa ?? "ideia") as (typeof ETAPAS_ATE_POSTAR)[number]));
     itens.set(t.id, { t, dias: diasAte(diaDe(t), de), passo: PASSO[ETAPAS_ATE_POSTAR[etapa]] });
     const dia = diaDe(t) < de ? de : diaDe(t); // atrasado cai em hoje
@@ -69,5 +71,5 @@ export function filaPorDia(lista: readonly Tarefa[], de: string): DiaFila[] {
   const dehoje = (porDia.get(de) ?? []).filter((t) => diaDe(t) >= de);
   const pilhaAtraso = [...new Set(atrasadas.map(diaDe))].sort().flatMap((d) => doDia(atrasadas.filter((t) => diaDe(t) === d)));
   porDia.set(de, [...pilhaAtraso, ...doDia(dehoje)]);
-  return [...porDia].sort(([a], [b]) => a.localeCompare(b)).map(([dia, ts]) => ({ dia, dias: diasAte(dia, de), itens: ts.map((t) => itens.get(t.id)!) }));
+  return [...porDia].sort(([a], [b]) => a.localeCompare(b)).map(([dia, ts]) => ({ dia, dias: diasAte(dia, de), itens: (dia === de ? ts : doDia(ts)).map((t) => itens.get(t.id)!) }));
 }

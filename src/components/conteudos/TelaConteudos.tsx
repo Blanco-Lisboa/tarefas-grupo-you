@@ -3,10 +3,12 @@
 import { useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from "react";
 import { Ficha, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
+import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
-import { ETAPAS, salvarTarefa, useEmpresas, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { ETAPAS, salvarTarefa, useEmpresas, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
+import { diasDeAtraso } from "@/lib/atraso";
 import "./conteudos.css";
 
 const nomes: Record<Etapa, string> = {
@@ -22,8 +24,8 @@ const diaNumero = (texto: string) => { const [a, m, d] = texto.split("-").map(Nu
 /** Quanto falta para a postagem. Conteúdo já postado ou sem data não tem contagem. */
 function prazo(tarefa: Tarefa, hoje: string): { texto: string; tom: "atrasado" | "perto" | "normal" } | null {
   if (!tarefa.inicio || !hoje || tarefa.etapa === "postado") return null;
+  if (diasDeAtraso(tarefa, hoje)) return { texto: "atrasado", tom: "atrasado" };
   const dias = diaNumero(tarefa.inicio.slice(0, 10)) - diaNumero(hoje);
-  if (dias < 0) return { texto: "atrasado", tom: "atrasado" };
   if (dias === 0) return { texto: "hoje", tom: "perto" };
   return { texto: dias === 1 ? "posta amanhã" : `posta em ${dias} dias`, tom: dias <= 2 ? "perto" : "normal" };
 }
@@ -39,6 +41,7 @@ function dataLegivel(inicio?: string) {
 export function TelaConteudos() {
   const tarefas = useTarefas();
   const empresas = useEmpresas();
+  const tags = useTags();
   const { aplicar } = useFiltroEmpresa();
   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
   const [arraste, setArraste] = useState<Arraste | null>(null);
@@ -149,6 +152,11 @@ export function TelaConteudos() {
                       {tarefa.rede && <span className="conteudos-rede"><IconeRede rede={tarefa.rede} tamanho={18} /></span>}
                     </div>
                     <button className="conteudos-titulo" type="button" onClick={() => setAberta(tarefa)}>{tarefa.titulo}</button>
+                    {tarefa.tags?.some((id) => tags.some((g) => g.id === id)) && (
+                      <div className="conteudos-tags">
+                        {tags.filter((g) => tarefa.tags?.includes(g.id)).map((g) => <TagChip key={g.id} tag={g} aprovador={tarefa.aprovador} />)}
+                      </div>
+                    )}
                     <div className="conteudos-cartao-rodape">
                       <Pessoa quem={tarefa.responsavel} tamanho={25} />
                       <time dateTime={tarefa.inicio?.slice(0, 10)}>{dataLegivel(tarefa.inicio)}</time>

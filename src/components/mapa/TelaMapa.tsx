@@ -51,7 +51,7 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
   const aPostar = marcos.filter((t) => !foiPostado(t));
   const [m1, m2] = [nomeMes(INICIO), nomeMes(dias.at(-1)!)].map((m) => m.toLowerCase());
   const meses = m1 === m2 ? m1 : `${m1} e ${m2}`;
-  const fila = useMemo(() => filaPorDia(todos, INICIO), [todos, INICIO]);
+  const fila = useMemo(() => filaPorDia(aplicar(tarefas), INICIO), [aplicar, tarefas, INICIO]);
   const proximo = aPostar[0]?.inicio?.slice(0, 10);
 
   const topo = (
