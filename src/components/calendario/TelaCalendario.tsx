@@ -9,6 +9,7 @@ import { BarraFiltros, passa, SEM_FILTROS, type Filtros } from "./Filtros";
 import { Grade } from "./Grade";
 import { andar, comMinuto, diasDaSemana, diasDoMes, esperarFimDoArraste, mover, paraHora, porDia, tituloPeriodo, type Destino, type Visao } from "./logica";
 import { Mes } from "./Mes";
+import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { Selecao } from "@/components/ui/Selecao";
 import "./calendario.css";
 
@@ -88,6 +89,13 @@ function Calendario({ agora }: { agora: string }) {
   return (
     <section className="cal">
       <header className="cal-barra">
+        <div className="cal-quem">
+          <div className="cal-titulo">
+            <h1>{titulo ? <>{titulo} <span className="cal-titulo-ano">{ano}</span></> : ano}</h1>
+            <p>{noPeriodo ? `${noPeriodo} ${noPeriodo === 1 ? "tarefa" : "tarefas"} neste período` : "Nenhuma tarefa neste período"}</p>
+          </div>
+          <FiltroEmpresa />
+        </div>
         <div className="cal-navega">
           <button type="button" className="btn btn-2" onClick={() => setCursor(hoje)} title="Hoje (T)">Hoje</button>
           <button type="button" className="btn btn-2 cal-seta cal-seta-volta" onClick={() => setCursor(andar(visao, cursor, -1))} aria-label="Anterior" title="Anterior (seta para a esquerda)">
@@ -96,10 +104,6 @@ function Calendario({ agora }: { agora: string }) {
           <button type="button" className="btn btn-2 cal-seta" onClick={() => setCursor(andar(visao, cursor, 1))} aria-label="Próximo" title="Próximo (seta para a direita)">
             <svg className="seta" viewBox="0 0 24 24" aria-hidden><path d="M4 12h15M13 6l6 6-6 6" /></svg>
           </button>
-        </div>
-        <div className="cal-titulo">
-          <h1>{titulo ? <>{titulo} <span className="cal-titulo-ano">{ano}</span></> : ano}</h1>
-          <p>{noPeriodo ? `${noPeriodo} ${noPeriodo === 1 ? "tarefa" : "tarefas"} neste período` : "Nenhuma tarefa neste período"}</p>
         </div>
         <button type="button" className="btn cal-nova" onClick={() => acoes.criar(null)}>+ Nova tarefa</button>
       </header>

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { excluirPeca, nomeEmUso, pecasDaPasta, salvarPeca, useEmpresas, useIdeias, usePastas, usePecas, type Empresa, type Pasta, type Peca } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
+import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { SeloEmpresa } from "@/components/ui/Marca";
 import { receitaDaEmpresa, tomDaEmpresa } from "./cores";
 import { CardIdeias } from "./CardIdeias";
@@ -178,7 +179,10 @@ export function TelaPastas() {
   return (
     <section className="pastas">
       <header className="pastas-topo">
-        <h1>Pastas</h1>
+        <div className="pastas-quem">
+          <h1>Pastas</h1>
+          <FiltroEmpresa />
+        </div>
         <p>Peças prontas e ideias de cada empresa. Abra uma pasta e clique no cartão para ver as informações.</p>
       </header>
 

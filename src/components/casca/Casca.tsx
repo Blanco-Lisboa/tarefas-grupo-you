@@ -6,9 +6,9 @@ import { Menu } from "./Menu";
 import { assinar, definirRecolhido, lerRecolhido } from "./menu-recolhido";
 import "./casca.css";
 
-// Telas sem a barra de cima: o cadastro de empresas (filtro não faz sentido) e o Caderno (item 132: a própria tela
-// põe o FiltroEmpresa na sua linha do topo).
-const SEM_FILTRO = ["/configuracoes", "/tarefas"];
+// Telas sem a barra de cima: o cadastro de empresas (filtro não faz sentido) e as telas que põem o FiltroEmpresa
+// na própria linha do título (itens 132 e 141).
+const SEM_FILTRO = ["/configuracoes", "/tarefas", "/calendario", "/mapa", "/conteudos", "/pastas"];
 
 export function Casca({ children }: { children: ReactNode }) {
   const recolhido = useSyncExternalStore(assinar, lerRecolhido, () => false);

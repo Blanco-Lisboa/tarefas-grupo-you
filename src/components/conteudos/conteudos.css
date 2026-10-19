@@ -1,7 +1,9 @@
 .conteudos-tela { min-width: 0; }
 .conteudos-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: var(--s-16); margin: 0 0 var(--s-12); }
-.conteudos-cabecalho h1 { margin: 0; color: var(--texto); font-size: var(--app-t-titulo); }
+.conteudos-quem { display: flex; align-items: center; gap: var(--app-respiro); } /* Título + filtro Empresa (item 141) */
+.conteudos-cabecalho h1 { margin: 0; color: var(--texto); font-size: var(--app-t-titulo); line-height: var(--app-controle); }
 .conteudos-cabecalho p { max-width: 60ch; margin: var(--s-4) 0 0; color: var(--fraco); font-size: var(--app-t-texto); }
+@media (min-width: 768px) { .conteudos-total { position: relative; margin-left: var(--s-24); } .conteudos-total::before { content: ""; position: absolute; top: 0; bottom: 0; left: calc(-1 * var(--s-24)); border-left: 1px solid var(--linha); } } /* linha suave entre o título com Empresa e o total (item 141) */
 .conteudos-total { display: flex; align-items: baseline; gap: var(--s-8); flex: none; padding: var(--s-8) var(--s-16); border-radius: var(--raio-b); font-size: var(--app-t-texto); }
 .conteudos-total .bloco-numero { margin: 0; font-size: var(--t-31); }
 .conteudos-erro { padding: var(--s-12); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); }

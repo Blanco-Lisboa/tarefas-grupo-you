@@ -5,6 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { useEmpresas, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
+import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { SeloEmpresa, IconeRede } from "@/components/ui/Marca";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
@@ -60,7 +61,10 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
         {FORMATOS.map(([f, nome]) => <button key={f} type="button" aria-pressed={formato === f} onClick={() => { setFormato(f); lembrar(f); }}>{nome}</button>)}
       </div>
       <header className="mapa-titulo">
-        <h1>Mapa de <span>{meses}</span></h1>
+        <div className="mapa-quem">
+          <h1>Mapa de <span>{meses}</span></h1>
+          <FiltroEmpresa />
+        </div>
         <p>
           De {diaCurto(INICIO)} a {diaCurto(dias.at(-1)!)}.{" "}
           {marcos.length ? `${plural(marcos.length, "conteúdo", "conteúdos")} com data de postagem.` : "Nenhum conteúdo com data de postagem neste período."}

@@ -6,13 +6,16 @@
 
 /* ---------- barra de cima: navegação, título, ações ----------
    Botões = .btn/.btn-2 da base (globals.css), um principal por tela (+ Nova tarefa). */
-.cal-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12) var(--s-24); }
+.cal-barra { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--s-12) var(--s-24); }
+.cal-quem { display: flex; align-items: flex-start; gap: var(--app-respiro); min-width: 0; } /* Título + filtro Empresa (item 141); a contagem fica embaixo do título */
+@media (max-width: 767px) { .cal-quem { flex-wrap: wrap; } .cal-titulo { flex: 1 1 100%; } .cal-titulo h1 { line-height: 1.2; } } /* celular: título em cima, Empresa embaixo */
 .cal-navega { display: flex; align-items: center; gap: var(--s-8); }
+@media (min-width: 768px) { .cal-navega { padding-left: var(--s-24); border-left: 1px solid var(--linha); } } /* linha suave entre Empresa e a navegação */
 .cal-seta { width: var(--app-controle); padding: 0; }
 .cal-seta .seta { width: 18px; height: 18px; }
 .cal-seta-volta .seta { transform: scaleX(-1); }
-.cal-titulo { flex: 1 1 280px; min-width: 0; } /* título e contagem sempre em 2 linhas: trocar de visão não muda a altura da barra */
-.cal-titulo h1 { margin: 0; font-size: var(--app-t-titulo); color: var(--texto); text-wrap: balance; }
+.cal-titulo { min-width: 0; } /* título e contagem sempre em 2 linhas: trocar de visão não muda a altura da barra */
+.cal-titulo h1 { margin: 0; font-size: var(--app-t-titulo); line-height: var(--app-controle); color: var(--texto); text-wrap: balance; }
 .cal-titulo-ano { color: var(--fraco); font-weight: 400; }
 .cal-titulo p { margin: 2px 0 0; font-size: var(--app-t-texto); color: var(--fraco); }
 .cal-nova { margin-left: auto; }
@@ -28,8 +31,8 @@
 .cal-painel-pai { min-width: 0; }
 .cal-painel { background: var(--sup); border-radius: var(--raio-c); box-shadow: var(--sombra); overflow: clip; min-width: 0; }
 @media (min-width: 768px) {
-  /* Altura = tela menos a barra da casca (respiro + controle + respiro) e o respiro de baixo da casca (32 = 2 respiros) */
-  .cal { height: calc(100dvh - var(--app-controle) - var(--app-respiro) * 4); min-height: 520px; }
+  /* Altura = tela menos o respiro de cima da casca e o respiro de baixo (32 = 2 respiros); sem a barra de cima (item 141) */
+  .cal { height: calc(100dvh - var(--app-respiro) * 3); min-height: 520px; }
   .cal-painel-pai { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .cal-painel { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: auto; }
   .grade-janela, .grade { flex: 1; min-height: 0; display: flex; flex-direction: column; }

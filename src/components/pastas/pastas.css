@@ -146,8 +146,10 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 /* Ponta a ponta (item 46). Cada empresa é uma faixa: nome + contagem e uma linha embaixo; as pastas ficam soltas sobre o fundo. */
 .pastas { display: grid; gap: var(--s-8); }
 /* cabeçalho em uma linha só: título e a explicação ao lado */
-.pastas-topo { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-4) var(--s-16); }
-.pastas-topo h1 { font-size: var(--app-t-titulo); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); line-height: var(--titulo-entrelinha); color: var(--texto); margin: 0; }
+.pastas-topo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-4) var(--app-respiro); }
+.pastas-quem { display: flex; align-items: center; gap: var(--app-respiro); } /* Título + filtro Empresa (item 141) */
+@media (min-width: 768px) { .pastas-topo p { padding-left: var(--app-respiro); border-left: 1px solid var(--linha); } } /* linha suave entre Empresa e a explicação */
+.pastas-topo h1 { font-size: var(--app-t-titulo); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); line-height: var(--app-controle); color: var(--texto); margin: 0; }
 .pastas-topo p { margin: 0; color: var(--fraco); font-size: var(--app-t-texto); max-width: 60ch; }
 .pastas-vazio { margin: 0; color: var(--fraco); }
 

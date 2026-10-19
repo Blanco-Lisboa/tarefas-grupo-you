@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from "react";
+import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { Ficha, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
@@ -107,7 +108,10 @@ export function TelaConteudos() {
     <section className="conteudos-tela">
       <header className="conteudos-cabecalho">
         <div>
-          <h1>Conteúdos</h1>
+          <div className="conteudos-quem">
+            <h1>Conteúdos</h1>
+            <FiltroEmpresa />
+          </div>
           <p>Acompanhe cada conteúdo do roteiro à publicação.</p>
         </div>
         <div className="conteudos-total bloco-destaque"><strong className="bloco-numero">{conteudos.length}</strong><span className="bloco-fraco">conteúdos</span></div>

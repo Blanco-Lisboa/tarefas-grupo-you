@@ -9,12 +9,14 @@
 /* Topo em duas linhas: as abas compactas em cima (só do tamanho dos botões); embaixo o título à esquerda e os três números à direita,
    centralizados na altura do título. Respiro igual (24px) até a lista ou o cartão da linha do tempo. */
 .mapa-topo { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--s-16) var(--s-32); padding-bottom: var(--s-8); }
-.mapa-titulo h1 { margin: 0; font-size: var(--app-t-titulo); font-weight: var(--titulo-peso); line-height: var(--titulo-entrelinha); letter-spacing: var(--titulo-espaco); color: var(--texto); }
+.mapa-quem { display: flex; align-items: center; gap: var(--app-respiro); } /* Título + filtro Empresa (item 141) */
+.mapa-titulo h1 { margin: 0; font-size: var(--app-t-titulo); font-weight: var(--titulo-peso); line-height: var(--app-controle); letter-spacing: var(--titulo-espaco); color: var(--texto); }
 .mapa-titulo h1 span { color: var(--fraco); font-weight: 400; }
 .mapa-titulo p { margin: var(--s-4) 0 0; font-size: var(--app-t-texto); color: var(--fraco); }
 
 /* Resumo: rótulo no topo e número embaixo, em todos os itens: rótulos na mesma linha e números na mesma linha de base. */
 .mapa-resumo { display: flex; align-items: stretch; gap: var(--s-8) var(--s-32); margin: 0; }
+@media (min-width: 768px) { .mapa-resumo { padding-left: var(--s-32); border-left: 1px solid var(--linha); } } /* linha suave entre o título com Empresa e os números (item 141) */
 .mapa-resumo > div { display: flex; flex-direction: column; justify-content: space-between; gap: var(--s-4); }
 .mapa-resumo dt { font-size: var(--app-t-rotulo); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fraco); white-space: nowrap; }
 .mapa-resumo dd { margin: 0; font-size: var(--t-31); font-weight: 700; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--texto); }
