@@ -182,7 +182,6 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
                 <div className="ficha-mini">
                   Termina
                   <CampoData rotulo="Termina" valor={horaFim ? dataFim || data : ""} hora={horaFim} min={data} vazio="Sem fim"
-                    horaPadrao={paraHora(new Date(deTexto(`${data}T${horaIni}`).getTime() + HORA)).slice(11, 16)}
                     aoMudar={(d, h) => { setDataFim(d); setHoraFim(h ?? ""); }} />
                 </div>
               )}

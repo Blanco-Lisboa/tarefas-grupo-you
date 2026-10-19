@@ -24,7 +24,7 @@ const foto = async (p, nome) => {
   await p.screenshot({ path: join(PASTA, nome) });
 };
 const aberto = (p) => p.evaluate(() => !!document.querySelector(".campo-data-pop:popover-open"));
-const escolhida = (p, rotulo) => p.locator(`.campo-data-pop:popover-open [role=listbox][aria-label="${rotulo}"] [aria-selected=true]`).innerText();
+const escolhida = (p, rotulo) => p.locator(`.campo-data-pop:popover-open [role=spinbutton][aria-label="${rotulo}"]`).getAttribute("aria-valuetext");
 
 for (const [w, h] of [[1440, 760], [390, 844]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h } });
@@ -43,45 +43,45 @@ for (const [w, h] of [[1440, 760], [390, 844]]) {
   const comeca = p.locator(".campo-data-botao").first();
   await comeca.click();
   await p.waitForTimeout(350);
-  if ((await escolhida(p, "Hora")) !== "09" || (await escolhida(p, "Minuto")) !== "00") erros.push(`[${w}] hora inicial não é 09:00`);
+  if ((await escolhida(p, "Hora")) !== "00" || (await escolhida(p, "Minuto")) !== "00") erros.push(`[${w}] hora inicial não é 00:00`);
   await p.locator('.campo-data-pop:popover-open [data-dia="2026-10-22"]').click();
   if (!(await aberto(p))) erros.push(`[${w}] escolher o dia fechou o painel (com hora não deve fechar)`);
-  await p.locator('.campo-data-pop:popover-open [role=listbox][aria-label="Hora"]').focus();
+  await p.locator('.campo-data-pop:popover-open [role=spinbutton][aria-label="Hora"]').focus();
   await p.keyboard.press("ArrowDown");
   await p.keyboard.press("ArrowDown");
   await p.keyboard.press("Tab");
   for (let i = 0; i < 6; i++) await p.keyboard.press("ArrowDown");
   await p.waitForTimeout(500);
-  if ((await escolhida(p, "Hora")) !== "11" || (await escolhida(p, "Minuto")) !== "30") erros.push(`[${w}] teclado: ${await escolhida(p, "Hora")}:${await escolhida(p, "Minuto")}`);
+  if ((await escolhida(p, "Hora")) !== "02" || (await escolhida(p, "Minuto")) !== "30") erros.push(`[${w}] teclado: ${await escolhida(p, "Hora")}:${await escolhida(p, "Minuto")}`);
   await foto(p, `${w}-data-hora-comeca.png`);
   await p.keyboard.press("Enter");
   await p.waitForTimeout(300);
   if (await aberto(p)) erros.push(`[${w}] Enter na roda não fechou`);
-  if ((await comeca.innerText()) !== "22/10/2026 · 11:30") erros.push(`[${w}] Começa: ${await comeca.innerText()}`);
+  if ((await comeca.innerText()) !== "22/10/2026 · 02:30") erros.push(`[${w}] Começa: ${await comeca.innerText()}`);
 
-  // Termina: abre sugerindo 1 hora depois; gira a roda da hora com a roda do mouse (2 linhas) e seleciona
+  // Termina: sem hora, abre em 00:00 (item 84); gira a roda da hora com a rodinha do mouse (3 linhas) e seleciona
   const termina = p.locator(".campo-data-botao").nth(1);
   if ((await termina.innerText()) !== "Sem fim") erros.push(`[${w}] Termina antes: ${await termina.innerText()}`);
   await termina.click();
   await p.waitForTimeout(350);
-  if ((await escolhida(p, "Hora")) !== "12" || (await escolhida(p, "Minuto")) !== "30") erros.push(`[${w}] Termina não sugeriu 12:30`);
-  await p.locator('.campo-data-pop:popover-open [role=listbox][aria-label="Hora"]').hover();
-  await p.mouse.wheel(0, 64);
+  if ((await escolhida(p, "Hora")) !== "00" || (await escolhida(p, "Minuto")) !== "00") erros.push(`[${w}] Termina não abriu em 00:00`);
+  await p.locator('.campo-data-pop:popover-open [role=spinbutton][aria-label="Hora"]').hover();
+  await p.mouse.wheel(0, 96);
   await p.waitForTimeout(900);
-  if ((await escolhida(p, "Hora")) !== "14") erros.push(`[${w}] rolagem: hora ${await escolhida(p, "Hora")}`);
+  if ((await escolhida(p, "Hora")) !== "03") erros.push(`[${w}] rolagem: hora ${await escolhida(p, "Hora")}`);
   const caixa = await p.locator(".campo-data-pop:popover-open").boundingBox();
   if (caixa.x < 8 || caixa.x + caixa.width > w - 8 || caixa.y < 0 || caixa.y + caixa.height > h) erros.push(`[${w}] painel do Termina sai da tela: ${JSON.stringify(caixa)}`);
   await foto(p, `${w}-data-hora-termina-rolou.png`);
   await p.locator(".campo-data-pop:popover-open").getByRole("button", { name: "Selecionar" }).click();
   await p.waitForTimeout(300);
-  if ((await termina.innerText()) !== "22/10/2026 · 14:30") erros.push(`[${w}] Termina: ${await termina.innerText()}`);
+  if ((await termina.innerText()) !== "22/10/2026 · 03:00") erros.push(`[${w}] Termina: ${await termina.innerText()}`);
   await foto(p, `${w}-data-hora-ficha.png`);
 
   // Salva e confere no calendário
   await p.getByRole("button", { name: "Salvar" }).click();
   await p.waitForTimeout(600);
   const salvo = await p.locator(".evento", { hasText: `Prova hora ${w}` }).first().getAttribute("title");
-  if (!salvo?.includes("11:30 às 14:30")) erros.push(`[${w}] tarefa salva com: ${salvo}`);
+  if (!salvo?.includes("02:30 às 03:00")) erros.push(`[${w}] tarefa salva com: ${salvo}`);
   await ctx.close();
 }
 
@@ -92,11 +92,11 @@ await p.goto("http://127.0.0.1:3100/calendario", { waitUntil: "networkidle" });
 await p.locator(".cal-nova").click();
 await p.locator(".campo-data-botao").first().click();
 await p.waitForTimeout(300);
-const roda = p.locator('.campo-data-pop:popover-open [role=listbox][aria-label="Hora"]');
+const roda = p.locator('.campo-data-pop:popover-open [role=spinbutton][aria-label="Hora"]');
 await roda.focus();
 await p.keyboard.press("PageDown");
-const topo = await roda.evaluate((e) => e.scrollTop); // sem animação, já está no lugar no mesmo instante
-if (topo !== 14 * 32) erros.push(`reduced-motion: roda em ${topo}, esperado ${14 * 32}`);
+const agora = await roda.getAttribute("aria-valuetext"); // sem animação, já está no lugar no mesmo instante
+if (agora !== "05") erros.push(`reduced-motion: roda em ${agora}, esperado 05`);
 await ctx.close();
 
 await b.close();

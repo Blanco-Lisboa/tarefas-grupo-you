@@ -53,7 +53,7 @@ for (const [w, h] of [[1440, 760], [390, 844]]) {
   for (const v of visto) if (v.largura !== "1px") erros.push(`[${w}] ${v.nome}: ${v.largura} ${v.sombra}`);
   console.log(`[${w}] paradas conferidas: ${visto.map((v) => v.nome).join(" | ")}`);
   // Foto: coluna de minutos focada (o caso da 1440-data-hora-comeca.png)
-  await p.locator('.campo-data-pop:popover-open [role=listbox][aria-label="Minuto"]').focus();
+  await p.locator('.campo-data-pop:popover-open [role=spinbutton][aria-label="Minuto"]').focus();
   await p.keyboard.press("ArrowDown");
   await p.waitForTimeout(400);
   await foto(p, `${w}-foco-campodata-minuto.png`);

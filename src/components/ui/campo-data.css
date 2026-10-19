@@ -60,19 +60,21 @@
   border-radius: calc(var(--raio-c) - 6px); background: var(--azul-claro);
 }
 .campo-data-dois-pontos { position: relative; font: 600 var(--t-16) / 1 var(--fonte); color: var(--azul); }
+/* Roda (item 84): sem rolagem do navegador; o arraste é do próprio componente (touch-action: none deixa o dedo girar a
+   roda sem rolar a página). Cada linha é posta no lugar pela conta (transform); a do meio fica a 64px do topo. */
 .roda {
-  position: relative; width: 52px; height: 160px; padding-block: 64px; /* 5 linhas de 32px; 2 de folga em cima e embaixo */
-  overflow-y: auto; scrollbar-width: none; scroll-snap-type: y mandatory; overscroll-behavior: contain;
+  position: relative; width: 52px; height: 160px; overflow: hidden; /* 5 linhas de 32px */
+  touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab;
   border-radius: calc(var(--raio-c) - 6px);
   mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent);
 }
-.roda::-webkit-scrollbar { display: none; }
+.roda:active { cursor: grabbing; }
 .roda:focus-visible { mask-image: none; }
 .roda-item {
-  display: grid; place-items: center; height: 32px; scroll-snap-align: center; cursor: pointer;
+  position: absolute; left: 0; right: 0; top: 64px; display: grid; place-items: center; height: 32px;
   font: 400 var(--t-16) / 1 var(--fonte); font-variant-numeric: tabular-nums; color: var(--fraco);
 }
-.roda-item[aria-selected="true"] { font-weight: 600; color: var(--azul); }
+.roda-item[data-meio] { font-weight: 600; color: var(--azul); }
 @media (max-width: 560px) {
   .campo-data-pop { margin-inline: var(--s-8); } /* margem conta na hora de caber: o painel não encosta na borda da tela */
   .campo-data-corpo { flex-direction: column; align-items: stretch; }
@@ -80,4 +82,4 @@
   .campo-data-rodas::before { left: 50%; right: auto; width: 128px; translate: -50% calc(-50% + 4px); }
 }
 
-@media (prefers-reduced-motion: reduce) { .campo-data-seta, .campo-data-dia, .campo-data-acao { transition: none; } .roda { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) { .campo-data-seta, .campo-data-dia, .campo-data-acao { transition: none; } }

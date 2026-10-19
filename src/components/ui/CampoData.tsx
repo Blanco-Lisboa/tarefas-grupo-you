@@ -14,7 +14,8 @@ import "./campo-data.css";
 // Com `hora` ("HH:MM" ou ""), o painel ganha ao lado as rodas de hora e minuto (como no CRM, foto 24; no celular, embaixo):
 // escolher o dia não fecha, "Selecionar" devolve aoMudar(dia, hora) e "Limpar" devolve aoMudar("", "").
 // Teclado no painel: setas andam 1 dia / 1 semana, PageUp/PageDown 1 mês, Home/End início/fim da semana, Enter escolhe,
-// Esc fecha. Nas rodas: setas, PageUp/PageDown (5), Home/End, Enter seleciona. Datas pelo relógio local (paraDia).
+// Esc fecha. Nas rodas: arrastar (mouse ou dedo), rodinha, setas, PageUp/PageDown (5), Home/End, Enter seleciona; as rodas
+// são circulares e, sem hora escolhida, abrem em 00:00 (item 84). Datas pelo relógio local (paraDia).
 type Props = {
   rotulo: string;
   valor: string;
@@ -25,10 +26,8 @@ type Props = {
   semLimpar?: boolean;
   /** Texto do botão sem data. */
   vazio?: string;
-  /** Liga as rodas de hora e minuto. "" = sem hora ainda. */
+  /** Liga as rodas de hora e minuto. "" = sem hora ainda (as rodas abrem em 00:00, item 84). */
   hora?: string;
-  /** Hora sugerida quando `hora` está vazia. */
-  horaPadrao?: string;
 };
 
 const SEMANA = ["D", "S", "T", "Q", "Q", "S", "S"];
@@ -54,7 +53,7 @@ function mesmoDia(dia: string, passo: 1 | -1) {
   return `${alvo.slice(0, 8)}${String(Math.min(Number(dia.slice(8, 10)), ultimo)).padStart(2, "0")}`;
 }
 
-export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem data", hora, horaPadrao = "09:00" }: Props) {
+export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem data", hora }: Props) {
   const id = useId();
   const painel = useRef<HTMLDivElement>(null);
   const grade = useRef<HTMLDivElement>(null);
@@ -65,7 +64,7 @@ export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem
   const [foco, setFoco] = useState(valor || hoje);
   const [mes, setMes] = useState(mesDe(valor || hoje));
   // Com hora, o que se escolhe no painel fica em rascunho até o "Selecionar"
-  const [rascunho, setRascunho] = useState({ dia: valor, hora: hora || horaPadrao });
+  const [rascunho, setRascunho] = useState({ dia: valor, hora: hora || "00:00" });
 
   // Abriu ou o teclado andou: o foco vai para o dia certo da grade
   useEffect(() => {
@@ -131,7 +130,7 @@ export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem
             const dia = valor || min || hoje;
             setFoco(dia);
             setMes(mesDe(dia));
-            setRascunho({ dia, hora: hora || horaPadrao });
+            setRascunho({ dia, hora: hora || "00:00" });
           }
           setAberto(abriu);
         }}
@@ -194,60 +193,135 @@ export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem
 }
 
 const ITEM = 32; // altura de cada linha da roda (o mesmo valor no campo-data.css)
-const suave = (): ScrollBehavior => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
-const TECLA: Record<string, (i: number, fim: number) => number> = {
-  ArrowUp: (i) => i - 1, ArrowDown: (i) => i + 1, PageUp: (i) => i - 5, PageDown: (i) => i + 5, Home: () => 0, End: (_, fim) => fim,
+const VISIVEIS = 3; // linhas desenhadas acima e abaixo da do meio
+const volta = (k: number, n: number) => ((k % n) + n) % n;
+const reduzido = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const TECLA: Record<string, (k: number) => number> = {
+  ArrowUp: (k) => k - 1, ArrowDown: (k) => k + 1, PageUp: (k) => k - 5, PageDown: (k) => k + 5,
 };
 
-/** Roda de rolagem (item 76): a linha do meio é a escolhida. Rolar (roda do mouse, dedo) escolhe quando a roda para;
-    clicar numa linha ou usar as setas gira a roda até ela. */
+/** Roda de horário (itens 76 e 84), como a do iPhone: CIRCULAR (depois de 23 vem 00, e vice-versa, sem fim) e a linha do
+    meio é a escolhida. Arrastar com o mouse ou o dedo gira a roda, com inércia leve ao soltar, e encaixa numa linha;
+    clicar numa linha gira até ela; rodinha do mouse e setas também giram. Não usa a rolagem do navegador (o mouse não
+    arrasta rolagem, era o defeito do item 84): `pos` é a posição contínua, em linhas, e cada linha é desenhada pela conta. */
 function Roda({ rotulo, opcoes, valor, aoMudar, aberto, confirmar }: {
   rotulo: string; opcoes: string[]; valor: string; aoMudar: (v: string) => void; aberto: boolean; confirmar: () => void;
 }) {
-  const id = useId();
-  const lista = useRef<HTMLDivElement>(null);
+  const n = opcoes.length;
+  const idx = Math.max(0, opcoes.indexOf(valor));
+  const [pos, setPos] = useState(idx);
+  const posRef = useRef(pos);
+  const animacao = useRef(0);
+  const alvo = useRef<number | null>(null); // linha para onde a roda está girando (tecla rápida soma a partir dela)
   const espera = useRef(0);
-  const jaAberta = useRef(false);
-  const i = Math.max(0, opcoes.indexOf(valor));
+  const arraste = useRef<{ y: number; pos: number; t: number; v: number; moveu: boolean } | null>(null);
+  const caixa = useRef<HTMLDivElement>(null);
 
-  // O valor mudou por fora (abrir, teclado, clique): a roda gira até ele. Ao abrir, pula direto (sem girar).
+  const mover = (p: number) => { posRef.current = p; setPos(p); };
+  const parar = () => { cancelAnimationFrame(animacao.current); clearTimeout(espera.current); alvo.current = null; };
+  // Gira até a linha k (inteira) e só então avisa o valor. Sem animação com prefers-reduced-motion.
+  const irPara = (k: number) => {
+    parar();
+    const de = posRef.current;
+    const fim = () => { alvo.current = null; mover(k); aoMudar(opcoes[volta(k, n)]); };
+    if (reduzido() || de === k) return fim();
+    alvo.current = k;
+    const dur = Math.min(450, 160 + Math.abs(k - de) * 45), t0 = performance.now();
+    const passo = (t: number) => {
+      const x = Math.min(1, (t - t0) / dur);
+      if (x >= 1) return fim();
+      mover(de + (k - de) * (1 - (1 - x) ** 3));
+      animacao.current = requestAnimationFrame(passo);
+    };
+    animacao.current = requestAnimationFrame(passo);
+  };
+
+  // O valor mudou por fora ou o painel abriu: a roda vai para a linha dele pelo caminho mais curto da volta
   useLayoutEffect(() => {
-    const el = lista.current;
-    if (!el || !aberto) { jaAberta.current = false; return; }
-    if (Math.abs(el.scrollTop - i * ITEM) > 1) el.scrollTo({ top: i * ITEM, behavior: jaAberta.current ? suave() : "auto" });
-    jaAberta.current = true;
-  }, [i, aberto]);
-  useEffect(() => () => clearTimeout(espera.current), []);
+    if (!aberto || arraste.current) return;
+    const atual = Math.round(posRef.current);
+    if (volta(atual, n) === idx) return;
+    const d = volta(idx - atual + Math.floor(n / 2), n) - Math.floor(n / 2);
+    parar();
+    mover(atual + d);
+  }, [idx, aberto, n]);
+  useEffect(() => parar, []);
+
+  // Rodinha do mouse: anda junto com o giro e encaixa quando a rodinha para. Precisa de ouvinte não passivo (preventDefault).
+  useEffect(() => {
+    const el = caixa.current;
+    if (!el) return;
+    const rodinha = (e: WheelEvent) => {
+      e.preventDefault();
+      parar();
+      mover(posRef.current + (e.deltaY * (e.deltaMode === 1 ? 16 : 1)) / ITEM);
+      espera.current = window.setTimeout(() => irPara(Math.round(posRef.current)), 120);
+    };
+    el.addEventListener("wheel", rodinha, { passive: false });
+    return () => el.removeEventListener("wheel", rodinha);
+  });
 
   const teclar = (e: KeyboardEvent) => {
     if (e.key === "Enter") { e.preventDefault(); return confirmar(); }
-    const passo = TECLA[e.key];
-    if (!passo) return;
+    const k = alvo.current ?? Math.round(posRef.current);
+    const destino = e.key === "Home" ? k - volta(k, n) : e.key === "End" ? k - volta(k, n) + n - 1 : TECLA[e.key]?.(k);
+    if (destino === undefined) return;
     e.preventDefault();
-    aoMudar(opcoes[Math.min(opcoes.length - 1, Math.max(0, passo(i, opcoes.length - 1)))]);
-  };
-  const rolou = () => {
-    clearTimeout(espera.current);
-    espera.current = window.setTimeout(() => {
-      const el = lista.current;
-      if (el) aoMudar(opcoes[Math.min(opcoes.length - 1, Math.max(0, Math.round(el.scrollTop / ITEM)))]);
-    }, 120);
+    irPara(destino);
   };
 
+  const meio = Math.round(pos);
   return (
     <div
-      ref={lista}
+      ref={caixa}
       className="roda"
-      role="listbox"
+      role="spinbutton"
       tabIndex={0}
       aria-label={rotulo}
-      aria-activedescendant={`${id}-${i}`}
+      aria-valuetext={opcoes[volta(meio, n)]}
+      aria-valuenow={Number(opcoes[volta(meio, n)])}
       onKeyDown={teclar}
-      onScroll={rolou}
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
+        parar();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        e.currentTarget.focus({ preventScroll: true });
+        arraste.current = { y: e.clientY, pos: posRef.current, t: e.timeStamp, v: 0, moveu: false };
+      }}
+      onPointerMove={(e) => {
+        const a = arraste.current;
+        if (!a) return;
+        const p = a.pos - (e.clientY - a.y) / ITEM; // dedo para cima = valores seguintes sobem para o meio
+        const dt = e.timeStamp - a.t;
+        if (dt > 0) a.v = 0.6 * a.v + 0.4 * ((p - posRef.current) / dt); // linhas por ms, suavizado
+        a.t = e.timeStamp;
+        if (Math.abs(e.clientY - a.y) > 4) a.moveu = true;
+        mover(p);
+      }}
+      onPointerUp={(e) => {
+        const a = arraste.current;
+        arraste.current = null;
+        if (!a) return;
+        if (!a.moveu) {
+          // Clique: gira até a linha clicada (o meio da roda fica a 80px do topo)
+          const topo = e.currentTarget.getBoundingClientRect().top;
+          return irPara(Math.round(posRef.current + (e.clientY - topo - 80) / ITEM));
+        }
+        const parado = e.timeStamp - a.t > 80; // segurou parado antes de soltar: sem inércia
+        const inercia = parado ? 0 : Math.max(-8, Math.min(8, a.v * 140)); // inércia leve: no máximo 8 linhas a mais
+        irPara(Math.round(posRef.current + inercia));
+      }}
+      onPointerCancel={() => { arraste.current = null; irPara(Math.round(posRef.current)); }}
     >
-      {opcoes.map((o, n) => (
-        <div key={o} id={`${id}-${n}`} role="option" aria-selected={n === i} className="roda-item" onClick={() => aoMudar(o)}>{o}</div>
-      ))}
+      {Array.from({ length: VISIVEIS * 2 + 1 }, (_, j) => {
+        const k = meio - VISIVEIS + j;
+        return (
+          <div key={k} className="roda-item" aria-hidden data-meio={k === meio || undefined}
+            style={{ transform: `translateY(${(k - pos) * ITEM}px)` }}>
+            {opcoes[volta(k, n)]}
+          </div>
+        );
+      })}
     </div>
   );
 }
