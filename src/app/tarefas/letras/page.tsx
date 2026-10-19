@@ -26,7 +26,7 @@ export default function Page() {
               {o.nome}{o.id === LETRA_PRINCIPAL.id ? " (recomendada)" : ""}: {o.jeito}
             </p>
             <Folha
-              letra={o} titulo="Quinta, 22 de outubro" subtitulo="4 tarefas, 1 feita" linhas={LINHAS}
+              letra={o} titulo="Tarefas" subtitulo="Quinta, 22 de outubro · 4 tarefas, 1 feita" linhas={[...LINHAS, ...Array<null>(5).fill(null)]}
               vazio="" empresas={EMPRESAS} empresaPadrao="beec"
             />
           </div>

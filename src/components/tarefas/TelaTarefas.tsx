@@ -3,7 +3,9 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { removerTarefa, salvarTarefa, useEmpresas, useTarefas, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha } from "@/components/ficha/Ficha";
+import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
+import { horaDe, horaDoSlot, montarGrade, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -16,16 +18,13 @@ const hojeLocal = () => iso(new Date());
 const semAssinatura = () => () => {};
 
 const NOMES = { natham: "Natham", matheus: "Matheus" } as const;
-const hora = (t: Tarefa) => {
-  if (t.diaInteiro || !t.inicio || t.inicio.length < 16) return "";
-  const [h, m] = [t.inicio.slice(11, 13), t.inicio.slice(14, 16)];
-  return `${+h}h${m === "00" ? "" : m}`;
-};
+const extenso = (dia: string) => paraData(dia).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, (c) => c.toUpperCase());
 
 export function TelaTarefas() {
   const hoje = useSyncExternalStore(semAssinatura, hojeLocal, () => "");
   const [escolhido, setEscolhido] = useState<string | null>(null);
   const [aba, setAba] = useState<"dia" | "semdata">("dia");
+  const [lado, setLado] = useState<"tarefas" | "agenda">("tarefas"); // só no celular: uma página por vez
   const dia = escolhido ?? hoje;
   const [aberta, setAberta] = useState<Tarefa | null>(null);
 
@@ -46,59 +45,88 @@ export function TelaTarefas() {
 
   const nomeEmpresa = (id: string) => empresas.find((e) => e.id === id)?.nome ?? id;
   const porHora = (a: Tarefa, b: Tarefa) => (a.inicio ?? "").localeCompare(b.inicio ?? "") || a.titulo.localeCompare(b.titulo);
-  const doDia = aplicar(tarefas).filter((t) => t.inicio?.slice(0, 10) === dia).sort(porHora);
-  const semData = aplicar(tarefas).filter((t) => !t.inicio);
-  const mostradas = aba === "dia" ? doDia : semData;
+  const visiveis = aplicar(tarefas);
+  const doDia = visiveis.filter((t) => t.inicio?.slice(0, 10) === dia).sort(porHora);
+  const doDiaSeguinte = visiveis.filter((t) => t.inicio?.slice(0, 10) === somarDias(dia, 1)).sort(porHora);
+  const mostradas = aba === "dia" ? doDia : visiveis.filter((t) => !t.inicio);
 
-  const linhas: LinhaFolha[] = mostradas.map((t) => ({
+  const grade = montarGrade(mostradas, aba === "dia");
+  const linhas: (LinhaFolha | null)[] = grade.map((t) => t && {
     id: t.id,
     titulo: t.titulo,
-    detalhe: [nomeEmpresa(t.empresaId), NOMES[t.responsavel], hora(t)].filter(Boolean).join(" · "),
+    detalhe: [nomeEmpresa(t.empresaId), NOMES[t.responsavel], aba === "dia" && !horaDe(t) ? "dia inteiro" : ""].filter(Boolean).join(" · "),
     feita: !!t.concluida,
-  }));
+  });
+  const rotulos = aba === "dia" ? grade.map((_, k) => rotuloSlot(k)) : undefined;
 
-  const feitasAqui = linhas.filter((l) => l.feita).length;
-  const resumo = linhas.length ? `${linhas.length} ${linhas.length === 1 ? "tarefa" : "tarefas"}, ${feitasAqui} ${feitasAqui === 1 ? "feita" : "feitas"}` : undefined;
-  const titulo = aba === "dia"
-    ? paraData(dia).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, (c) => c.toUpperCase())
-    : "Sem data";
+  const feitas = mostradas.filter((t) => t.concluida).length;
+  const resumo = mostradas.length ? `${mostradas.length} ${mostradas.length === 1 ? "tarefa" : "tarefas"}, ${feitas} ${feitas === 1 ? "feita" : "feitas"}` : undefined;
+  const titulo = aba === "dia" ? extenso(dia) : "Sem data";
 
   const empresasEscolha = empresas.filter((e) => !selecionadas.length || selecionadas.includes(e.id));
   const ir = (d: string) => { setEscolhido(d || null); setAba("dia"); };
+  const tag = hoje === dia && aba === "dia" ? "Hoje · " : "";
 
   return (
-    <section className="tarefas-tela">
+    <section className="tarefas-tela" data-lado={lado}>
       <div className="tarefas-barra">
         <h1 className="tarefas-titulo">Tarefas</h1>
-        <button type="button" className="tarefas-botao" aria-pressed={aba === "dia"} onClick={() => setAba("dia")}>Dia</button>
-        <button type="button" className="tarefas-botao" aria-pressed={aba === "semdata"} onClick={() => setAba("semdata")}>Sem data</button>
-      </div>
-      <div className="tarefas-barra">
-        <button type="button" className="tarefas-botao" onClick={() => ir(somarDias(dia, -1))} aria-label="Dia anterior">Anterior</button>
-        <button type="button" className="tarefas-botao" onClick={() => ir(hoje)}>Hoje</button>
-        <button type="button" className="tarefas-botao" onClick={() => ir(somarDias(dia, 1))} aria-label="Próximo dia">Próximo</button>
-        <input type="date" className="tarefas-data" value={dia} onChange={(e) => e.target.value && ir(e.target.value)} aria-label="Ir para o dia" />
+        <div className="tarefas-grupo">
+          <button type="button" className="tarefas-botao" onClick={() => ir(somarDias(dia, -1))} aria-label="Dia anterior">Anterior</button>
+          <button type="button" className="tarefas-botao" onClick={() => ir(hoje)}>Hoje</button>
+          <button type="button" className="tarefas-botao" onClick={() => ir(somarDias(dia, 1))} aria-label="Próximo dia">Próximo</button>
+          <input type="date" className="tarefas-data" value={dia} onChange={(e) => e.target.value && ir(e.target.value)} aria-label="Ir para o dia" />
+        </div>
+        <div className="tarefas-grupo tarefas-fim">
+          {mostradas.length > 0 && (
+            <p className="tarefas-contador" aria-label={`${feitas} de ${mostradas.length} feitas`}>
+              <span><strong>{feitas}</strong> de {mostradas.length} feitas</span>
+              <span className="tarefas-trilho"><i style={{ width: `${(feitas / mostradas.length) * 100}%` }} /></span>
+            </p>
+          )}
+          <button type="button" className="tarefas-botao" aria-pressed={aba === "dia"} onClick={() => setAba("dia")}>Dia</button>
+          <button type="button" className="tarefas-botao" aria-pressed={aba === "semdata"} onClick={() => setAba("semdata")}>Sem data</button>
+        </div>
+        <div className="tarefas-grupo tarefas-lados">
+          <button type="button" className="tarefas-botao" aria-pressed={lado === "tarefas"} onClick={() => setLado("tarefas")}>Tarefas</button>
+          <button type="button" className="tarefas-botao" aria-pressed={lado === "agenda"} onClick={() => setLado("agenda")}>Agenda</button>
+        </div>
       </div>
 
-      <div key={aba === "dia" ? dia : "semdata"} className="folha-pagina">
-        <Folha
-          letra={LETRA_PRINCIPAL}
-          titulo={titulo}
-          subtitulo={resumo}
-          linhas={linhas}
-          vazio={aba === "dia" ? "Nada marcado para este dia." : "Nenhuma tarefa sem data."}
-          empresas={empresasEscolha}
-          empresaPadrao={empresasEscolha[0]?.id ?? ""}
-          aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
-          aoMarcar={(id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
-          aoApagar={(id) => void removerTarefa(id)}
-          aoEscrever={(t, empresaId, responsavel) =>
-            void salvarTarefa({
-              titulo: t, tipo: "outro", empresaId, responsavel, cor: "etiqueta-5", links: [], arquivos: [],
-              ...(aba === "dia" ? { inicio: dia, diaInteiro: true } : { diaInteiro: false }),
-            })
-          }
-        />
+      <div className="livro-sombra corte-sombra">
+        <div key={aba === "dia" ? dia : "semdata"} className="livro corte-22">
+          <Folha
+            letra={LETRA_PRINCIPAL}
+            titulo="Tarefas"
+            subtitulo={[tag + titulo, resumo].filter(Boolean).join(" · ")}
+            linhas={linhas}
+            rotulos={rotulos}
+            vazio={aba === "dia" ? "Nada marcado para este dia. Escreva aqui." : "Nenhuma tarefa sem data. Escreva aqui."}
+            empresas={empresasEscolha}
+            empresaPadrao={empresasEscolha[0]?.id ?? ""}
+            aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
+            aoMarcar={(id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
+            aoApagar={(id) => void removerTarefa(id)}
+            aoEscrever={(t, empresaId, responsavel, linha) => {
+              const base = { titulo: t, tipo: "outro" as const, empresaId, responsavel, cor: "etiqueta-5" as const, links: [], arquivos: [] };
+              if (aba === "semdata") return void salvarTarefa({ ...base, diaInteiro: false });
+              // Escrever numa linha de horário marca esse horário (30 min); depois das 22:00, dia inteiro.
+              if (linha >= SLOTS) return void salvarTarefa({ ...base, inicio: dia, diaInteiro: true });
+              const h = horaDoSlot(linha);
+              void salvarTarefa({ ...base, inicio: `${dia}T${h}`, fim: `${dia}T${somarMinutos(h, 30)}`, diaInteiro: false });
+            }}
+          />
+          <Agenda
+            letra={LETRA_PRINCIPAL}
+            dia={dia}
+            hoje={hoje}
+            rotuloDia={tag + extenso(dia)}
+            tarefas={doDia}
+            amanha={doDiaSeguinte}
+            nomeEmpresa={nomeEmpresa}
+            aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
+          />
+        </div>
       </div>
       {aberta && <Ficha tarefa={aberta} aoFechar={() => setAberta(null)} />}
     </section>
