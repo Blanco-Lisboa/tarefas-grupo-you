@@ -55,3 +55,6 @@
 
 ## 7. Perguntas em aberto (ver chat)
 1. Adrian e Lucas com login?  2. Google: compartilhar com a conta do Natham ou cada um conecta?  3. Tarefa enviada: some do caderno de quem mandou ou fica uma linha "enviada → Matheus"?  4. Ok para criar o Supabase novo (~US$ 10/mês)?
+
+## 8. Respostas dele (19/10)
+1. Adrian e Lucas: só a agenda, sem login. 2. Google: compartilhar com a conta do Natham. 3. Tarefa enviada: fica "enviada → Fulano" no caderno de quem mandou, riscada quando concluída. 4. Pode criar o Supabase novo.
