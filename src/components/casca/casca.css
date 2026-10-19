@@ -1,10 +1,12 @@
 /* Casca do app (item 60): menu GRUDADO na borda (pedido antigo do Natham), em vidro claro no desenho da amostra do
    modelo 1 Névoa: itens em cinza, passar o mouse = cinza leve, item ativo = vidro branco levantado com o ícone azul.
-   Recolhe para só ícones e lembra o estado (data-menu no <html>). Encaixe: o centro de cada ícone fica a 32px da borda,
-   aberto ou recolhido, e a primeira linha do menu (nome) tem a mesma altura e o mesmo topo da barra de cima da tela. */
-:root { --menu-w: 208px; }
-html[data-menu="recolhido"] { --menu-w: 64px; }
-@media (max-width: 767px) { :root, html[data-menu="recolhido"] { --menu-w: 56px; } }
+   Recolhe para só ícones e lembra o estado (data-menu no <html>). Encaixe: ícones, inicial e bolinhas numa coluna só, com o
+   centro a 26px da borda aberto (item 66: menu mais estreito e colado à esquerda) e a 32px recolhido (centro dos 64px);
+   a primeira linha do menu (nome) tem a mesma altura e o mesmo topo da barra de cima da tela.
+   --menu-p = vão do menu à borda; --menu-recuo = vão do item ao ícone (a inicial e as bolinhas, 4px mais largas, recuam 4px menos). */
+:root { --menu-w: 180px; --menu-p: 6px; --menu-recuo: 10px; }
+html[data-menu="recolhido"] { --menu-w: 64px; --menu-p: var(--s-8); --menu-recuo: 14px; }
+@media (max-width: 767px) { :root, html[data-menu="recolhido"] { --menu-w: 56px; --menu-p: var(--s-4); --menu-recuo: 14px; } }
 
 .casca-conteudo {
   margin-left: var(--menu-w); min-width: 0; min-height: 100dvh;
@@ -16,16 +18,16 @@ html[data-menu="recolhido"] { --menu-w: 64px; }
 .menu {
   position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; width: var(--menu-w);
   display: flex; flex-direction: column;
-  padding: var(--app-respiro) var(--s-8) var(--s-12);
+  padding: var(--app-respiro) var(--menu-p) var(--s-12);
   background: var(--vidro); border-right: 1px solid var(--vidro-linha); box-shadow: 1px 0 0 var(--linha);
   -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque);
   color: var(--fraco);
   overflow: hidden auto; scrollbar-width: none;
-  transition: width var(--dur) var(--curva);
+  transition: width var(--dur) var(--curva), padding var(--dur) var(--curva);
 }
 @media (prefers-reduced-motion: reduce) { .menu, .casca-conteudo, .menu-item, .menu-nome, .menu-rotulo { transition: none; } }
 
-.menu-marca { display: flex; align-items: center; gap: var(--s-12); flex: none; height: var(--app-controle); padding-left: 10px; margin-bottom: var(--app-respiro); }
+.menu-marca { display: flex; align-items: center; gap: var(--s-12); flex: none; height: var(--app-controle); padding-left: calc(var(--menu-recuo) - 4px); margin-bottom: var(--app-respiro); }
 .menu-inicial {
   display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 8px;
   background: var(--azul); color: var(--no-azul); font: 600 var(--t-14) / 1 var(--fonte);
@@ -36,9 +38,9 @@ html[data-menu="recolhido"] { --menu-w: 64px; }
 .menu-lista { display: flex; flex-direction: column; gap: 2px; list-style: none; margin: 0; padding: 0; }
 .menu-item {
   display: flex; align-items: center; gap: var(--s-12);
-  width: 100%; height: 36px; padding: 0 14px; border: 0; border-radius: var(--raio-b); background: none; cursor: pointer;
+  width: 100%; height: 36px; padding: 0 var(--menu-recuo); border: 0; border-radius: var(--raio-b); background: none; cursor: pointer;
   font: 500 var(--app-t-texto) / 1 var(--fonte); color: var(--fraco); text-decoration: none; white-space: nowrap;
-  transition: background-color var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva), box-shadow var(--dur-rapida) var(--curva);
+  transition: background-color var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva), box-shadow var(--dur-rapida) var(--curva), padding var(--dur) var(--curva);
 }
 .menu-item:hover { background: var(--realce); color: var(--texto); }
 .menu-item:focus-visible { outline-offset: -3px; }
@@ -48,7 +50,7 @@ html[data-menu="recolhido"] { --menu-w: 64px; }
 .menu-rotulo { transition: opacity var(--dur-rapida) var(--curva); }
 
 .menu-pe { display: flex; flex-direction: column; gap: 2px; margin-top: auto; padding-top: var(--s-12); border-top: 1px solid var(--linha); }
-.menu-pessoas { display: flex; align-items: center; gap: var(--s-8); min-height: 40px; padding-left: 10px; }
+.menu-pessoas { display: flex; align-items: center; gap: var(--s-8); min-height: 40px; padding-left: calc(var(--menu-recuo) - 4px); }
 .bolinha {
   display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%;
   font: 600 var(--t-12) / 1 var(--fonte);
@@ -60,7 +62,6 @@ html[data-menu="recolhido"] { --menu-w: 64px; }
 html[data-menu="recolhido"] .menu-nome, html[data-menu="recolhido"] .menu-rotulo { opacity: 0; }
 html[data-menu="recolhido"] .menu-pessoas { flex-direction: column; align-items: flex-start; padding-block: var(--s-4); }
 @media (max-width: 767px) {
-  .menu { padding-inline: var(--s-4); }
   .menu-nome, .menu-rotulo { opacity: 0; }
   .menu-pessoas { flex-direction: column; align-items: flex-start; padding-block: var(--s-4); }
   .menu-alterna { display: none; }

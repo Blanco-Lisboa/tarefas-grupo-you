@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { deTexto, paraHora } from "@/components/calendario/logica";
 import { Selecao } from "@/components/ui/Selecao";
+import { CampoData } from "@/components/ui/CampoData";
 import "./ficha.css";
 
 export const NOMES = {
@@ -165,7 +166,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
           <fieldset className="ficha-campo">
             <legend>Quando</legend>
             <div className="ficha-quando">
-              <label className="ficha-mini">Data<input type="date" value={data} onChange={(e) => mudarInicio(e.target.value, horaIni)} /></label>
+              <div className="ficha-mini">Data<CampoData rotulo="Data" valor={data} aoMudar={(d) => mudarInicio(d, horaIni)} /></div>
               {data && (
                 <label className="ficha-marcar">
                   <input type="checkbox" checked={t.diaInteiro} onChange={(e) => mudar("diaInteiro", e.target.checked)} />
@@ -176,7 +177,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
                 <>
                   <label className="ficha-mini">Começa<input type="time" value={horaIni} onChange={(e) => mudarInicio(data, e.target.value || "09:00")} /></label>
                   <label className="ficha-mini">Termina<input type="time" value={horaFim} onChange={(e) => setHoraFim(e.target.value)} /></label>
-                  <label className="ficha-mini">Termina no dia<input type="date" value={dataFim || data} min={data} onChange={(e) => setDataFim(e.target.value)} /></label>
+                  <div className="ficha-mini">Termina no dia<CampoData rotulo="Termina no dia" valor={dataFim || data} min={data} semLimpar aoMudar={setDataFim} /></div>
                 </>
               )}
             </div>
