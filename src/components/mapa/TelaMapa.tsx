@@ -8,7 +8,7 @@ import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
 import { tomDaEmpresa } from "@/components/pastas/cores";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
-import { conteudos, hoje, diasDoPeriodo, foiPostado, objetivoDe, postadosNoMes, ultimoDia } from "./logica";
+import { conteudos, hoje, diasDoPeriodo, foiPostado, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 import "./mapa.css";
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
@@ -203,8 +203,8 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
             const tom = tomDaEmpresa(t.empresaId);
             return (
               <button key={t.id} type="button" className="mapa-card" data-postado={postado} style={{ "--i": i, "--tag": tom.r, "--tag-escuro": tom.g } as CSSProperties} onClick={() => clicar(t)}>
-                <span className="mapa-faixa-titulo" aria-hidden>{objetivoDe(t)}</span>
-                <span className="mapa-objetivo" data-alvo>{objetivoDe(t)}</span>
+                <span className="mapa-faixa-titulo" aria-hidden>{tituloDe(t)}</span>
+                <span className="mapa-objetivo" data-alvo>{tituloDe(t)}</span>
                 <span className="mapa-info">
                   <span className="mapa-tag" data-alvo>{empresa}</span>
                   {t.rede && <span className="mapa-meta" data-alvo>{NOMES.rede[t.rede]}</span>}

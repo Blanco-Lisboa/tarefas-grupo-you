@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { conteudos, diasDoPeriodo, foiPostado, hoje, objetivoDe, postadosNoMes, ultimoDia } from "./logica";
+import { conteudos, diasDoPeriodo, foiPostado, hoje, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 
 const t = (id: string, tipo: Tarefa["tipo"], inicio?: string, extra: Partial<Tarefa> = {}): Tarefa => ({
   id, titulo: id, tipo, empresaId: "beec", responsavel: "natham", inicio, diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra,
@@ -33,7 +33,7 @@ describe("mapa", () => {
   it("marca postado e acha o objetivo", () => {
     expect(foiPostado(t("a", "postagem", "2026-10-20", { etapa: "postado" }))).toBe(true);
     expect(foiPostado(t("a", "postagem", "2026-10-20", { etapa: "aprovado" }))).toBe(false);
-    expect(objetivoDe(t("a", "postagem", undefined, { objetivo: " Vender " }))).toBe("Vender");
-    expect(objetivoDe(t("b", "postagem"))).toBe("b");
+    expect(tituloDe(t("a", "postagem", undefined, { objetivo: "Vender" }))).toBe("a"); // título vence o objetivo
+    expect(tituloDe(t("b", "postagem", undefined, { titulo: "  ", objetivo: " Vender " }))).toBe("Vender"); // sem título, o objetivo é a reserva
   });
 });

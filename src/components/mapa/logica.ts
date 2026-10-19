@@ -15,8 +15,8 @@ export function diasDoPeriodo(inicio: string, ate = "") {
   return dias;
 }
 
-// Sem objetivo preenchido, o cartão mostra o título.
-export const objetivoDe = (t: Tarefa) => t.objetivo?.trim() || t.titulo;
+// O cartão mostra só o título, para bater o olho e saber do que se trata. Sem título, o objetivo serve de reserva.
+export const tituloDe = (t: Tarefa) => t.titulo.trim() || t.objetivo?.trim() || "Sem título";
 
 export const foiPostado = (t: Tarefa) => t.etapa === "postado" || !!t.concluida;
 const diaDe = (t: Tarefa) => t.inicio!.slice(0, 10);

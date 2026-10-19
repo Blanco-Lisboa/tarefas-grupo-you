@@ -35,6 +35,13 @@ describe("postagens do Mapa", () => {
     }
   });
 
+  it("todo conteúdo tem título curto (é só ele que o cartão do Mapa mostra)", () => {
+    for (const t of post) {
+      expect(t.titulo.trim().length, t.id).toBeGreaterThan(0);
+      expect(t.titulo.length, t.titulo).toBeLessThanOrEqual(60);
+    }
+  });
+
   it("não repetem título", () => {
     const titulos = tarefasExemplo.map((t) => t.titulo);
     expect(new Set(titulos).size).toBe(titulos.length);
