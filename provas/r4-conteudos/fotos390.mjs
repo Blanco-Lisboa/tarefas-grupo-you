@@ -1,0 +1,13 @@
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const REF = fileURLToPath(new URL("../../docs/referencias/2026-10-19-rodada-4/", import.meta.url));
+const nav = await chromium.launch({ channel: "chrome", args: ["--window-position=-3000,0"] });
+const p = await nav.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+await p.goto("http://localhost:3100/conteudos", { waitUntil: "networkidle" });
+await p.waitForTimeout(800);
+await p.evaluate(() => { const d = document.createElement("div"); d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:2147483647;background:#fff;font:700 12px monospace;padding:4px 8px"; document.body.append(d); });
+await p.screenshot({ path: REF + "47-conteudos-390.png" });
+await nav.close();
