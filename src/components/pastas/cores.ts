@@ -1,12 +1,15 @@
 import { hashString, RECEITAS, type ArtRecipe } from "./arte";
 
-// Cor de cada empresa na pasta: tom suave (pastel). Os dados não guardam cor da empresa ainda; Beec e You têm a sua,
-// as empresas novas ganham uma da lista pela ordem do nome. Fica aqui até a Fase 2 trazer a cor do cadastro.
+// Cor de cada empresa na pasta = a cor DA MARCA (item 71). Só a cor; nada mais da identidade delas.
+// Beec: roxo do logo (ID-Visual-ALL/Beec/identidade/tokens.css, barras do logo #470E96 e #6E18E5 e o elétrico #7319F1);
+//   o brilho #CDB4F8 é um tom claro derivado do mesmo roxo (a ID não tem lilás claro).
+// You: laranja do CRM (CRM-You/css/you-tokens.css: --brand-orange #FE4901, --orange-600 #E0430A, --brand-orange-2 #FF9200, --orange-100 #FFE0CC).
+// Empresa nova ganha uma das cores suaves de OUTROS pelo nome, até a Fase 2 trazer a cor do cadastro.
 // g = veia escura, r = líquido, c = veia clara, o = brilho (substituem os 4 azuis da arte).
 type Tom = { g: string; r: string; c: string; o: string };
 const TONS: Record<string, Tom> = {
-  beec: { g: "#E6C98A", r: "#F5DDA0", c: "#F9E8BC", o: "#FFF8E4" },
-  you: { g: "#96CDBC", r: "#B1E0D2", c: "#CDEEE3", o: "#EEFAF6" },
+  beec: { g: "#470E96", r: "#6E18E5", c: "#7319F1", o: "#CDB4F8" },
+  you: { g: "#E0430A", r: "#FE4901", c: "#FF9200", o: "#FFE0CC" },
 };
 const OUTROS: Tom[] = [
   { g: "#D79AA8", r: "#EDB8C4", c: "#F5D2DA", o: "#FDEEF1" },

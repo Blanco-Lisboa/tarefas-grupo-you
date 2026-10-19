@@ -15,7 +15,7 @@
   --gf-fan: 0deg;
   --gf-stack: 15px;
   --gf-ink: var(--texto);
-  --gf-ink-soft: var(--fraco);
+  --gf-ink-soft: #48484A; /* escuro o bastante para ler (AA) sobre roxo e laranja */
   position: relative;
   display: block;
   margin-inline: auto;
@@ -102,7 +102,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 }
 .gf-sheet-head { position: absolute; left: 14px; right: 14px; top: 11px; z-index: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; white-space: nowrap; }
 .gf-sheet-name { overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 600; color: var(--texto); }
-.gf-sheet-meta { flex: none; font-size: 11px; letter-spacing: .02em; color: var(--fraco); }
+.gf-sheet-meta { flex: none; font-size: 11px; font-weight: 500; letter-spacing: .02em; color: var(--texto); }
 
 /* ---- vidro da frente ---- */
 .gf-front {
