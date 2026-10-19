@@ -37,8 +37,8 @@ export function BarraFiltros({ filtros, mudar }: { filtros: Filtros; mudar: (f: 
         />
       ))}
       {ativos > 0 && (
-        <button type="button" className="cal-limpar" onClick={() => mudar(SEM_FILTROS)}>
-          Limpar {ativos === 1 ? "1 filtro" : `${ativos} filtros`}
+        <button type="button" className="lnk cal-limpar" onClick={() => mudar(SEM_FILTROS)}>
+          <span className="sub">Limpar {ativos === 1 ? "1 filtro" : `${ativos} filtros`}</span>
         </button>
       )}
     </div>

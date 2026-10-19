@@ -1,0 +1,31 @@
+// Fotos das peças da ID da Beec (só leitura, abre os HTML do disco) para comparar com o sistema.
+// node provas/r2-id-sextante/fotos-id.mjs
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const ID = join(process.env.USERPROFILE, "Desktop", "ID-Visual-ALL", "Beec", "identidade");
+const PASTA = fileURLToPath(new URL("./", import.meta.url));
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1903, height: 900 } });
+await p.goto(pathToFileURL(join(ID, "prancha.html")).href, { waitUntil: "networkidle" });
+const tira = async (sel, nome) => { const el = p.locator(sel).first(); await el.scrollIntoViewIfNeeded(); await p.waitForTimeout(300); await el.screenshot({ path: join(PASTA, `id-${nome}.png`) }); };
+await tira(".estados", "botoes");
+await tira(".form.cartao", "campos");
+await tira(".etqs", "selos");
+await tira(".menus", "menus");
+await tira("#ac-menu", "menu-vidro");
+await tira("#ac-cards", "cards-orelha");
+await tira(".cards.cards-4", "cards");
+await tira("header.mid", "menu-id");
+const p2 = await b.newPage({ viewport: { width: 1903, height: 900 } });
+await p2.goto(pathToFileURL(join(ID, "aplicacoes-marca.html")).href, { waitUntil: "networkidle" });
+const tem = p2.locator(".gm-tem").first();
+await tem.scrollIntoViewIfNeeded();
+await tem.hover();
+await p2.waitForTimeout(400);
+const caixa = await tem.locator("xpath=ancestor::*[contains(@class,'gm')][1]").boundingBox();
+await p2.screenshot({ path: join(PASTA, "id-submenu.png"), clip: { x: Math.max(caixa.x - 40, 0), y: Math.max(caixa.y - 30, 0), width: Math.min(caixa.width + 80, 1903), height: 520 } });
+await b.close();
+console.log("ok");

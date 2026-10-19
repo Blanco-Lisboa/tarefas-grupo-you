@@ -9,6 +9,7 @@ import { BarraFiltros, passa, SEM_FILTROS, type Filtros } from "./Filtros";
 import { Grade } from "./Grade";
 import { andar, comMinuto, diasDaSemana, diasDoMes, mover, paraHora, porDia, tituloPeriodo, type Destino, type Visao } from "./logica";
 import { Mes } from "./Mes";
+import { Selecao } from "@/components/ui/Selecao";
 import "./calendario.css";
 
 // Relógio local, atualizado a cada 30s. No servidor é null: a tela só desenha no navegador (o "hoje" é o do computador).
@@ -88,30 +89,34 @@ function Calendario({ agora }: { agora: string }) {
     <section className="cal">
       <header className="cal-barra">
         <div className="cal-navega">
-          <button type="button" className="cal-botao" onClick={() => setCursor(hoje)} title="Hoje (T)">Hoje</button>
-          <button type="button" className="cal-seta" onClick={() => setCursor(andar(visao, cursor, -1))} aria-label="Anterior" title="Anterior (seta para a esquerda)">
-            <svg viewBox="0 0 12 12" aria-hidden><path d="M7.5 2.5 4 6l3.5 3.5" /></svg>
+          <button type="button" className="btn btn-2" onClick={() => setCursor(hoje)} title="Hoje (T)">Hoje</button>
+          <button type="button" className="btn btn-2 cal-seta cal-seta-volta" onClick={() => setCursor(andar(visao, cursor, -1))} aria-label="Anterior" title="Anterior (seta para a esquerda)">
+            <svg className="seta" viewBox="0 0 24 24" aria-hidden><path d="M4 12h15M13 6l6 6-6 6" /></svg>
           </button>
-          <button type="button" className="cal-seta" onClick={() => setCursor(andar(visao, cursor, 1))} aria-label="Próximo" title="Próximo (seta para a direita)">
-            <svg viewBox="0 0 12 12" aria-hidden><path d="M4.5 2.5 8 6l-3.5 3.5" /></svg>
+          <button type="button" className="btn btn-2 cal-seta" onClick={() => setCursor(andar(visao, cursor, 1))} aria-label="Próximo" title="Próximo (seta para a direita)">
+            <svg className="seta" viewBox="0 0 24 24" aria-hidden><path d="M4 12h15M13 6l6 6-6 6" /></svg>
           </button>
         </div>
         <div className="cal-titulo">
           <h1>{titulo} <span className="destaque">{ano}</span></h1>
           <p>{noPeriodo ? `${noPeriodo} ${noPeriodo === 1 ? "tarefa" : "tarefas"} neste período` : "Nenhuma tarefa neste período"}</p>
         </div>
-        <div className="cal-acoes">
-          <SemData lista={semData} acoes={acoes} />
-          <div className="cal-visoes" role="group" aria-label="Visão do calendário">
-            {VISOES.map(({ v, rotulo, tecla }) => (
-              <button key={v} type="button" aria-pressed={visao === v} onClick={() => setVisao(v)} title={`${rotulo} (${tecla.toUpperCase()})`}>{rotulo}</button>
-            ))}
-          </div>
-          <button type="button" className="ficha-botao cal-nova" onClick={() => acoes.criar(null)}><span>+ Nova tarefa</span></button>
-        </div>
+        <button type="button" className="btn cal-nova" onClick={() => acoes.criar(null)}>+ Nova tarefa</button>
       </header>
 
-      <BarraFiltros filtros={filtros} mudar={setFiltros} />
+      <div className="cal-linha-filtros">
+        <BarraFiltros filtros={filtros} mudar={setFiltros} />
+        <div className="cal-acoes">
+          <SemData lista={semData} acoes={acoes} />
+          <Selecao
+            rotulo="Visão"
+            multipla={false}
+            opcoes={VISOES.map(({ v, rotulo }) => ({ valor: v, rotulo }))}
+            valor={[visao]}
+            aoMudar={(n) => n[0] && setVisao(n[0] as Visao)}
+          />
+        </div>
+      </div>
 
       <div className="cal-painel-pai corte-sombra">
         <div className="cal-painel corte-22" data-visao={visao}>
@@ -129,7 +134,8 @@ function Calendario({ agora }: { agora: string }) {
 }
 
 /** "Sem data" (item 39): botão com contador que abre a lista por cima do calendário. Mesmo visual do botão de seleção
-    da base (reaproveita as classes de ui/selecao.css). Soltar uma tarefa NO BOTÃO tira a data dela. */
+    da base (reaproveita as classes de ui/selecao.css): campo da ID e lista em vidro roxo com orelhas, como o submenu do
+    site da ID. Soltar uma tarefa NO BOTÃO tira a data dela. */
 function SemData({ lista, acoes }: { lista: Tarefa[]; acoes: Acoes }) {
   const id = useId();
   const pop = useRef<HTMLDivElement>(null);
@@ -177,14 +183,14 @@ function SemData({ lista, acoes }: { lista: Tarefa[]; acoes: Acoes }) {
         style={{ positionAnchor: ancora } as CSSProperties}
         onDragStart={comecar}
       >
-        <section className="cal-semdata corte-22-esq" aria-label="Tarefas sem data">
+        <section className="cal-semdata corte-22 no-escuro" aria-label="Tarefas sem data">
           <h2>Sem <span className="destaque">data</span></h2>
           <p>Arraste uma tarefa para um dia ou horário. Para tirar a data, solte a tarefa no botão Sem data.</p>
           <div className="cal-semdata-lista">
             {lista.map((t) => <Evento key={t.id} t={t} modo="cartao" abrir={acoes.abrir} />)}
             {!lista.length && <p className="cal-semdata-vazio">Nada sem data com estes filtros.</p>}
           </div>
-          <button type="button" className="cal-semdata-nova" onClick={() => acoes.criar(null)}>+ Tarefa sem data</button>
+          <button type="button" className="btn btn-claro cal-semdata-nova" onClick={() => acoes.criar(null)}>+ Tarefa sem data</button>
         </section>
       </div>
     </>

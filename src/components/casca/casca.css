@@ -1,5 +1,7 @@
 /* Casca do app (rodada 2, itens 35 a 38, 40 e 41): menu GRUDADO na borda, grafite, fino, recolhe para só ícones e lembra
-   o estado (data-menu no <html>). Encaixe: o centro de cada ícone fica a 32px da borda, aberto ou recolhido, e a primeira
+   o estado (data-menu no <html>). Grudado e grafite são pedido do Natham para o sistema (a ID tem o menu suspenso em
+   vidro roxo); o resto segue o menu da ID (identidade/menu-id.css): links 500 14px em bege suave, passar o mouse = bege,
+   item ativo em OURO e negrito, logo de 118px, botão de menu = as 3 barras em bege. Encaixe: o centro de cada ícone fica a 32px da borda, aberto ou recolhido, e a primeira
    linha do menu (logo) tem a mesma altura e o mesmo topo da barra de cima da tela. Recolher não tira nada do lugar. */
 :root { --menu-w: 208px; }
 html[data-menu="recolhido"] { --menu-w: 64px; }
@@ -23,7 +25,7 @@ html[data-menu="recolhido"] { --menu-w: 64px; }
 @media (prefers-reduced-motion: reduce) { .menu, .casca-conteudo { transition: none; } }
 
 .menu-marca { display: flex; align-items: center; flex: none; height: var(--app-controle); padding-left: 13px; margin-bottom: var(--app-respiro); }
-.menu-logo { height: 20px; width: auto; flex: none; }
+.menu-logo { width: 118px; height: auto; flex: none; }
 .menu-logo-icone { display: none; height: 22px; width: auto; flex: none; }
 
 .menu-lista { display: flex; flex-direction: column; gap: 2px; list-style: none; margin: 0; padding: 0; }
@@ -31,23 +33,17 @@ html[data-menu="recolhido"] { --menu-w: 64px; }
   position: relative; display: flex; align-items: center; gap: var(--s-12);
   width: 100%; height: 40px; padding: 0 13px; border: 0; border-radius: var(--raio); background: none; cursor: pointer;
   font: 500 var(--app-t-texto) / 1 var(--fonte-texto); color: var(--cor-suave); text-decoration: none; white-space: nowrap;
-  transition: background var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva);
+  transition: color var(--dur-rapida) var(--curva);
 }
-.menu-item:hover { background: var(--cor-escuro-2); color: var(--cor-bege); }
-.menu-item:focus-visible { outline-color: var(--cor-ouro); outline-offset: -2px; }
-/* Ativo: um degrau mais claro, rótulo em bege, ícone e ponta de barra em ouro (ouro só em detalhe e só no escuro) */
-.menu-item[aria-current="page"] { background: var(--cor-escuro-3); color: var(--cor-bege); font-weight: 600; }
-.menu-item[aria-current="page"] .menu-icone { background-color: var(--cor-ouro); }
-.menu-item[aria-current="page"]::before {
-  content: ""; position: absolute; left: 4px; top: 11px; bottom: 11px; width: 3px;
-  background: var(--cor-ouro); transform: skewX(var(--angulo));
-}
+.menu-item:hover { color: var(--cor-bege); }
+.menu-item:focus-visible { outline: 2px solid var(--cor-bege); outline-offset: -2px; }
+.menu-item[aria-current="page"] { color: var(--cor-ouro); font-weight: 700; }
 .menu-icone {
   width: 22px; height: 22px; flex: none; background-color: currentColor;
   -webkit-mask: var(--icone) center / contain no-repeat; mask: var(--icone) center / contain no-repeat;
 }
-.menu-icone-svg { width: 22px; height: 22px; flex: none; }
-.menu-alterna-seta { transform-origin: 11.75px 10px; transition: transform var(--dur) var(--curva); }
+.menu-icone-b3 { display: grid; place-items: center; width: 22px; height: 22px; flex: none; }
+.menu-icone-b3 .b3 { --b3w: 20px; --b3c: currentColor; }
 .menu-rotulo { transition: opacity var(--dur-rapida) var(--curva); }
 
 .menu-pe { display: flex; flex-direction: column; gap: 2px; margin-top: auto; padding-top: var(--s-12); border-top: 1px solid var(--cor-linha-escuro); }
@@ -64,7 +60,6 @@ html[data-menu="recolhido"] .menu-logo { display: none; }
 html[data-menu="recolhido"] .menu-logo-icone { display: block; }
 html[data-menu="recolhido"] .menu-rotulo { opacity: 0; }
 html[data-menu="recolhido"] .menu-pessoas { flex-direction: column; padding-block: var(--s-4); }
-html[data-menu="recolhido"] .menu-alterna-seta { transform: scaleX(-1); }
 @media (max-width: 767px) {
   .menu { padding-inline: var(--s-4); }
   .menu-logo { display: none; }

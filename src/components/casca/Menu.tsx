@@ -47,11 +47,8 @@ export function Menu({ recolhido, alternar, caminho }: Props) {
           <span className="bolinha bolinha-m" title="Matheus">M</span>
         </div>
         <button type="button" className="menu-item menu-alterna" onClick={alternar} aria-label={acao} aria-expanded={!recolhido} title={acao}>
-          <svg className="menu-icone-svg" viewBox="0 0 20 20" aria-hidden>
-            <rect x="2.75" y="3.75" width="14.5" height="12.5" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M7.25 4v12" stroke="currentColor" strokeWidth="1.5" />
-            <path className="menu-alterna-seta" d="M13 7.5 10.5 10l2.5 2.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
+          {/* Botão de menu da ID: as 3 barras (menu-id.css, .mid-burger) */}
+          <span className="menu-icone-b3" aria-hidden><span className="b3"><i /><i /><i /></span></span>
           <span className="menu-rotulo">{acao}</span>
         </button>
       </div>

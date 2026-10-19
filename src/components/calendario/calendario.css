@@ -4,38 +4,27 @@
 .cal { --gutter: 56px; display: flex; flex-direction: column; gap: var(--s-12); min-width: 0; }
 .cal[aria-busy="true"] { min-height: 60vh; }
 
-/* ---------- barra de cima: navegação, título, ações ---------- */
-.cal-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12) var(--s-24); }
-.cal-navega { display: flex; align-items: center; gap: var(--s-4); }
-.cal-botao, .cal-seta, .cal-visoes button {
-  height: var(--app-controle); border-radius: var(--raio); cursor: pointer; font: 600 var(--app-t-texto) var(--fonte-texto); color: var(--cor-tinta);
-  background: var(--cor-superficie); border: 1px solid var(--cor-linha-forte);
-  transition: background var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva), border-color var(--dur-rapida) var(--curva);
-}
-.cal-botao { padding: 0 var(--s-16); margin-right: var(--s-4); }
-.cal-seta { display: grid; place-items: center; width: var(--app-controle); padding: 0; }
-.cal-seta svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.75; }
-.cal-botao:hover, .cal-seta:hover, .cal-visoes button:hover { border-color: var(--cor-roxo); }
+/* ---------- barra de cima: navegação, título, ações ----------
+   Botões = .btn/.btn-2 da ID (globals.css): placa a 22°, texto reto em caixa alta, um principal por tela (+ Nova tarefa).
+   A placa inclinada passa 9px da caixa nos cantos (44 × tan 22° / 2): a barra recua isso nas pontas para alinhar com o painel. */
+.cal-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12) var(--s-24); padding-inline: 9px; }
+.cal-navega { display: flex; align-items: center; gap: var(--s-12); }
+.cal-seta { width: 56px; padding: 0; }
+.cal-seta .seta { width: 18px; height: 18px; }
+.cal-seta-volta .seta { transform: scaleX(-1); }
 .cal-titulo { flex: 1 1 280px; min-width: 0; } /* título e contagem sempre em 2 linhas: trocar de visão não muda a altura da barra */
 .cal-titulo h1 { margin: 0; font-size: var(--app-t-titulo); color: var(--cor-roxo); text-wrap: balance; }
 .cal-titulo p { margin: 2px 0 0; font-size: var(--app-t-texto); color: var(--cor-tinta-2); }
-.cal-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12); }
-.cal-visoes { display: flex; }
-.cal-visoes button { padding: 0 var(--s-16); border-radius: 0; margin-left: -1px; }
-.cal-visoes button:first-child { border-radius: var(--raio) 0 0 var(--raio); margin-left: 0; }
-.cal-visoes button:last-child { border-radius: 0 var(--raio) var(--raio) 0; }
-.cal-visoes button:hover { position: relative; }
-.cal-visoes button[aria-pressed="true"] { background: var(--cor-roxo); border-color: var(--cor-roxo); color: var(--cor-bege); position: relative; }
-.cal-nova { min-height: var(--app-controle); margin-left: var(--s-4); }
+.cal-nova { margin-left: auto; }
+/* 2ª linha: filtros à esquerda; Sem data e Visão (também escolhas) à direita */
+.cal-linha-filtros { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--app-vao) var(--s-24); }
+.cal-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
 
 /* ---------- filtros da tela: botões de seleção da base ---------- */
 .cal-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
-.cal-limpar {
-  height: var(--app-controle); padding: 0 var(--s-8); border: 0; background: none; cursor: pointer;
-  font: 600 var(--app-t-texto) var(--fonte-texto); color: var(--cor-roxo);
-  text-decoration: underline; text-decoration-color: var(--cor-eletrico); text-decoration-thickness: 2px; text-underline-offset: 4px;
-}
-.cal-limpar:hover { color: var(--cor-eletrico); }
+.cal-limpar { height: var(--app-controle); padding: 0 var(--s-8); border: 0; background: none; cursor: pointer; font: 600 var(--app-t-texto) var(--fonte-texto); }
+/* Bolinha da pessoa dentro da lista em vidro roxo: o roxo do Matheus some no roxo, então ganha o contorno bege suave */
+.selecao-lista .evento-bolinha { box-shadow: 0 0 0 1.5px var(--cor-suave); }
 
 /* ---------- painel do calendário: de ponta a ponta ---------- */
 .cal-painel-pai { min-width: 0; }
@@ -111,7 +100,12 @@
 .grade-dia-nome { font-size: var(--t-12); letter-spacing: var(--rotulo-letra); text-transform: uppercase; color: var(--cor-tinta-2); font-weight: 600; }
 .grade-dia-num { display: grid; place-items: center; min-width: 40px; height: 40px; padding: 0 6px; border-radius: var(--raio); font: var(--numero-peso) var(--t-25) var(--fonte-numero); }
 .grade-dia:hover .grade-dia-num { background: var(--cor-kraft-claro); }
-.grade-dia[data-hoje="true"] .grade-dia-num { background: var(--cor-roxo); color: var(--cor-bege); }
+/* Hoje = selo da ID: placa roxa inclinada a 22°, o número reto */
+.grade-dia-num, .mes-numero { position: relative; isolation: isolate; }
+.grade-dia[data-hoje="true"] .grade-dia-num, .mes-celula[data-hoje="true"] .mes-numero { color: var(--cor-bege); background: none; }
+.grade-dia[data-hoje="true"] .grade-dia-num::before, .mes-celula[data-hoje="true"] .mes-numero::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--cor-roxo); transform: skewX(var(--angulo));
+}
 .grade-dia[data-hoje="true"] .grade-dia-nome { color: var(--cor-eletrico); }
 .grade-dia-total { font-size: 11px; color: var(--cor-tinta-2); }
 .grade-topo {
@@ -157,7 +151,6 @@
   font: var(--numero-peso) var(--t-14) var(--fonte-numero); color: var(--cor-tinta);
 }
 .mes-numero:hover { background: var(--cor-kraft-claro); }
-.mes-celula[data-hoje="true"] .mes-numero { background: var(--cor-roxo); color: var(--cor-bege); }
 .mes-mais { align-self: flex-start; border: 0; background: none; padding: 2px 4px; cursor: pointer; font: 700 var(--t-12) var(--fonte-texto); color: var(--cor-roxo); border-radius: var(--raio); }
 .mes-mais:hover { background: var(--cor-kraft-claro); }
 @media (max-width: 767px) {
@@ -178,8 +171,10 @@
   font: var(--titulo-peso) var(--t-20) var(--fonte-titulo); letter-spacing: var(--titulo-espaco); color: var(--cor-roxo);
 }
 .ano-titulo span { font: 600 var(--t-12) var(--fonte-texto); color: var(--cor-tinta-2); letter-spacing: 0; }
-.ano-titulo:hover { border-bottom-color: var(--cor-eletrico); }
-.ano-mes[data-atual="true"] .ano-titulo { border-bottom-color: var(--cor-eletrico); }
+.ano-titulo { position: relative; }
+/* Mês atual e passar o mouse: traço elétrico em ponta de barra (pontas cortadas a 22°) por cima da linha */
+.ano-titulo::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px; background: var(--cor-eletrico); clip-path: polygon(1.2px 0, 100% 0, calc(100% - 1.2px) 100%, 0 100%); opacity: 0; transition: opacity var(--dur-rapida) var(--curva); }
+.ano-titulo:hover::after, .ano-mes[data-atual="true"] .ano-titulo::after { opacity: 1; }
 .ano-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
 .ano-letra { text-align: center; font-size: 10px; font-weight: 600; color: var(--cor-tinta-2); }
 .ano-dia {
@@ -196,23 +191,18 @@
 .ano-legenda { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin: var(--s-24) 0 0; font-size: var(--t-12); color: var(--cor-tinta-2); }
 .ano-legenda .ano-dia { width: 14px; height: 14px; cursor: default; }
 
-/* ---------- Sem data: botão (classes do botão de seleção) + lista que abre por cima ---------- */
-.cal-semdata-botao[data-alvo="true"] { border-color: var(--cor-eletrico); background: color-mix(in srgb, var(--cor-eletrico) 8%, var(--cor-superficie)); outline: 2px dashed var(--cor-eletrico); outline-offset: 2px; }
-.selecao-pop.cal-semdata-pop { width: min(340px, calc(100vw - 24px)); position-area: bottom span-left; }
+/* ---------- Sem data: botão (classes do botão de seleção) + lista em vidro roxo com orelhas (submenu da ID) ---------- */
+.cal-semdata-botao[data-alvo="true"] { border-color: var(--cor-eletrico); outline: 2px dashed var(--cor-eletrico); outline-offset: 3px; }
+.selecao-pop.cal-semdata-pop { width: min(360px, calc(100vw - 24px)); position-area: bottom span-left; }
 .cal-semdata-pop[data-arrastando="true"] { opacity: .3; pointer-events: none; }
 .cal-semdata {
-  --card-corte: 16px;
-  display: flex; flex-direction: column; gap: var(--s-8); max-height: min(600px, calc(100dvh - 140px));
-  padding: var(--s-16) var(--s-16) var(--s-12); background: var(--cor-superficie);
+  --card-corte: 26px;
+  display: flex; flex-direction: column; gap: var(--s-8); max-height: min(620px, calc(100dvh - 150px));
+  padding: var(--s-24) var(--s-16) var(--s-16) var(--s-24);
+  background: var(--vidro-roxo); -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); color: var(--cor-bege);
 }
-.cal-semdata h2 { margin: 0; font-size: var(--app-t-secao); color: var(--cor-roxo); }
-.cal-semdata > p { margin: 0 0 var(--s-4); font-size: var(--app-t-rotulo); line-height: 1.45; color: var(--cor-tinta-2); }
-.cal-semdata-lista { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; overflow-y: auto; padding: 2px; margin: 0 -2px; }
-.cal-semdata-vazio { margin: 0; padding: var(--s-16) 0; font-size: var(--app-t-texto); color: var(--cor-tinta-2); }
-.cal-semdata-nova {
-  align-self: flex-start; height: 32px; margin-top: var(--s-4); padding: 0 var(--s-12); cursor: pointer;
-  background: none; border: 1px solid var(--cor-linha-forte); border-radius: var(--raio);
-  font: 600 var(--app-t-texto) var(--fonte-texto); color: var(--cor-roxo);
-  transition: border-color var(--dur-rapida) var(--curva);
-}
-.cal-semdata-nova:hover { border-color: var(--cor-roxo); }
+.cal-semdata h2 { margin: 0; font-size: var(--app-t-secao); color: var(--cor-bege); }
+.cal-semdata > p { margin: 0 0 var(--s-8); font-size: var(--app-t-texto); line-height: 1.45; color: var(--cor-suave); }
+.cal-semdata-lista { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; overflow-y: auto; padding: 2px; margin: 0 -2px; scrollbar-color: var(--cor-linha-escuro) transparent; }
+.cal-semdata-vazio { margin: 0; padding: var(--s-16) 0; font-size: var(--app-t-texto); color: var(--cor-suave); }
+.cal-semdata-nova { align-self: flex-start; margin: var(--s-12) 0 4px 9px; }

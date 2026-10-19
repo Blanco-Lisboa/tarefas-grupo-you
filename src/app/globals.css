@@ -10,7 +10,7 @@
 
 /* ===== Camada do app (rodada 2, item 49) =====
    beec-tokens.css é cópia fiel da ID e não se edita. Aqui ficam as escolhas do SISTEMA, montadas só com valores da ID:
-   tela de trabalho pede título menor, controles de uma altura só e superfícies em degraus. Telas usam estes nomes. */
+   tela de trabalho pede título menor e controles de uma altura só. Telas usam estes nomes. */
 :root {
   /* Espaço: a grade de 4 da ID (--s-4 a --s-64). Papéis fixos para todas as telas encaixarem igual */
   --app-respiro: var(--s-16);      /* topo da área de conteúdo e vão entre blocos da tela */
@@ -23,19 +23,13 @@
   --app-t-texto: var(--t-14);      /* texto de controle, lista, cartão */
   --app-t-rotulo: var(--t-12);     /* rótulo, metadado */
 
-  /* Controles: uma altura só, todo botão, campo e botão de seleção da mesma barra alinha */
-  --app-controle: 36px;
-  --app-controle-p: 28px;          /* opção de lista, chip pequeno */
+  /* Controles: uma altura só, todo botão, campo e botão de seleção da mesma barra alinha.
+     44 = o botão da ID (15 + 14 + 15, prancha seção 10); o campo da ID fica na mesma altura */
+  --app-controle: 44px;
 
   /* Superfícies no claro, do fundo para cima: bege (fundo) > superfície (cartão, campo) > kraft claro (faixa, realce) */
   --cor-realce-claro: color-mix(in srgb, var(--cor-roxo) 6%, transparent);   /* hover no claro: roxo bem leve, nunca cinza */
-  /* Superfícies no escuro, do fundo para cima: grafite > card escuro (hover) > ativo */
-  --cor-escuro-2: var(--cor-card-escuro);   /* #221B2B · bege 14,93 */
-  --cor-escuro-3: #2D2537;                  /* item ativo no grafite, um degrau acima do card escuro · bege 13,1 · ouro 8,9 · suave 8,5 */
-
-  /* Sombra de coisa que flutua (lista aberta, menu suspenso). Caixa com orelha usa a versão filtro, no pai */
-  --sombra-pop: 0 1px 2px rgba(24, 19, 31, .08), 0 12px 32px -8px rgba(24, 19, 31, .24);
-  --sombra-pop-filtro: drop-shadow(0 1px 1px rgba(24, 19, 31, .10)) drop-shadow(0 10px 18px rgba(24, 19, 31, .20));
+  /* No escuro não há tom inventado: grafite e card escuro da ID (--cor-grafite, --cor-card-escuro); lista que abre = --vidro-roxo */
 }
 @media (max-width: 767px) { :root { --app-margem: var(--s-12); } }
 
@@ -70,7 +64,7 @@ body {
   line-height: var(--texto-entrelinha);
 }
 
-::selection { background: color-mix(in srgb, var(--cor-eletrico) 22%, transparent); color: var(--cor-tinta); }
+::selection { background: var(--cor-roxo); color: var(--cor-bege); }   /* igual à prancha da ID */
 
 h1, h2, h3 {
   font-family: var(--fonte-titulo);
@@ -83,3 +77,36 @@ h1, h2, h3 {
   outline: 2px solid var(--cor-eletrico);
   outline-offset: 2px;
 }
+
+/* ===== Peças copiadas da ID (identidade/prancha.html, seção 10 "Botões, campos, cards, etiquetas e menus", em 18/10/2026).
+   O desenho é o da ID; aqui só a altura vem de --app-controle. Telas usam estas classes, ninguém redesenha botão. =====
+   .btn = botão principal (placa roxa a 22°, texto reto em caixa alta; um por tela). .btn-2 = secundário (contorno roxo).
+   .btn-claro = secundário no escuro. Ao passar o mouse anda 3px para a direita; foco = contorno elétrico também a 22°.
+   .lnk + .sub = link com sublinhado em ponta de barra. .seta = seta da ID. .b3 = as 3 barras (marcador, botão de menu). */
+.btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 12px; flex: none;
+  height: var(--app-controle); padding: 0 30px; border: 0; background: none; cursor: pointer; isolation: isolate;
+  font: 700 var(--t-14) / 1 var(--fonte-texto); letter-spacing: .1em; text-transform: uppercase; text-decoration: none; white-space: nowrap;
+  color: var(--cor-bege); transition: transform var(--dur) var(--curva);
+}
+.btn::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--cor-roxo); transform: skewX(var(--angulo)); }
+.btn:hover { transform: translateX(var(--anda)); }
+.btn:focus-visible { outline: none; }
+.btn:focus-visible::after { content: ""; position: absolute; inset: -6px; border: 2px solid var(--cor-eletrico); transform: skewX(var(--angulo)); }
+.btn-2 { color: var(--cor-roxo); }
+.btn-2::before { background: transparent; box-shadow: inset 0 0 0 2px var(--cor-roxo); }
+.btn-claro { color: var(--cor-bege); }
+.btn-claro::before { background: transparent; box-shadow: inset 0 0 0 2px var(--cor-bege); }
+.no-escuro .btn:focus-visible::after { border-color: var(--cor-bege); }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+
+.lnk { font-weight: 600; text-decoration: none; color: var(--cor-roxo); }
+.sub { position: relative; display: inline-block; }
+.sub::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.06em; height: var(--sub-espessura); background: var(--sub, var(--cor-eletrico)); clip-path: var(--ponta-de-barra); }
+.no-escuro .sub { --sub: var(--cor-ouro); }
+
+.seta { display: inline-block; width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: square; flex: none; }
+
+.b3 { display: inline-flex; flex-direction: column; gap: calc(var(--b3w, 30px) * var(--barra-vao)); vertical-align: middle; flex: none; }
+.b3 i { display: block; width: var(--b3w, 30px); height: calc(var(--b3w, 30px) * var(--barra-altura)); background: var(--b3c, var(--cor-roxo)); transform: skewX(var(--angulo)); }
+.no-escuro .b3 { --b3c: var(--cor-ouro); }

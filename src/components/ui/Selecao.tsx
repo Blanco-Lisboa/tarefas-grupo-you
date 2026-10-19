@@ -4,6 +4,8 @@ import "./selecao.css";
 
 // Botão de seleção (item 42): clica, abre a lista, escolhe uma ou várias opções. Peça ÚNICA do sistema:
 // toda tela que filtra ou escolhe entre opções usa este componente, ninguém faz o seu próprio.
+// Desenho da ID (item 53): o botão é o campo de seleção da prancha (reto, borda 1,5px, seta da ID); a lista é o
+// submenu do site (vidro roxo profundo com orelhas a 22°, texto bege, escolhido em ouro).
 // A lista abre por cima de tudo (popover do navegador: fecha com Esc ou clique fora) e se prende ao botão (anchor).
 export type Opcao = { valor: string; rotulo: string; antes?: ReactNode };
 
@@ -41,7 +43,7 @@ export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotul
         title={escolhidas.length ? `${rotulo}: ${escolhidas.map((o) => o.rotulo).join(", ")}` : undefined}
         style={{ anchorName: ancora } as CSSProperties}
       >
-        <span>{rotulo}</span>
+        {multipla || !escolhidas.length ? <span>{rotulo}</span> : <span className="selecao-rotulo-p">{rotulo}</span>}
         {escolhidas.length > 0 &&
           (multipla ? (
             <span className="selecao-contador" aria-label={`${escolhidas.length} escolhida${escolhidas.length > 1 ? "s" : ""}`}>
@@ -50,8 +52,8 @@ export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotul
           ) : (
             <span className="selecao-escolha">{escolhidas[0].rotulo}</span>
           ))}
-        <svg className="selecao-seta" viewBox="0 0 12 12" aria-hidden>
-          <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.75" />
+        <svg className="selecao-seta" viewBox="0 0 24 24" aria-hidden>
+          <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
       <div
@@ -61,7 +63,7 @@ export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotul
         className="selecao-pop"
         style={{ positionAnchor: ancora } as CSSProperties}
       >
-        <div className="selecao-lista corte-22-esq" role="group" aria-label={rotulo}>
+        <div className="selecao-lista corte-22 no-escuro" role="group" aria-label={rotulo}>
           {rotuloTodos && (
             <button type="button" className="selecao-opcao selecao-todos" aria-pressed={valor.length === 0} onClick={() => escolher(null)}>
               <span className="selecao-marca" aria-hidden />
