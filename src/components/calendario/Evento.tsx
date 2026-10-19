@@ -3,6 +3,7 @@ import { useState, type CSSProperties, type DragEvent } from "react";
 import { useEmpresas, type Tarefa } from "@/lib/dados";
 import { NOMES } from "@/components/ficha/Ficha";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
+import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { comMinuto, diaCurto, horaCurta, tituloPeriodo, variosDias, type Destino, type Visao } from "./logica";
 
 export type Acoes = {
@@ -35,6 +36,8 @@ export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "blo
   const tipo = NOMES.tipo[t.tipo];
   const etapa = t.etapa && NOMES.etapa[t.etapa];
   const detalhes = [t.rede && NOMES.rede[t.rede], modo === "cartao" && tipo !== etapa && tipo].filter(Boolean).join(" · ");
+  const textoTipo = modo === "cartao" && tipo !== etapa ? tipo : "";
+  const selo = <span className="selo"><SeloEmpresa empresaId={t.empresaId} nome={empresa} tamanho={14} /></span>;
   const etiqueta = etapa && <span className={`etapa etapa-${t.etapa}`}>{etapa}</span>;
   return (
     <button
@@ -50,16 +53,17 @@ export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "blo
         <span className={`evento-bolinha evento-bolinha-${t.responsavel}`} aria-label={pessoa}>{pessoa[0]}</span>
         {hora && (modo !== "bloco" || curto) && <span className="evento-hora">{curto ? hora.slice(0, 5) : hora}</span>}
         <span className="evento-titulo">{t.titulo}</span>
-        {modo === "chip" && <>{etiqueta}<span className="selo">{empresa}</span></>}
+        {modo === "chip" && <>{etiqueta}{selo}</>}
         {/* bloco curto: uma linha só; a etiqueta da etapa toma o lugar do selo (o fundo já diz a empresa) */}
-        {curto && (etiqueta && dona ? etiqueta : <span className="selo">{empresa}</span>)}
+        {curto && (etiqueta && dona ? etiqueta : selo)}
       </span>
       {modo !== "chip" && !curto && (
         <span className="evento-detalhes">
-          <span className="selo">{empresa}</span>
+          {selo}
           {etiqueta}
           {modo === "bloco" && hora && <span>{hora}</span>}
-          {detalhes && <span>{detalhes}</span>}
+          {t.rede && <IconeRede rede={t.rede} tamanho={13} />}
+          {textoTipo && <span>{textoTipo}</span>}
         </span>
       )}
     </button>

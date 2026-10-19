@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useEmpresas, useIdeias, usePecas, type Empresa, type Peca, type TipoPeca } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
+import { SeloEmpresa } from "@/components/ui/Marca";
 import { receitaDaEmpresa, tomDaEmpresa } from "./cores";
 import { CardIdeias } from "./CardIdeias";
 import { CardPeca } from "./CardPeca";
@@ -27,7 +28,7 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
   return (
     <div className="pastas-empresa">
       <h2>
-        {empresa.nome} <small>{pecas.length} peças</small>
+        <SeloEmpresa empresaId={empresa.id} nome={empresa.nome} tamanho={28} comNome /> <small>{pecas.length} peças</small>
       </h2>
       <div className="pastas-grade">
         {PASTAS.map(({ tipo, rotulo }, i) => {

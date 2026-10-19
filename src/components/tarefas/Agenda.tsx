@@ -1,6 +1,7 @@
 "use client";
 import { Fragment, useEffect, useState, type CSSProperties } from "react";
 import type { Tarefa } from "@/lib/dados";
+import { SeloEmpresa } from "@/components/ui/Marca";
 import type { OpcaoLetra } from "./fontes";
 import { horaDe, minutos, somarMinutos } from "./grade";
 import { notaDaChave, type Armazem, type EstadoNota } from "./notas";
@@ -68,7 +69,7 @@ export function Agenda({ letra, dia, hoje, rotuloDia, tarefas, amanha, nomeEmpre
           <span className="ag-nome folha-tinta" data-feita={!!t.concluida}>{t.titulo}</span>
           <span className="ag-info folha-lapis">{horaDe(t)} a {fimDe(t)} · {t.responsavel === "natham" ? "Natham" : "Matheus"}</span>
         </span>
-        <span className="ag-selo" style={{ "--etq": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}>{nomeEmpresa(t.empresaId)}</span>
+        <span className="ag-selo" style={{ "--etq": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}><SeloEmpresa empresaId={t.empresaId} nome={nomeEmpresa(t.empresaId)} tamanho={22} /></span>
       </button>
     </li>
   );
@@ -87,7 +88,7 @@ export function Agenda({ letra, dia, hoje, rotuloDia, tarefas, amanha, nomeEmpre
             {diaInteiro.map((t) => (
               <button key={t.id} type="button" className="ag-inteiro" style={{ "--etq": `var(--${t.cor})` } as CSSProperties} onClick={() => aoAbrir(t.id)}>
                 <span className="folha-tinta ag-nome" data-feita={!!t.concluida}>{t.titulo}</span>
-                <span className="ag-selo" style={{ "--etq": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}>{nomeEmpresa(t.empresaId)}</span>
+                <span className="ag-selo" style={{ "--etq": `var(--${t.cor})`, color: `var(--${t.cor}-texto)` } as CSSProperties}><SeloEmpresa empresaId={t.empresaId} nome={nomeEmpresa(t.empresaId)} tamanho={22} /></span>
               </button>
             ))}
           </div>

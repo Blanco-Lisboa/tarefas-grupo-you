@@ -148,7 +148,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .pastas-vazio { margin: 0; color: var(--fraco); }
 
 .pastas-empresa { display: grid; gap: var(--app-respiro); padding-top: var(--app-respiro); border-top: 1px solid var(--linha); }
-.pastas-empresa h2 { margin: 0; display: flex; align-items: baseline; gap: var(--s-12); font-size: var(--app-t-secao); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); color: var(--texto); }
+.pastas-empresa h2 { margin: 0; display: flex; align-items: center; gap: var(--s-12); font-size: var(--app-t-secao); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); color: var(--texto); }
 .pastas-empresa h2 small { font-size: var(--app-t-rotulo); font-weight: 500; color: var(--fraco); }
 .pastas-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s-48) var(--s-24); padding: var(--s-8) 0 var(--s-16); }
 /* telas largas: as 5 pastas de uma empresa numa linha só */

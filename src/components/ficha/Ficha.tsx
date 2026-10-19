@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { deTexto, paraHora } from "@/components/calendario/logica";
 import { Selecao } from "@/components/ui/Selecao";
+import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { CampoData } from "@/components/ui/CampoData";
 import "./ficha.css";
 
@@ -136,7 +137,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             </div>
             <div className="ficha-campo ficha-escolha">
               {empresas.length ? (
-                <Selecao rotulo="Empresa" opcoes={empresas.map((x) => ({ valor: x.id, rotulo: x.nome }))} valor={temEmpresa ? [t.empresaId] : []} multipla={false} aoMudar={([v]) => { if (v) mudar("empresaId", v); }} />
+                <Selecao rotulo="Empresa" opcoes={empresas.map((x) => ({ valor: x.id, rotulo: x.nome, antes: <SeloEmpresa empresaId={x.id} nome={x.nome} tamanho={18} /> }))} valor={temEmpresa ? [t.empresaId] : []} multipla={false} aoMudar={([v]) => { if (v) mudar("empresaId", v); }} />
               ) : (
                 <p className="ficha-aviso" role="alert">
                   Nenhuma empresa cadastrada. <Link href="/configuracoes" onClick={() => dialogo.current?.close()}>Cadastrar em Configurações</Link>
@@ -144,7 +145,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
               )}
             </div>
             <div className="ficha-campo ficha-escolha">
-              <Selecao rotulo="Rede" opcoes={REDES.map((v) => ({ valor: v, rotulo: NOMES.rede[v] }))} valor={t.rede ? [t.rede] : []} multipla={false} rotuloTodos="Sem rede" aoMudar={([v]) => mudar("rede", v as Rede | undefined)} />
+              <Selecao rotulo="Rede" opcoes={REDES.map((v) => ({ valor: v, rotulo: NOMES.rede[v], antes: <IconeRede rede={v} tamanho={18} /> }))} valor={t.rede ? [t.rede] : []} multipla={false} rotuloTodos="Sem rede" aoMudar={([v]) => mudar("rede", v as Rede | undefined)} />
             </div>
             <div className="ficha-campo ficha-escolha">
               <Selecao rotulo="Etapa" opcoes={ETAPAS.map((v) => ({ valor: v, rotulo: NOMES.etapa[v] }))} valor={t.etapa ? [t.etapa] : []} multipla={false} rotuloTodos="Sem etapa" aoMudar={([v]) => mudar("etapa", v as Etapa | undefined)} />
