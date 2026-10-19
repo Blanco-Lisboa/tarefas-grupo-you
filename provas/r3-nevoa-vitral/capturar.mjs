@@ -9,7 +9,9 @@ const erros = [];
 const navegador = await chromium.launch({ headless: true });
 const marcar = (p) => p.evaluate(() => {
   const s = document.createElement("div");
-  s.textContent = `innerWidth ${innerWidth}`;
+  const abertas = [...document.querySelectorAll(".gf-root[data-open]")];
+  const fora = abertas.flatMap((r) => { const b = r.getBoundingClientRect(); return [...r.querySelectorAll(".gf-sheet")].filter((f) => { const q = f.getBoundingClientRect(); return q.left < b.left - 0.5 || q.right > b.right + 0.5; }); }).length;
+  s.textContent = `innerWidth ${innerWidth} · scrollWidth ${document.documentElement.scrollWidth} / clientWidth ${document.documentElement.clientWidth} · folhas fora da pasta ${fora}`;
   s.style.cssText = "position:fixed;right:6px;top:6px;z-index:99999;background:#1D1D1F;color:#fff;font:700 13px monospace;padding:3px 8px;pointer-events:none";
   document.body.append(s);
 });
@@ -24,10 +26,14 @@ for (const [w, h] of [[1903, 900], [1440, 760], [390, 844]]) {
   const larg = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   if (larg > 0) erros.push(`[${w}] página rola na horizontal (${larg}px)`);
   await marcar(p);
+  await p.evaluate(() => document.querySelector("body > div:last-child")?.remove());
   await p.screenshot({ path: join(PASTA, `${w}-pastas.png`), fullPage: false });
   await p.locator(".gf-hit").first().click();
   await p.mouse.move(2, 2);
   await p.waitForTimeout(1800);
+  const m = await p.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+  console.log(w, "aberta scrollWidth/clientWidth", m.join("/"));
+  await marcar(p);
   await p.screenshot({ path: join(PASTA, `${w}-pastas-aberta.png`), fullPage: false });
   await c.close();
 }
