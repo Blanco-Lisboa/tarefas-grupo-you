@@ -24,7 +24,7 @@ type ItemMenu = { href: string; rotulo: string; icone: NomeIcone };
 const ITENS: ItemMenu[] = [
   { href: "/calendario", rotulo: "Calendário", icone: "calendario" },
   { href: "/mapa", rotulo: "Mapa", icone: "mapa" },
-  { href: "/tarefas", rotulo: "Tarefas", icone: "tarefas" },
+  { href: "/tarefas", rotulo: "Caderno", icone: "tarefas" },
   { href: "/conteudos", rotulo: "Conteúdos", icone: "conteudos" },
   { href: "/pastas", rotulo: "Pastas", icone: "pastas" },
 ];
