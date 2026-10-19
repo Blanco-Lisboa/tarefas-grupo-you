@@ -17,13 +17,16 @@ type Props = {
   multipla?: boolean;
   /** Primeira linha que limpa a escolha, ex.: "Todas". Sem ela, a lista só tem as opções. */
   rotuloTodos?: string;
+  /** Com escolha, o botão fechado mostra só o ícone/logo da escolha + seta; o nome fica no title e no aria-label (item 106). */
+  soIcone?: boolean;
 };
 
-export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotuloTodos }: Props) {
+export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotuloTodos, soIcone }: Props) {
   const id = useId();
   const lista = useRef<HTMLDivElement>(null);
   const ancora = `--selecao-${id.replace(/[^\w-]/g, "")}`;
   const escolhidas = opcoes.filter((o) => valor.includes(o.valor));
+  const icone = !!soIcone && escolhidas.length > 0 && escolhidas.every((o) => o.antes);
 
   const escolher = (v: string | null) => {
     if (v === null) aoMudar([]);
@@ -39,12 +42,15 @@ export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotul
         className="selecao-botao"
         popoverTarget={`${id}-lista`}
         data-escolhido={escolhidas.length > 0}
+        aria-label={icone ? `${rotulo}: ${escolhidas.map((o) => o.rotulo).join(", ")}` : undefined}
         title={escolhidas.length ? `${rotulo}: ${escolhidas.map((o) => o.rotulo).join(", ")}` : undefined}
         style={{ anchorName: ancora } as CSSProperties}
       >
-        {multipla || !escolhidas.length ? <span>{rotulo}</span> : <span className="selecao-rotulo-p">{rotulo}</span>}
+        {icone ? null : multipla || !escolhidas.length ? <span>{rotulo}</span> : <span className="selecao-rotulo-p">{rotulo}</span>}
         {escolhidas.length > 0 &&
-          (multipla ? (
+          (icone ? (
+            escolhidas.slice(0, 3).map((o) => <span key={o.valor} className="selecao-antes">{o.antes}</span>)
+          ) : multipla ? (
             <>
               {escolhidas.slice(0, 3).map((o) => o.antes && <span key={o.valor} className="selecao-antes">{o.antes}</span>)}
               <span className="selecao-contador" aria-label={`${escolhidas.length} escolhida${escolhidas.length > 1 ? "s" : ""}`}>

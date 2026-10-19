@@ -215,7 +215,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
           <div ref={quem} className="folha-quem">
             <span className="folha-quem-rotulo">Nova tarefa em</span>
             <Selecao
-              rotulo="Empresa" multipla={false} valor={[empresaAtual]} aoMudar={([v]) => v && setEmpresa(v)}
+              rotulo="Empresa" soIcone multipla={false} valor={[empresaAtual]} aoMudar={([v]) => v && setEmpresa(v)}
               opcoes={empresas.map((e) => ({ valor: e.id, rotulo: e.nome, antes: <SeloEmpresa empresaId={e.id} nome={e.nome} tamanho={18} /> }))}
             />
             <Selecao

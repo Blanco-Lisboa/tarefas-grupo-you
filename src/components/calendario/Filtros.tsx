@@ -28,6 +28,7 @@ export function BarraFiltros({ filtros, mudar }: { filtros: Filtros; mudar: (f: 
         <Selecao
           key={g}
           rotulo={rotulo}
+          soIcone={g === "rede"}
           valor={filtros[g]}
           aoMudar={(v) => mudar({ ...filtros, [g]: v })}
           opcoes={valores.map((v) => ({

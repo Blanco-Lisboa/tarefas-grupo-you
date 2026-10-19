@@ -12,6 +12,7 @@ export function FiltroEmpresa() {
     <Selecao
       rotulo="Empresa"
       rotuloTodos="Todas"
+      soIcone
       opcoes={empresas.map((e) => ({ valor: e.id, rotulo: e.nome, antes: <SeloEmpresa empresaId={e.id} nome={e.nome} tamanho={18} /> }))}
       valor={selecionadas}
       aoMudar={trocar}
