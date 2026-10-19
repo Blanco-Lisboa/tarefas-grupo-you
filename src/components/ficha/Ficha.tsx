@@ -155,42 +155,44 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             </div>
           </div>
 
-          <fieldset className="ficha-campo">
-            <legend>Responsável</legend>
-            <div className="ficha-pessoas">
-              {RESPONSAVEIS.map((r) => (
-                <button key={r} type="button" className="ficha-pessoa" aria-pressed={t.responsavel === r} onClick={() => mudar("responsavel", r)}>
-                  <Pessoa quem={r} tamanho={28} />
-                  {NOMES.responsavel[r]}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset className="ficha-campo" aria-label="Quando">
-            <div className="ficha-quando">
-              {/* Data e hora no mesmo painel (item 76): calendário + rodas de hora e minuto. Dia inteiro = só o calendário. */}
-              <div className="ficha-mini">
-                {data && !t.diaInteiro ? "Começa" : "Data"}
-                <CampoData rotulo={data && !t.diaInteiro ? "Começa" : "Data"} valor={data} hora={t.diaInteiro ? undefined : data ? horaIni : ""}
-                  aoMudar={(d, h) => mudarInicio(d, h || horaIni)} />
+          <div className="ficha-grade ficha-grade-fim">
+            <fieldset className="ficha-campo">
+              <legend>Responsável</legend>
+              <div className="ficha-pessoas">
+                {RESPONSAVEIS.map((r) => (
+                  <button key={r} type="button" className="ficha-pessoa" aria-pressed={t.responsavel === r} onClick={() => mudar("responsavel", r)}>
+                    <Pessoa quem={r} tamanho={28} />
+                    {NOMES.responsavel[r]}
+                  </button>
+                ))}
               </div>
-              {data && (
-                <label className="ficha-marcar">
-                  <input type="checkbox" checked={t.diaInteiro} onChange={(e) => mudar("diaInteiro", e.target.checked)} />
-                  Dia inteiro
-                </label>
-              )}
-              {data && !t.diaInteiro && (
+            </fieldset>
+
+            <fieldset className="ficha-campo" aria-label="Quando">
+              <div className="ficha-quando">
+                {/* Data e hora no mesmo painel (item 76): calendário + rodas de hora e minuto. Dia inteiro = só o calendário. */}
                 <div className="ficha-mini">
-                  Termina
-                  <CampoData rotulo="Termina" valor={horaFim ? dataFim || data : ""} hora={horaFim} min={data} vazio="Sem fim"
-                    aoMudar={(d, h) => { setDataFim(d); setHoraFim(h ?? ""); }} />
+                  {data && !t.diaInteiro ? "Começa" : "Data"}
+                  <CampoData rotulo={data && !t.diaInteiro ? "Começa" : "Data"} valor={data} hora={t.diaInteiro ? undefined : data ? horaIni : ""}
+                    aoMudar={(d, h) => mudarInicio(d, h || horaIni)} />
                 </div>
-              )}
-            </div>
-            {!data && <p className="ficha-dica">Sem data: a tarefa fica na coluna &quot;Sem data&quot; do calendário.</p>}
-          </fieldset>
+                {data && (
+                  <label className="ficha-marcar">
+                    <input type="checkbox" checked={t.diaInteiro} onChange={(e) => mudar("diaInteiro", e.target.checked)} />
+                    Dia inteiro
+                  </label>
+                )}
+                {data && !t.diaInteiro && (
+                  <div className="ficha-mini">
+                    Termina
+                    <CampoData rotulo="Termina" valor={horaFim ? dataFim || data : ""} hora={horaFim} min={data} vazio="Sem fim"
+                      aoMudar={(d, h) => { setDataFim(d); setHoraFim(h ?? ""); }} />
+                  </div>
+                )}
+              </div>
+              {!data && <p className="ficha-dica">Sem data: fica na coluna &quot;Sem data&quot; do calendário.</p>}
+            </fieldset>
+          </div>
 
           {t.tipo === "postagem" && (
             <Campo rotulo="Objetivo">
