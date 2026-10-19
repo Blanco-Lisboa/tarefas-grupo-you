@@ -5,6 +5,7 @@ import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
 import { removerTarefa, salvarTarefa, useEmpresas, useTarefas, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
+import { CampoData } from "@/components/ui/CampoData";
 import { Ficha } from "@/components/ficha/Ficha";
 import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
@@ -167,7 +168,7 @@ export function TelaTarefas() {
           <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(somarDias(dia, -1))} aria-label="Dia anterior">Anterior</button>
           <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(hoje)}>Hoje</button>
           <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(somarDias(dia, 1))} aria-label="Próximo dia">Próximo</button>
-          <input type="date" className="tarefas-data" value={dia} onChange={(e) => e.target.value && ir(e.target.value)} aria-label="Ir para o dia" />
+          <CampoData rotulo="Ir para o dia" valor={dia} aoMudar={(d) => d && ir(d)} semLimpar />
         </div>
         <div className="tarefas-grupo tarefas-fim">
           {mostradas.length > 0 && (
