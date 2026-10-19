@@ -52,6 +52,8 @@
   background: none; border: 0; border-radius: calc(var(--raio-c) - 6px); cursor: pointer;
   transition: background-color var(--dur-rapida) var(--curva);
 }
+.selecao-opcao[data-separar] { margin-top: 7px; position: relative; }
+.selecao-opcao[data-separar]::before { content: ""; position: absolute; left: 4px; right: 4px; top: -4px; height: 1px; background: var(--linha); }
 .selecao-opcao:hover { background: var(--realce); }
 .selecao-opcao:focus-visible { outline-offset: -3px; }
 .selecao-opcao[aria-pressed="true"] { font-weight: 600; }

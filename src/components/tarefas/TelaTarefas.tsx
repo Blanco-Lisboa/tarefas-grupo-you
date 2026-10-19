@@ -64,7 +64,8 @@ export function TelaTarefas() {
   const nomeEmpresa = (id: string) => empresas.find((e) => e.id === id)?.nome ?? id;
   // Só pela data/hora: a ordenação é estável, então quem não tem horário (mesmo início) fica na ordem em que foi criado, igual à Fila do Mapa.
   const porHora = (a: Tarefa, b: Tarefa) => (a.inicio ?? "").localeCompare(b.inicio ?? "");
-  const visiveis = aplicar(tarefas);
+  // Tarefa sem empresa aparece sempre: o filtro de empresa não a esconde.
+  const visiveis = tarefas.filter((t) => !t.empresaId || aplicar([t]).length);
   const doDia = visiveis.filter((t) => t.inicio?.slice(0, 10) === dia).sort(porHora);
   const doDiaSeguinte = visiveis.filter((t) => t.inicio?.slice(0, 10) === somarDias(dia, 1)).sort(porHora);
   const mostradas = aba === "dia" ? doDia : visiveis.filter((t) => !t.inicio);
@@ -73,7 +74,8 @@ export function TelaTarefas() {
   const linhas: (LinhaFolha | null)[] = grade.map((t) => t && {
     id: t.id,
     titulo: t.titulo,
-    detalhe: [nomeEmpresa(t.empresaId), NOMES[t.responsavel], aba === "dia" && !horaDe(t) ? "dia inteiro" : ""].filter(Boolean).join(" · "),
+    empresa: t.empresaId ? { id: t.empresaId, nome: nomeEmpresa(t.empresaId) } : undefined,
+    detalhe: [NOMES[t.responsavel], aba === "dia" && !horaDe(t) ? "dia inteiro" : ""].filter(Boolean).join(" · "),
     feita: !!t.concluida,
     cor: t.cor,
     responsavel: t.responsavel,
@@ -182,6 +184,7 @@ export function TelaTarefas() {
     criarPara: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, id: undefined, responsavel: quem, concluida: false }))(id),
     marcarPessoa: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, responsavel: quem }))(id),
     etiqueta: (id: string, cor: Etiqueta) => comTarefa((t) => void salvarTarefa({ ...t, cor }))(id),
+    empresa: (id: string, empresaId: string) => comTarefa((t) => void salvarTarefa({ ...t, empresaId }))(id),
   };
   const tag = hoje === dia && aba === "dia" ? "Hoje · " : "";
 
@@ -225,6 +228,7 @@ export function TelaTarefas() {
             rotulos={rotulos}
             vazio={aba === "dia" ? "Nada marcado para este dia. Escreva aqui." : "Nenhuma tarefa sem data. Escreva aqui."}
             empresas={empresasEscolha}
+            empresasMenu={empresas}
             empresaPadrao={empresasEscolha[0]?.id ?? ""}
             aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
             aoMarcar={(id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}

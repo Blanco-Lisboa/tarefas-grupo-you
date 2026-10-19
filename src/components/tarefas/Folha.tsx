@@ -8,9 +8,10 @@ import { horaDoSlot, SLOTS } from "./grade";
 import { ETIQUETAS, MenuTarefa, type Acoes } from "./MenuTarefa";
 import "./caderno.css";
 
-export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; cor?: string; responsavel?: Responsavel };
+export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao };
+export type Opcao = { id: string; nome: string };
+const NENHUMA = "nenhuma"; // valor do seletor; a tarefa sem empresa guarda empresaId ""
 const HORAS = Array.from({ length: SLOTS }, (_, k) => horaDoSlot(k));
-type Opcao = { id: string; nome: string };
 
 type Props = {
   letra: OpcaoLetra;
@@ -21,7 +22,10 @@ type Props = {
   /** Texto da margem, por linha (o horário). */
   rotulos?: string[];
   vazio: string;
+  /** Empresas do seletor "Nova tarefa em" (respeitam o filtro de cima). */
   empresas: Opcao[];
+  /** Todas as empresas, para trocar a empresa de uma tarefa pelo ⋮. */
+  empresasMenu?: Opcao[];
   empresaPadrao: string;
   /** Sem estes a folha é só para olhar (página de escolha da letra). */
   aoMarcar?: (id: string) => void;
@@ -42,13 +46,13 @@ const giro = (id: string) => (([...id].reduce((s, c) => s + c.charCodeAt(0), 0) 
 // Estouro do check (mesmas posições do CRM): 12 pontos de tinta e 4 riscos, só ao marcar.
 const PONTOS = [[25, -25], [-25, -25], [25, 25], [-25, 25], [35, 0], [-35, 0], [0, 35], [0, -35], [20, -30], [-20, 30], [30, 20], [-30, -20]];
 
-export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empresas, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoMover, acoes, aoEscrever, continua }: Props) {
+export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empresas, empresasMenu, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoMover, acoes, aoEscrever, continua }: Props) {
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [estourando, setEstourando] = useState<string | null>(null);
   const [texto, setTexto] = useState<{ linha: number; valor: string }>({ linha: -1, valor: "" });
   const [empresa, setEmpresa] = useState<string | null>(null);
   const [resp, setResp] = useState<Responsavel>("natham");
-  const empresaAtual = empresa && empresas.some((e) => e.id === empresa) ? empresa : empresaPadrao;
+  const empresaAtual = empresa === NENHUMA ? NENHUMA : empresa && empresas.some((e) => e.id === empresa) ? empresa : empresaPadrao;
   const primeiraVazia = linhas.findIndex((l) => !l);
 
   // Caderno aberto: quantas linhas cabem em cada página (as duas têm a mesma altura e o mesmo vão de cima). No celular tudo fica na primeira.
@@ -151,6 +155,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
                 <button type="button" className="abrir" disabled={!aoAbrir} title="Abrir a ficha" onClick={() => aoAbrir?.(l.id)}>
                   <span className="folha-tinta risco">{l.titulo}</span>
                 </button>
+                {l.empresa && <span className="linha-empresa"><SeloEmpresa empresaId={l.empresa.id} nome={l.empresa.nome} tamanho={20} /></span>}
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
                 {(() => { const e = ETIQUETAS.find((x) => x.cor && x.valor === l.cor); return e && (
                   <span className="linha-etq" style={{ "--e": `var(--${e.valor})`, "--et": `var(--${e.valor}-texto)` } as CSSProperties}>{e.rotulo}</span>
@@ -163,7 +168,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
                   <button type="button" className="confirmar-nao" autoFocus onClick={() => setConfirmando(null)}>Manter</button>
                 </span>
               ) : acoes ? (
-                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} horas={HORAS} acoes={acoes} aoExcluir={() => setConfirmando(l.id)} />
+                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} acoes={acoes} aoExcluir={() => setConfirmando(l.id)} />
               ) : (
                 <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => setConfirmando(l.id)}>
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>
@@ -177,7 +182,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
                 e.preventDefault();
                 const t = texto.valor.trim();
                 if (!t || !empresaAtual) return;
-                aoEscrever(t, empresaAtual, resp, k);
+                aoEscrever(t, empresaAtual === NENHUMA ? "" : empresaAtual, resp, k);
                 setTexto({ linha: -1, valor: "" });
               }}
             >
@@ -216,7 +221,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
             <span className="folha-quem-rotulo">Nova tarefa em</span>
             <Selecao
               rotulo="Empresa" soIcone multipla={false} valor={[empresaAtual]} aoMudar={([v]) => v && setEmpresa(v)}
-              opcoes={empresas.map((e) => ({ valor: e.id, rotulo: e.nome, antes: <SeloEmpresa empresaId={e.id} nome={e.nome} tamanho={18} /> }))}
+              opcoes={[...empresas.map((e) => ({ valor: e.id, rotulo: e.nome, antes: <SeloEmpresa empresaId={e.id} nome={e.nome} tamanho={18} /> })), { valor: NENHUMA, rotulo: "Nenhuma", separar: true }]}
             />
             <Selecao
               rotulo="Responsável" multipla={false} valor={[resp]} aoMudar={([v]) => v && setResp(v as Responsavel)}

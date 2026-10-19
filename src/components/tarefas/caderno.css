@@ -93,6 +93,7 @@
 /* Uma tarefa = uma linha do papel: o título encurta com "…" e a pessoa/etiqueta ficam junto, sem quebrar nem empurrar a pauta */
 .linha-texto { flex: 1; min-width: 0; display: flex; align-items: center; height: var(--passo); font-size: calc(22px * var(--escala)); line-height: var(--passo); }
 .linha-texto .abrir { display: block; flex: 0 1 auto; min-width: 3ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.linha-empresa { flex: none; display: inline-flex; align-items: center; margin-left: var(--s-12); font-size: calc(16px * var(--escala)); line-height: 1; }
 .linha .detalhe { flex: none; font-size: calc(16px * var(--escala)); line-height: 1; margin-left: var(--s-12); white-space: nowrap; }
 .linha-etq { flex: none; margin-left: var(--s-8); padding: 3px 8px; border-radius: var(--raio-b); background: var(--e); color: var(--et); font: 600 var(--t-12) / 1 var(--fonte); }
 
@@ -211,9 +212,10 @@
   .folha { --margem-x: 8px; }
   .folha-quem { padding-inline: var(--s-12); }
   .linha-miolo { padding-left: var(--s-4); }
-  .linha-texto { display: block; height: auto; }
-  .linha-texto .abrir { display: inline; white-space: normal; overflow: visible; }
-  .linha .detalhe { display: block; margin: 0; white-space: normal; line-height: 1.1; padding-bottom: var(--s-4); }
+  .linha-texto { flex-wrap: wrap; align-items: center; height: auto; }
+  .linha-texto .abrir { flex: 1 0 100%; display: block; white-space: normal; overflow: visible; text-align: left; }
+  .linha-empresa { margin: 0 var(--s-8) var(--s-4) 0; }
+  .linha .detalhe { margin: 0; white-space: normal; line-height: 1.1; padding-bottom: var(--s-4); }
   .agenda .pag-miolo { padding-inline: var(--s-12); }
   .ag-blocos { grid-template-columns: minmax(0, 1fr); }
 }

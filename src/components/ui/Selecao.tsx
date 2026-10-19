@@ -6,7 +6,7 @@ import "./selecao.css";
 // toda tela que filtra ou escolhe entre opções usa este componente, ninguém faz o seu próprio.
 // Desenho do modelo 1 Névoa (item 60): botão em vidro branco; a lista é um painel de vidro que flutua.
 // A lista abre por cima de tudo (popover do navegador: fecha com Esc ou clique fora) e se prende ao botão (anchor).
-export type Opcao = { valor: string; rotulo: string; antes?: ReactNode };
+export type Opcao = { valor: string; rotulo: string; antes?: ReactNode; /** Linha fina acima desta opção (ex.: "Nenhuma", no fim da lista). */ separar?: boolean };
 
 type Props = {
   rotulo: string;
@@ -82,7 +82,7 @@ export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotul
             </button>
           )}
           {opcoes.map((o) => (
-            <button key={o.valor} type="button" className="selecao-opcao" aria-pressed={valor.includes(o.valor)} onClick={() => escolher(o.valor)}>
+            <button key={o.valor} type="button" className="selecao-opcao" data-separar={o.separar || undefined} aria-pressed={valor.includes(o.valor)} onClick={() => escolher(o.valor)}>
               <span className="selecao-marca" aria-hidden />
               {o.antes}
               <span className="selecao-opcao-rotulo">{o.rotulo}</span>

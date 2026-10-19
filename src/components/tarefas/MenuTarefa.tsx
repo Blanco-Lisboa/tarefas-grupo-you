@@ -1,6 +1,7 @@
 "use client";
 import { useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { Etiqueta, Responsavel } from "@/lib/dados";
+import { SeloEmpresa } from "@/components/ui/Marca";
 import "@/components/ui/selecao.css";
 import "./caderno.css";
 
@@ -13,6 +14,8 @@ export type Acoes = {
   criarPara: (id: string, quem: Responsavel) => void;
   marcarPessoa: (id: string, quem: Responsavel) => void;
   etiqueta: (id: string, cor: Etiqueta) => void;
+  /** empresaId "" = sem empresa. */
+  empresa: (id: string, empresaId: string) => void;
 };
 
 const PESSOAS: { valor: Responsavel; rotulo: string }[] = [{ valor: "natham", rotulo: "Natham" }, { valor: "matheus", rotulo: "Matheus" }];
@@ -32,16 +35,18 @@ type Props = {
   titulo: string;
   cor: string;
   responsavel: Responsavel;
+  empresaId: string;
+  empresas: { id: string; nome: string }[];
   /** Linhas de horário (rótulos "07:00"...), para "Marcar horário". */
   horas: string[];
   acoes: Acoes;
   aoExcluir: () => void;
 };
 
-export function MenuTarefa({ id, titulo, cor, responsavel, horas, acoes, aoExcluir }: Props) {
+export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, acoes, aoExcluir }: Props) {
   const uid = useId();
   const pop = useRef<HTMLDivElement>(null);
-  const [vista, setVista] = useState<"menu" | "hora" | "criar" | "pessoa">("menu");
+  const [vista, setVista] = useState<"menu" | "hora" | "criar" | "pessoa" | "empresa">("menu");
   const ancora = `--menu-${uid.replace(/[^\w-]/g, "")}`;
   const feito = (f: () => void) => () => { f(); pop.current?.hidePopover(); };
   const pessoas = (aoEscolher: (q: Responsavel) => void, marcada?: Responsavel) => (
@@ -88,6 +93,10 @@ export function MenuTarefa({ id, titulo, cor, responsavel, horas, acoes, aoExclu
                 <Pessoa />
                 <span className="selecao-opcao-rotulo">Marcar pessoa…</span>
               </button>
+              <button type="button" className="selecao-opcao" onClick={() => setVista("empresa")}>
+                <Icone><path d="M4 17V4h8v13M12 8h4v9M2.5 17h15M7 7.5h2M7 11h2" /></Icone>
+                <span className="selecao-opcao-rotulo">Mudar empresa…</span>
+              </button>
               <p className="mt-titulo">Etiqueta</p>
               <div className="mt-etiquetas">
                 {ETIQUETAS.map((e) => (
@@ -114,6 +123,20 @@ export function MenuTarefa({ id, titulo, cor, responsavel, horas, acoes, aoExclu
             </>
           )}
           {vista === "criar" && pessoas((q) => acoes.criarPara(id, q))}
+          {vista === "empresa" && (
+            <>
+              <button type="button" className="selecao-opcao mt-voltar" onClick={() => setVista("menu")}>‹ Voltar</button>
+              {empresas.map((e) => (
+                <button key={e.id} type="button" className="selecao-opcao" aria-pressed={empresaId === e.id || undefined} onClick={feito(() => acoes.empresa(id, e.id))}>
+                  <SeloEmpresa empresaId={e.id} nome={e.nome} tamanho={18} />
+                  <span className="selecao-opcao-rotulo">{e.nome}</span>
+                </button>
+              ))}
+              <button type="button" className="selecao-opcao" data-separar aria-pressed={!empresaId || undefined} onClick={feito(() => acoes.empresa(id, ""))}>
+                <span className="selecao-opcao-rotulo">Nenhuma</span>
+              </button>
+            </>
+          )}
           {vista === "pessoa" && pessoas((q) => acoes.marcarPessoa(id, q), responsavel)}
         </div>
       </div>
