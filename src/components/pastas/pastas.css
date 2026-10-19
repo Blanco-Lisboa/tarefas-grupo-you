@@ -144,24 +144,26 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 
 /* =================== layout da tela =================== */
 /* Ponta a ponta (item 46). Cada empresa é uma faixa: nome + contagem e uma linha embaixo; as pastas ficam soltas sobre o fundo. */
-.pastas { display: grid; gap: var(--app-respiro); }
-.pastas-topo h1 { font-size: var(--app-t-titulo); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); line-height: var(--titulo-entrelinha); color: var(--texto); margin: 0 0 var(--s-4); }
+.pastas { display: grid; gap: var(--s-8); }
+/* cabeçalho em uma linha só: título e a explicação ao lado */
+.pastas-topo { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-4) var(--s-16); }
+.pastas-topo h1 { font-size: var(--app-t-titulo); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); line-height: var(--titulo-entrelinha); color: var(--texto); margin: 0; }
 .pastas-topo p { margin: 0; color: var(--fraco); font-size: var(--app-t-texto); max-width: 60ch; }
 .pastas-vazio { margin: 0; color: var(--fraco); }
 
-.pastas-empresa { display: grid; gap: var(--app-respiro); padding-top: var(--app-respiro); border-top: 1px solid var(--linha); }
+.pastas-empresa { display: grid; gap: 0; padding-top: var(--s-8); border-top: 1px solid var(--linha); }
 .pastas-empresa h2 { margin: 0; display: flex; align-items: center; gap: var(--s-12); font-size: var(--app-t-secao); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); color: var(--texto); }
 .pastas-empresa h2 small { font-size: var(--app-t-rotulo); font-weight: 500; color: var(--fraco); }
-.pastas-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s-48) var(--s-24); padding: var(--s-8) 0 var(--s-16); }
+/* o topo vazio de cada pasta (reservado ao leque) sobe por cima da linha do título; o leque aberto cobre o título */
+.pastas-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s-8) var(--s-24); margin-top: calc(-1 * var(--s-24)); padding: 0 0 var(--s-48); }
 /* telas largas: as pastas de uma empresa numa linha só (6 na You, a partir de 1800) */
-@media (min-width: 1400px) { .pastas-grade { grid-template-columns: repeat(5, minmax(0, 1fr)); column-gap: var(--s-16); } }
-@media (min-width: 1800px) { .pastas-grade { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (min-width: 1400px) { .pastas-grade { grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: var(--s-16); } }
 .pastas-cel { min-width: 0; display: flex; flex-direction: column; align-items: stretch; }
 
 /* ver todas: lista completa da pasta, para baixar quando passa das 4 do leque */
-.gf-todas { align-self: center; margin-top: var(--s-8); min-height: var(--app-controle); padding: var(--s-4) var(--s-16); border-radius: var(--raio-b); cursor: pointer; font: 500 var(--app-t-texto) var(--fonte); color: var(--texto); background: var(--vidro); border: 1px solid var(--vidro-linha); box-shadow: var(--sombra); transition: background var(--dur-rapida) var(--curva); }
+.gf-todas { min-height: var(--app-controle); padding: var(--s-4) var(--s-16); border-radius: var(--raio-b); cursor: pointer; font: 500 var(--app-t-texto) var(--fonte); color: var(--texto); background: var(--vidro); border: 1px solid var(--vidro-linha); box-shadow: var(--sombra); transition: background var(--dur-rapida) var(--curva); }
 .gf-todas:hover { background: var(--sup); }
-.gf-lista { list-style: none; margin: var(--s-8) 0 0; padding: var(--s-4); display: grid; gap: 1px; background: var(--vidro-forte); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra-lista); -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); }
+.gf-lista { list-style: none; margin: calc(var(--app-controle) + var(--s-4)) 0 0; padding: var(--s-4); display: grid; gap: 1px; background: var(--vidro-forte); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra-lista); -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); }
 .gf-lista a, .gf-lista button { all: unset; box-sizing: border-box; width: 100%; display: flex; justify-content: space-between; gap: var(--s-12); padding: var(--s-8) var(--s-12); border-radius: var(--raio-b); cursor: pointer; color: var(--texto); font: 500 var(--app-t-texto) var(--fonte); }
 .gf-lista a:hover, .gf-lista button:hover { background: var(--realce); }
 .gf-lista a:focus-visible, .gf-lista button:focus-visible { outline: 1px solid var(--azul); outline-offset: -2px; }
@@ -239,3 +241,6 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .ideia-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); }
 .pasta-excluir { color: var(--atrasado); }
 .card-flut .ficha-anexos { padding-top: 0; }
+
+/* Nova folha e Ver todas: lado a lado, no vão embaixo da pasta (não ocupam linha) */
+.gf-barra { display: flex; justify-content: center; gap: var(--s-8); margin: calc(-1 * var(--s-4)) 0 calc(-1 * var(--app-controle)); position: relative; z-index: 2; }

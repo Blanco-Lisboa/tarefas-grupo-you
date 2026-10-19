@@ -35,7 +35,24 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
       </h2>
       <div className="pastas-grade">
         {pastas.map((pasta, i) => {
-          const { rotulo, vazio } = { rotulo: pasta.nome, vazio: pasta.vazio };
+          const { nome: rotulo, vazio } = pasta;
+          if (pasta.ideias) {
+            return (
+              <div key={pasta.id} className="pastas-cel">
+                <PastaDeVidro
+                  rotulo={rotulo}
+                  legenda={nIdeias(ideias.length)}
+                  tom={tom}
+                  arte={receitaDaEmpresa("story", empresa.id)}
+                  seed={19}
+                  atraso={i * 120}
+                  acoes={<MenuPasta nome={rotulo} aoRenomear={() => setNome({ id: pasta.id })} aoExcluir={() => setExcluir(pasta)} />}
+                  arquivos={categorias.map((c) => ({ nome: c, meta: nIdeias(ideias.filter((x) => x.categoria === c).length), arte: receitaDaEmpresa("story", empresa.id) }))}
+                  onSelecionar={(a) => setAberto({ ideias: a.nome })}
+                />
+              </div>
+            );
+          }
           const daPasta = pecasDaPasta(pecas, pasta);
           const arte = receitaDaEmpresa(pasta.tipo ?? "post", empresa.id);
           return (
@@ -58,18 +75,6 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
             </div>
           );
         })}
-        <div className="pastas-cel">
-          <PastaDeVidro
-            rotulo="Ideias de conteúdo"
-            legenda={nIdeias(ideias.length)}
-            tom={tom}
-            arte={receitaDaEmpresa("story", empresa.id)}
-            seed={19}
-            atraso={pastas.length * 120}
-            arquivos={categorias.map((c) => ({ nome: c, meta: nIdeias(ideias.filter((i) => i.categoria === c).length), arte: receitaDaEmpresa("story", empresa.id) }))}
-            onSelecionar={(a) => setAberto({ ideias: a.nome })}
-          />
-        </div>
       </div>
       {nome && (
         <CardNome
@@ -83,7 +88,7 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
       {excluir_ && (
         <CardExcluir
           pasta={excluir_}
-          pecas={pecasDaPasta(pecas, excluir_).length}
+          itens={excluir_.ideias ? ideias.length : pecasDaPasta(pecas, excluir_).length}
           aoConfirmar={() => { excluir(excluir_.id); setExcluir(null); }}
           aoFechar={() => setExcluir(null)}
         />
@@ -141,12 +146,12 @@ function CardNome({ titulo, inicial, emUso, aoSalvar, aoFechar }: { titulo: stri
   );
 }
 
-function CardExcluir({ pasta, pecas, aoConfirmar, aoFechar }: { pasta: Pasta; pecas: number; aoConfirmar: () => void; aoFechar: () => void }) {
+function CardExcluir({ pasta, itens, aoConfirmar, aoFechar }: { pasta: Pasta; itens: number; aoConfirmar: () => void; aoFechar: () => void }) {
   return (
     <CardFlutuante titulo="Excluir pasta" aoFechar={aoFechar}>
-      {pecas > 0 ? (
+      {itens > 0 ? (
         <>
-          <p className="pasta-texto">A pasta “{pasta.nome}” tem {pecas === 1 ? "1 peça" : `${pecas} peças`} e não pode ser excluída. Só pastas vazias saem: apague ou mova as peças antes.</p>
+          <p className="pasta-texto">A pasta “{pasta.nome}” tem {pasta.ideias ? nIdeias(itens) : itens === 1 ? "1 peça" : `${itens} peças`} e não pode ser excluída. Só pastas vazias saem: apague {pasta.ideias ? "as ideias" : "as peças"} antes.</p>
           <button type="button" className="btn btn-2" onClick={aoFechar}>Entendi</button>
         </>
       ) : (

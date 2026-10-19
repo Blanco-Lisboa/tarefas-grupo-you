@@ -61,7 +61,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
     if (!el) return;
     const medir = () => {
       setDpr(window.devicePixelRatio || 1);
-      setLargura(Math.max(220, Math.min(340, Math.floor(el.clientWidth))));
+      setLargura(Math.max(150, Math.min(340, Math.floor(el.clientWidth))));
     };
     const ro = new ResizeObserver(medir);
     ro.observe(el);
@@ -228,12 +228,18 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
       </div>
       {acoes && <div className="gf-acoes" style={{ top: (ALTURA_ABA + 232) * k - 16, right: 20 * k }}>{acoes}</div>}
     </div>
-    {aoNovaFolha && (aberta || lista) && <button type="button" className="gf-todas gf-nova" onClick={aoNovaFolha}>+ Nova folha</button>}
+    {((aoNovaFolha && (aberta || lista)) || n > VISIVEIS) && (
+      <div className="gf-barra">
+        {aoNovaFolha && (aberta || lista) && <button type="button" className="gf-todas gf-nova" onClick={aoNovaFolha}>+ Nova folha</button>}
+        {n > VISIVEIS && (
+          <button type="button" className="gf-todas" aria-expanded={lista} onClick={() => setLista(!lista)}>
+            {lista ? "Esconder lista" : `Ver todas (${n})`}
+          </button>
+        )}
+      </div>
+    )}
     {n > VISIVEIS && (
       <>
-        <button type="button" className="gf-todas" aria-expanded={lista} onClick={() => setLista(!lista)}>
-          {lista ? "Esconder lista" : `Ver todas (${n})`}
-        </button>
         {lista && (
           <ul className="gf-lista" aria-label={`Todas as peças de ${rotulo}`}>
             {arquivos.map((f) => (

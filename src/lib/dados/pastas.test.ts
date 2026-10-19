@@ -1,18 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { criarPasta, excluirPasta, lerPastas, nomeEmUso, renomearPasta } from "./pastas";
 
+const nomes = (e: string) => lerPastas(e).map((p) => p.nome);
+
 describe("pastas", () => {
   it("cria vazia só naquela empresa, renomeia e exclui", () => {
     criarPasta("beec", "Teste");
-    expect(lerPastas("beec").at(-1)!.nome).toBe("Teste");
-    expect(lerPastas("beec").at(-1)!.tipo).toBeUndefined();
-    expect(lerPastas("you").map((p) => p.nome)).not.toContain("Teste");
-    const id = lerPastas("beec").at(-1)!.id;
-    renomearPasta("beec", id, " Teste 2 ");
-    expect(lerPastas("beec").at(-1)!.nome).toBe("Teste 2");
+    expect(nomes("beec")).toEqual(["Posts", "Carrosséis", "Vídeos", "Stories", "Teste", "Ideias de conteúdo"]); // Ideias sempre por último
+    const nova = lerPastas("beec").find((p) => p.nome === "Teste")!;
+    expect(nova.tipo).toBeUndefined();
+    expect(nomes("you")).not.toContain("Teste");
+    renomearPasta("beec", nova.id, " Teste 2 ");
+    expect(nomes("beec")).toContain("Teste 2");
     expect(nomeEmUso(lerPastas("beec"), "teste 2")).toBe(true);
-    expect(nomeEmUso(lerPastas("beec"), "teste 2", id)).toBe(false);
-    excluirPasta("beec", id);
-    expect(lerPastas("beec").map((p) => p.nome)).toEqual(["Posts", "Carrosséis", "Vídeos", "Stories"]);
+    expect(nomeEmUso(lerPastas("beec"), "teste 2", nova.id)).toBe(false);
+    excluirPasta("beec", nova.id);
+    expect(nomes("beec")).toEqual(["Posts", "Carrosséis", "Vídeos", "Stories", "Ideias de conteúdo"]);
   });
 });
