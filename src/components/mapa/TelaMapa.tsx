@@ -197,7 +197,7 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
       <span className="mapa-bolinha" aria-hidden />
       <div className="mapa-bloco">
         <span className="mapa-data" data-alvo>{nomeSemana(dia)}, {diaCurto(dia)}</span>
-        <div className="mapa-pilha" data-n={ts.length} data-aberta={leque}>
+        <div className="mapa-pilha" data-n={ts.length} data-aberta={leque} style={{ "--n": ts.length } as CSSProperties}>
           {ts.length === 1 && <span className="mapa-fantasma" aria-hidden />}
           {ts.map((t, i) => {
             const postado = foiPostado(t);
@@ -205,6 +205,7 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
             const tom = tomDaEmpresa(t.empresaId);
             return (
               <button key={t.id} type="button" className="mapa-card" data-postado={postado} style={{ "--i": i, "--tag": tom.r, "--tag-escuro": tom.g } as CSSProperties} onClick={() => clicar(t)}>
+                <span className="mapa-faixa-titulo" aria-hidden>{objetivoDe(t)}</span>
                 <span className="mapa-objetivo" data-alvo>{objetivoDe(t)}</span>
                 <span className="mapa-info">
                   <span className="mapa-tag" data-alvo>{empresa}</span>
