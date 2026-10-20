@@ -57,7 +57,7 @@ export function TelaFazendoAgora() {
     <div className="fa">
       <header className="fa-topo">
         <h1>Marcador “fazendo agora” no card</h1>
-        <p>O mesmo card de Conteúdos em cada coluna. O marcador verde mostra qual tarefa cada pessoa está executando e quem é; todos veem a de todos, então aparece um card do Matheus e um do Natham. Passe o mouse no marcador para ver o nome.</p>
+        <p>O mesmo card da Esteira em cada coluna. O marcador verde mostra qual tarefa cada pessoa está executando e quem é; todos veem a de todos, então aparece um card do Matheus e um do Natham. Passe o mouse no marcador para ver o nome.</p>
       </header>
       <div className="fa-colunas">
         <section className="fa-bloco">

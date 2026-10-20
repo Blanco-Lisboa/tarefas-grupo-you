@@ -245,7 +245,7 @@ Fotos dele em `docs/referencias/2026-10-19-rodada-4/` (01 a 11). Instruções: `
 
 - [x] 183 · Nome da tela (21/10): "quero mudar o nome do menu de 'Conteúdos' para Esteira... melhor pra identificar" = menu lateral e título da tela passam a "Esteira". Endereço `/conteudos` e usos de "conteúdo" como objeto permanecem · estado: FEITO no código, NÃO publicado
 
-- [x] 180d · Decisão do Natham (21/10) sobre a luz do item 180: luz SÓ no card sozinho; pilhas do Mapa ficam sem luz · estado: ANOTADO, visual do Mapa mantido
+- [x] 180, complemento · Decisão do Natham (21/10): luz SÓ no card sozinho; pilhas do Mapa ficam sem luz · estado: ANOTADO, visual do Mapa mantido
 
 - [x] 180c · Mapa, card solto (21/10, print 180c-print-quebra-baixo.png): "a 'quebra' na parte de baixo do card ainda continua. resolva isso. Deixe esses cards também um pouco mais claro, pouca coisa." · causa medida (pixel a pixel, 1x, 1,25x e 1,5x, igual nas três; não era arredondamento da escala): o filete branco translúcido do trilho (180b) virava 1px quase branco (248,250,253) colado na sombra escura logo abaixo (220), uma faixa clara na base. Agora o trilho tem a cor do vidro (76,81,97), sem linha clara; vidro 15% mais claro (de 66,72,87 para 76,81,97), texto branco segue legível; luz girando, raio 10px e sombra padrão mantidos · só `mapa.css` · estado: FEITO, fotos antes/depois em provas/r21-borda-baixo/, NÃO publicado
 

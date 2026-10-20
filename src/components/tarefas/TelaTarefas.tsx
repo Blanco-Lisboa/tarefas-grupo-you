@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { doCaderno, horaDe, horaDoSlot, minutos, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { doCaderno, ehConteudo, horaDe, horaDoSlot, minutos, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -87,7 +87,7 @@ export function TelaTarefas() {
     feita: !!t.concluida,
     cor: t.cor,
     responsavel: t.responsavel,
-    enviadaPor: t.enviadaPor ? NOMES[t.enviadaPor] : undefined,
+    enviadaPor: !ehConteudo(t) && t.enviadaPor ? NOMES[t.enviadaPor] : undefined,
     podeAlterar: podeAlterar(t, eu),
     podeApagar: podeApagar(t, eu),
   });
@@ -192,7 +192,7 @@ export function TelaTarefas() {
     duplicar: comTarefa((t) => void salvarTarefa({ ...noDiaSeguinte(t), id: undefined, concluida: false })),
     mover: comTarefa((t) => void salvarTarefa(noDiaSeguinte(t))),
     marcarHora: moverPara,
-    criarPara: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, id: undefined, responsavel: quem, enviarPara: quem, concluida: false }))(id),
+    criarPara: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, id: undefined, responsavel: quem, enviarPara: ehConteudo(t) ? undefined : quem, concluida: false }))(id),
     marcarPessoa: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, responsavel: quem }))(id),
     etiqueta: (id: string, cor: Etiqueta) => comTarefa((t) => void salvarTarefa({ ...t, cor }))(id),
     empresa: (id: string, empresaId: string) => comTarefa((t) => void salvarTarefa({ ...t, empresaId }))(id),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { doCaderno, daMinhaLista, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, daMinhaLista, ehConteudo, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS } from "./grade";
 import { notaDaChave } from "./notas";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
@@ -78,5 +78,24 @@ describe("lista pessoal compartilhada pelas telas", () => {
   });
   it("sem usuário identificado só mostra conteúdo com empresa", () => {
     expect([privada, deEmpresa, minha].filter((tarefa) => daMinhaLista(tarefa, null)).map((tarefa) => tarefa.id)).toEqual(["empresa"]);
+  });
+});
+
+describe("separação entre tarefa do caderno e conteúdo", () => {
+  const base = { ...t("base"), tipo: "postagem", etapa: "roteiro", empresaId: "beec" } as Tarefa;
+
+  it("exige etapa e empresa, independentemente do tipo", () => {
+    expect(ehConteudo(base)).toBe(true);
+    const outroTipo = { ...base, tipo: "roteiro" as const };
+    expect(ehConteudo(outroTipo)).toBe(true);
+    expect(ehConteudo({ ...base, empresaId: "" })).toBe(false);
+    expect(ehConteudo({ ...base, etapa: undefined })).toBe(false);
+  });
+
+  it("mantém a tarefa pessoal no caderno e na lista do calendário", () => {
+    const pessoal = { ...base, empresaId: "", dono: "matheus", responsavel: "matheus" } as Tarefa;
+    expect(doCaderno(pessoal, "matheus")).toBe(true);
+    expect(daMinhaLista(pessoal, "matheus")).toBe(true);
+    expect(ehConteudo(pessoal)).toBe(false);
   });
 });

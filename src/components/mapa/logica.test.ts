@@ -3,7 +3,7 @@ import type { Tarefa } from "@/lib/dados";
 import { ETAPAS_ATE_POSTAR, PASSO, conteudos, diasDoPeriodo, filaPorDia, foiPostado, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 
 const t = (id: string, tipo: Tarefa["tipo"], inicio?: string, extra: Partial<Tarefa> = {}): Tarefa => ({
-  id, titulo: id, tipo, empresaId: "beec", responsavel: "natham", inicio, diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra,
+  id, titulo: id, tipo, empresaId: "beec", etapa: "roteiro", responsavel: "natham", inicio, diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra,
 });
 
 describe("mapa", () => {
@@ -26,7 +26,7 @@ describe("mapa", () => {
   });
 
   it("só postagem com data vira nó, e o dia ignora o horário", () => {
-    const lista = conteudos([t("a", "postagem", "2026-10-20T12:00"), t("b", "gravacao", "2026-10-20T09:00"), t("c", "postagem")]);
+    const lista = conteudos([t("a", "postagem", "2026-10-20T12:00"), t("b", "gravacao", "2026-10-20T09:00"), t("c", "postagem"), t("pessoal", "postagem", "2026-10-20T09:00", { empresaId: "" }), t("sem-etapa", "postagem", "2026-10-20T09:00", { etapa: undefined })]);
     expect(lista.map((x) => x.id)).toEqual(["a"]);
   });
 
@@ -48,7 +48,7 @@ describe("fila por dia", () => {
     t("velho1", "postagem", "2026-10-17", { etapa: "gravacao" }),
     t("feito", "postagem", "2026-10-19", { etapa: "postado" }),
     t("roteiro-velho", "roteiro", "2026-10-07T10:00", { etapa: "roteiro" }), // não é postagem, mas é conteúdo atrasado
-    t("reuniao-velha", "reuniao", "2026-10-07T10:00"), // sem etapa: não é conteúdo
+    t("reuniao-velha", "reuniao", "2026-10-07T10:00", { etapa: undefined }), // sem etapa: não é conteúdo
     t("longe", "postagem", "2026-11-30", { etapa: "aprovado" }),
   ];
   const f = filaPorDia(lista, "2026-10-19");
@@ -75,5 +75,10 @@ describe("fila por dia", () => {
 
   it("textos de prazo", () => {
     expect([prazo(-2), prazo(0), prazo(1), prazo(9)]).toEqual(["Atrasado 2 dias", "Hoje", "Amanhã", "Em 9 dias"]);
+  });
+
+  it("não coloca tarefa pessoal na fila, mesmo se for postagem atrasada", () => {
+    const pessoal = t("pessoal", "postagem", "2026-10-18", { etapa: "roteiro", empresaId: "" });
+    expect(filaPorDia([pessoal], "2026-10-19")).toEqual([]);
   });
 });

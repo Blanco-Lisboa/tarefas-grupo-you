@@ -42,10 +42,13 @@ export function montarGrade(tarefas: Tarefa[], porHora: boolean): (Tarefa | null
 export const msAteMeiaNoite = (agora: Date): number =>
   new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1).getTime() - agora.getTime() + 500;
 
+/** Conteúdo de empresa tem etapa e empresa. Postagem sem empresa continua sendo tarefa pessoal do Caderno. */
+export const ehConteudo = (t: Pick<Tarefa, "etapa" | "empresaId">): boolean => !!(t.etapa && t.empresaId);
+
 /** O caderno de `de` = o que é DELE (dono; o banco não transfere dono ao trocar o responsável). Conteúdo com empresa segue o responsável. Sem `de`, tudo. */
 export const doCaderno = (t: Tarefa, de: string | null | undefined) =>
-  !de || (t.etapa && t.empresaId ? t.responsavel === de : (t.dono ?? t.responsavel) === de);
+  !de || (ehConteudo(t) ? t.responsavel === de : (t.dono ?? t.responsavel) === de);
 
 /** Nas listas pessoais, conteúdo com empresa aparece para todos; o restante segue o dono do Caderno. */
 export const daMinhaLista = (t: Tarefa, eu: string | null | undefined) =>
-  !!(t.etapa && t.empresaId) || (!!eu && doCaderno(t, eu));
+  ehConteudo(t) || (!!eu && doCaderno(t, eu));

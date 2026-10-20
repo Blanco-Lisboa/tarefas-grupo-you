@@ -14,6 +14,7 @@
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { ehConteudo } from "@/components/tarefas/grade";
 import {
   APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, limparErro, podeApagar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas,
   type Etapa, type Etiqueta, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
@@ -76,7 +77,7 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
   useEffect(() => { if (enviou && !erro) aoFechar(); }, [enviou, erro, aoFechar]);
   const nova = !tarefa.id;
   const dono = tarefa.dono ?? tarefa.responsavel;
-  const fica = !nova && !soLer && !(t.etapa && t.empresaId) && t.responsavel !== dono ? dono : undefined; // o banco não deixa mudar o dono
+  const fica = !nova && !soLer && !ehConteudo(t) && t.responsavel !== dono ? dono : undefined; // o banco não deixa mudar o dono
   const lixeira = !nova && !soLer && podeApagar({ ...tarefa, id: tarefa.id! }, eu); // vale o que está no banco, não o que foi mudado na ficha
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
@@ -125,7 +126,7 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
     setEnviou(false);
     setSalvando(true);
     // Tarefa nova para outra pessoa vai para o caderno dela (achado 2, igual ao Caderno). Conteúdo com empresa todos já veem: fica de quem criou.
-    const enviarPara = nova && t.responsavel !== eu && !(t.etapa && t.empresaId) ? t.responsavel : undefined;
+    const enviarPara = nova && t.responsavel !== eu && !ehConteudo(t) ? t.responsavel : undefined;
     await salvarTarefa({
       ...t, ...quando, enviarPara, arquivos, aprovador: pedeAprovador ? t.aprovador : undefined, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),

@@ -6,7 +6,7 @@ import { Ficha, NOMES, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { IconeRede, SeloEmpresa, temLogo } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
-import { daMinhaLista } from "@/components/tarefas/grade";
+import { ehConteudo } from "@/components/tarefas/grade";
 import { ETAPAS, salvarTarefa, useEmpresas, useEu, useFazendo, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
@@ -44,9 +44,8 @@ function dataLegivel(inicio?: string) {
 }
 
 export function TelaConteudos() {
-  const todas = useTarefas();
+  const tarefas = useTarefas();
   const eu = useEu();
-  const tarefas = todas.filter((t) => daMinhaLista(t, eu));
   const empresas = useEmpresas();
   const tags = useTags();
   const fazendo = useFazendo();
@@ -58,7 +57,7 @@ export function TelaConteudos() {
   const quadro = useRef<HTMLDivElement>(null);
   const hoje = useSyncExternalStore(semAviso, hojeTexto, () => ""); // servidor: "" até hidratar (fuso)
   const [erro, setErro] = useState("");
-  const conteudos = aplicar(tarefas).filter((t): t is Tarefa & { etapa: Etapa } => !!t.etapa && ETAPAS.includes(t.etapa));
+  const conteudos = aplicar(tarefas).filter((t): t is Tarefa & { etapa: Etapa } => ehConteudo(t));
   const nomesEmpresas = new Map(empresas.map((e) => [e.id, e.nome]));
 
   async function mudarEtapa(tarefa: Tarefa, etapa: Etapa) {
@@ -116,7 +115,7 @@ export function TelaConteudos() {
       <header className="conteudos-cabecalho">
         <div>
           <div className="conteudos-quem">
-            <h1>Conteúdos</h1>
+            <h1>Esteira</h1>
             <FiltroEmpresa />
           </div>
           <p>Acompanhe cada conteúdo do roteiro à publicação.</p>
