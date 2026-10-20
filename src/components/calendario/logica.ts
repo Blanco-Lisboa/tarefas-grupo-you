@@ -88,8 +88,8 @@ export function mover(t: Tarefa, destino: Destino): NovaTarefa {
   const duracao = temHora && t.fim ? Math.round((deTexto(t.fim).getTime() - deTexto(t.inicio!).getTime()) / 60_000) : null;
   if (minuto !== undefined) {
     const inicio = comMinuto(dia, minuto);
-    const fim = duracao !== null ? somarMinutos(inicio, duracao) : temHora ? undefined : somarMinutos(inicio, 60);
-    return { ...t, inicio, fim, diaInteiro: false };
+    // Sem fim antes, sem fim depois (item 159: a ficha não tem mais Termina, então não se inventa 1 h escondida).
+    return { ...t, inicio, fim: duracao !== null ? somarMinutos(inicio, duracao) : undefined, diaInteiro: false };
   }
   // Solta num dia do mês/ano: troca só a data e mantém o horário.
   if (!temHora) return { ...t, inicio: dia, fim: undefined, diaInteiro: true };

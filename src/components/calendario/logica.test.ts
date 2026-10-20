@@ -33,7 +33,7 @@ describe("calendário", () => {
     expect(mover(base, { dia: "2026-10-20", diaInteiro: true })).toMatchObject({ inicio: "2026-10-20", fim: undefined, diaInteiro: true });
     expect(mover(base, null)).toMatchObject({ inicio: undefined, fim: undefined, diaInteiro: false });
     const semData = { ...base, inicio: undefined, fim: undefined };
-    expect(mover(semData, { dia: "2026-10-20", minuto: 540 })).toMatchObject({ inicio: "2026-10-20T09:00", fim: "2026-10-20T10:00" });
+    expect(mover(semData, { dia: "2026-10-20", minuto: 540 })).toMatchObject({ inicio: "2026-10-20T09:00", fim: undefined });
     expect(mover(semData, { dia: "2026-10-20" })).toMatchObject({ inicio: "2026-10-20", diaInteiro: true });
   });
 
