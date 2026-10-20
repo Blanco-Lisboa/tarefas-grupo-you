@@ -3,7 +3,7 @@
 import { useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from "react";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { Ficha, NOMES, tarefaEmBranco } from "@/components/ficha/Ficha";
-import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
+import { IconeRede, SeloEmpresa, temLogo } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { daMinhaLista } from "@/components/tarefas/grade";
@@ -153,6 +153,7 @@ export function TelaConteudos() {
                   const falta = prazo(tarefa, hoje);
                   const drive = linkDrive(tarefa);
                   const quemFazAgora = fazendo[tarefa.id]?.quem;
+                  const nomeEmpresa = tarefa.empresaId ? nomesEmpresas.get(tarefa.empresaId) : undefined;
                   return (
                   <div className="conteudos-cartao-sombra" data-vazio={!!levantado} data-fazendo={!!quemFazAgora} style={levantado ? { height: levantado.h } : undefined} key={tarefa.id}>
                   <article
@@ -171,10 +172,16 @@ export function TelaConteudos() {
                     )}
                     {/* Card do conteúdo (item 156): de quem é e onde sai, o quê, para quê, em que etapa está, quem faz e quando */}
                     <div className="conteudos-cartao-topo">
-                      <span className="conteudos-empresa" style={{ "--marca": tomDaEmpresa(tarefa.empresaId).r } as CSSProperties}>
-                        <SeloEmpresa empresaId={tarefa.empresaId} nome={nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"} tamanho={20} />
-                        <span className="conteudos-empresa-nome">{nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"}</span>
-                      </span>
+                      {tarefa.empresaId && (
+                        <span className="conteudos-empresa" style={{ "--marca": tomDaEmpresa(tarefa.empresaId).r } as CSSProperties}>
+                          {nomeEmpresa ? (
+                            <>
+                              <SeloEmpresa empresaId={tarefa.empresaId} nome={nomeEmpresa} tamanho={20} />
+                              {temLogo(tarefa.empresaId) && <span className="conteudos-empresa-nome">{nomeEmpresa}</span>}
+                            </>
+                          ) : <span className="conteudos-empresa-nome">Empresa removida</span>}
+                        </span>
+                      )}
                       {tarefa.arquivos.length > 0 && (
                         <span className="conteudos-clipe" title={`${tarefa.arquivos.length} anexo${tarefa.arquivos.length > 1 ? "s" : ""}`} aria-label={`${tarefa.arquivos.length} anexo${tarefa.arquivos.length > 1 ? "s" : ""}`}>
                           <svg viewBox="0 0 24 24" aria-hidden><path d="M21 12.5l-8.5 8.5a5.5 5.5 0 01-7.8-7.8L13.2 4.7a3.7 3.7 0 015.2 5.2l-8.5 8.5a1.9 1.9 0 01-2.6-2.6L14.6 7.5" /></svg>
