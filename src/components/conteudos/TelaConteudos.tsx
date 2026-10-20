@@ -6,7 +6,7 @@ import { Ficha, NOMES, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
-import { ETAPAS, salvarTarefa, useEmpresas, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { ETAPAS, salvarTarefa, useEmpresas, useEu, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { diasDeAtraso } from "@/lib/atraso";
@@ -41,6 +41,7 @@ function dataLegivel(inicio?: string) {
 
 export function TelaConteudos() {
   const tarefas = useTarefas();
+  const eu = useEu();
   const empresas = useEmpresas();
   const tags = useTags();
   const { aplicar } = useFiltroEmpresa();
@@ -133,7 +134,7 @@ export function TelaConteudos() {
                 <span className="conteudos-numero">{String(indice + 1).padStart(2, "0")}</span>
                 <h2>{nomes[etapa]}</h2>
                 <span className="conteudos-contagem">{itens.length}</span>
-                <button className="conteudos-novo" type="button" aria-label={`Novo conteúdo em ${nomes[etapa]}`} onClick={() => setAberta(tarefaEmBranco({ etapa }))}>+</button>
+                <button className="conteudos-novo" type="button" aria-label={`Novo conteúdo em ${nomes[etapa]}`} onClick={() => eu ? setAberta(tarefaEmBranco({ etapa, responsavel: eu })) : setErro("Aguarde a identificação da sua conta para criar um conteúdo.")}>+</button>
               </div>
               <div className="conteudos-pilha">
                 {itens.length === 0 && <p className="conteudos-vazio">Solte um conteúdo aqui.</p>}
