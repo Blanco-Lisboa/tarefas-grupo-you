@@ -108,6 +108,10 @@ async function carregar() {
 
 const semAcesso = "O banco não deixou salvar (sem permissão ou o item não existe mais).";
 
+/** A função public.salvar_tarefa só existe depois do 007. PGRST202 = a API não a encontrou (42883 = o Postgres não a achou). */
+let semSalvarTarefa = false;
+export const funcaoAusente = (e: { code?: string } | null) => e?.code === "PGRST202" || e?.code === "42883";
+
 export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   const id = nova.id ?? crypto.randomUUID();
   const antes = tarefas.find((t) => t.id === id);
@@ -121,18 +125,29 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   try {
     const sb = supabase();
     const campos = paraBanco(tarefa, idDe(tarefa.responsavel));
-    if (antes) {
-      const { data, error } = await sb.from("tarefas").update(campos).eq("id", id).select("id");
-      if (error) throw error;
-      if (!data?.length) throw new Error(semAcesso);
-    } else {
-      const { error } = await sb.from("tarefas").insert({ id, ...campos, dono_id: idDe(dono), criado_por: idDe(eu), enviada_por: dono !== eu ? idDe(eu) : null });
-      if (error) throw error;
+    const linha = { id, ...campos, responsavel_id: campos.responsavel_id ?? null, dono_id: idDe(dono), criado_por: idDe(eu), enviada_por: dono !== eu ? idDe(eu) : null };
+    // Caminho novo: tarefa e tags numa só chamada (007). Se a função ainda não existe no banco, segue pelo caminho antigo.
+    let gravada = false;
+    if (!semSalvarTarefa) {
+      const { error } = await sb.rpc("salvar_tarefa", { p: linha, p_tags: tarefa.tags ?? [] });
+      if (!error) gravada = true;
+      else if (funcaoAusente(error)) semSalvarTarefa = true;
+      else throw error;
     }
-    const a = (antes?.tags ?? []).join(), b = (tarefa.tags ?? []).join();
-    if (a !== b) {
-      if (antes) { const { error } = await sb.from("tarefa_tags").delete().eq("tarefa_id", id); if (error) throw error; }
-      if (tarefa.tags?.length) { const { error } = await sb.from("tarefa_tags").insert(tarefa.tags.map((tag_id) => ({ tarefa_id: id, tag_id }))); if (error) throw error; }
+    if (!gravada) {
+      if (antes) {
+        const { data, error } = await sb.from("tarefas").update(campos).eq("id", id).select("id");
+        if (error) throw error;
+        if (!data?.length) throw new Error(semAcesso);
+      } else {
+        const { error } = await sb.from("tarefas").insert(linha);
+        if (error) throw error;
+      }
+      const a = (antes?.tags ?? []).join(), b = (tarefa.tags ?? []).join();
+      if (a !== b) {
+        if (antes) { const { error } = await sb.from("tarefa_tags").delete().eq("tarefa_id", id); if (error) throw error; }
+        if (tarefa.tags?.length) { const { error } = await sb.from("tarefa_tags").insert(tarefa.tags.map((tag_id) => ({ tarefa_id: id, tag_id }))); if (error) throw error; }
+      }
     }
   } catch (e) {
     tarefas = antes ? tarefas.map((t) => (t.id === id ? antes : t)) : tarefas.filter((t) => t.id !== id);

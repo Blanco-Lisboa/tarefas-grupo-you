@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daLinha, paraBanco, podeAlterar, podeApagar, trocarFazendo } from "./repositorio";
+import { daLinha, funcaoAusente, paraBanco, podeAlterar, podeApagar, trocarFazendo } from "./repositorio";
 
 const quem = (id: string | null) => ({ a: "natham", b: "matheus" } as const)[id as "a" | "b"];
 const linha: Parameters<typeof daLinha>[0] = {
@@ -50,5 +50,12 @@ describe("quem pode mexer na tarefa (espelha o banco)", () => {
   it("conteúdo com empresa: só o dono apaga", () => {
     const c = { ...privadaDoMatheus, etapa: "roteiro" as const, empresaId: "you" };
     expect([podeApagar(c, "matheus"), podeApagar(c, "natham"), podeApagar(c, null)]).toEqual([true, false, false]);
+  });
+});
+
+describe("salvar_tarefa ainda não aplicada", () => {
+  it("só 'função não existe' cai no caminho antigo; outro erro continua erro", () => {
+    expect([funcaoAusente({ code: "PGRST202" }), funcaoAusente({ code: "42883" })]).toEqual([true, true]);
+    expect([funcaoAusente({ code: "42501" }), funcaoAusente({ code: "P0001" }), funcaoAusente(null)]).toEqual([false, false, false]);
   });
 });
