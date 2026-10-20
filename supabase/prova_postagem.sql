@@ -104,7 +104,7 @@ begin
   -- Catraca (service_role): 1a chamada pega as 2 redes, 2a nao pega nada (ninguem posta em dobro)
   update public.tarefas set postar_em = to_char(now() at time zone 'America/Sao_Paulo' - interval '1 minute', 'YYYY-MM-DD"T"HH24:MI') where id = t;
   select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t;
-  r := r || jsonb_build_object('alarme_com_hora_no_passado_nao_fica_agendado_0_esperado', v);
+  r := r || jsonb_build_object('hora_no_passado_toca_na_hora_e_deixa_so_o_sentinela_1_esperado', v);
   set local role service_role;
   select count(*) into v from public.pegar_postagens(t); r := r || jsonb_build_object('catraca_1a_chamada_2_esperado', v);
   select count(*) into v from public.pegar_postagens(t); r := r || jsonb_build_object('catraca_2a_chamada_0_esperado', v);
@@ -118,6 +118,31 @@ begin
   reset role;
   select count(*) into v from public.postagens where tarefa_id = t and rede = 'facebook' and status = 'fila' and erro is null; r := r || jsonb_build_object('tentar_de_novo_volta_so_a_rede_com_erro_1_esperado', v);
   select count(*) into v from public.postagens where tarefa_id = t and rede = 'instagram' and status = 'enviando'; r := r || jsonb_build_object('instagram_intocado_1_esperado', v);
+
+  -- Sentinela (+12 min, mesmo nome, 1o toque = rodada 1), rodadas, teto e fim do servico
+  select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t and command like '%, 1)'; r := r || jsonb_build_object('sentinela_rodada_1_esperado', v);
+  select count(*) into v from public.postagens where tarefa_id = t and rodadas = 1; r := r || jsonb_build_object('rodadas_1_na_1a_pegada_2_esperado', v);
+  update public.postagens set rodadas = 5 where tarefa_id = t;
+  perform private.alarme_tocou('postar', t, 0);
+  select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t; r := r || jsonb_build_object('linha_com_5_rodadas_ainda_tem_sentinela_1_esperado', v);
+  update public.postagens set rodadas = 1, status = 'fila' where tarefa_id = t;
+  perform private.alarme_tocou('postar', t, 5);
+  select count(*) into v from public.postagens where tarefa_id = t and status = 'erro' and erro like 'a funcao de postagem nao respondeu%'; r := r || jsonb_build_object('funcao_fora_do_ar_5_toques_vira_erro_2_esperado', v);
+  select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t; r := r || jsonb_build_object('depois_do_teto_sem_alarme_0_esperado', v);
+  perform private.alarme_tocou('postar', t, 0);
+  select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t; r := r || jsonb_build_object('todas_as_redes_terminadas_nao_rearma_0_esperado', v);
+  set local role service_role;
+  perform public.armar_alarme_servico('postar', t, 30);
+  reset role;
+  select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t; r := r || jsonb_build_object('armar_alarme_servico_1_esperado', v);
+  set local role service_role;
+  perform public.desarmar_alarme_servico('postar', t);
+  reset role;
+  select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t; r := r || jsonb_build_object('desarmar_alarme_servico_0_esperado', v);
+  set local role authenticated;
+  begin perform public.desarmar_alarme_servico('postar', t); r := r || jsonb_build_object('usuario_desarma_alarme', 'PASSOU (ERRO)');
+  exception when others then r := r || jsonb_build_object('usuario_desarma_alarme', 'barrado: ' || sqlerrm); end;
+  reset role;
 
   -- Achados da Lupa: editor nao "posta" no papel; rede tirada do card nao volta pela retomada; alarme a mais de 300 dias e recusado
   perform set_config('request.jwt.claims', json_build_object('sub', m, 'role', 'authenticated')::text, true);
@@ -141,6 +166,9 @@ begin
   -- Reprogramar, tirar de Aprovado, ir para Postado e apagar: os alarmes acompanham
   update public.tarefas set postar_em = to_char(now() at time zone 'America/Sao_Paulo' + interval '2 hours', 'YYYY-MM-DD"T"HH24:MI') where id = t;
   select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t; r := r || jsonb_build_object('reprogramar_mantem_1_alarme', v);
+  select schedule into tem from cron.job where jobname = 'tarefas_postar_' || t;
+  perform private.alarme_tocou('postar', t, 1);  -- toque velho (card reprogramado para o futuro): nao mexe no alarme novo
+  select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t and schedule = tem; r := r || jsonb_build_object('toque_velho_nao_apaga_alarme_novo_1_esperado', v);
   set local role authenticated;
   update public.tarefas set etapa = 'edicao' where id = t; get diagnostics v = row_count; r := r || jsonb_build_object('natham_volta_para_edicao_linhas_1_esperado', v);
   reset role;
@@ -151,6 +179,8 @@ begin
   select count(*) into v from cron.job where jobname = 'tarefas_limpar_' || t; r := r || jsonb_build_object('limpeza_de_7_dias_armada_1_esperado', v);
   t2 := t;
   delete from public.arquivos where tarefa_id = t;
+  perform private.alarme_tocou('limpar', t, 0);
+  select count(*) into v from cron.job where jobname = 'tarefas_limpar_' || t; r := r || jsonb_build_object('limpeza_sem_arquivo_para_de_tocar_0_esperado', v);
   delete from public.tarefas where id = t;
   select count(*) into v from cron.job where jobname like 'tarefas_%_' || t2::text; r := r || jsonb_build_object('apagar_card_leva_os_alarmes_0_esperado', v);
 

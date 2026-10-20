@@ -208,9 +208,11 @@ create table if not exists public.postagens (
   status text not null default 'fila' check (status in ('fila', 'enviando', 'processando', 'postado', 'erro')),
   conteiner_id text, post_id text, link text, erro text,
   tentativas int not null default 0,
+  rodadas int not null default 0,  -- vezes que a catraca entregou a linha na sequência atual (fila = 1, depois +1); o teto do sentinela lê aqui
   pego_em timestamptz, postado_em timestamptz,
   unique (tarefa_id, rede)
 );
+alter table public.postagens add column if not exists rodadas int not null default 0;
 alter table public.postagens enable row level security;
 drop policy if exists postagens_le on public.postagens;
 create policy postagens_le on public.postagens for select to authenticated
@@ -248,12 +250,57 @@ grant execute on function public.guardar_google_token(text) to service_role;
 create or replace function private.alarme_nome(p_tipo text, p_tarefa uuid) returns text
 language sql immutable set search_path = '' as $$ select 'tarefas_' || p_tipo || '_' || p_tarefa::text $$;
 
-create or replace function private.alarme_tocou(p_tipo text, p_tarefa uuid) returns void
+-- Só agenda (sem tocar). p_rodada = quantas vezes o sentinel já tocou nesta sequência (0 = alarme normal).
+create or replace function private.cron_alarme(p_tipo text, p_tarefa uuid, p_quando timestamptz, p_rodada int) returns void
 language plpgsql security definer set search_path = ''
 as $$
-declare v_nome text := private.alarme_nome(p_tipo, p_tarefa); v_segredo text;
+declare v_utc timestamp := p_quando at time zone 'UTC';
 begin
+  perform cron.schedule(private.alarme_nome(p_tipo, p_tarefa),
+    format('%s %s %s %s *', extract(minute from v_utc)::int, extract(hour from v_utc)::int, extract(day from v_utc)::int, extract(month from v_utc)::int),
+    format('select private.alarme_tocou(%L, %L::uuid, %s)', p_tipo, p_tarefa, p_rodada));
+end $$;
+revoke all on function private.cron_alarme(text, uuid, timestamptz, int) from public, anon, authenticated;
+
+-- Quando o alarme toca: apaga a si mesmo, arma um SENTINELA (mesmo nome, +12 min, uso único) e só então chama a função.
+-- Analogia: o despertador toca e já deixa outro de reserva; quem chegar ao fim do serviço (Postado) ou desistir (desarmar_alarme_servico) joga a reserva fora.
+-- O sentinela não rearma se todas as linhas do card já terminaram (postado/erro)
+-- ou, com a função fora do ar (ninguém pega, rodadas nunca sobe), depois de 5 toques seguidos (ou rodadas > 5, que a função já devia ter tratado): aí a postagem vai para erro (faixa vermelha).
+create or replace function private.alarme_tocou(p_tipo text, p_tarefa uuid, p_rodada int) returns void
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_nome text := private.alarme_nome(p_tipo, p_tarefa); v_segredo text; v_rodadas int; v_aberto boolean; v_tem boolean;
+  c_teto constant int := 5;  -- combinado com o Correio
+begin
+  -- Toque velho (sentinela que já estava rodando quando o card foi reprogramado, ou card que saiu de Aprovado): não mexe em nada, o gatilho cuida dos jobs.
+  if p_tipo = 'postar' and not exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'aprovado' and t.postar_em is not null
+       and t.postar_em <= to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD"T"HH24:MI')) then return; end if;
+  if p_tipo = 'limpar' and not exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'postado') then return; end if;
   if exists (select 1 from cron.job where jobname = v_nome) then perform cron.unschedule(v_nome); end if;
+  -- Limpeza sem arquivo restante = serviço feito: o sentinela acaba aqui, sem depender de a função desarmar.
+  if p_tipo = 'limpar' and not exists (select 1 from public.arquivos a where a.tarefa_id = p_tarefa) then return; end if;
+  if p_tipo = 'postar' then
+    select coalesce(max(rodadas) filter (where status not in ('postado', 'erro')), 0), coalesce(bool_or(status not in ('postado', 'erro')), false), count(*) > 0
+      into v_rodadas, v_aberto, v_tem from public.postagens where tarefa_id = p_tarefa;
+    if v_tem and not v_aberto then return; end if;  -- nada a fazer: todas as redes já terminaram
+  else
+    v_rodadas := 0;
+  end if;
+  if p_rodada >= c_teto or v_rodadas > c_teto then
+    if p_tipo = 'limpar' then  -- função Drive fora do ar: tenta de novo daqui a 1 dia (1 alarme por card, sem relógio de minuto)
+      perform private.cron_alarme('limpar', p_tarefa, now() + interval '1 day', 0);
+    else
+      insert into public.postagens (tarefa_id, rede, status, erro)
+      select t.id, r, 'erro', 'a funcao de postagem nao respondeu depois de varias tentativas'
+      from public.tarefas t, unnest(t.postar_redes) r where t.id = p_tarefa and t.etapa = 'aprovado'
+      on conflict (tarefa_id, rede) do update set status = 'erro',
+        erro = case when public.postagens.status = 'fila' then excluded.erro else 'estado incerto: confira a rede antes de tentar de novo' end
+        where public.postagens.status in ('fila', 'enviando', 'processando');
+    end if;
+    return;
+  end if;
+  perform private.cron_alarme(p_tipo, p_tarefa, now() + interval '12 minutes', p_rodada + 1);
   select decrypted_secret into v_segredo from vault.decrypted_secrets where name = 'tarefas_funcoes_segredo';
   perform net.http_post(
     url := 'https://uruhjlurcxpjhhgvuzwt.supabase.co/functions/v1/' || case p_tipo when 'limpar' then 'drive' else 'postar-meta' end,
@@ -261,19 +308,20 @@ begin
     body := jsonb_build_object('acao', p_tipo, 'tarefa_id', p_tarefa),
     timeout_milliseconds := 55000);  -- pg_net padrão é 5 s (memória pgnet-timeout)
 end $$;
+revoke all on function private.alarme_tocou(text, uuid, int) from public, anon, authenticated;
+-- Compatibilidade: job agendado com a assinatura de 2 argumentos (versão anterior deste arquivo) continua funcionando.
+create or replace function private.alarme_tocou(p_tipo text, p_tarefa uuid) returns void
+language sql security definer set search_path = '' as $$ select private.alarme_tocou(p_tipo, p_tarefa, 0) $$;
 revoke all on function private.alarme_tocou(text, uuid) from public, anon, authenticated;
 
 create or replace function private.armar_alarme(p_tipo text, p_tarefa uuid, p_quando timestamptz) returns void
 language plpgsql security definer set search_path = ''
 as $$
-declare v_utc timestamp := p_quando at time zone 'UTC';
 begin
   -- a expressão do cron não tem ano: alarme a mais de ~1 ano tocaria cedo demais e se apagaria sem postar
   if p_quando > now() + interval '300 days' then raise exception 'alarme a mais de 300 dias nao e aceito' using errcode = '22023'; end if;
-  if p_quando <= now() + interval '1 minute' then perform private.alarme_tocou(p_tipo, p_tarefa); return; end if;
-  perform cron.schedule(private.alarme_nome(p_tipo, p_tarefa),
-    format('%s %s %s %s *', extract(minute from v_utc)::int, extract(hour from v_utc)::int, extract(day from v_utc)::int, extract(month from v_utc)::int),
-    format('select private.alarme_tocou(%L, %L::uuid)', p_tipo, p_tarefa));
+  if p_quando <= now() then perform private.alarme_tocou(p_tipo, p_tarefa, 0); return; end if;
+  perform private.cron_alarme(p_tipo, p_tarefa, p_quando, 0);
 end $$;
 revoke all on function private.armar_alarme(text, uuid, timestamptz) from public, anon, authenticated;
 
@@ -330,7 +378,7 @@ begin
   where t.id = p_tarefa and t.etapa = 'aprovado' and t.tipo = 'postagem' and (select private.pode_aprovar(t.aprovador));
   if not found then raise exception 'so o Natham ou o aprovador posta agora, e so card de Postagem em Aprovado' using errcode = '42501'; end if;
   update public.tarefas set postar_em = v_agora where id = p_tarefa;  -- o gatilho de alarmes dispara se a hora mudou
-  if v_antes is not distinct from v_agora then perform private.alarme_tocou('postar', p_tarefa); end if;
+  if v_antes is not distinct from v_agora then perform private.alarme_tocou('postar', p_tarefa, 0); end if;
 end $$;
 revoke all on function public.postar_agora(uuid) from public, anon;
 grant execute on function public.postar_agora(uuid) to authenticated;
@@ -343,7 +391,7 @@ begin
     raise exception 'so o Natham ou o aprovador tenta de novo' using errcode = '42501';
   end if;
   update public.postagens set status = 'fila', erro = null where tarefa_id = p_tarefa and status = 'erro';
-  perform private.alarme_tocou('postar', p_tarefa);
+  perform private.alarme_tocou('postar', p_tarefa, 0);
 end $$;
 revoke all on function public.tentar_de_novo(uuid) from public, anon;
 grant execute on function public.tentar_de_novo(uuid) to authenticated;
@@ -362,7 +410,8 @@ begin
   on conflict (tarefa_id, rede) do nothing;
   return query
   -- tentativas conta só envio novo (fila); voltar de 'processando' para conferir o vídeo não gasta tentativa
-  update public.postagens p set status = 'enviando', pego_em = now(), tentativas = p.tentativas + (p.status = 'fila')::int
+  update public.postagens p set status = 'enviando', pego_em = now(), tentativas = p.tentativas + (p.status = 'fila')::int,
+    rodadas = case when p.status = 'fila' then 1 else p.rodadas + 1 end
   from public.tarefas t
   where p.tarefa_id = p_tarefa and t.id = p.tarefa_id and t.etapa = 'aprovado' and t.tipo = 'postagem' and t.empresa_id = 'you'
     and t.postar_em is not null and t.postar_em <= to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD"T"HH24:MI')
@@ -379,9 +428,17 @@ as $$ select private.armar_alarme(p_tipo, p_tarefa, now() + make_interval(mins =
 revoke all on function public.armar_alarme_servico(text, uuid, int) from public, anon, authenticated;
 grant execute on function public.armar_alarme_servico(text, uuid, int) to service_role;
 
+-- Fim do serviço (erro definitivo, ou limpeza feita): a função joga fora o sentinela.
+create or replace function public.desarmar_alarme_servico(p_tipo text, p_tarefa uuid) returns void
+language sql security definer set search_path = ''
+as $$ select private.desarmar_alarme(p_tipo, p_tarefa) $$;
+revoke all on function public.desarmar_alarme_servico(text, uuid) from public, anon, authenticated;
+grant execute on function public.desarmar_alarme_servico(text, uuid) to service_role;
+
 -- Cards que já estavam Aprovado (programados) ou Postado quando o 019 entra ganham o alarme (hora no passado fica de fora: a função ainda pode não estar no ar).
 do $$ declare r record; begin
   for r in select id, postar_em, etapa from public.tarefas where etapa in ('aprovado', 'postado') loop
+    if exists (select 1 from cron.job where jobname = private.alarme_nome(case r.etapa when 'postado' then 'limpar' else 'postar' end, r.id)) then continue; end if;
     if r.etapa = 'aprovado' and r.postar_em is not null and (r.postar_em::timestamp at time zone 'America/Sao_Paulo') > now() + interval '1 minute' then
       perform private.armar_alarme('postar', r.id, r.postar_em::timestamp at time zone 'America/Sao_Paulo');
     elsif r.etapa = 'postado' then
