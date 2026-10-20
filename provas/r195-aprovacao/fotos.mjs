@@ -48,19 +48,23 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   await reels.scrollIntoViewIfNeeded();
   await marca(n.pagina);
   await n.pagina.screenshot({ path: join(pasta, `natham-${largura}.png`) });
-  // Aprovar: abre o painel de data e hora direto; escolhe 22/10 e seleciona.
+  // Aprovar (item 200): vai direto para Aprovado; lá, Programar postagem abre data e hora.
   await reels.getByRole("button", { name: "Aprovar" }).click();
+  await n.pagina.waitForTimeout(300);
+  const aprovado = n.pagina.locator('[data-etapa="aprovado"] .conteudos-cartao').filter({ hasText: "Post - Reels" });
+  confere(await aprovado.count() === 1 && n.rpc.at(-1)?.p?.etapa === "aprovado" && n.rpc.at(-1)?.p?.postar_em === null, `natham ${largura}: Aprovar leva a Aprovado sem data`);
+  await aprovado.getByRole("button", { name: "Programar postagem" }).click();
   const painel = n.pagina.locator(".campo-data-pop:popover-open");
   await painel.waitFor();
   await n.pagina.waitForTimeout(400); // o painel entra com transição
   await marca(n.pagina);
-  await n.pagina.screenshot({ path: join(pasta, `aprovar-${largura}.png`) });
+  await n.pagina.screenshot({ path: join(pasta, `programar-${largura}.png`) });
   await painel.locator('[data-dia="2026-10-22"]').click();
   await n.pagina.waitForTimeout(300); // o card desce do "hover" e o painel, preso a ele, acompanha
   await painel.getByRole("button", { name: "Selecionar" }).click();
   await n.pagina.waitForTimeout(300);
-  const aprovado = n.pagina.locator('[data-etapa="aprovado"] .conteudos-cartao').filter({ hasText: "Post - Reels" });
-  confere(await aprovado.count() === 1 && n.rpc.at(-1)?.p?.etapa === "aprovado" && n.rpc.at(-1)?.p?.postar_em === "2026-10-22T00:00", `natham ${largura}: Aprovar leva a Aprovado com postar_em ${n.rpc.at(-1)?.p?.postar_em}`);
+  confere(n.rpc.at(-1)?.p?.etapa === "aprovado" && n.rpc.at(-1)?.p?.postar_em === "2026-10-22T00:00" && await aprovado.getByRole("button", { name: "Reprogramar postagem" }).count() === 1
+    && (await aprovado.locator("time").innerText()).includes("22/10 · 00:00"), `natham ${largura}: Programar grava postar_em ${n.rpc.at(-1)?.p?.postar_em} e o card mostra a data`);
   // Consertar: volta para Edição com a etiqueta.
   await cartao(n.pagina, "Carrossel: prazo do MEI").getByRole("button", { name: "Consertar" }).click();
   await n.pagina.waitForTimeout(300);
