@@ -255,7 +255,7 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
             const postado = foiPostado(t);
             const empresa = empresas.find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
             return (
-              <button key={t.id} type="button" className="mapa-card" data-postado={postado} style={{ "--i": i, "--etapa": `var(--etapa-${t.etapa ?? "roteiro"})` } as CSSProperties} onClick={() => clicar(t)}>
+              <button key={t.id} type="button" className="mapa-card" aria-label={`${tituloDe(t)}, ${empresa}, ${postado ? "postado" : t.etapa ? NOMES.etapa[t.etapa] : "a postar"}`} data-postado={postado} style={{ "--i": i, "--etapa": `var(--etapa-${t.etapa ?? "roteiro"})` } as CSSProperties} onClick={() => clicar(t)}>
                 <span className="mapa-faixa-titulo" aria-hidden>{tituloDe(t)}</span>
                 {ts.length > 1 && <span className="mapa-folha-contagem" aria-hidden>{i + 1}/{ts.length}</span>}
                 <span className="mapa-objetivo" data-alvo>{tituloDe(t)}</span>
