@@ -1,0 +1,16 @@
+OK 1903: faixa Sem data mostra as 2 Postagens ["Reels: bastidores do escritório","Carrossel: prazo do MEI"]
+OK 1903: reunião e tarefa de caderno ficam fora
+OK 1903: faixa também aparece na Fila
+OK 1903: anexo aparece na ficha antes de salvar
+OK 1903: ficha fechou ao salvar (sem erro)
+OK 1903: depois do F5 o anexo continua e a imagem abre (link assinado)
+OK 1903: tirar o anexo e salvar apaga de vez
+OK 1903: sem erro na página []
+OK 1440: faixa Sem data mostra as 2 Postagens ["Reels: bastidores do escritório","Carrossel: prazo do MEI"]
+OK 1440: reunião e tarefa de caderno ficam fora
+OK 1440: faixa também aparece na Fila
+OK 1440: anexo aparece na ficha antes de salvar
+OK 1440: ficha fechou ao salvar (sem erro)
+OK 1440: depois do F5 o anexo continua e a imagem abre (link assinado)
+OK 1440: tirar o anexo e salvar apaga de vez
+OK 1440: sem erro na página []
