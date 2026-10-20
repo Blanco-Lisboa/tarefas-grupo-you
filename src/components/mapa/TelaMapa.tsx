@@ -10,7 +10,7 @@ import { SeloEmpresa, IconeRede } from "@/components/ui/Marca";
 import { BordaAnimada } from "@/components/ui/BordaAnimada";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
-import { conteudos, hoje, diasDoPeriodo, filaPorDia, foiPostado, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { conteudos, hoje, diasDoPeriodo, filaPorDia, foiPostado, semData, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 import { EmOrdem, type Formato } from "./EmOrdem";
 import "./mapa.css";
 
@@ -53,6 +53,7 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
   const aPostar = marcos.filter((t) => !foiPostado(t));
   const [m1, m2] = [nomeMes(INICIO), nomeMes(dias.at(-1)!)].map((m) => m.toLowerCase());
   const meses = m1 === m2 ? m1 : `${m1} e ${m2}`;
+  const semDia = useMemo(() => semData(aplicar(tarefas)), [aplicar, tarefas]);
   const fila = useMemo(() => filaPorDia(aplicar(tarefas), INICIO), [aplicar, tarefas, INICIO]);
   const proximo = aPostar[0]?.inicio?.slice(0, 10);
 
@@ -81,6 +82,12 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
 
   return (
     <section className="mapa">
+      {semDia.length > 0 && (
+        <div className="mapa-sem-data">
+          <span>Sem data</span>
+          {semDia.map((t) => <button key={t.id} type="button" onClick={() => setAberta(t)}>{tituloDe(t)}</button>)}
+        </div>
+      )}
       {formato !== "linha"
         ? <>{topo}<EmOrdem grupos={fila} abrir={setAberta} /></>
         : marcos.length

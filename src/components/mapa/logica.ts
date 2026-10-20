@@ -28,6 +28,9 @@ export const ultimoDia = (lista: readonly Tarefa[]) => lista.reduce((m, t) => (d
 export const conteudos = (tarefas: readonly Tarefa[]) =>
   tarefas.filter((t) => ehConteudo(t) && t.tipo === "postagem" && t.inicio).sort((a, b) => a.inicio!.localeCompare(b.inicio!));
 
+/** Postagem ainda sem data: não tem dia na linha, então o Mapa a mostra numa faixa à parte (item 198). */
+export const semData = (tarefas: readonly Tarefa[]) => tarefas.filter((t) => ehConteudo(t) && t.tipo === "postagem" && !t.inicio && !foiPostado(t));
+
 /** Quantos conteúdos já foram postados no mês do início, mesmo antes do período (a linha só mostra o que vem pela frente). */
 export const postadosNoMes = (lista: readonly Tarefa[], inicio: string) =>
   lista.filter((t) => foiPostado(t) && diaDe(t).startsWith(inicio.slice(0, 7))).length;

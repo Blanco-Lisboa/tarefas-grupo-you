@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { ETAPAS_ATE_POSTAR, PASSO, conteudos, diasDoPeriodo, filaPorDia, foiPostado, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { ETAPAS_ATE_POSTAR, PASSO, conteudos, diasDoPeriodo, filaPorDia, foiPostado, semData, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 
 const t = (id: string, tipo: Tarefa["tipo"], inicio?: string, extra: Partial<Tarefa> = {}): Tarefa => ({
   id, titulo: id, tipo, empresaId: "beec", etapa: "roteiro", responsavel: "natham", inicio, diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra,
@@ -86,5 +86,12 @@ describe("fila por dia", () => {
     const reuniao = t("Reunião de pauta", "postagem", "2026-10-18", { titulo: "Reunião de pauta" });
     expect(filaPorDia([reuniao], "2026-10-19")).toEqual([]);
     expect(conteudos([reuniao])).toEqual([]);
+  });
+});
+
+describe("semData (item 198)", () => {
+  it("postagem de empresa sem data entra; com data, postada, pessoal e reunião ficam fora", () => {
+    const lista = [t("a", "postagem"), t("b", "postagem", "2026-10-20T09:00"), t("c", "postagem", undefined, { etapa: "postado" }), t("d", "postagem", undefined, { empresaId: "" }), t("e", "roteiro"), t("Reunião de pauta", "postagem")];
+    expect(semData(lista).map((x) => x.id)).toEqual(["a"]);
   });
 });

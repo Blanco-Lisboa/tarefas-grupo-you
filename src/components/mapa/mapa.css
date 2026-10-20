@@ -157,3 +157,8 @@
   .mapa-pilha > .borda-animada > .mapa-card { background: var(--sup); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .mapa-pilha .borda-animada-luz { animation: none; }
 }
+
+/* Postagem sem data (item 198): faixa de botões acima do Mapa */
+.mapa-sem-data { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); padding-bottom: var(--s-12); }
+.mapa-sem-data span { font-size: var(--app-t-rotulo); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fraco); }
+.mapa-sem-data button { padding: var(--s-4) var(--s-12); border: 1px solid var(--linha); border-radius: 999px; background: transparent; color: var(--texto); font: inherit; font-size: var(--app-t-texto); cursor: pointer; }
