@@ -84,3 +84,12 @@ function AnimatedBorder({
 export { AnimatedBorder, type AnimatedBorderProps };
 export default AnimatedBorder;
 ```
+
+## 180b · ajuste pedido pelo Natham (21/10)
+
+Print: `180b-print-card-mapa.png`. Pedido: "troque ele, deixe um card com efeito vidro com uma cor mais escura... e tire esse defeito na parte de baixo".
+
+- Mantida a luz girando na borda, o raio 10px e a sombra padrão `--sombra`.
+- Miolo do card solto vira vidro escuro (fundo azul-marinho a 78%, desfoque 14px), textos claros e selo de etapa em versão clara (`color-mix` da etapa com branco). Só `mapa.css`.
+- Defeito de baixo: medido no navegador (`provas/r17-borda-vidro/medir.mjs`), o miolo cobre tudo: borda 66px x miolo 64px, 1px em cada lado nos 3 tamanhos (1903, 1440, 390). Não era altura. A causa era o trilho da borda, um cinza opaco (`--borda`), que na base se somava ao 1px de deslocamento da sombra e parecia uma barra grossa. O trilho do Mapa agora é um filete branco translúcido, igual nos 4 lados.
+- Provas: `provas/r17-borda-vidro/` (`card-*.png` e `zoom-baixo-*.png`).
