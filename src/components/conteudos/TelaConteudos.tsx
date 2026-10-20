@@ -12,6 +12,7 @@ import { ETAPAS, podeAlterar, salvarTarefa, useEmpresas, useEu, useFazendo, useT
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { diasDeAtraso } from "@/lib/atraso";
+import { tipoDaColuna } from "./tipo";
 import "./conteudos.css";
 
 const nomes: Record<Etapa, string> = {
@@ -143,7 +144,7 @@ export function TelaConteudos() {
                 <button className="conteudos-novo" type="button" aria-label={`Novo conteúdo em ${nomes[etapa]}`} onClick={() => {
                   if (!eu) return setErro("Aguarde a identificação da sua conta para criar um conteúdo.");
                   setErro("");
-                  setAberta(tarefaEmBranco({ etapa, responsavel: eu }));
+                  setAberta(tarefaEmBranco({ etapa, tipo: tipoDaColuna(etapa), responsavel: eu }));
                 }}>+</button>
               </div>
               <div className="conteudos-pilha">
@@ -225,7 +226,7 @@ export function TelaConteudos() {
           );
         })}
       </div>
-      {aberta && <Ficha tarefa={aberta} aoFechar={() => setAberta(null)} soLer={!!aberta.id && !podeAlterar(aberta as Tarefa, eu)} />}
+      {aberta && <Ficha tarefa={aberta} tipos={["roteiro", "gravacao", "edicao", "postagem"]} aoFechar={() => setAberta(null)} soLer={!!aberta.id && !podeAlterar(aberta as Tarefa, eu)} />}
     </section>
   );
 }
