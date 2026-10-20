@@ -181,7 +181,7 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
 **Estado:** NADA construído. Aguardando ele fechar as decisões ("decidir tudo antes").
 
 - **Despertador:** NÃO quer relógio tocando a cada minuto procurando card ("não quero gastar execuções atoa"). Quer que acione só quando ele mandar: Programar ou Postar agora.
-  - Proposta do Maestro (em aberto): ao clicar Programar, o banco cria UM alarme de uso único para aquele horário (pg_cron com data exata, que se apaga depois de rodar). O cron de todo minuto `tarefas_postar_vencidos` sai. Vídeo só ganha mais 2 ou 3 conferências curtas logo após a entrega.
+  - Proposta do Maestro (APROVADA, item 1 abaixo): ao clicar Programar, o banco cria UM alarme de uso único para aquele horário (pg_cron com data exata, que se apaga depois de rodar). O cron de todo minuto `tarefas_postar_vencidos` sai. Vídeo só ganha mais 2 ou 3 conferências curtas logo após a entrega.
 - **Vídeo sempre na MÁXIMA qualidade:** o sistema nunca recomprime; manda o arquivo original.
 - **1 · Instagram + Facebook acesos:** SIM.
 - **2 · Legenda:** SIM, "ele gera e eu posso editar" (resposta completa logo abaixo).
@@ -218,10 +218,10 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
 - **2 · Saiu numa rede e falhou na outra:** SIM, como recomendado. O card fica em Aprovado com a faixa vermelha "Saiu no Instagram, falhou no Facebook", o link do que saiu e o botão "Tentar de novo só no Facebook". Só vai para Postado quando as duas saírem; nunca repete a rede que já saiu.
 - **3 · Cancelar um programado = arrastar** para fora de Aprovado: SIM.
   - **PEDIDO NOVO:** botão de LIXEIRA no canto inferior ESQUERDO da ficha de edição (rodapé, do lado oposto de Cancelar e Salvar), que abre uma confirmação de exclusão do card.
-  - Em aberto: quem pode excluir; card programado perde o alarme junto; card Postado: o post continua na rede (excluir o card não apaga o post).
+  - Fechado depois (Natham e Matheus podem excluir). Combinado: card programado perde o alarme junto; card Postado: o post continua na rede (excluir o card não apaga o post).
 - **4 · WhatsApp de erro:** só para ele por enquanto (Matheus depois).
 - **5 · Avisos na ALEXA:** "post feito" e "post com erro" vão para a Alexa, como no CRM, cada um com o seu som. Fica para o FIM.
-  - Em aberto: o WhatsApp de erro continua junto ou a Alexa substitui.
+  - Fechado depois: o WhatsApp de erro continua JUNTO com a Alexa.
 - **6 · "Postar agora":** só ele e o aprovador: SIM.
 - **7 · Só a You** (Beec depois): SIM.
 - **8 · Uma legenda para as duas redes:** SIM.
@@ -249,9 +249,19 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
 - **Botão "Concluir"** no card da Esteira, no lugar de Aprovar e Consertar, para todo card cujo Tipo não é Postagem. Concluir **APAGA o card**: ele some de vez e não guarda histórico. Por isso não precisa de `concluida_em` nem de `concluida_por`, e não existe filtro "Concluídos" (as propostas anteriores caem).
 - **Aprovado e Postado só para Tipo Postagem.**
 - **Princípio dele:** nada guardado à toa. No Supabase não fica vídeo nenhum, só no Drive. 7 dias depois de postado, o arquivo sai do Drive (203).
-- **Em aberto:**
+- **Abertas na hora, fechadas logo abaixo:**
   - (a) Concluir pede confirmação?
   - (b) O card POSTADO continua no Mapa como histórico (só texto e link do post, sem arquivo, como o 204 previa) ou também é apagado depois de 7 dias?
 - **Observações do Sextante para o desenho (não são decisão):**
   - Apagar o card tem de apagar junto os anexos dele (Supabase e Drive). Senão sobra arquivo órfão, que é justamente o "guardado à toa".
-  - O 203 dizia que o anexo de card SEM empresa fica privado no Supabase. Com "no Supabase não fica vídeo nenhum", falta decidir para onde vai o vídeo de um card sem empresa (Drive também, ou não aceitar vídeo sem empresa).
+  - O 203 dizia que o anexo de card SEM empresa fica privado no Supabase. Com "no Supabase não fica vídeo nenhum", faltava decidir para onde vai o vídeo de um card sem empresa (fechado abaixo: não aceita).
+
+**Fechado em 23/10 (respostas às abertas acima).** Motivo dele: não acumular informação desnecessária.
+- **(a)** Concluir PEDE confirmação antes de apagar.
+- **(b)** Card POSTADO fica no MAPA como histórico, só com o link da postagem, SEM foto ou vídeo vinculados (o arquivo sai do Drive em 7 dias).
+- **(c)** Vídeo em card sem empresa: NÃO aceita. Para anexar, tem de escolher a empresa.
+- **(d)** Apagar card (Concluir ou lixeira) apaga os anexos dele no Drive.
+
+**Conferência final da seção (g), 23/10:** nenhuma decisão do Natham ficou aberta. Resta só 1 ponto técnico, que o teste responde e não ele: se o Reels do Facebook aceita capa própria (Passo 6.3). Duas leituras do Sextante, a confirmar no plano:
+- O histórico do Mapa (b) guarda os campos do 204 (título, formato, rede, data) mais o link, sem arquivo.
+- Apagar card (d) apaga também os anexos que estiverem no Supabase (imagem e documento de card sem empresa), e não só os do Drive.
