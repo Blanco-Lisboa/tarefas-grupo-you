@@ -197,6 +197,7 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
     2. Falta o **campo de descrição (legenda)**. Editar e depois aprovar funciona no fluxo atual: ele abre a ficha, corrige, salva (o card continua em "Em análise") e clica Aprovar no card.
     3. Falta **ver o conteúdo junto da descrição na hora de aprovar**. É o player do item 206, que entra com o 203.
     4. **Brecha a fechar no banco:** hoje a trava do 015 só protege o `postar_em` depois de Aprovado. Sem trava, o Matheus poderia mudar a legenda de um card já aprovado e o sistema postaria um texto que o Natham não viu. Proposta: depois de Aprovado, só o Natham ou o aprovador muda a legenda (e os anexos), igual ao `postar_em`.
+  - **DECIDIDO pelo Natham (23/10):** depois de Aprovado, legenda e anexos só mudam pelo Natham ou por quem aprovou. A trava fica no banco, igual à do `postar_em` (015).
 - **3 · Aviso de erro:** WhatsApp.
 - **4 · Postar agora:** SIM, com botão de confirmar.
 - **5 · PNG:** ele quer aceitar PNG. Proposta: aceita PNG e converte para JPG na qualidade máxima só na hora de mandar ao Instagram (o app do Instagram já faz isso hoje); o Facebook recebe o PNG original.
