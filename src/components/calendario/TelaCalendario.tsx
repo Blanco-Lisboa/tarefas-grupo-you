@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
-import { salvarTarefa, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { salvarTarefa, useEu, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { Ano } from "./Ano";
@@ -34,7 +34,7 @@ export function TelaCalendario() {
 function quando(d: Destino): Partial<NovaTarefa> {
   if (!d) return {};
   if (d.minuto === undefined) return { inicio: d.dia, diaInteiro: true };
-  return { inicio: comMinuto(d.dia, d.minuto), fim: d.minuto < 23 * 60 ? comMinuto(d.dia, d.minuto + 60) : undefined };
+  return { inicio: comMinuto(d.dia, d.minuto) }; // nasce sem fim (item 159): bloco de 30 min
 }
 
 function Calendario({ agora }: { agora: string }) {
@@ -44,6 +44,7 @@ function Calendario({ agora }: { agora: string }) {
   const [filtros, setFiltros] = useState<Filtros>(SEM_FILTROS);
   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
   const tarefas = useTarefas();
+  const eu = useEu();
   const { aplicar, selecionadas } = useFiltroEmpresa();
 
   const visiveis = useMemo(() => aplicar(tarefas).filter(passa(filtros)), [aplicar, tarefas, filtros]);
@@ -54,7 +55,7 @@ function Calendario({ agora }: { agora: string }) {
     abrir: setAberta,
     criar: (d) => setAberta(tarefaEmBranco({
       empresaId: selecionadas[0] ?? "",
-      responsavel: filtros.responsavel.length === 1 ? (filtros.responsavel[0] as Tarefa["responsavel"]) : "natham",
+      responsavel: filtros.responsavel.length === 1 ? (filtros.responsavel[0] as Tarefa["responsavel"]) : eu ?? "natham", // quem está logado, como no Caderno (item 155)
       ...quando(d),
     })),
     soltar: (id, d) => {
