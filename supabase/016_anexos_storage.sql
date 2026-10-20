@@ -45,13 +45,20 @@ grant execute on function private.pode_alterar_arquivo(text) to authenticated;
 drop policy if exists arquivos_storage_cria on storage.objects;
 create policy arquivos_storage_cria on storage.objects for insert to authenticated
   with check (bucket_id = 'arquivos' and (select private.pode_alterar_arquivo(name)));
+-- Sem política de UPDATE no Storage: ninguém SUBSTITUI um arquivo que já está lá (o upload com upsert também precisa dela). Para trocar, anexa-se
+-- um novo (caminho novo) e apaga-se o velho. Assim o recibo do Drive (017) vale para aquele arquivo exato e nunca fica velho. Só a chave de serviço mexe.
 drop policy if exists arquivos_storage_altera on storage.objects;
-create policy arquivos_storage_altera on storage.objects for update to authenticated
-  using (bucket_id = 'arquivos' and (select private.pode_alterar_arquivo(name)))
-  with check (bucket_id = 'arquivos' and (select private.pode_alterar_arquivo(name)));
 drop policy if exists arquivos_storage_apaga on storage.objects;
 create policy arquivos_storage_apaga on storage.objects for delete to authenticated
   using (bucket_id = 'arquivos' and (select private.pode_alterar_arquivo(name)));
+
+-- O caminho da linha tem de pertencer ao dono declarado (a fila do Drive e a limpeza confiam nele com a chave de serviço) e não pode subir de pasta.
+alter table public.arquivos drop constraint if exists arquivos_caminho_ok;
+alter table public.arquivos add constraint arquivos_caminho_ok check (
+  caminho !~ '(^|/)\.\.(/|$)'
+  and (tarefa_id is null or caminho like 'tarefas/' || tarefa_id::text || '/_%')
+  and (peca_id is null or caminho like 'pecas/' || peca_id::text || '/_%')
+);
 
 -- A linha da tabela segue o mesmo caminho do arquivo: só cria/apaga quem pode alterar o card (ou a peça). Ler fica como no 002.
 drop policy if exists arquivos_cria on public.arquivos;
