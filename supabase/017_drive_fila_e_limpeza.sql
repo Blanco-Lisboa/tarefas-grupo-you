@@ -28,7 +28,7 @@ alter table public.arquivos
   add column if not exists drive_em timestamptz,
   add column if not exists removido_em timestamptz, -- quando o arquivo saiu do Storage (a linha fica, com o drive_link)
   add column if not exists aviso text,
-  add column if not exists limpeza_autorizada_em timestamptz, -- o banco deu o ok para apagar do Storage (vale 2 h para a confirmação)
+  add column if not exists limpeza_autorizada_em timestamptz, -- o banco deu o ok para apagar do Storage (sem prazo: a confirmação pode atrasar)
   add column if not exists limpeza_tentou_em timestamptz;     -- última vez que entrou numa lista de limpeza (falha repetida vai para o fim da fila)
 -- feito = tem recibo (id e link) ; removido do Storage = só se feito
 alter table public.arquivos drop constraint if exists arquivos_drive_recibo_ok;
@@ -235,7 +235,7 @@ $$;
 revoke all on function private.anexo_limpavel(uuid) from public, anon, authenticated;
 
 -- drive_limpeza_autorizar: o n8n chama IMEDIATAMENTE antes de apagar cada arquivo. false = não apague (o card mudou). true = o banco ANOTA a
--- autorização (limpeza_autorizada_em); ela vale 2 horas. Analogia: o recibo de "pode retirar" fica carimbado na ficha, não só na conversa.
+-- autorização (limpeza_autorizada_em). Analogia: o "pode retirar" fica carimbado na ficha, não só na conversa.
 create or replace function public.drive_limpeza_autorizar(p_id uuid) returns boolean
 language plpgsql security definer set search_path = ''
 as $$
@@ -245,19 +245,25 @@ begin
   return true;
 end $$;
 
--- drive_limpeza_confirmar: registra o que de fato aconteceu. Aceita se (a) está limpável agora, ou (b) foi AUTORIZADO nas últimas 2 horas, mesmo que o
--- card tenha saído de Postado no meio (o arquivo já foi apagado: a cópia está no Drive e o card abre o drive_link). Sempre exige o recibo do Drive.
+-- drive_limpeza_confirmar: registra o que de fato aconteceu e é repetível. Sempre exige o recibo do Drive. Aceita se
+--   (a) a remoção JÁ está registrada (repetir devolve sucesso, sem mudar nada);
+--   (b) o anexo foi AUTORIZADO antes, não importa há quanto tempo nem onde está o card agora (o arquivo foi apagado de verdade: a cópia está no Drive
+--       e o card abre o drive_link); ou (c) está limpável agora.
+-- Sem nada disso recusa. Registrar removido_em não apaga nada: se a autorização for velha e o arquivo ainda existir, só sobra um arquivo esquecido no Storage.
 create or replace function public.drive_limpeza_confirmar(p_id uuid) returns jsonb
 language plpgsql security definer set search_path = ''
 as $$
 declare n int;
 begin
-  update public.arquivos a set removido_em = coalesce(a.removido_em, now()), aviso = null
+  if exists (select 1 from public.arquivos where id = p_id and removido_em is not null) then
+    return jsonb_build_object('removido', true, 'ja_registrado', true);
+  end if;
+  update public.arquivos a set removido_em = now(), aviso = null
   where a.id = p_id and a.drive_estado = 'feito' and nullif(btrim(a.drive_link), '') is not null
-    and (a.limpeza_autorizada_em > now() - interval '2 hours' or private.anexo_limpavel(a.id));
+    and (a.limpeza_autorizada_em is not null or private.anexo_limpavel(a.id));
   get diagnostics n = row_count;
   if n = 0 then
-    raise exception 'anexo % sem recibo do Drive ou sem autorizacao recente de limpeza: nao pode ser dado como removido', p_id using errcode = '22023';
+    raise exception 'anexo % sem recibo do Drive ou sem autorizacao de limpeza: nao pode ser dado como removido', p_id using errcode = '22023';
   end if;
   return jsonb_build_object('removido', true);
 end $$;
