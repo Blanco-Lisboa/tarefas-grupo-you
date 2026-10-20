@@ -23,7 +23,7 @@
 .config-incluir input { flex: 1; min-width: 0; }
 @media (max-width: 767px) {
   .config-cabecalho { align-items: start; flex-direction: column; gap: var(--s-12); }
-  .config-bloco-topo, .config-empresa, .config-incluir { padding: var(--s-16); }
+  .config-empresa, .config-incluir { padding: var(--s-16); }
   .config-empresa { flex-wrap: wrap; gap: var(--s-8); }
   .config-incluir > div { flex-direction: column; }
 }
