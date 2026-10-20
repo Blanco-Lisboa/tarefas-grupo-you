@@ -3,7 +3,9 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { PointerEvent as EventoPonteiro } from "react";
 import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
-import { removerTarefa, salvarTarefa, type Etiqueta, type Responsavel, useEmpresas, useTarefas, type Tarefa } from "@/lib/dados";
+import { RESPONSAVEIS, removerTarefa, salvarTarefa, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
+import { Selecao } from "@/components/ui/Selecao";
+import { Pessoa } from "@/components/ui/Pessoa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { CampoData } from "@/components/ui/CampoData";
@@ -49,6 +51,11 @@ export function TelaTarefas() {
 
   const tarefas = useTarefas();
   const empresas = useEmpresas();
+  const eu = useEu();
+  // Caderno de quem (item 155): cada um vê só o que é seu; o Natham pode espiar o de outra pessoa, só olhando.
+  const [ver, setVer] = useState<Responsavel | null>(null);
+  const de = ver ?? eu;
+  const alheio = !!ver && ver !== eu;
   const { aplicar, selecionadas } = useFiltroEmpresa();
 
   // Migração única: a chave antiga do navegador vira o campo concluida e some.
@@ -65,8 +72,8 @@ export function TelaTarefas() {
   const nomeEmpresa = (id: string) => empresas.find((e) => e.id === id)?.nome ?? id;
   // Só pela data/hora: a ordenação é estável, então quem não tem horário (mesmo início) fica na ordem em que foi criado, igual à Fila do Mapa.
   const porHora = (a: Tarefa, b: Tarefa) => (a.inicio ?? "").localeCompare(b.inicio ?? "");
-  // Tarefa sem empresa aparece sempre: o filtro de empresa não a esconde.
-  const visiveis = tarefas.filter((t) => !t.empresaId || aplicar([t]).length);
+  // Tarefa sem empresa aparece sempre: o filtro de empresa não a esconde. De quem é = o responsável.
+  const visiveis = tarefas.filter((t) => (!de || t.responsavel === de) && (!t.empresaId || aplicar([t]).length));
   const doDia = visiveis.filter((t) => t.inicio?.slice(0, 10) === dia).sort(porHora);
   const doDiaSeguinte = visiveis.filter((t) => t.inicio?.slice(0, 10) === somarDias(dia, 1)).sort(porHora);
   const mostradas = aba === "dia" ? doDia : visiveis.filter((t) => !t.inicio);
@@ -195,6 +202,12 @@ export function TelaTarefas() {
         <div className="tarefas-grupo tarefas-quem">
           <h1 className="tarefas-titulo">Caderno</h1>
           <FiltroEmpresa />
+          {eu === "natham" && (
+            <Selecao
+              rotulo="Caderno de" multipla={false} valor={[de ?? eu]} aoMudar={([v]) => v && setVer(v === eu ? null : (v as Responsavel))}
+              opcoes={RESPONSAVEIS.map((r) => ({ valor: r, rotulo: NOMES[r], antes: <Pessoa quem={r} tamanho={20} /> }))}
+            />
+          )}
         </div>
         <div className="tarefas-grupo tarefas-nav">
           <button type="button" className="btn btn-2 tarefas-botao" onClick={() => ir(somarDias(dia, -1))} aria-label="Dia anterior">Anterior</button>
@@ -232,17 +245,19 @@ export function TelaTarefas() {
             subtitulo={[tag + titulo, resumo].filter(Boolean).join(" · ")}
             linhas={linhas}
             rotulos={rotulos}
-            vazio={aba === "dia" ? "Nada marcado para este dia. Escreva aqui." : "Nenhuma tarefa sem data. Escreva aqui."}
+            vazio={alheio ? (aba === "dia" ? "Nada marcado para este dia." : "Nenhuma tarefa sem data.") : aba === "dia" ? "Nada marcado para este dia. Escreva aqui." : "Nenhuma tarefa sem data. Escreva aqui."}
             empresas={empresasEscolha}
             empresasMenu={empresas}
             empresaPadrao={empresasEscolha[0]?.id ?? ""}
             aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
-            aoMarcar={(id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
-            aoApagar={(id) => void removerTarefa(id)}
+            /* caderno de outra pessoa: só olhar (abre a ficha, mas não escreve, marca, move nem apaga) */
+            aoMarcar={alheio ? undefined : (id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
+            aoApagar={alheio ? undefined : (id) => void removerTarefa(id)}
             continua={aba === "semdata"}
-            aoMover={aba === "dia" ? moverPara : undefined}
-            acoes={acoes}
-            aoEscrever={(t, empresaId, responsavel, linha) => {
+            aoMover={aba === "dia" && !alheio ? moverPara : undefined}
+            acoes={alheio ? undefined : acoes}
+            responsavelPadrao={eu ?? undefined}
+            aoEscrever={alheio ? undefined : (t, empresaId, responsavel, linha) => {
               const base = { titulo: t, tipo: "outro" as const, empresaId, responsavel, cor: "etiqueta-5" as const, links: [], arquivos: [] };
               if (aba === "semdata") return void salvarTarefa({ ...base, diaInteiro: false });
               // Escrever numa linha de horário marca esse horário (30 min); depois das 22:00, dia inteiro.

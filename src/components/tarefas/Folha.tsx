@@ -36,6 +36,8 @@ type Props = {
   /** Menu ⋮ de cada tarefa. Sem isto fica só o × de apagar. */
   acoes?: Acoes;
   aoEscrever?: (titulo: string, empresaId: string, responsavel: Responsavel, linha: number) => void;
+  /** Quem vem marcado em "Responsável" ao escrever (quem está logado). */
+  responsavelPadrao?: Responsavel;
   /** Caderno aberto: a lista corre pela página da esquerda e CONTINUA na da direita (mesmo papel, linha e margem). No celular vira uma folha só. */
   continua?: boolean;
 };
@@ -46,12 +48,13 @@ const giro = (id: string) => (([...id].reduce((s, c) => s + c.charCodeAt(0), 0) 
 // Estouro do check (mesmas posições do CRM): 12 pontos de tinta e 4 riscos, só ao marcar.
 const PONTOS = [[25, -25], [-25, -25], [25, 25], [-25, 25], [35, 0], [-35, 0], [0, 35], [0, -35], [20, -30], [-20, 30], [30, 20], [-30, -20]];
 
-export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empresas, empresasMenu, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoMover, acoes, aoEscrever, continua }: Props) {
+export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empresas, empresasMenu, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoMover, acoes, aoEscrever, responsavelPadrao = "natham", continua }: Props) {
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [estourando, setEstourando] = useState<string | null>(null);
   const [texto, setTexto] = useState<{ linha: number; valor: string }>({ linha: -1, valor: "" });
   const [empresa, setEmpresa] = useState<string | null>(null);
-  const [resp, setResp] = useState<Responsavel>("natham");
+  const [escolhido, setResp] = useState<Responsavel | null>(null);
+  const resp = escolhido ?? responsavelPadrao; // o login chega depois da 1ª pintura
   const empresaAtual = empresa === NENHUMA ? NENHUMA : empresa && empresas.some((e) => e.id === empresa) ? empresa : empresaPadrao;
   const primeiraVazia = linhas.findIndex((l) => !l);
 

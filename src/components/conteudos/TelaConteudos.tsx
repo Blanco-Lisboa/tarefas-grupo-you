@@ -2,7 +2,7 @@
 
 import { useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from "react";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
-import { Ficha, tarefaEmBranco } from "@/components/ficha/Ficha";
+import { Ficha, NOMES, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
@@ -36,7 +36,7 @@ function dataLegivel(inicio?: string) {
   if (!inicio) return "Sem data";
   const [data, hora] = inicio.split("T");
   const [ano, mes, dia] = data.split("-");
-  return `${dia}/${mes}/${ano}${hora ? ` às ${hora.slice(0, 5)}` : ""}`;
+  return `${dia}/${mes}${ano === String(new Date().getFullYear()) ? "" : `/${ano}`}${hora ? ` · ${hora.slice(0, 5)}` : ""}`;
 }
 
 export function TelaConteudos() {
@@ -152,24 +152,34 @@ export function TelaConteudos() {
                     onPointerUp={(evento) => soltar(evento)}
                     onPointerCancel={(evento) => soltar(evento, true)}
                   >
+                    {/* Card do conteúdo (item 156): de quem é e onde sai, o quê, para quê, em que etapa está, quem faz e quando */}
                     <div className="conteudos-cartao-topo">
-                      <span className="conteudos-empresa" style={{ "--marca": tomDaEmpresa(tarefa.empresaId).r } as CSSProperties}><SeloEmpresa empresaId={tarefa.empresaId} nome={nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"} tamanho={20} /></span>
-                      {tarefa.rede && <span className="conteudos-rede"><IconeRede rede={tarefa.rede} tamanho={18} /></span>}
+                      <span className="conteudos-empresa" style={{ "--marca": tomDaEmpresa(tarefa.empresaId).r } as CSSProperties}>
+                        <SeloEmpresa empresaId={tarefa.empresaId} nome={nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"} tamanho={20} />
+                        <span className="conteudos-empresa-nome">{nomesEmpresas.get(tarefa.empresaId) ?? "Empresa removida"}</span>
+                      </span>
                       {tarefa.arquivos.length > 0 && (
                         <span className="conteudos-clipe" title={`${tarefa.arquivos.length} anexo${tarefa.arquivos.length > 1 ? "s" : ""}`} aria-label={`${tarefa.arquivos.length} anexo${tarefa.arquivos.length > 1 ? "s" : ""}`}>
                           <svg viewBox="0 0 24 24" aria-hidden><path d="M21 12.5l-8.5 8.5a5.5 5.5 0 01-7.8-7.8L13.2 4.7a3.7 3.7 0 015.2 5.2l-8.5 8.5a1.9 1.9 0 01-2.6-2.6L14.6 7.5" /></svg>
                           {tarefa.arquivos.length}
                         </span>
                       )}
+                      {tarefa.rede && <span className="conteudos-rede" title={NOMES.rede[tarefa.rede]}><IconeRede rede={tarefa.rede} tamanho={18} /></span>}
                     </div>
+                    {tarefa.tipo !== "outro" && <span className="conteudos-tipo">{NOMES.tipo[tarefa.tipo]}</span>}
                     <button className="conteudos-titulo" type="button" onClick={() => setAberta(tarefa)}>{tarefa.titulo}</button>
+                    {tarefa.objetivo && <p className="conteudos-objetivo">{tarefa.objetivo}</p>}
+                    <div className="conteudos-trilha" role="img" aria-label={`Etapa ${ETAPAS.indexOf(tarefa.etapa) + 1} de ${ETAPAS.length}: ${nomes[tarefa.etapa]}`}>
+                      {ETAPAS.map((e, i) => <i key={e} data-feita={i <= ETAPAS.indexOf(tarefa.etapa)} />)}
+                      <span>{ETAPAS.indexOf(tarefa.etapa) + 1}/{ETAPAS.length}</span>
+                    </div>
                     {tarefa.tags?.some((id) => tags.some((g) => g.id === id)) && (
                       <div className="conteudos-tags">
                         {tags.filter((g) => tarefa.tags?.includes(g.id)).map((g) => <TagChip key={g.id} tag={g} aprovador={tarefa.aprovador} />)}
                       </div>
                     )}
                     <div className="conteudos-cartao-rodape">
-                      <Pessoa quem={tarefa.responsavel} tamanho={25} />
+                      <span className="conteudos-quem-faz"><Pessoa quem={tarefa.responsavel} tamanho={24} />{NOMES.responsavel[tarefa.responsavel]}</span>
                       <time dateTime={tarefa.inicio?.slice(0, 10)}>{dataLegivel(tarefa.inicio)}</time>
                     </div>
                     {(falta || drive) && (

@@ -16,6 +16,7 @@
 .tarefas-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao) var(--s-16); }
 .tarefas-fim { margin-left: auto; flex-wrap: nowrap; }
 .tarefas-quem { flex-wrap: nowrap; gap: var(--app-respiro); } /* Caderno + filtro Empresa (item 132: tudo numa linha) */
+@media (max-width: 767px) { .tarefas-quem { flex-wrap: wrap; } } /* celular: "Caderno de" (item 155) desce em vez de sair da tela */
 .tarefas-lados { display: none; }
 /* Linhas verticais suaves entre os grupos da linha do topo (só no computador; no celular os grupos quebram em linhas) */
 @media (min-width: 768px) {
