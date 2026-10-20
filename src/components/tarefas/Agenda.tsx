@@ -13,6 +13,8 @@ type Props = {
   rotuloDia: string;
   /** Tarefas do dia seguinte (a lista "Para amanhã"). */
   amanha: Tarefa[];
+  /** Caderno de outra pessoa: as anotações são do Natham (ficam neste navegador), então não aparecem. */
+  alheio?: boolean;
 };
 
 const armazem = (): Armazem => { try { return localStorage; } catch { return { getItem: () => null, setItem: () => {} }; } };
@@ -23,7 +25,7 @@ function useNota(chave: string) {
   return [atual.valor, mudar] as const;
 }
 
-export function Agenda({ letra, dia, rotuloDia, amanha }: Props) {
+export function Agenda({ letra, dia, rotuloDia, amanha, alheio }: Props) {
   const [notas, setNotas] = useNota(`grade:caderno:${dia}:notas`);
   const [lembrar, setLembrar] = useNota(`grade:caderno:${dia}:lembrar`);
   return (
@@ -43,20 +45,20 @@ export function Agenda({ letra, dia, rotuloDia, amanha }: Props) {
         </div>
 
         <div className="ag-blocos">
-          <label className="ag-bloco ag-bloco-notas">
+          {!alheio && <label className="ag-bloco ag-bloco-notas">
             <span className="ag-bloco-titulo">Anotações do dia</span>
             <textarea className="ag-texto folha-tinta" rows={3} maxLength={4000} value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Escreva o que quiser lembrar deste dia…" />
-          </label>
-          <div className="ag-bloco">
+          </label>}
+          <div className="ag-bloco ag-bloco-amanha">
             <span className="ag-bloco-titulo">Para amanhã</span>
             <ul className="ag-amanha folha-tinta">
               {amanha.length ? amanha.map((t) => <li key={t.id}>{t.titulo}</li>) : <li className="folha-lapis">Nada ainda.</li>}
             </ul>
           </div>
-          <label className="ag-bloco">
+          {!alheio && <label className="ag-bloco">
             <span className="ag-bloco-titulo">Não esquecer</span>
             <textarea className="ag-texto folha-tinta" rows={3} maxLength={4000} value={lembrar} onChange={(e) => setLembrar(e.target.value)} placeholder="Recados soltos, que não são tarefa…" />
-          </label>
+          </label>}
         </div>
       </div>
     </section>

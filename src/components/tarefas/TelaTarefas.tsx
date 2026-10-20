@@ -249,8 +249,8 @@ export function TelaTarefas() {
             empresas={empresasEscolha}
             empresasMenu={empresas}
             empresaPadrao={empresasEscolha[0]?.id ?? ""}
-            aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
-            /* caderno de outra pessoa: só olhar (abre a ficha, mas não escreve, marca, move nem apaga) */
+            /* caderno de outra pessoa: só olhar (não abre a ficha, que tem Salvar e Excluir; nem escreve, marca, move ou apaga) */
+            aoAbrir={alheio ? undefined : (id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
             aoMarcar={alheio ? undefined : (id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
             aoApagar={alheio ? undefined : (id) => void removerTarefa(id)}
             continua={aba === "semdata"}
@@ -270,6 +270,7 @@ export function TelaTarefas() {
             letra={LETRA_PRINCIPAL}
             dia={dia}
             rotuloDia={tag + extenso(dia)}
+            alheio={alheio}
             amanha={doDiaSeguinte}
           />}
         </div>
