@@ -125,8 +125,8 @@ begin
   update public.tarefas set titulo = 'Teimosa v2' where id = t4;
   set local role service_role;
   x := public.agenda_saida_pendentes(); r := r || jsonb_build_object('depois_do_falhou_a_tarefa_ainda_anda', x->0->>'acao');
-  begin perform public.agenda_saida_confirmar((x->0->>'id')::bigint); r := r || jsonb_build_object('salvar_sem_id_do_google', 'PASSOU (ERRO)');
-  exception when others then r := r || jsonb_build_object('salvar_sem_id_do_google', 'barrado: ' || sqlerrm); end;
+  begin perform public.agenda_saida_confirmar((x->0->>'id')::bigint); r := r || jsonb_build_object('salvar_sem_id_do_google_usa_o_id_guardado_pelo_banco', 'ok');
+  exception when others then r := r || jsonb_build_object('salvar_sem_id_do_google_usa_o_id_guardado_pelo_banco', 'ERRO: ' || sqlerrm); end;
   reset role;
 
   -- 9) um defeito na fila nunca impede o Natham de salvar a tarefa

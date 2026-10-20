@@ -14,7 +14,7 @@ Regras que valem sempre:
 - **Nenhuma chave, senha ou token** escrito no fluxo, em nota, em comentário ou em exportação. Tudo no cofre de credenciais do n8n (ver seção 6).
 - O fluxo da **IDA** (seções 1 a 12) **só lê** o Google, com credencial só de leitura. Nunca cria, altera ou apaga compromisso lá. Quem escreve no Google é só o fluxo da **VOLTA** (seção 13), separado e com credencial própria.
 
-Pré-requisito (do Natham, antes de você testar): ele aplica o arquivo `supabase/008_agenda_porta_de_entrada.sql` no banco do Tarefas. Se a função ainda não existir, a chamada responde erro 404 com `PGRST202`; é só avisar o Natham.
+**Pré-requisito (do Natham): o arquivo `supabase/010_agenda_saida_tarefas_para_o_google.sql` aplicado** no banco do Tarefas (ele já traz o 008 e troca o formato da tabela de eventos para um que protege os compromissos particulares). **Nunca teste nem ligue a IDA só com o 008:** o 008 sozinho mistura agendas com permissões diferentes e deixa vazar detalhe de compromisso. Só comece depois de o Natham confirmar por escrito "010 aplicado". Se a função não existir, a chamada responde erro 404 com `PGRST202`; é só avisar o Natham.
 
 ## 2. Conta Google e quais agendas ler
 
@@ -161,7 +161,7 @@ Regras do formato:
   { "gravados": 12, "removidos": 1, "varridos": 0, "varredura_ignorada": false, "ignorados": 0 }
   ```
   `ignorados` = eventos que vieram com `tarefa_id` (criados pelo Tarefas) e foram deixados de lado de propósito; `gravados` = compromissos entregues; `removidos` = apagados pelo aviso de cancelamento; `varridos` = apagados pela varredura; `varredura_ignorada: true` = a varredura veio com lista vazia e o banco, por segurança, não apagou nada.
-- **Erros:** `400` com texto (`fonte invalida`, `evento sem id`, `evento X sem inicio`): corrija o lote. `401/403` ou `permission denied`: credencial errada. `404` com `PGRST202`: o Natham ainda não aplicou o 008. Em qualquer erro, **o lote inteiro é desfeito** (nada entra pela metade): pode reenviar o mesmo lote depois de corrigir.
+- **Erros:** `400` com texto (`fonte invalida`, `evento sem id`, `evento X sem inicio`): corrija o lote. `401/403` ou `permission denied`: credencial errada. `404` com `PGRST202`: o Natham ainda não aplicou o 010 (pare e avise; não teste contra o 008). Em qualquer erro, **o lote inteiro é desfeito** (nada entra pela metade): pode reenviar o mesmo lote depois de corrigir.
 
 ## 7. Repetição e duplicidade
 
@@ -190,6 +190,8 @@ Tudo em **America/Sao_Paulo** (Brasília, -03:00). Peça `timeZone=America/Sao_P
 
 ## 11. Como testar (nesta ordem; avise o Natham em cada passo que depender dele)
 
+**Antes do passo 1: o Natham precisa ter dito "010 aplicado".** Teste da IDA contra o 008 não vale e não pode ser feito (ele enche a tabela antiga, que tem o furo de privacidade, e faz o 010 parar).
+
 1. **Teste de recusa:** chame a função **sem** a chave. Tem de dar erro (`permission denied`/401). Se aceitar, **pare e avise**: a trava falhou.
 2. **Teste com 1 evento falso**, `p_fonte` `contato`:
    `{"id":"teste-n8n-1","ical_uid":"teste-n8n-1@n8n","titulo":"TESTE n8n (apagar)","inicio":"2027-03-01T10:00:00-03:00","fim":"2027-03-01T11:00:00-03:00"}`
@@ -208,10 +210,10 @@ Deixe o fluxo **salvo, sem publicar** e responda ao Natham com: o nome do fluxo,
 
 ## 13. A VOLTA: do Tarefas para o Google (fluxo novo, separado da IDA)
 
-Pré-requisito: o Natham aplica `supabase/010_agenda_saida_tarefas_para_o_google.sql` (depois do 008). Sem ele, as duas funções abaixo respondem `404` com `PGRST202`: avise o Natham.
+Pré-requisito: o Natham aplica `supabase/010_agenda_saida_tarefas_para_o_google.sql` (o mesmo da IDA; sem ele nada deste brief começa). Sem ele, as duas funções abaixo respondem `404` com `PGRST202`: avise o Natham.
 
 ### 13.1 O que queremos
-Quando alguém cria, muda a data/hora/título/responsável ou apaga uma **tarefa com data** no Tarefas, o evento correspondente aparece, muda ou some **na agenda do Google do RESPONSÁVEL** da tarefa. Tarefa do Matheus vai para a agenda do Matheus, não para a do Adrian nem para a contato@. Tarefa sem data não vai. **Só vai a tarefa que o Natham criou pelo Calendário** (o banco guarda isso na tarefa, `vai_pro_google`); tarefa criada no Caderno, mesmo com data e hora, nunca vai. Isso é decidido no banco: o fluxo não precisa filtrar nada, só entrega o que a fila trouxer. Quem não tem agenda mapeada (Adrian, por ora) não manda nada.
+Quando alguém cria, muda a data/hora/título/responsável ou apaga uma **tarefa com data** no Tarefas, o evento correspondente aparece, muda ou some **na agenda do Google do RESPONSÁVEL** da tarefa. Tarefa do Matheus vai para a agenda do Matheus, não para a do Adrian nem para a contato@. Tarefa sem data não vai. **Só vai a tarefa criada pelo Calendário** (o banco guarda isso na tarefa, `vai_pro_google`); tarefa criada no Caderno, mesmo com data e hora, nunca vai. E vale a regra "só eu escrevo" (Natham, 21/10): só vai a tarefa que a pessoa cria **para si mesma**, ou que o **Natham** cria para alguém. Tarefa que o Matheus (ou outro) cria tendo o Natham como responsável **não vai**, mesmo que o pedido venha marcado. Tudo isso é decidido no banco: o fluxo não precisa filtrar nada, só entrega o que a fila trouxer. Quem não tem agenda mapeada (Adrian, por ora) não manda nada.
 
 Analogia: o banco tem uma **fila de saída** (as encomendas a entregar). Seu fluxo é o motoboy: a cada 1 ou 2 minutos pergunta "o que tem pra entregar?", entrega no Google e avisa o banco "entregue".
 
@@ -227,7 +229,7 @@ Analogia: o banco tem uma **fila de saída** (as encomendas a entregar). Seu flu
 4. Em cada ramo, a chamada ao Google. **Uma de cada vez** (não em paralelo) e **com erro tratado por item**: um item que falha não pode parar os outros (ative "continuar em caso de erro" no nó do Google).
 5. **HTTP Request** `POST .../rest/v1/rpc/agenda_saida_confirmar` com o resultado (13.6), **sempre**, deu certo ou errado.
 
-Se o fluxo cair no meio, nada se perde: o banco devolve o item de novo depois de 5 minutos sem confirmação. `editar` e `apagar` repetidos não duplicam nada; só `criar` repetido duplicaria (se o Google criou mas a confirmação não chegou). Por isso **confirme logo depois de cada chamada ao Google**, antes de passar ao próximo item.
+Se o fluxo cair no meio, nada se perde: o banco devolve o item de novo depois de 5 minutos sem confirmação. Nenhuma repetição duplica evento: `editar` e `apagar` são naturalmente repetíveis, e `criar` usa um **id de evento fixo por tarefa** (13.5): se o Google criou mas a confirmação se perdeu, o pedido volta com o MESMO id, o Google responde `409` ("já existe") e você trata como sucesso. Mesmo assim, **confirme logo depois de cada chamada ao Google**, antes de passar ao próximo item.
 
 ### 13.4 O que o banco entrega (cada item da lista)
 | Campo | Quando vem | Significado |
@@ -236,7 +238,7 @@ Se o fluxo cair no meio, nada se perde: o banco devolve o item de novo depois de
 | `acao` | sempre | `criar`, `editar` ou `apagar` (o banco decide) |
 | `tarefa_id` | sempre | vai no evento como `extendedProperties.private.tarefa_id` |
 | `calendar_id` | sempre | agenda do Google onde agir (a URL leva este valor, com `@` codificado) |
-| `google_event_id` | `editar` e `apagar` | id do evento no Google. Em `criar` vem `null` |
+| `google_event_id` | sempre | id do evento no Google. Em `editar` e `apagar` é o que já existe. **Em `criar` é o id que você DEVE usar ao criar** (os 32 caracteres do `tarefa_id` sem traços: só `0-9` e `a-f`, válido como id do Google, que aceita base32hex `0-9a-v`, 5 a 1024 caracteres). É sempre o mesmo para a mesma tarefa |
 | `titulo` | `criar`, `editar` | vira `summary` |
 | `inicio`, `fim` | `criar`, `editar` | prontos para o Google (abaixo) |
 | `dia_inteiro` | `criar`, `editar` | `true` = usa `date`; `false` = usa `dateTime` |
@@ -247,13 +249,17 @@ Com hora: `inicio` e `fim` vêm como `2026-10-22T14:00:00` (hora de Brasília, *
 ### 13.5 O que mandar ao Google (API `https://www.googleapis.com/calendar/v3`, sempre com `sendUpdates=none`, para ninguém receber e-mail)
 - **criar** `POST /calendars/{calendar_id}/events?sendUpdates=none`
   ```json
-  { "summary": "<titulo>",
+  { "id": "<google_event_id do item>",
+    "summary": "<titulo>",
     "start": { "dateTime": "<inicio>", "timeZone": "America/Sao_Paulo" },
     "end":   { "dateTime": "<fim>",    "timeZone": "America/Sao_Paulo" },
     "description": "Criado pelo Tarefas - Grupo You",
     "extendedProperties": { "private": { "tarefa_id": "<tarefa_id>" } } }
   ```
   Em dia inteiro: `"start": { "date": "<inicio>" }` e `"end": { "date": "<fim>" }`. **A marca `extendedProperties.private.tarefa_id` é obrigatória**: é ela que impede o loop e a duplicata (a IDA a repassa como `tarefa_id`, seção 5).
+  **O `id` é obrigatório e é o `google_event_id` que veio no item** (não invente outro, não deixe o Google escolher). Isso torna o `criar` repetível sem duplicar:
+  - resposta `200`: sucesso, confirme com o `id` da resposta;
+  - resposta **`409`** (o id já existe: ou o `criar` anterior deu certo e a confirmação se perdeu, ou o evento foi apagado antes e o Google guarda o id): **não é erro.** Faça `PUT /calendars/{calendar_id}/events/{google_event_id}?sendUpdates=none` com o mesmo corpo acima e `"status": "confirmed"` (isso corrige os dados se o evento existe e **ressuscita** o evento se ele estava apagado). Se o `PUT` der certo, confirme com `p_erro` nulo; se der erro, mande o erro do `PUT`.
 - **editar** `PATCH /calendars/{calendar_id}/events/{google_event_id}?sendUpdates=none` com `summary`, `start` e `end`. A tarefa pode ter passado de "com hora" para "dia inteiro" (ou ao contrário), então zere o outro campo: com hora, `start`/`end` levam `"date": null`; dia inteiro, levam `"dateTime": null` e `"timeZone": null`.
 - **apagar** `DELETE /calendars/{calendar_id}/events/{google_event_id}?sendUpdates=none`. Resposta `404` ou `410` (já não existe) conta como **sucesso**.
 
@@ -265,10 +271,10 @@ Com hora: `inicio` e `fim` vêm como `2026-10-22T14:00:00` (hora de Brasília, *
 | Coluna no banco (`agenda_saida`) | Parâmetro da função | Campo no n8n |
 |---|---|---|
 | `id` | `p_id` | `id` do item que veio da lista |
-| `google_event_id` (e `agenda_saida_vinculo.google_event_id`) | `p_google_event_id` | `id` da resposta do Google em `criar`; o próprio `google_event_id` do item em `editar`; em `apagar` mande `null` |
+| `google_event_id` (e `agenda_saida_vinculo.google_event_id`) | `p_google_event_id` | em `criar` e `editar`: o `google_event_id` do item (igual ao `id` que o Google devolveu); em `apagar` mande `null`. Se esquecer, o banco usa o que guardou ao entregar o item |
 | `ultimo_erro` | `p_erro` | texto curto do erro do Google (código e mensagem). `null` quando deu certo |
 
-Resposta: `{"estado": "feito"}`, ou `{"estado": "pendente"}` (vai tentar de novo em 5 minutos), ou `{"estado": "falhou"}` (5 erros seguidos: o item sai da fila; avise o Natham). Erro `400` com `salvar precisa de p_google_event_id` = faltou o `id` do Google em `criar` ou `editar`.
+Resposta: `{"estado": "feito"}`, ou `{"estado": "pendente"}` (vai tentar de novo em 5 minutos), ou `{"estado": "falhou"}` (5 erros seguidos: o item sai da fila; avise o Natham). Erro `400` com `salvar precisa de p_google_event_id` = o item não tinha id guardado (não deveria acontecer): avise o Natham.
 
 Os outros campos da lista (`titulo`, `inicio`, `fim`, `dia_inteiro`, `fuso`, `calendar_id`, `tarefa_id`) **não** voltam na confirmação: o banco já os guardou ao entregar o item.
 
@@ -285,7 +291,7 @@ O Adrian entra do mesmo jeito, só depois. **O que já existia antes do 010 não
 1. **Natham, na agenda pessoal dele** (`nathamsud@gmail.com`): Configurações da agenda > "Compartilhar com pessoas específicas" > `contato@assessoriabeec.com.br` > permissão **"Fazer alterações nos eventos"** (hoje está "Ver todos os detalhes do evento").
 2. **Matheus, na agenda dele:** o mesmo, para a contato@.
 3. **Adrian (depois):** o mesmo, para a contato@. **Ninguém compartilha nada com o Adrian:** ele não vê as agendas do Natham nem do Matheus, para não poluir a dele. O Natham e o Matheus passam a ver a do Adrian (isso já está no banco).
-4. Natham aplica o 010 quando o Maestro avisar que está pronto.
+4. Natham aplica o 010 **antes de tudo** (antes de qualquer teste da IDA ou da VOLTA) e avisa o agente do n8n por escrito. Imediatamente antes, ele confere `select count(*) from public.agenda_eventos` (tem de ser `0`; se tiver linha, o 010 para sozinho e a migração dos dados é feita à mão).
 5. Natham publica o fluxo da volta no painel do n8n (como na IDA).
 
 A permissão "Fazer alterações nos eventos" também deixa a IDA continuar lendo: ela inclui ver tudo.
@@ -298,6 +304,8 @@ A permissão "Fazer alterações nos eventos" também deixa a IDA continuar lend
 5. **Sem duplicar:** rode a IDA da `natham`. Esperado: `ignorados: 1` e a tarefa continua **uma vez só** no Calendário do Tarefas (como tarefa, não como compromisso).
 6. **Editar:** o Natham muda hora e título. O MESMO evento muda no Google (não nasce outro).
 7. **Trocar de responsável** para o Matheus (depois de 13.7): o evento some da agenda do Natham e nasce na do Matheus.
+8. **Criar repetido não duplica:** simule uma confirmação perdida: crie o evento (item `criar`), **não** chame `agenda_saida_confirmar` e espere 6 minutos. O item volta como `criar` com o MESMO `google_event_id`; o Google responde `409`; faça o `PUT` (13.5) e confirme. Esperado: **um** evento só na agenda, e `{"estado": "feito"}`.
+9. **Quem escreve (regra "só eu escrevo"):** o Matheus cria pelo Calendário uma tarefa com o Natham como responsável: **nada** vai para o Google e a fila continua vazia. O Natham cria uma para o Matheus (depois de 13.7): vai. O Matheus cria uma para ele mesmo: vai.
 8. **Dia inteiro:** tarefa de dia inteiro com início e fim em dias diferentes. No Google, o último dia aparece incluído.
 9. **Apagar:** o Natham apaga a tarefa. O evento some do Google.
 10. **Erro (opcional):** tire a permissão de escrita de uma agenda e crie uma tarefa para ela: o item deve voltar `pendente` e, após 5 tentativas, `falhou`, sem travar os outros.

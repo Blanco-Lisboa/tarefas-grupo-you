@@ -1,3 +1,13 @@
+begin;
+-- Checagem de segurança ANTES de qualquer mudança (Lupa R5-4): se a tabela antiga da agenda (formato do 008) já tem linha, o 010 PARA aqui e nada muda.
+-- Confira count(*) de agenda_eventos imediatamente antes de aplicar; com linha, é preciso migrar os dados à mão. Rodar o 010 antes de qualquer teste da IDA.
+do $$
+begin
+  if (select relkind from pg_class where oid = to_regclass('public.agenda_eventos')) = 'r' and exists (select 1 from public.agenda_eventos) then
+    raise exception 'agenda_eventos tem linhas: migrar à mão antes de trocar o formato';
+  end if;
+end $$;
+
 -- Item 192: VOLTA da agenda. Tarefa COM DATA criada/alterada/apagada no Tarefas vira evento na agenda do Google do RESPONSÁVEL.
 -- Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Idempotente. Depende do 001, 002, 003, 006, 008 e 009. NÃO aplicado: o Accept é do Natham.
 --
@@ -11,13 +21,21 @@
 --   agenda_saida_vinculo   tarefa -> (agenda, id do evento no Google). Fica FORA da tabela tarefas de propósito: o app lê tarefas com select("*")
 --                          e quem edita a própria tarefa poderia trocar o id e fazer o n8n apagar outro evento. Sobrevive à tarefa apagada.
 
--- 0) SÓ VAI PARA O GOOGLE a tarefa CRIADA PELO CALENDÁRIO (Natham, 21/10: "só se eu marcar no calendário! Tarefas simples, coisas pontuais,
+-- 0) SÓ VAI PARA O GOOGLE a tarefa CRIADA PELO CALENDÁRIO, e só se quem criou escreve na própria agenda ou é o Natham (private.pode_ir_pro_google, abaixo) (Natham, 21/10: "só se eu marcar no calendário! Tarefas simples, coisas pontuais,
 --    eu marco no Caderno"). O Calendário marca `vai_pro_google` ao criar. Tarefa do Caderno, mesmo com data e hora, fica false e nunca vai.
 --    Depois de criada o campo NÃO muda mais (o banco trava, como criado_por): editar em qualquer tela mantém a sincronização, e ninguém
 --    liga ou desliga por engano. Vem false para o que já existe.
 alter table public.tarefas add column if not exists vai_pro_google boolean not null default false;
 
--- tarefas_antes (002) + a trava nova: vai_pro_google é decidido na criação e não muda.
+-- REGRA "só eu escrevo" (Natham, 21/10): só vai para a agenda do Google a tarefa que a pessoa cria PARA SI MESMA, ou que o NATHAM cria para alguém.
+-- Tarefa que o Matheus (ou outro) cria com o Natham como responsável NÃO vai. Vale no banco, qualquer que seja a tela ou a API que mandou.
+create or replace function private.pode_ir_pro_google(criador uuid, responsavel uuid) returns boolean
+language sql stable security definer set search_path = ''
+as $$ select criador = responsavel or exists (select 1 from public.pessoas p where p.id = criador and p.slug = 'natham') $$;
+revoke all on function private.pode_ir_pro_google(uuid, uuid) from public, anon;
+grant execute on function private.pode_ir_pro_google(uuid, uuid) to authenticated;
+
+-- tarefas_antes (002) + a trava nova: vai_pro_google é decidido na criação e não muda; na criação o banco desliga se a regra acima não permite.
 create or replace function private.tarefas_antes() returns trigger
 language plpgsql set search_path = ''
 as $$
@@ -27,6 +45,8 @@ begin
     new.enviada_por := old.enviada_por;
     new.dono_id := old.dono_id;
     new.vai_pro_google := old.vai_pro_google;
+  else
+    new.vai_pro_google := coalesce(new.vai_pro_google, false) and private.pode_ir_pro_google(new.criado_por, new.responsavel_id);
   end if;
   new.updated_at := now();
   return new;
@@ -118,10 +138,13 @@ begin
     if tg_op = 'DELETE' or new.inicio is null then
       -- apagou a tarefa, ou tirou a data: some do Google; "salvar" que ninguém pegou ainda perde o sentido
       delete from public.agenda_saida where tarefa_id = v_id and acao = 'salvar' and estado = 'pendente' and pegou_em is null;
-      if v.tarefa_id is not null or v_voando then
+      -- o pedido de exclusão sai do VÍNCULO (que não é limpo com o tempo), não de linha antiga da fila (Lupa R5-1)
+      if v.tarefa_id is not null then
+        insert into public.agenda_saida (tarefa_id, acao, pessoa_id) values (v_id, 'apagar', v.pessoa_id);
+      elsif v_voando then  -- criação em voo, ainda sem vínculo: o "apagar" espera a confirmação dela (uma tarefa por vez na rua)
         insert into public.agenda_saida (tarefa_id, acao, pessoa_id)
-        select v_id, 'apagar', coalesce(v.pessoa_id, s.pessoa_id)
-        from (select pessoa_id from public.agenda_saida where tarefa_id = v_id order by id desc limit 1) s;
+        select v_id, 'apagar', pessoa_id from public.agenda_saida
+        where tarefa_id = v_id and acao = 'salvar' and estado = 'pendente' and pegou_em is not null order by id desc limit 1;
       end if;
     elsif tg_op = 'INSERT' or (old.titulo, old.inicio, old.fim, old.dia_inteiro, old.responsavel_id)
           is distinct from (new.titulo, new.inicio, new.fim, new.dia_inteiro, new.responsavel_id) then
@@ -133,7 +156,8 @@ begin
         end if;
       end if;
       -- só quem tem agenda mapeada manda; e se já há um "salvar" esperando, ele lê a tarefa na hora de sair (basta um)
-      if new.vai_pro_google and exists (select 1 from public.agenda_pessoa where pessoa_id = new.responsavel_id)
+      if new.vai_pro_google and private.pode_ir_pro_google(new.criado_por, new.responsavel_id)
+         and exists (select 1 from public.agenda_pessoa where pessoa_id = new.responsavel_id)
          and not exists (select 1 from public.agenda_saida where tarefa_id = v_id and acao = 'salvar' and estado = 'pendente' and pegou_em is null and pessoa_id = new.responsavel_id) then
         insert into public.agenda_saida (tarefa_id, acao, pessoa_id) values (v_id, 'salvar', new.responsavel_id);
       end if;
@@ -158,7 +182,8 @@ create trigger agenda_saida_tarefa_del after delete on public.tarefas for each r
 --   acao             "criar" | "editar" | "apagar"   (o banco decide: já existe evento no Google? então editar)
 --   tarefa_id        vai para extendedProperties.private.tarefa_id do evento (e o agenda_receber ignora evento com isso)
 --   calendar_id      a agenda onde agir
---   google_event_id  só em editar/apagar (o id do evento no Google); em criar vem null
+--   google_event_id  o id do evento no Google. Em editar/apagar é o que já existe; em criar é o id que o n8n DEVE usar ao criar
+--                    (os 32 caracteres do tarefa_id, sem traços: 0-9 e a-f, válidos como id do Google). Mesmo id em toda repetição.
 --   titulo, inicio, fim, dia_inteiro, fuso   só em criar/editar, prontos para o Google:
 --       com hora:   inicio/fim = "2026-10-22T14:00:00" (hora de Brasília, sem fuso na ponta; o fuso vai em `fuso`); sem fim = +1 hora
 --       dia inteiro: inicio/fim = "2026-10-22" / "2026-10-23" (o fim já é o dia SEGUINTE, como o Google exige)
@@ -190,7 +215,7 @@ begin
       v_acao := 'apagar'; v_cal := v.calendar_id; v_ev := v.google_event_id;
     else
       select * into t from public.tarefas where id = r.tarefa_id;
-      if t.id is null or t.inicio is null or t.responsavel_id <> r.pessoa_id then  -- ficou velho: tem outra linha atrás dele (ou nenhuma, de propósito)
+      if t.id is null or t.inicio is null or t.responsavel_id <> r.pessoa_id or not private.pode_ir_pro_google(t.criado_por, t.responsavel_id) then  -- ficou velho: tem outra linha atrás dele (ou nenhuma, de propósito)
         update public.agenda_saida set estado = 'feito', feito_em = now() where id = r.id; continue;
       end if;
       if v.tarefa_id is not null and v.pessoa_id = r.pessoa_id then
@@ -201,6 +226,7 @@ begin
           update public.agenda_saida set estado = 'feito', feito_em = now() where id = r.id; continue;
         end if;
         v_acao := 'criar';
+        v_ev := replace(r.tarefa_id::text, '-', '');  -- id do evento FIXO por tarefa (R5-2): criar repetido não duplica, o Google responde 409 = já existe
       end if;
       v_dia := t.dia_inteiro or position('T' in t.inicio) = 0;
       if v_dia then
@@ -242,7 +268,8 @@ begin
   end if;
 
   if r.acao = 'salvar' then
-    if nullif(btrim(p_google_event_id), '') is null then raise exception 'salvar precisa de p_google_event_id' using errcode = '22023'; end if;
+    p_google_event_id := coalesce(nullif(btrim(p_google_event_id), ''), r.google_event_id);  -- o banco já guardou o id ao entregar o item
+    if p_google_event_id is null then raise exception 'salvar precisa de p_google_event_id' using errcode = '22023'; end if;
     insert into public.agenda_saida_vinculo (tarefa_id, pessoa_id, calendar_id, google_event_id)
     values (r.tarefa_id, r.pessoa_id, r.calendar_id, p_google_event_id)
     on conflict (tarefa_id) do update set pessoa_id = excluded.pessoa_id, calendar_id = excluded.calendar_id, google_event_id = excluded.google_event_id;
@@ -260,6 +287,18 @@ revoke all on function public.agenda_saida_confirmar(bigint, text, text) from pu
 grant execute on function public.agenda_saida_confirmar(bigint, text, text) to service_role;
 -- a porta de entrada (008) e as funções novas leem/escrevem tabelas fechadas: service_role precisa enxergar o esquema
 grant usage on schema public to service_role;
+
+-- 5b) Para o selo da Ficha (Lupa R5-5): quais tarefas JÁ estão confirmadas no Google (existe vínculo). O app não lê o vínculo (tabela fechada):
+--     esta função devolve só os ids das tarefas em que a pessoa é dona, criadora ou responsável.
+create or replace function public.tarefas_no_google() returns setof uuid
+language sql stable security definer set search_path = ''
+as $$
+  select v.tarefa_id from public.agenda_saida_vinculo v join public.tarefas t on t.id = v.tarefa_id
+  where (select private.minha_pessoa()) in (t.dono_id, t.criado_por, t.responsavel_id)
+$$;
+revoke all on function public.tarefas_no_google() from public, anon;
+grant execute on function public.tarefas_no_google() to authenticated;
+notify pgrst, 'reload schema';
 
 -- 6) PRIVACIDADE DA AGENDA (Lupa, Re-revisão 4, R4-1). Analogia: antes, a mesma reunião vista por duas agendas era UMA ficha com dois
 --    carimbos, e os detalhes de uma agenda "vazavam" para quem só via a outra. Agora cada agenda guarda a SUA ficha, sozinha
@@ -411,3 +450,5 @@ delete from public.agenda_acesso where fonte = 'lucas';
 
 -- QUEM VÊ O QUÊ depois do 010 (agenda_acesso): Natham: natham, matheus, adrian, contato. Matheus: matheus, adrian, contato (NUNCA natham).
 -- Adrian não tem linha: não vê agenda nenhuma e ninguém compartilha nada com ele.
+
+commit;

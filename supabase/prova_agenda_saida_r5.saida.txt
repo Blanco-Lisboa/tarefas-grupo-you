@@ -1,0 +1,32 @@
+ERROR:  RESULTADO: {
+    "criar_traz_id_fixo": {
+        "id": "81583dc446984e54af7d65353ce2078c",
+        "acao": "criar",
+        "igual_ao_tarefa_id_sem_tracos": true,
+        "valido_base32hex_5_a_1024_tem_32": true
+    },
+    "logado_le_o_vinculo": "barrado: permission denied for table agenda_saida_vinculo",
+    "vinculo_some_esperado_0": 0,
+    "apagar_sai_com_o_evento_certo": {
+        "cal": "nathamsud@gmail.com",
+        "acao": "apagar",
+        "ev_igual": true
+    },
+    "natham_ve_confirmada_esperado_1": 1,
+    "vinculo_com_o_id_fixo_esperado_1": 1,
+    "matheus_nao_ve_a_do_natham_esperado_0": 0,
+    "apagar_na_fila_apos_limpeza_esperado_1": 1,
+    "matheus_para_natham_na_fila_esperado_0": 0,
+    "natham_para_matheus_na_fila_esperado_1": 1,
+    "matheus_para_matheus_na_fila_esperado_1": 1,
+    "matheus_para_natham_campo_ligado_esperado_0": 0,
+    "passar_ao_natham_nao_manda_salvar_esperado_0": 0,
+    "tirar_data_apos_limpeza_gera_apagar_esperado_1": 1,
+    "depois_da_confirmacao_vira_editar_com_o_mesmo_id": {
+        "acao": "editar",
+        "mesmo_id": true
+    },
+    "repeticao_devolve_criar_com_o_mesmo_id_esperado_true": true,
+    "passar_ao_natham_apaga_da_agenda_do_matheus_esperado_1": 1
+}
+CONTEXT:  PL/pgSQL function inline_code_block line 96 at RAISE

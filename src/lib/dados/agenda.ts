@@ -49,6 +49,8 @@ const DIAS_ATRAS = 45, DIAS_ADIANTE = 180;
 const NADA: never[] = [];
 let eventos: EventoAgenda[] = NADA;
 let fontes: FonteAgenda[] = NADA;
+const SEM_IDS: ReadonlySet<string> = new Set();
+let confirmadas: ReadonlySet<string> = SEM_IDS;
 let iniciado = false;
 const ouvintes = new Set<() => void>();
 const assinar = (f: () => void) => {
@@ -62,16 +64,19 @@ function iniciar() {
   iniciado = true;
   void recarregarAgenda();
   document.addEventListener("visibilitychange", () => { if (!document.hidden) void recarregarAgenda(); }); // voltou para a aba: busca de novo
+  setInterval(() => { if (!document.hidden) void recarregarAgenda(); }, 60_000); // o n8n confirma a ida ao Google em até ~2 min: o selo da Ficha acompanha
 }
 
 /** Busca de novo no banco. Se falhar (por exemplo, o 008 ainda não foi aplicado), mantém o que já tinha: o Calendário só fica sem a agenda. */
 export async function recarregarAgenda() {
   const sb = supabase(), dia = (n: number) => new Date(Date.now() + n * 864e5).toISOString();
-  const [e, a] = await Promise.all([
+  const [e, a, g] = await Promise.all([
     sb.from("agenda_eventos").select("id, fontes, titulo, particular, inicio, fim, dia_inteiro, local").gte("inicio", dia(-DIAS_ATRAS)).lt("inicio", dia(DIAS_ADIANTE)).order("inicio"),
     sb.from("agenda_acesso").select("fonte"),
+    sb.rpc("tarefas_no_google"), // 010; sem ele aplicado dá erro e o selo "Na agenda do Google" simplesmente não aparece
   ]);
-  if (e.error || a.error) return;
+  if (!g.error) confirmadas = new Set(g.data as string[]);
+  if (e.error || a.error) return ouvintes.forEach((f) => f());
   const minhas = (a.data as { fonte: FonteAgenda }[]).map((x) => x.fonte);
   fontes = FONTES_AGENDA.filter((f) => minhas.includes(f));
   eventos = (e.data as LinhaEvento[]).map((l) => daLinhaEvento(l, fontes));
@@ -82,3 +87,6 @@ export async function recarregarAgenda() {
 export const useAgendaEventos = () => useSyncExternalStore(assinar, () => eventos, () => NADA);
 /** Agendas que VOCÊ pode ver (para os botões do filtro "Agendas"). Natham: as 5; Matheus: sem a "natham". */
 export const useAgendasVisiveis = () => useSyncExternalStore(assinar, () => fontes, () => NADA);
+/** Ids das tarefas que JÁ estão confirmadas no Google (o n8n entregou e o banco guardou o vínculo). Só vale para tarefa em que você é dono, criador ou responsável.
+ *  Para o selo da Ficha: `useTarefasNoGoogle().has(tarefa.id!)` = "Na agenda do Google"; `vaiProGoogle` sem confirmação = "Será enviada ao Google" (e só se tiver data). Depois de salvar, `recarregarAgenda()` atualiza na hora. */
+export const useTarefasNoGoogle = () => useSyncExternalStore(assinar, () => confirmadas, () => SEM_IDS);

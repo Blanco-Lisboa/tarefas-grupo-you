@@ -22,6 +22,17 @@ describe("010 x brief do n8n", () => {
     expect(brief).toContain("extendedProperties.private.tarefa_id");
     expect(sql).toMatch(/e->>'tarefa_id'/);
   });
+  it("criar usa id fixo por tarefa e o brief manda tratar 409 como já existe (R5-2)", () => {
+    expect(sql).toContain("replace(r.tarefa_id::text, '-', '')");
+    expect(brief).toContain("409");
+    expect(brief).toMatch(/`PUT \/calendars/);
+  });
+  it("regra só eu escrevo no banco e no brief; IDA só depois do 010 (R5-3, R5-4)", () => {
+    expect(sql).toContain("private.pode_ir_pro_google");
+    expect(brief).toContain("só eu escrevo");
+    expect(brief).toContain("010 aplicado");
+    expect(brief).not.toMatch(/aplica o arquivo `supabase\/008/);
+  });
   it("tabelas da fila ficam fechadas para quem está logado", () => {
     expect(sql).toMatch(/revoke all on public\.agenda_pessoa, public\.agenda_saida, public\.agenda_saida_vinculo from public, anon, authenticated/);
     expect(sql).not.toMatch(/eyJ|sb_secret_/);

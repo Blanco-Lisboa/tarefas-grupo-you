@@ -1,17 +1,17 @@
-psql:/sb/prova_agenda_saida.sql:153: WARNING:  agenda_saida_tarefa: relation "public.agenda_saida" does not exist (tarefa d2358f83-cd71-4698-b84b-d45e78c6a2fd)
-psql:/sb/prova_agenda_saida.sql:153: ERROR:  RESULTADO: {
+WARNING:  agenda_saida_tarefa: relation "public.agenda_saida" does not exist (tarefa 236fcd70-2962-4390-b281-e00e2116bd3d)
+ERROR:  RESULTADO: {
     "pega_1": [
         {
-            "id": 1,
+            "id": 40,
             "fim": "2026-10-22T15:30:00",
             "acao": "criar",
             "fuso": "America/Sao_Paulo",
             "inicio": "2026-10-22T14:00:00",
             "titulo": "Gravar reels",
-            "tarefa_id": "b34a5fc3-c704-4985-83f9-1314a42f7dfd",
+            "tarefa_id": "f6b71df3-df41-4200-9b72-789969864253",
             "calendar_id": "nathamsud@gmail.com",
             "dia_inteiro": false,
-            "google_event_id": null
+            "google_event_id": "f6b71df3df4142009b72789969864253"
         }
     ],
     "vinculo": "ev-1 @ nathamsud@gmail.com",
@@ -53,13 +53,13 @@ psql:/sb/prova_agenda_saida.sql:153: ERROR:  RESULTADO: {
     "mapa_natham": "nathamsud@gmail.com",
     "pega_editar": [
         {
-            "id": 2,
+            "id": 41,
             "fim": "2026-10-22T16:00:00",
             "acao": "editar",
             "fuso": "America/Sao_Paulo",
             "inicio": "2026-10-22T14:00:00",
             "titulo": "Gravar reels v2",
-            "tarefa_id": "b34a5fc3-c704-4985-83f9-1314a42f7dfd",
+            "tarefa_id": "f6b71df3-df41-4200-9b72-789969864253",
             "calendar_id": "nathamsud@gmail.com",
             "dia_inteiro": false,
             "google_event_id": "ev-1"
@@ -72,9 +72,9 @@ psql:/sb/prova_agenda_saida.sql:153: ERROR:  RESULTADO: {
     "anon_chama_pendentes": "barrado: permission denied for function agenda_saida_pendentes",
     "troca_primeiro_apaga": [
         {
-            "id": 4,
+            "id": 43,
             "acao": "apagar",
-            "tarefa_id": "b34a5fc3-c704-4985-83f9-1314a42f7dfd",
+            "tarefa_id": "f6b71df3-df41-4200-9b72-789969864253",
             "calendar_id": "nathamsud@gmail.com",
             "google_event_id": "ev-1"
         }
@@ -83,15 +83,14 @@ psql:/sb/prova_agenda_saida.sql:153: ERROR:  RESULTADO: {
     "logado_chama_pendentes": "barrado: permission denied for function agenda_saida_pendentes",
     "para_o_adrian_so_apaga": [
         {
-            "id": 6,
+            "id": 45,
             "acao": "apagar",
-            "tarefa_id": "b34a5fc3-c704-4985-83f9-1314a42f7dfd",
+            "tarefa_id": "f6b71df3-df41-4200-9b72-789969864253",
             "calendar_id": "matheus@cal.test",
             "google_event_id": "ev-1b"
         }
     ],
     "acesso_lucas_esperado_0": 0,
-    "salvar_sem_id_do_google": "barrado: salvar precisa de p_google_event_id",
     "efemera_na_fila_esperado_0": 0,
     "confirma_de_novo_inofensivo": {
         "estado": "feito"
@@ -107,16 +106,16 @@ psql:/sb/prova_agenda_saida.sql:153: ERROR:  RESULTADO: {
     "vinculo_do_adrian_esperado_0": 0,
     "troca_depois_cria_na_do_matheus": [
         {
-            "id": 5,
+            "id": 44,
             "fim": "2026-10-22T16:30:00",
             "acao": "criar",
             "fuso": "America/Sao_Paulo",
             "inicio": "2026-10-22T15:00:00",
             "titulo": "Gravar reels v2",
-            "tarefa_id": "b34a5fc3-c704-4985-83f9-1314a42f7dfd",
+            "tarefa_id": "f6b71df3-df41-4200-9b72-789969864253",
             "calendar_id": "matheus@cal.test",
             "dia_inteiro": false,
-            "google_event_id": null
+            "google_event_id": "f6b71df3df4142009b72789969864253"
         }
     ],
     "pessoa_lucas_continua_esperado_1": 1,
@@ -126,13 +125,13 @@ psql:/sb/prova_agenda_saida.sql:153: ERROR:  RESULTADO: {
     "fila_esperado_1_so_a_do_calendario": 1,
     "depois_da_confirmacao_sai_a_proxima": [
         {
-            "id": 3,
+            "id": 42,
             "fim": "2026-10-22T16:30:00",
             "acao": "editar",
             "fuso": "America/Sao_Paulo",
             "inicio": "2026-10-22T15:00:00",
             "titulo": "Gravar reels v2",
-            "tarefa_id": "b34a5fc3-c704-4985-83f9-1314a42f7dfd",
+            "tarefa_id": "f6b71df3-df41-4200-9b72-789969864253",
             "calendar_id": "nathamsud@gmail.com",
             "dia_inteiro": false,
             "google_event_id": "ev-1"
@@ -145,6 +144,7 @@ psql:/sb/prova_agenda_saida.sql:153: ERROR:  RESULTADO: {
     "tarefa_salvou_com_fila_quebrada_esperado_1": 1,
     "caderno_tentou_ligar_o_campo_esperado_false": false,
     "para_o_adrian_nada_mais_esperado_lista_vazia": [
-    ]
+    ],
+    "salvar_sem_id_do_google_usa_o_id_guardado_pelo_banco": "ok"
 }
 CONTEXT:  PL/pgSQL function inline_code_block line 149 at RAISE
