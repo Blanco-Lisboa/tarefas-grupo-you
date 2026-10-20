@@ -17,8 +17,8 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { ehConteudo } from "@/components/tarefas/grade";
 import {
-  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, limparErro, podeApagar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
-  type Etapa, type Etiqueta, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
+  APROVADORES, ETAPAS, ETIQUETAS, FORMATOS, REDES, RESPONSAVEIS, TIPOS, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
+  type Etapa, type Etiqueta, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type Tarefa, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
 import { deTexto, paraHora, vaiProGoogle } from "@/components/calendario/logica";
@@ -29,7 +29,10 @@ import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { Aprovador, TagChip } from "@/components/ui/Tag";
 import { Agora } from "./Agora";
 import { Anexos } from "./Anexos";
-import { arrumar, ehQuemAprova } from "./arrumar";
+import { CamposPost } from "./CamposPost";
+import { LINK_VALIDO, LinksDrive } from "./LinksDrive";
+import { arrumar, ehQuemAprova, fimValido } from "./arrumar";
+import { CampoOcasiao } from "./CampoOcasiao";
 import { TextoComLinks } from "@/components/pastas/links";
 import { CampoData } from "@/components/ui/CampoData";
 import "./ficha.css";
@@ -51,7 +54,6 @@ export const tarefaEmBranco = (parcial: Partial<NovaTarefa> = {}): NovaTarefa =>
 });
 
 const NENHUMA = "nenhuma"; // valor do seletor Empresa; a tarefa sem empresa guarda empresaId ""
-const LINK_VALIDO = /^https?:\/\//i;
 const HORA = 60 * 60_000;
 
 export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: NovaTarefa; aoFechar: () => void; soLer?: boolean; tipos?: readonly TipoTarefa[] }) {
@@ -88,6 +90,9 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
   const aprovadorTravado = !nova && !ehQuemAprova(tarefa.aprovador, eu);
+  // 019: depois de Aprovado, o que vai para a rede (legenda, formato, arquivos, capa) só muda pelo Natham ou por quem aprova.
+  const postTravado = !nova && (tarefa.etapa === "aprovado" || tarefa.etapa === "postado") && !(podeAlterar(tarefa as Tarefa, eu) && ehQuemAprova(tarefa.aprovador, eu));
+  const capas = arquivos.filter((a) => a.papel === "capa");
   const aprovadores = [...new Set<string>([...APROVADORES, ...todas.flatMap((x) => (x.aprovador ? [x.aprovador] : [])), ...(t.aprovador ? [t.aprovador] : [])])];
   async function criarTag() {
     if (!novaTag?.nome.trim()) return;
@@ -215,6 +220,14 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
             <div className="ficha-campo ficha-escolha">
               <Selecao rotulo="Etapa" opcoes={ETAPAS.map((v) => ({ valor: v, rotulo: NOMES.etapa[v] }))} valor={t.etapa ? [t.etapa] : []} multipla={false} rotuloTodos="Sem etapa" aoMudar={([v]) => mudar("etapa", v as Etapa | undefined)} />
             </div>
+            {t.tipo === "postagem" && (
+              // Formato já ao criar/anexar (203): é dele que sai o campo Capa do Reels. O Programar postagem do card usa o mesmo valor.
+              <div className="ficha-campo ficha-escolha" inert={postTravado}>
+                <Selecao rotulo="Formato" opcoes={FORMATOS.map((v) => ({ valor: v, rotulo: NOMES.formato[v] }))} valor={t.formato ? [t.formato] : []} multipla={false} rotuloTodos="Sem formato" aoMudar={([v]) => mudar("formato", v as Formato | undefined)} />
+              </div>
+            )}
+            {/* Ocasião = pasta do Drive dentro da empresa (203, Vitral); sem empresa não existe */}
+            {t.empresaId && <div className="ficha-campo ficha-escolha"><CampoOcasiao tarefaId={tarefa.id} empresaId={t.empresaId} valor={t.ocasiaoId} aoMudar={(id) => mudar("ocasiaoId", id)} /></div>}
           </div>
 
           <div className="ficha-quem-quando">
@@ -249,6 +262,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
               <input value={t.objetivo ?? ""} onChange={(e) => mudar("objetivo", e.target.value)} placeholder="Para que serve este conteúdo?" />
             </Campo>
           )}
+          {t.tipo === "postagem" && <CamposPost t={t} arquivos={arquivos} travado={postTravado} mudar={mudar} aoMudarCapa={(v) => setArquivos([...arquivos.filter((a) => a.papel !== "capa"), ...v])} />}
 
           <div className="ficha-opcional" aria-hidden>Opcional</div>
           <div className="ficha-tags">
@@ -290,19 +304,9 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
             )}
           </div>
 
-          <fieldset className="ficha-campo">
-            <legend>Links do Drive</legend>
-            {links.map((l, i) => (
-              <div key={i} className="ficha-link">
-                <input aria-label="Nome do link" value={l.rotulo} placeholder="Nome" onChange={(e) => setLinks(links.map((x, j) => (j === i ? { ...x, rotulo: e.target.value } : x)))} />
-                <input aria-label="Endereço do link" type="url" value={l.url} placeholder="https://drive.google.com/..." onChange={(e) => setLinks(links.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))} />
-                {LINK_VALIDO.test(l.url) && <a href={l.url} target="_blank" rel="noreferrer noopener">Abrir</a>}
-                <button type="button" className="ficha-texto-botao" onClick={() => setLinks(links.filter((_, j) => j !== i))}>Tirar</button>
-              </div>
-            ))}
-            <button type="button" className="ficha-texto-botao" onClick={() => setLinks([...links, { rotulo: "", url: "" }])}>+ Adicionar link</button>
-          </fieldset>
-          <Anexos valor={arquivos} aoMudar={setArquivos} />
+          <LinksDrive links={links} aoMudar={setLinks} />
+          <div inert={postTravado}><Anexos valor={arquivos.filter((a) => a.papel !== "capa")} aoMudar={(v) => setArquivos([...v, ...capas])} empresaId={t.empresaId} carrossel={t.formato === "carrossel"} /></div>
+          {postTravado && <p className="ficha-dica">Aprovado: legenda, formato, arquivos e capa só mudam pelo Natham ou por quem aprova.</p>}
 
           <div className="ficha-campo ficha-notas">
             <label className="ficha-legenda" htmlFor="ficha-notas">Notas</label>
@@ -340,9 +344,3 @@ function Campo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return <label className="ficha-campo"><span className="ficha-legenda">{rotulo}</span>{children}</label>;
 }
 
-// Fim só vale se vier depois do início; senão a tarefa fica sem fim (vira um ponto no horário).
-function fimValido(dia: string, ini: string, diaFim: string, fim: string) {
-  if (!fim) return undefined;
-  const a = `${dia}T${ini}`, b = `${diaFim}T${fim}`;
-  return b > a ? b : undefined;
-}

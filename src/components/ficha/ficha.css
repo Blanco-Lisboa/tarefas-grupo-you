@@ -167,3 +167,15 @@
 
 .ficha-anexo-aviso { flex-basis: 100%; font-size: var(--app-t-rotulo); color: var(--fraco); }
 .ficha-escolha[inert] { opacity: .6; } /* Quem aprova travado para quem não aprova (015) */
+/* Postagem automática (196): contador da legenda e a capa do Reels (vídeo em pé + barrinha do quadro) */
+.ficha-legenda-post { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--s-8); }
+.ficha-legenda-post small { color: var(--fraco); font: 500 var(--t-12) var(--fonte); font-variant-numeric: tabular-nums; }
+.ficha-capa { border: 0; padding: 0; margin: 0; min-width: 0; }
+.ficha-capa-quadro { display: flex; gap: var(--s-16); align-items: flex-start; }
+.ficha-capa-quadro video, .ficha-capa-vazio { flex: none; width: 96px; aspect-ratio: 9 / 16; border-radius: 8px; background: #000; object-fit: cover; }
+.ficha-capa-vazio { display: grid; place-items: center; padding: var(--s-8); background: var(--sup-2); color: var(--fraco); font-size: var(--t-12); text-align: center; }
+.ficha-capa-controles { flex: 1; min-width: 0; display: grid; gap: var(--s-8); }
+.ficha-capa-controles input[type="range"] { width: 100%; accent-color: var(--azul); }
+.ficha-capa-texto { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-4) var(--s-12); margin: 0; color: var(--texto); font-size: var(--t-14); }
+.ficha-capa-fb { color: var(--fraco); font-size: var(--t-12); }
+.ficha-capa-texto .ficha-texto-botao { padding: 0; font-size: var(--t-12); }

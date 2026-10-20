@@ -15,3 +15,10 @@ export const arrumar = (t: NovaTarefa, pedeAprovador: boolean, extras: Partial<N
 /** Espelha private.pode_aprovar (015): o Natham, ou a pessoa cujo nome é o aprovador (nome = slug com maiúscula). Sem aprovador: só o Natham. */
 export const ehQuemAprova = (aprovador: string | undefined, eu: Responsavel | null) =>
   eu === "natham" || (!!eu && eu === aprovador?.trim().toLowerCase());
+
+// Fim só vale se vier depois do início; senão a tarefa fica sem fim (vira um ponto no horário).
+export function fimValido(dia: string, ini: string, diaFim: string, fim: string) {
+  if (!fim) return undefined;
+  const a = `${dia}T${ini}`, b = `${diaFim}T${fim}`;
+  return b > a ? b : undefined;
+}
