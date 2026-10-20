@@ -17,3 +17,5 @@ Console sem erro nas 3 larguras. Dia solto: brilho `menu-brilho` anima (fundo mu
 - [ ] PARA: Régua · 390 `mapa-20-390.png` · a haste azul atravessa o texto "Ter, 20/10" (data riscada pela linha). Dar fundo/deslocar a data ou parar a haste atrás do rótulo · feio
 - Dia solto (`zoom-22-1440.png`): card branco com brilho OK; sobra um vazio embaixo do texto (card mais alto que o conteúdo) · melhoria, PARA: Régua
 Nota: banco-falso.mjs ganhou 2 conteúdos tipo "postagem" em 20/10 (só os de tipo postagem entram no Mapa).
+- [x] 10 · Ficha 390 · chip da tag cortado sem reticências no botão Tags (achado 15 do Sextante) · feio · CONSERTADO (commit seguinte): reticência não funciona em caixa flex; o chip virou bloco em linha (foto do aprovador mantém o espaço). Provado numa caixa de 70px: "Espera…" (provas/pente-alvenaria/chip.mjs e chip.png). Falta só ver na ficha real quando a trava de fotos estiver livre
+- [x] 11 · chip de tag em pílula (achado 16 do Sextante) · já resolvido em f7eafd6 (canto 8px), conferido
