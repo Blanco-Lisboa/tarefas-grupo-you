@@ -56,8 +56,9 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
   const [t, setT] = useState<NovaTarefa>(() => ({ ...tarefa, empresaId: tarefa.id ? tarefa.empresaId : tarefa.empresaId || empresas[0]?.id || "" })); // tarefa já existente sem empresa continua sem empresa (item 125)
   const [data, setData] = useState(tarefa.inicio?.slice(0, 10) ?? "");
   const [horaIni, setHoraIni] = useState(tarefa.inicio?.slice(11, 16) || "09:00");
-  const [horaFim, setHoraFim] = useState(tarefa.fim?.slice(11, 16) ?? "");
-  const [dataFim, setDataFim] = useState(tarefa.fim?.slice(0, 10) ?? "");
+  // Sem campo Termina (item 159): tarefa nova nasce sem fim; a antiga guarda o fim que tinha e ele anda junto com o Começa.
+  const [horaFim, setHoraFim] = useState(tarefa.id ? tarefa.fim?.slice(11, 16) ?? "" : "");
+  const [dataFim, setDataFim] = useState(tarefa.id ? tarefa.fim?.slice(0, 10) ?? "" : "");
   const [links, setLinks] = useState<LinkDrive[]>(tarefa.links);
   const [arquivos, setArquivos] = useState(tarefa.arquivos);
   const [editandoNotas, setEditandoNotas] = useState(false);
@@ -192,17 +193,10 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
               <div className="ficha-quando">
                 {/* Data e hora no mesmo painel (item 76): calendário + rodas de hora e minuto. Conteúdo antigo de dia inteiro mostra só a data. */}
                 <div className="ficha-mini">
-                  {data && !t.diaInteiro ? "Começa" : "Data"}
-                  <CampoData rotulo={data && !t.diaInteiro ? "Começa" : "Data"} valor={data} hora={t.diaInteiro ? undefined : data ? horaIni : ""}
+                  {t.diaInteiro ? "Data" : "Começa"}
+                  <CampoData rotulo={t.diaInteiro ? "Data" : "Começa"} valor={data} hora={t.diaInteiro ? undefined : data ? horaIni : ""}
                     aoMudar={(d, h) => mudarInicio(d, h || horaIni)} />
                 </div>
-                {data && !t.diaInteiro && (
-                  <div className="ficha-mini">
-                    Termina
-                    <CampoData rotulo="Termina" valor={horaFim ? dataFim || data : ""} hora={horaFim} min={data} vazio="Sem fim"
-                      aoMudar={(d, h) => { setDataFim(d); setHoraFim(h ?? ""); }} />
-                  </div>
-                )}
               </div>
               {!data && <p className="ficha-dica">Sem data: fica na coluna &quot;Sem data&quot; do calendário.</p>}
             </fieldset>
