@@ -45,11 +45,11 @@ begin
   end if;
   v_entra_aprovado := new.etapa = 'aprovado' and (tg_op = 'INSERT' or old.etapa is distinct from 'aprovado');
   -- Postado só nasce de Aprovado (a mão ou o despertador); vindo de qualquer outra etapa, ou criado já Postado, é como aprovar.
-  v_entra_postado := new.etapa = 'postado' and (tg_op = 'INSERT' or old.etapa not in ('aprovado', 'postado'));
+  v_entra_postado := new.etapa = 'postado' and (tg_op = 'INSERT' or coalesce(old.etapa, '') not in ('aprovado', 'postado'));
   if tg_op = 'UPDATE' then
     if (new.conserto and not old.conserto) or v_entra_aprovado or v_entra_postado
        -- depois de entrar em análise, quem aprova e quando posta só mudam pela mão de quem aprova
-       or (old.etapa in ('analise', 'aprovado', 'postado') and new.aprovador is distinct from old.aprovador)
+       or (coalesce(old.etapa, '') in ('analise', 'aprovado', 'postado') and new.aprovador is distinct from old.aprovador)
        or (old.etapa in ('aprovado', 'postado') and new.etapa in ('aprovado', 'postado') and new.postar_em is distinct from old.postar_em) then
       if not (select private.pode_aprovar(old.aprovador)) then
         raise exception 'so o Natham ou o aprovador do card aprova, programa a postagem ou manda consertar' using errcode = '42501';
