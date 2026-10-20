@@ -11,11 +11,7 @@
 .fa-pilha { padding: var(--s-12); border-radius: var(--raio-c); }
 .fa-cartao { position: relative; cursor: default; }
 
-/* Espaço em volta do card para a orelha caber dentro do bloco */
-.fa-pilha[data-fa="1"], .fa-pilha[data-fa="2"], .fa-pilha[data-fa="4"] { padding-top: 40px; }
-.fa-pilha[data-fa="3"] { padding-right: 44px; }
-.fa-pilha[data-fa="5"] { padding-top: 32px; }
-.fa-pilha[data-fa="6"] { padding-top: 36px; padding-left: 20px; }
+/* Espaço em cima do card para o marcador caber dentro do bloco */
 
 /* Orelha: verde sóbrio com o vidro brilhando do item ativo do menu (menu-brilho em casca.css) */
 .fa-orelha {
@@ -28,21 +24,11 @@
 @keyframes fa-brilho { to { background-position: -200% 0; } }
 .fa-orelha .pessoa { outline: 1.5px solid rgb(255 255 255 / .85); }
 
-/* 1 · topo à esquerda: aba de pasta */
-[data-fa="1"] > .fa-orelha { left: 16px; bottom: 100%; margin-bottom: -1px; height: 28px; border-radius: 8px 8px 0 0; }
-/* 2 · topo à direita */
-[data-fa="2"] > .fa-orelha { right: 16px; bottom: 100%; margin-bottom: -1px; height: 28px; border-radius: 8px 8px 0 0; }
-/* 3 · lateral direita, para fora, nome na vertical */
-[data-fa="3"] > .fa-orelha { top: 28px; left: 100%; margin-left: -1px; flex-direction: column; padding: var(--s-8) 6px var(--s-12); border-radius: 0 8px 8px 0; }
-[data-fa="3"] > .fa-orelha > span { writing-mode: vertical-rl; }
-/* 4 · fita no canto com a ponta dobrada (o triângulo escuro é a dobra) */
-[data-fa="4"] > .fa-orelha { right: -8px; bottom: 100%; margin-bottom: -1px; height: 28px; border-radius: 8px 8px 0 0; }
-[data-fa="4"] > .fa-orelha::after { content: ""; position: absolute; top: 100%; right: 0; width: 8px; height: 8px; background: var(--fa-verde-escuro); clip-path: polygon(0 0, 100% 0, 0 100%); }
-/* 5 · marcador de página descendo do topo, ponta em V */
-[data-fa="5"] > .fa-orelha { top: -18px; right: 56px; flex-direction: column; gap: 2px; width: 64px; height: 64px; padding: var(--s-8) 4px 14px; border-radius: 8px 8px 0 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%); font-size: 11px; justify-content: flex-start; box-shadow: none; }
-/* 6 · orelha torta com pino */
-[data-fa="6"] > .fa-orelha { top: -22px; left: -8px; height: 28px; padding-left: 22px; border-radius: 8px; transform: rotate(-3deg); }
-.fa-pino { position: absolute; left: 3px; top: 50%; width: 15px; height: 15px; margin-top: -7px; border: 1px solid rgb(255 255 255 / .7); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #5FA77F, var(--fa-verde-escuro) 70%); box-shadow: 0 2px 3px rgb(0 0 0 / .4); }
-[data-fa="6"] > .fa-orelha .pessoa { margin-left: 0; }
+.fa-so-leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
 
 @media (prefers-reduced-motion: reduce) { .fa-orelha { animation: none; } }
+
+/* 5b final: marcador estreito descendo do topo, só a foto; right: 52px deixa livre o ícone da rede */
+.fa-pilha[data-fa="5b"] { padding-top: 28px; }
+[data-fa="5b"] > .fa-orelha { --fa-verde: #2C6B49; top: -14px; right: 52px; width: 36px; height: 46px; padding: 8px 0 0; flex-direction: column; justify-content: flex-start; border-radius: 6px 6px 0 0; box-shadow: none; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%); }

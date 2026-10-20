@@ -19,7 +19,7 @@ for (const [w, h] of [[1903, 900], [1440, 760], [390, 844]]) {
   p.on("pageerror", (e) => erros.push(e.message));
   await p.goto("http://127.0.0.1:3199/modelos/fazendo-agora", { waitUntil: "networkidle" });
   await p.evaluate(() => { const d = document.createElement("div"); d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;left:4px;bottom:4px;z-index:2147483647;background:#000;color:#fff;font:700 10px monospace;padding:2px 6px"; document.body.append(d); });
-  await p.screenshot({ path: join(PASTA, `orelha-${w}.png`), fullPage: true });
+  await p.screenshot({ path: join(PASTA, `final-${w}.png`), fullPage: true });
   console.log(w, "erros:", erros.length ? erros : "nenhum");
   await ctx.close();
 }

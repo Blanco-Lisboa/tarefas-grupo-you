@@ -4,36 +4,30 @@ import { Pessoa } from "@/components/ui/Pessoa";
 import "@/components/conteudos/conteudos.css";
 import "./fazendo-agora.css";
 
-// Item 167b: 6 desenhos de ORELHA (aba que sai da borda do card) para "fazendo agora". Só comparação: o card de verdade não mudou.
+// Item 167d: marcador final (orelha 5b) para "fazendo agora". Só comparação: o card de verdade não mudou.
 // O card abaixo repete a marcação de TelaConteudos (mesmas classes, de conteudos.css), com texto fixo.
-const OPCOES: { n: number; nome: string; frase: string }[] = [
-  { n: 1, nome: "Opção 1 · a sua", frase: "Orelha verde no topo à esquerda, com o vidro brilhando do menu lateral correndo por cima." },
-  { n: 2, nome: "Opção 2", frase: "A mesma orelha, no topo à direita." },
-  { n: 3, nome: "Opção 3", frase: "Orelha na lateral direita, saindo para fora do card, com o nome na vertical." },
-  { n: 4, nome: "Opção 4", frase: "Orelha no topo à direita com a ponta dobrada, como fita presa no canto." },
-  { n: 5, nome: "Opção 5", frase: "Marcador de página verde descendo do topo, com foto e nome." },
-  { n: 6, nome: "Opção 6 · com pino", frase: "Orelha levemente torta, presa no card por um pino (tachinha)." },
+const OPCOES: { n: string; nome: string; frase: string }[] = [
+  { n: "5b", nome: "Final (5b, um pouco maior)", frase: "Só a foto num marcador estreito descendo do topo. O nome aparece ao passar o mouse." },
 ];
 
 type Quem = "natham" | "matheus";
 const NOME: Record<Quem, string> = { natham: "Natham", matheus: "Matheus" };
 
-function Orelha({ n, quem }: { n: number; quem: Quem }) {
+function Orelha({ n, quem }: { n: string; quem: Quem }) {
   const nome = NOME[quem];
   return (
-    <span className="fa-orelha" role="status" aria-label={`${nome} está fazendo agora`}>
-      {n === 6 && <i className="fa-pino" aria-hidden />}
-      <Pessoa quem={quem} tamanho={n === 5 ? 28 : 20} />
-      <span>{n === 3 || n === 5 ? nome : `${nome} fazendo agora`}</span>
+    <span className="fa-orelha" role="status" aria-label={`${nome} está fazendo agora`} title={`${nome} está fazendo agora`}>
+      <Pessoa quem={quem} tamanho={22} />
+      <span className="fa-so-leitor">{nome}</span>
     </span>
   );
 }
 
-function Cartao({ n, quem }: { n: number; quem: Quem }) {
+function Cartao({ n, quem }: { n: string; quem: Quem }) {
   return (
     <div className="conteudos-pilha fa-pilha" data-fa={n || undefined} style={{ "--etapa": "var(--etapa-roteiro)" } as CSSProperties}>
       <article className="conteudos-cartao fa-cartao" data-fa={n || undefined}>
-        {n > 0 && <Orelha n={n} quem={quem} />}
+        {n && <Orelha n={n} quem={quem} />}
         <div className="conteudos-cartao-topo">
           <span className="conteudos-empresa">
             <SeloEmpresa empresaId="beec" nome="Beec" tamanho={20} />
@@ -62,14 +56,14 @@ export function TelaFazendoAgora() {
   return (
     <div className="fa">
       <header className="fa-topo">
-        <h1>Orelha “fazendo agora” no card</h1>
-        <p>O mesmo card de Conteúdos em cada coluna. A orelha verde mostra qual tarefa cada pessoa está executando e quem é; todos veem a de todos, então cada opção tem um card do Matheus e um do Natham. Para escolher, diga o número: “quero a 3”.</p>
+        <h1>Marcador “fazendo agora” no card</h1>
+        <p>O mesmo card de Conteúdos em cada coluna. O marcador verde mostra qual tarefa cada pessoa está executando e quem é; todos veem a de todos, então aparece um card do Matheus e um do Natham. Passe o mouse no marcador para ver o nome.</p>
       </header>
       <div className="fa-colunas">
         <section className="fa-bloco">
           <h2>Hoje</h2>
           <p>Como está: nada no card diz que alguém está nessa tarefa.</p>
-          <Cartao n={0} quem="matheus" />
+          <Cartao n="" quem="matheus" />
         </section>
         {OPCOES.map((s) => (
           <section className="fa-bloco" key={s.n}>
