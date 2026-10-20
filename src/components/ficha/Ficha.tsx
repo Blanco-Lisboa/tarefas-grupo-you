@@ -12,7 +12,7 @@
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
-  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useTags, useTarefas,
+  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, limparErro, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useTags, useTarefas,
   type Etapa, type Etiqueta, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
@@ -62,6 +62,12 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
   const [links, setLinks] = useState<LinkDrive[]>(tarefa.links);
   const [arquivos, setArquivos] = useState(tarefa.arquivos);
   const [editandoNotas, setEditandoNotas] = useState(false);
+  // Só fecha depois que o banco aceitou: se recusar, a ficha fica aberta com o aviso e nada do que foi escrito se perde.
+  // (O aviso geral da casca fica atrás da ficha, então o erro aparece também no pé dela.)
+  const erro = useErroDados();
+  const [salvando, setSalvando] = useState(false);
+  const [enviou, setEnviou] = useState(false);
+  useEffect(() => { if (enviou && !erro) aoFechar(); }, [enviou, erro, aoFechar]);
   const nova = !tarefa.id;
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
@@ -100,23 +106,28 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
-    if (!t.titulo.trim() || !empresaOk) return;
+    if (!t.titulo.trim() || !empresaOk || salvando) return; // salvando: dois cliques em Salvar criavam a tarefa duas vezes
     const quando: Pick<NovaTarefa, "inicio" | "fim" | "diaInteiro"> = !data
       ? { inicio: undefined, fim: undefined, diaInteiro: false }
       : t.diaInteiro
         ? { inicio: data, fim: undefined, diaInteiro: true }
         : { inicio: `${data}T${horaIni}`, fim: fimValido(data, horaIni, dataFim || data, horaFim), diaInteiro: false };
+    limparErro();
+    setEnviou(false);
+    setSalvando(true);
     await salvarTarefa({
       ...t, ...quando, arquivos, aprovador: pedeAprovador ? t.aprovador : undefined, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
-    aoFechar();
+    setSalvando(false);
+    setEnviou(true);
   }
 
   async function excluir() {
     if (!tarefa.id || !window.confirm(`Excluir a tarefa "${tarefa.titulo}"? Não dá para desfazer.`)) return;
+    limparErro();
     await removerTarefa(tarefa.id);
-    aoFechar();
+    setEnviou(true);
   }
 
   const dona = empresas.find((e) => e.id === t.empresaId);
@@ -280,8 +291,9 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
 
         <footer className="ficha-pe">
           {!nova && <button type="button" className="ficha-texto-botao ficha-excluir" onClick={excluir}>Excluir</button>}
+          {enviou && erro && <p className="ficha-erro" role="alert">{erro}</p>}
           <button type="button" className="btn btn-2" onClick={() => dialogo.current?.close()}>Cancelar</button>
-          <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk}>Salvar</button>
+          <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>
         </footer>
       </form>
     </dialog>
