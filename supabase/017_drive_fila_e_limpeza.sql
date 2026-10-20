@@ -202,16 +202,26 @@ end $$;
 -- drive_limpar_pendentes: com recibo e Postado há 3 dias ou mais, ainda no Storage. O n8n apaga o arquivo pela API do Storage
 -- (404 = já não existe = sucesso) e chama drive_limpeza_confirmar.
 create or replace function public.drive_limpar_pendentes(p_limite int default 50) returns jsonb
-language sql stable security definer set search_path = ''
+language plpgsql security definer set search_path = ''
 as $$
-  select coalesce(jsonb_agg(jsonb_build_object('id', a.id, 'caminho', a.caminho) order by a.id), '[]'::jsonb)
-  from (
+declare v jsonb;
+begin
+  -- Cada anexo entregue é CARIMBADO (limpeza_tentou_em) e só volta a ser listado depois de 6 horas: o laço do n8n termina ao receber [] e uma
+  -- exclusão que falha sempre não ocupa os primeiros lugares. Ordem: os nunca tentados primeiro, depois os tentados há mais tempo.
+  with pegos as (
     select a.id, a.caminho from public.arquivos a join public.tarefas t on t.id = a.tarefa_id
     where a.removido_em is null and a.drive_estado = 'feito' and nullif(btrim(a.drive_link), '') is not null
       and t.etapa = 'postado' and t.postado_em <= now() - interval '3 days'
-    order by a.id limit least(greatest(coalesce(p_limite, 50), 1), 200)
-  ) a
-$$;
+      and (a.limpeza_tentou_em is null or a.limpeza_tentou_em < now() - interval '6 hours')
+    order by a.limpeza_tentou_em nulls first, a.id
+    limit least(greatest(coalesce(p_limite, 50), 1), 200)
+    for update of a skip locked
+  ), marcados as (
+    update public.arquivos a set limpeza_tentou_em = now() from pegos p where a.id = p.id returning p.id, p.caminho
+  )
+  select coalesce(jsonb_agg(jsonb_build_object('id', id, 'caminho', caminho) order by id), '[]'::jsonb) into v from marcados;
+  return v;
+end $$;
 
 -- Os 3 dias valem em TRÊS momentos: ao montar a lista, ao autorizar (logo antes de apagar) e ao confirmar. O card pode voltar atrás no meio do caminho.
 create or replace function private.anexo_limpavel(p_id uuid) returns boolean

@@ -63,7 +63,7 @@ Sucesso exige `p_file_id`, `p_link` e `p_tamanho` igual ao `tamanho` do item (o 
 
 ## 5. Limpar o Storage (diário)
 
-**5.1** `drive_limpar_pendentes` com `{"p_limite": 50}`. Devolve `[{ "id": "...", "caminho": "tarefas/..." }]`: só anexos que têm recibo do Drive e cujo card está em Postado há 3 dias ou mais.
+**5.1** `drive_limpar_pendentes` com `{"p_limite": 50}`. Devolve `[{ "id": "...", "caminho": "tarefas/..." }]`: só anexos que têm recibo do Drive e cujo card está em Postado há 3 dias ou mais. **Repita a chamada em laço até ela devolver `[]`** (no máximo 20 voltas por execução): cada anexo entregue fica carimbado e só volta a ser listado depois de 6 horas, então os que falharam não travam os seguintes e o laço sempre termina. Os que falharam voltam numa execução de outro dia.
 
 **5.2** Para cada um, chame **imediatamente antes de apagar** `drive_limpeza_autorizar` com `{"p_id": "..."}`: devolve `true` ou `false`. `false` = o card mudou (voltou de Postado, por exemplo): **não apague**, siga para o próximo. `true` = o banco anotou a autorização (vale 2 horas): apague pela API do Storage: `DELETE /storage/v1/object/arquivos/<caminho>` com a chave de serviço. **404 (já não existe) conta como sucesso.** Qualquer outro erro: não confirme, siga para o próximo.
 
@@ -73,7 +73,7 @@ A linha do anexo continua no banco com o `drive_link`: o card passa a mostrar o 
 
 ## 6. O que NÃO fazer
 
-- Não escreva direto nas tabelas (`arquivos`, `tarefas`); só as quatro funções acima.
+- Não escreva direto nas tabelas (`arquivos`, `tarefas`); só as cinco funções acima (`drive_fila`, `drive_confirmar`, `drive_limpar_pendentes`, `drive_limpeza_autorizar`, `drive_limpeza_confirmar`).
 - Não apague nada do Drive. Não apague do Storage nada que não tenha vindo de `drive_limpar_pendentes`.
 - Não guarde o conteúdo dos arquivos em lugar nenhum além do Drive (nada de cópia em nota, Sheets, log).
 - Se uma função devolver erro estranho (401, 404 de função, "anexo não existe"), pare e avise o Natham em vez de tentar variações.
