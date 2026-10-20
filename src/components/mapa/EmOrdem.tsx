@@ -44,7 +44,7 @@ export function EmOrdem({ grupos, abrir }: { grupos: DiaFila[]; abrir: Abrir }) 
                 <span className="eo-seta" aria-hidden />
               </button>
             </h2>
-              <ul id={`eo-${dia}`} hidden={!aberto}>
+            <ul id={`eo-${dia}`} hidden={!aberto}>
                 {itens.map((i) => (
                   <li key={i.t.id}>
                     <button type="button" className="eo-linha" onClick={() => abrir(i.t)}>
@@ -57,7 +57,7 @@ export function EmOrdem({ grupos, abrir }: { grupos: DiaFila[]; abrir: Abrir }) 
                   </li>
                 ))}
                 {!itens.length && <li className="eo-nada">Nada para hoje.</li>}
-              </ul>
+            </ul>
           </section>
         );
       })}
