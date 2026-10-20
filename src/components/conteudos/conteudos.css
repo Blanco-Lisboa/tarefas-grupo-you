@@ -19,7 +19,7 @@
 .conteudos-novo:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
 .conteudos-pilha { display: grid; align-content: start; gap: var(--s-8); padding: var(--s-8); }
 .conteudos-vazio { margin: var(--s-8); color: var(--fraco); font-size: var(--app-t-texto); }
-.conteudos-cartao { touch-action: pan-y; user-select: none; min-width: 0; padding: var(--s-16) var(--s-12) var(--s-12); border-radius: var(--raio-c); background: var(--sup); box-shadow: var(--sombra); cursor: grab; transition: box-shadow var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva); }
+.conteudos-cartao { touch-action: pan-y; user-select: none; min-width: 0; padding: var(--s-16) var(--s-12) var(--s-12); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); background: var(--vidro); -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); box-shadow: var(--sombra); cursor: grab; transition: box-shadow var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva); }
 .conteudos-cartao:hover { box-shadow: var(--sombra-alta); transform: translateY(-2px); }
 .conteudos-cartao:active { cursor: grabbing; }
 .conteudos-cartao-sombra[data-vazio="true"] { border: 2px dashed var(--borda); border-radius: var(--raio-c); }
@@ -57,3 +57,4 @@
   .conteudos-quadro { grid-template-columns: repeat(6, min(240px, 72vw)); }
 }
 @media (prefers-reduced-motion: reduce) { .conteudos-cartao { transition: none; } .conteudos-cartao:hover { transform: none; } }
+@media (prefers-reduced-transparency: reduce) { .conteudos-cartao { background: var(--sup); -webkit-backdrop-filter: none; backdrop-filter: none; } }
