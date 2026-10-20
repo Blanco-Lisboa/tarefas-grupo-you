@@ -146,24 +146,33 @@ begin
   return v_lista;
 end $$;
 
--- drive_confirmar: recibo (ou erro) de um anexo. Sucesso exige p_file_id e p_link. Confirmar duas vezes é inofensivo.
-create or replace function public.drive_confirmar(p_id uuid, p_file_id text default null, p_link text default null, p_pasta text default null, p_erro text default null) returns jsonb
+-- drive_confirmar: recibo (ou erro) de um anexo. Sucesso exige p_file_id, p_link e p_tamanho IGUAL ao tamanho do anexo (o n8n lê o `size`
+-- do arquivo que acabou de criar no Drive). O arquivo do Drive é do anexo pelo id dele (ver brief), nunca por nome e tamanho.
+-- Erro: volta para a fila em ~5 min; na 5ª falha vira 'falhou'. p_definitivo = true (ex.: arquivo grande demais para o n8n) vira 'falhou' já.
+-- Confirmar duas vezes é inofensivo.
+create or replace function public.drive_confirmar(p_id uuid, p_file_id text default null, p_link text default null, p_pasta text default null,
+  p_erro text default null, p_tamanho bigint default null, p_definitivo boolean default false) returns jsonb
 language plpgsql security definer set search_path = ''
 as $$
-declare r public.arquivos;
+declare r public.arquivos; v_falha boolean;
 begin
   select * into r from public.arquivos where id = p_id for update;
   if r.id is null then raise exception 'anexo % nao existe', p_id using errcode = '22023'; end if;
   if r.drive_estado is distinct from 'pendente' then return jsonb_build_object('estado', r.drive_estado); end if;
   if nullif(btrim(p_erro), '') is not null then
-    update public.arquivos set drive_tentativas = drive_tentativas + 1, drive_erro = left(p_erro, 500), drive_pegou_em = now(),
-      drive_estado = case when drive_tentativas + 1 >= 5 then 'falhou' else 'pendente' end,
-      aviso = case when drive_tentativas + 1 >= 5 then 'A copia no Drive falhou; o arquivo continua guardado aqui' else aviso end
+    v_falha := coalesce(p_definitivo, false) or r.drive_tentativas + 1 >= 5;
+    update public.arquivos set drive_tentativas = drive_tentativas + 1, drive_erro = left(p_erro, 500),
+      drive_pegou_em = now() - interval '25 minutes',  -- a reserva é de 30 min; depois de um erro, outra tentativa em ~5 min
+      drive_estado = case when v_falha then 'falhou' else 'pendente' end,
+      aviso = case when v_falha then 'A copia no Drive falhou; o arquivo continua guardado aqui' else aviso end
     where id = p_id returning drive_estado into r.drive_estado;
     return jsonb_build_object('estado', r.drive_estado);
   end if;
   if nullif(btrim(p_file_id), '') is null or nullif(btrim(p_link), '') is null then
     raise exception 'sucesso precisa de p_file_id e p_link' using errcode = '22023';
+  end if;
+  if p_tamanho is distinct from r.tamanho then
+    raise exception 'tamanho da copia (%) diferente do anexo (%): nao e a copia deste arquivo', p_tamanho, r.tamanho using errcode = '22023';
   end if;
   update public.arquivos set drive_estado = 'feito', drive_file_id = btrim(p_file_id), drive_link = btrim(p_link), drive_pasta = left(p_pasta, 300),
     drive_em = now(), drive_erro = null, aviso = null where id = p_id;
@@ -196,9 +205,9 @@ begin
   return jsonb_build_object('removido', true);
 end $$;
 
-revoke all on function public.drive_fila(int), public.drive_confirmar(uuid, text, text, text, text),
+revoke all on function public.drive_fila(int), public.drive_confirmar(uuid, text, text, text, text, bigint, boolean),
   public.drive_limpar_pendentes(int), public.drive_limpeza_confirmar(uuid) from public, anon, authenticated;
-grant execute on function public.drive_fila(int), public.drive_confirmar(uuid, text, text, text, text),
+grant execute on function public.drive_fila(int), public.drive_confirmar(uuid, text, text, text, text, bigint, boolean),
   public.drive_limpar_pendentes(int), public.drive_limpeza_confirmar(uuid) to service_role;
 grant usage on schema public to service_role;
 

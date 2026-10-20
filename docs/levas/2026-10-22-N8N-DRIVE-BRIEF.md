@@ -51,15 +51,15 @@ O banco entrega o item e o "reserva" por 5 minutos: se você não confirmar ness
 
 **4.3 Baixar do Storage:** crie uma URL assinada e baixe: `POST /storage/v1/object/sign/arquivos/<caminho>` com `{"expiresIn": 600}` e a chave de serviço; a resposta traz `signedURL` (prefixe com `https://uruhjlurcxpjhhgvuzwt.supabase.co/storage/v1`). Arquivos chegam a **500 MB**: configure o n8n para guardar binários em disco (`N8N_DEFAULT_BINARY_DATA_MODE=filesystem`) e use **upload resumível** do Drive (`uploadType=resumable`) em vez de carregar tudo na memória.
 
-**4.4 Subir:** crie o arquivo na pasta do último nível com o nome `nome_no_drive`. Se já existir um arquivo com esse nome **e** mesmo tamanho na pasta (reenvio depois de uma falha no meio), reaproveite-o em vez de criar outro. Não compartilhe com ninguém, não torne público: o link é só para quem já tem acesso à pasta.
+**4.4 Subir:** crie o arquivo na pasta do último nível com o nome `nome_no_drive` e **grave nele a propriedade própria `appProperties = {"tarefas_anexo_id": "<id do item>"}`** (no corpo de criação do arquivo). O arquivo do Drive pertence ao anexo por ESSA propriedade, nunca por nome nem por tamanho. Antes de criar, procure (`files.list`, `q = "appProperties has { key='tarefas_anexo_id' and value='<id>' } and trashed = false"`, `fields = "files(id,size,webViewLink)"`): se achar um, é o seu de uma tentativa anterior; reaproveite-o só se o `size` for igual ao `tamanho` do item, senão apague **só esse arquivo seu** (o que tem a propriedade) e envie de novo. Nunca reaproveite arquivo que não tenha a propriedade. Não compartilhe com ninguém, não torne público: o link é só para quem já tem acesso à pasta.
 
-**4.5 Confirmar:** `drive_confirmar`:
+**4.5 Confirmar:** `drive_confirmar`. Depois de criar, leia o arquivo no Drive (`files.get`, `fields = "id,size,webViewLink"`) e mande o que o Drive devolveu, não o que você esperava:
 
 ```json
-{ "p_id": "6f1c...-uuid", "p_file_id": "<id do arquivo no Drive>", "p_link": "<webViewLink>", "p_pasta": "Postagens / Beec / Reels" }
+{ "p_id": "6f1c...-uuid", "p_file_id": "<id do arquivo no Drive>", "p_link": "<webViewLink>", "p_pasta": "Postagens / Beec / Reels", "p_tamanho": 83886080 }
 ```
 
-Sucesso exige `p_file_id` e `p_link` preenchidos (o banco recusa sem eles). Se algo falhar (Drive recusou, arquivo não baixou), confirme com erro: `{ "p_id": "...", "p_erro": "texto curto do que houve" }`. O mesmo item volta em 5 minutos; na 5ª falha vira `falhou` e o banco mostra um aviso no card. **Nunca** confirme sucesso sem ter o arquivo inteiro no Drive.
+Sucesso exige `p_file_id`, `p_link` e `p_tamanho` igual ao `tamanho` do item (o banco recusa se diferir). Se algo falhar (Drive recusou, arquivo não baixou), confirme com erro: `{ "p_id": "...", "p_erro": "texto curto do que houve" }`. O mesmo item volta em ~5 minutos; na 5ª falha vira `falhou` e o banco mostra um aviso no card. Erro que não adianta repetir (ex.: arquivo grande demais para o seu n8n): acrescente `"p_definitivo": true` e ele vira `falhou` na hora, com o arquivo seguro no Storage. **Nunca** confirme sucesso sem ter o arquivo inteiro no Drive.
 
 ## 5. Limpar o Storage (diário)
 
