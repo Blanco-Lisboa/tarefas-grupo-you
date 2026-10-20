@@ -72,13 +72,15 @@
 
 /* bloco do dia: data + conteúdos empilhados, ancorado na bolinha (em cima: cresce para baixo; embaixo: cresce para cima) */
 .mapa-bloco {
-  position: absolute; left: 10px; padding: 6px 22px 12px 8px; /* folga para a sombra e o hover não serem cortados pela rolagem do bloco */
-  width: calc(var(--dia-w) * 1.3); min-width: 160px; max-width: 256px; max-height: calc(var(--haste) - 14px);
+  /* 180e: a rolagem do bloco corta tudo que passa da caixa dele, e era isso que fazia a sombra do card terminar numa linha reta. --ex é a folga que a sombra e o halo ocupam em volta do card: a caixa cresce --ex para os 4 lados e a posição compensa, então o card fica onde estava. */
+  --ex: 22px;
+  position: absolute; left: calc(10px - var(--ex)); padding: calc(6px + var(--ex)) calc(22px + var(--ex)) calc(12px + var(--ex)) calc(8px + var(--ex));
+  width: calc(var(--dia-w) * 1.3 + 2 * var(--ex)); min-width: calc(160px + 2 * var(--ex)); max-width: calc(256px + 2 * var(--ex)); max-height: calc(var(--haste) - 14px + 2 * var(--ex));
   display: flex; flex-direction: column; gap: 6px;
   overflow-y: auto; scrollbar-width: thin; /* nunca esconde cartão: se o dia tiver mais do que cabe, o bloco rola por dentro */
 }
-.mapa-marco[data-lado="cima"] .mapa-bloco { top: calc(var(--haste) * -1 - 7px); max-height: calc(var(--haste) + 2px); } /* em cima o bloco pode ir até perto da linha */
-.mapa-marco[data-lado="baixo"] .mapa-bloco { bottom: calc(var(--haste) * -1 - 7px); justify-content: flex-end; }
+.mapa-marco[data-lado="cima"] .mapa-bloco { top: calc(var(--haste) * -1 - 7px - var(--ex)); max-height: calc(var(--haste) + 2px + 2 * var(--ex)); } /* em cima o bloco pode ir até perto da linha */
+.mapa-marco[data-lado="baixo"] .mapa-bloco { bottom: calc(var(--haste) * -1 - 7px - var(--ex)); justify-content: flex-end; }
 /* Item 176: dia sozinho usa o brilho do menu; vários cards usam o formato das folhas de Pastas.
    Passar o mouse, focar ou tocar abre o leque. A sombra curta cabe na folga do bloco. */
 .mapa-pilha { --sombra-cartao: 0 1px 2px rgb(0 0 0 / 0.06), 0 3px 8px -3px rgb(0 0 0 / 0.16); --sombra-cartao-alta: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 10px -4px rgb(0 0 0 / 0.22); --desl: 9px; --card-h: 64px; --faixa: 25px; --vao: 4px; position: relative; display: flex; flex-direction: column; padding-top: 6px; }
@@ -145,10 +147,10 @@
 .mapa-progresso { position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: var(--azul); transform-origin: left; }
 
 @media (max-width: 767px) {
-  .mapa-bloco { left: 6px; width: calc(var(--dia-w) * 1.9); max-width: none; min-width: 120px; } /* blocos do mesmo lado ficam a 2 dias de distância: cabe */
+  .mapa-bloco { left: calc(6px - var(--ex)); width: calc(var(--dia-w) * 1.9 + 2 * var(--ex)); max-width: none; min-width: calc(120px + 2 * var(--ex)); } /* blocos do mesmo lado ficam a 2 dias de distância: cabe */
   .mapa-objetivo { font-size: 13px; -webkit-line-clamp: 2; }
   .mapa-pilha { --desl: 5px; --card-h: 60px; --faixa: 23px; }
-  .mapa-bloco { padding-right: 12px; }
+  .mapa-bloco { padding-right: calc(12px + var(--ex)); }
   .mapa-card { padding: 4px 8px; }
   .mapa-dica { left: 12px; right: 12px; }
 }

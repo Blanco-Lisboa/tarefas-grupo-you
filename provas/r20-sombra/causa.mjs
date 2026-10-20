@@ -1,0 +1,27 @@
+// Prova da causa: mesma foto com e sem o overflow do .mapa-bloco; conta pixels que mudam.
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const PASTA = fileURLToPath(new URL("./", import.meta.url));
+const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+const exp = 1893456000, uid = "u-natham";
+const jwt = [b64({ alg: "HS256", typ: "JWT" }), b64({ sub: uid, exp, role: "authenticated", aud: "authenticated" }), b64("assinatura")].join(".");
+const sessao = { access_token: jwt, refresh_token: "x", expires_in: 3600, expires_at: exp, token_type: "bearer", user: { id: uid, aud: "authenticated", role: "authenticated", email: "foto@exemplo.invalid", app_metadata: {}, user_metadata: {}, created_at: "2026-10-19T00:00:00Z" } };
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const ctx = await nav.newContext({ viewport: { width: 1903, height: 900 } });
+await ctx.addCookies([{ name: "sb-127-auth-token", value: "base64-" + b64(sessao), domain: "127.0.0.1", path: "/" }]);
+const p = await ctx.newPage();
+await p.goto("http://127.0.0.1:3499/mapa", { waitUntil: "networkidle" }); await p.waitForTimeout(1000);
+const card = p.locator(".mapa-pilha > .borda-animada").first();
+await card.scrollIntoViewIfNeeded(); await p.waitForTimeout(400);
+const c = await card.boundingBox();
+const clip = { x: c.x - 40, y: c.y - 40, width: c.width + 100, height: c.height + 100 };
+await p.addStyleTag({ content: ".borda-animada-luz{animation:none!important}" });
+const a = await p.screenshot({ path: join(PASTA, "causa-com-overflow.png"), clip });
+await p.addStyleTag({ content: ".mapa-bloco{overflow:visible!important}" }); await p.waitForTimeout(200);
+const b = await p.screenshot({ path: join(PASTA, "causa-sem-overflow.png"), clip });
+const dif = await p.evaluate(async ([x, y]) => { const ld = (s) => new Promise((r) => { const i = new Image(); i.onload = () => { const k = document.createElement("canvas"); k.width = i.width; k.height = i.height; const g = k.getContext("2d"); g.drawImage(i, 0, 0); r(g.getImageData(0, 0, i.width, i.height)); }; i.src = "data:image/png;base64," + s; }); const A = await ld(x), B = await ld(y); let n = 0, xs = [], ys = []; for (let i = 0; i < A.data.length; i += 4) { if (Math.abs(A.data[i] - B.data[i]) + Math.abs(A.data[i + 1] - B.data[i + 1]) + Math.abs(A.data[i + 2] - B.data[i + 2]) > 3) { n++; const q = i / 4; xs.push(q % A.width); ys.push((q / A.width) | 0); } } return { pixels: n, x: [Math.min(...xs), Math.max(...xs)], y: [Math.min(...ys), Math.max(...ys)], w: A.width, h: A.height }; }, [a.toString("base64"), b.toString("base64")]);
+console.log(JSON.stringify(dif));
+await nav.close();
