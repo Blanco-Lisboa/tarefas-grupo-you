@@ -28,7 +28,7 @@ export function CapaQuadro({ video, valor, aoMudar, travado }: { video: Arquivo;
       {src ? <video ref={tela} src={src} muted playsInline preload="metadata" onLoadedMetadata={(e) => setDuracao(Math.floor(e.currentTarget.duration * 1000))} />
         : <span className="ficha-capa-vazio">{falhou ? "Não consegui abrir o vídeo." : "Abrindo o vídeo…"}</span>}
       <div className="ficha-capa-controles">
-        <input type="range" min={0} max={duracao} step={100} value={valor ?? 0} disabled={!duracao || travado} aria-label="Quadro da capa" onChange={(e) => aoMudar(Number(e.target.value))} />
+        <input type="range" min={0} max={duracao} step={100} value={valor ?? 0} disabled={!duracao || travado} aria-label="Quadro da capa" aria-valuetext={tempo(valor ?? 0)} onChange={(e) => aoMudar(Number(e.target.value))} />
         <p className="ficha-capa-texto">
           {valor === undefined ? "Capa: primeiro quadro." : `Capa: quadro em ${tempo(valor)}.`}
           {valor !== undefined && !travado && <button type="button" className="ficha-texto-botao" onClick={() => aoMudar(undefined)}>Voltar ao primeiro quadro</button>}

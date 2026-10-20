@@ -7,7 +7,8 @@ export const textoRedes = (redes: readonly RedePost[]) => redes.map((r) => NOME_
 export const redesDe = (t: Pick<Tarefa, "postarRedes">): RedePost[] => t.postarRedes ?? [...REDES_POST];
 
 type Base = Pick<Tarefa, "arquivos" | "legenda" | "empresaId">;
-const midias = (t: Pick<Tarefa, "arquivos">) => t.arquivos.filter((a) => a.papel !== "capa" && (a.tipo === "imagem" || a.tipo === "video"));
+/** Só o que já está guardado: arquivo que não subiu (pendente) ou que a limpeza tirou (removido) a função não acha. */
+const midias = (t: Pick<Tarefa, "arquivos">) => t.arquivos.filter((a) => a.papel !== "capa" && !a.pendente && !a.removido && (a.tipo === "imagem" || a.tipo === "video"));
 
 /** Carrossel com vídeo só vai para o Instagram: o Facebook não mistura foto e vídeo num post. */
 export const carrosselComVideo = (t: Pick<Tarefa, "arquivos">, formato?: Formato) => formato === "carrossel" && midias(t).some((a) => a.tipo === "video");
@@ -29,6 +30,8 @@ export function faltaParaPostar(t: Base, formato: Formato | undefined, redes: re
   return falta;
 }
 
+/** Erro em que o post pode ter saído (a função caiu ou a resposta se perdeu). Frases do 019 e do Correio. */
+export const INCERTO = /estado incerto|n[aã]o d[aá] para saber/i;
 const emAndamento = (p: Postagem) => p.status === "fila" || p.status === "enviando" || p.status === "processando";
 const quando = (s: string) => `${s.slice(8, 10)}/${s.slice(5, 7)} ${s.slice(11, 16)}`;
 
@@ -47,7 +50,7 @@ export function situacao(t: Pick<Tarefa, "postagens" | "postarEm" | "postarRedes
     const motivo = erros[0].erro ?? "a Meta não disse o motivo";
     const texto = saiu ? `Saiu no ${NOME_REDE[saiu.rede]}, falhou no ${erros.map((p) => NOME_REDE[p.rede]).join(" e ")}: ${motivo}` : `Não postou: ${motivo}`;
     // "estado incerto" (019/postar-meta): a função caiu no meio e não dá para saber se saiu; o Natham confere o perfil antes de tentar de novo.
-    return { tipo: "erro", texto, saiu, refazer: erros.map((p) => p.rede), incerto: erros.some((p) => /estado incerto/i.test(p.erro ?? "")) };
+    return { tipo: "erro", texto, saiu, refazer: erros.map((p) => p.rede), incerto: erros.some((p) => INCERTO.test(p.erro ?? "")) };
   }
   return t.postarEm ? { tipo: "programado", texto: `Programado · ${quando(t.postarEm)} · ${textoRedes(redesDe(t))}` } : null;
 }

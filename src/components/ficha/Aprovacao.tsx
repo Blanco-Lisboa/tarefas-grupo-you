@@ -130,6 +130,6 @@ export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
     ))}
     {falta.length > 0 && <ul className="aprovacao-falta" role="alert">{falta.map((f) => <li key={f}>{f}</li>)}</ul>}
     {confirmando === "postar" && <Confirmar titulo={`Postar agora no ${textoRedes(agora)} da You?`} texto={`"${tarefa.titulo}" vai para o ar agora. Não dá para desfazer.`} acao="Postar"
-      aoCancelar={() => setConfirmando(null)} aoConfirmar={() => { setConfirmando(null); void postarAgora(tarefa.id); }} />}
+      aoCancelar={() => setConfirmando(null)} aoConfirmar={async () => { setConfirmando(null); if (agora.length !== redesDe(tarefa).length) await salvarTarefa({ ...tarefa, postarRedes: agora }); void postarAgora(tarefa.id); }} />}
   </>, "aprovacao-postagem");
 }

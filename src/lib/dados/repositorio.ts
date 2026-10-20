@@ -114,10 +114,12 @@ async function carregar() {
   avisar();
   // Postando (196): a função grava o resultado no servidor; enquanto algum card posta, olha de novo a cada 15 s (só leitura, só com a aba aberta).
   clearTimeout(espiando);
-  if (tarefas.some(postando)) espiando = setTimeout(() => { if (!document.hidden) void carregar(); }, 15_000);
+  if (tarefas.some(postando) || Date.now() < espiarAte) espiar();
 }
 
 let espiando: ReturnType<typeof setTimeout> | undefined;
+let espiarAte = 0; // depois de mandar postar, a função pode levar alguns segundos para registrar: olha por 2 min mesmo sem linha nova
+const espiar = () => { clearTimeout(espiando); espiando = setTimeout(() => { if (!document.hidden) void carregar(); }, 15_000); };
 
 const soLeitura = "Essa tarefa é só para olhar: você não pode mexer nela.";
 const semAcesso = "O banco não deixou salvar (sem permissão ou o item não existe mais).";
@@ -223,7 +225,8 @@ export async function postarAgora(id: string): Promise<void> {
   // Mostra "Postando…" na hora (a rede que já saiu fica como está); a próxima carga traz o que a função gravou.
   tarefas = tarefas.map((t) => (t.id === id ? { ...t, postagens: (t.postarRedes ?? ["instagram", "facebook"]).map((rede) => t.postagens?.find((p) => p.rede === rede && p.status === "postado") ?? { rede, status: "fila" as const }) } : t));
   avisar();
-  void carregar();
+  espiarAte = Date.now() + 120_000;
+  espiar();
 }
 
 /** "Tentar de novo" (196): volta para a fila só as redes que deram erro (a que já saiu não repete). */
@@ -232,7 +235,8 @@ export async function tentarDeNovo(id: string): Promise<void> {
   if (error) return falhou(motivoDoBanco(error, "Não consegui tentar de novo. Tente outra vez."));
   tarefas = tarefas.map((t) => (t.id === id ? { ...t, postagens: t.postagens?.map((p) => (p.status === "erro" ? { ...p, status: "fila" as const, erro: undefined } : p)) } : t));
   avisar();
-  void carregar();
+  espiarAte = Date.now() + 120_000;
+  espiar();
 }
 
 export async function salvarEmpresa(empresa: Empresa): Promise<Empresa> {

@@ -86,7 +86,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
   const vai = vaiProGoogle(t, !!data, nova ? eu : tarefa.criadoPor);
   const dono = tarefa.dono ?? tarefa.responsavel;
   const fica = !nova && !soLer && !ehConteudo(t) && t.responsavel !== dono ? dono : undefined; // o banco não deixa mudar o dono
-  const lixeira = !nova && !soLer && podeApagar({ ...tarefa, id: tarefa.id! }, eu); // vale o que está no banco, não o que foi mudado na ficha
+  const lixeira = !nova && podeApagar({ ...tarefa, id: tarefa.id! }, eu); // vale o que está no banco, não o que foi mudado na ficha
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
   const aprovadorTravado = !nova && !ehQuemAprova(tarefa.aprovador, eu);
@@ -217,8 +217,8 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
             <div className="ficha-campo ficha-escolha">
               <Selecao rotulo="Rede" soIcone opcoes={REDES.map((v) => ({ valor: v, rotulo: NOMES.rede[v], antes: <IconeRede rede={v} tamanho={18} /> }))} valor={t.rede ? [t.rede] : []} multipla={false} rotuloTodos="Sem rede" aoMudar={([v]) => mudar("rede", v as Rede | undefined)} />
             </div>
-            <div className="ficha-campo ficha-escolha">
-              <Selecao rotulo="Etapa" opcoes={ETAPAS.map((v) => ({ valor: v, rotulo: NOMES.etapa[v] }))} valor={t.etapa ? [t.etapa] : []} multipla={false} rotuloTodos="Sem etapa" aoMudar={([v]) => mudar("etapa", v as Etapa | undefined)} />
+            <div className="ficha-campo ficha-escolha" inert={postTravado}>
+              <Selecao rotulo="Etapa" opcoes={ETAPAS.filter((v) => t.tipo === "postagem" || (v !== "aprovado" && v !== "postado")).map((v) => ({ valor: v, rotulo: NOMES.etapa[v] }))} valor={t.etapa ? [t.etapa] : []} multipla={false} rotuloTodos="Sem etapa" aoMudar={([v]) => mudar("etapa", v as Etapa | undefined)} />
             </div>
             {t.tipo === "postagem" && (
               // Formato já ao criar/anexar (203): é dele que sai o campo Capa do Reels. O Programar postagem do card usa o mesmo valor.

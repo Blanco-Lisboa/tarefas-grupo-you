@@ -12,6 +12,7 @@ describe("o que falta para postar (196)", () => {
     expect(faltaParaPostar(card([img]), "reels", ["instagram"])).toEqual(["Reels leva 1 vídeo."]);
     expect(faltaParaPostar(card([img]), "carrossel", ["instagram"])).toEqual(["Carrossel leva de 2 a 10 imagens ou vídeos."]);
     expect(faltaParaPostar(card([vid], ""), "story", ["instagram", "facebook"])).toEqual([]); // story não leva legenda
+    expect(faltaParaPostar(card([{ ...img, pendente: {} as File }]), "post", ["instagram"])).toEqual(["Post leva 1 imagem."]); // não subiu: não conta
   });
   it("sem legenda, sem rede, sem formato e empresa que não é a You", () => {
     expect(faltaParaPostar(card([img], " "), "post", [])).toEqual(["Escolha pelo menos uma rede.", "Falta a legenda: escreva na ficha do card."]);
@@ -30,6 +31,7 @@ describe("situação do card Aprovado", () => {
     expect(situacao({ postagens: [{ rede: "instagram", status: "postado", link: "x" }, { rede: "facebook", status: "erro", erro: "imagem grande" }] }))
       .toMatchObject({ tipo: "erro", texto: "Saiu no Instagram, falhou no Facebook: imagem grande", refazer: ["facebook"], incerto: false });
     expect(situacao({ postagens: [{ rede: "facebook", status: "erro", erro: "estado incerto: confira a rede antes de tentar de novo" }] })).toMatchObject({ incerto: true });
+    expect(situacao({ postagens: [{ rede: "facebook", status: "erro", erro: "Não dá para saber se saiu no Facebook" }] })).toMatchObject({ incerto: true });
   });
   it("programado mostra data e redes; sem data e sem postagem, nada", () => {
     expect(situacao({ postarEm: "2026-10-25T18:00", postarRedes: ["instagram"] })).toEqual({ tipo: "programado", texto: "Programado · 25/10 18:00 · Instagram" });
