@@ -58,3 +58,6 @@ export type Empresa = { id: string; nome: string; sigla: string };
 
 /** enviarPara (só ao criar): entrega a tarefa no caderno dessa pessoa; o banco registra quem mandou. Sem ele, fica no seu caderno. */
 export type NovaTarefa = Omit<Tarefa, "id"> & { id?: string; enviarPara?: Responsavel };
+
+/** Selo "fazendo agora": quem marcou a tarefa e desde quando (ISO). */
+export type Fazendo = { quem: Responsavel; desde: string };

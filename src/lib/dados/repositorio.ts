@@ -2,7 +2,7 @@
 // O app fala com o banco COM a sessão de quem está logado: quem decide o que cada pessoa vê são as travas (RLS) do banco.
 // Escrita otimista: a tela muda na hora; se o banco recusar, volta ao que era e mostra o aviso (ver lerErro).
 import { supabase } from "@/lib/supabase/cliente";
-import type { Empresa, NovaTarefa, Responsavel, Tag, Tarefa } from "./tipos";
+import type { Empresa, Fazendo, NovaTarefa, Responsavel, Tag, Tarefa } from "./tipos";
 
 type LinhaTarefa = {
   id: string; titulo: string; tipo: Tarefa["tipo"]; empresa_id: string | null; rede: Tarefa["rede"] | null; etapa: Tarefa["etapa"] | null;
@@ -17,6 +17,7 @@ let tarefas: Tarefa[] = [];
 let empresas: Empresa[] = [];
 let tags: Tag[] = [];
 let pessoas: Pessoa[] = [];
+let fazendo: Record<string, Fazendo> = {};
 let eu: Responsavel | null = null;
 let erro = "";
 let iniciado: Promise<void> | undefined;
@@ -27,6 +28,7 @@ const avisar = () => ouvintes.forEach((f) => f());
 export const lerTarefas = () => tarefas;
 export const lerEmpresas = () => empresas;
 export const lerTags = () => tags;
+export const lerFazendo = () => fazendo;
 export const lerEu = () => eu;
 export const lerErro = () => erro;
 export const limparErro = () => { erro = ""; avisar(); };
@@ -39,6 +41,15 @@ export const assinar = (f: () => void) => {
 const falhou = (mensagem: string) => { erro = mensagem; avisar(); };
 const idDe = (slug: Responsavel) => pessoas.find((p) => p.slug === slug)?.id;
 const slugDe = (id: string | null) => pessoas.find((p) => p.id === id)?.slug;
+
+type LinhaFazendo = { pessoa_id: string; tarefa_id: string; desde: string };
+/** Cada pessoa tem no máximo uma tarefa: tira a linha antiga de `quem` e, se `tarefaId`, põe a nova (começar outra troca sozinho). Se duas pessoas estão na mesma tarefa, o mapa guarda a que começou por último. */
+export function trocarFazendo(mapa: Record<string, Fazendo>, quem: Responsavel, tarefaId: string | null, desde = new Date().toISOString()): Record<string, Fazendo> {
+  const resto = Object.fromEntries(Object.entries(mapa).filter(([, f]) => f.quem !== quem));
+  return tarefaId ? { ...resto, [tarefaId]: { quem, desde } } : resto;
+}
+const doBanco = (ls: LinhaFazendo[]) =>
+  ls.toSorted((a, b) => a.desde.localeCompare(b.desde)).reduce((m, l) => { const q = slugDe(l.pessoa_id); return q ? trocarFazendo(m, q, l.tarefa_id, l.desde) : m; }, {} as Record<string, Fazendo>);
 
 /** Linha do banco -> Tarefa da tela. Os anexos ainda não vão ao banco (Etapa 2): `arquivos` vem do que já está na tela. */
 export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem: (id: string | null) => Responsavel | undefined = slugDe): Tarefa {
@@ -68,14 +79,15 @@ function iniciar() {
 
 async function carregar() {
   const sb = supabase();
-  const [p, e, t, g, sessao] = await Promise.all([
+  const [p, e, t, g, f, sessao] = await Promise.all([
     sb.from("pessoas").select("id, slug, user_id"),
     sb.from("empresas").select("id, nome, sigla").order("ordem").order("nome"),
     sb.from("tarefas").select("*, tarefa_tags(tag_id)").order("created_at"),
     sb.from("tags").select("id, nome, cor, aprovacao").order("nome"),
+    sb.from("fazendo_agora").select("pessoa_id, tarefa_id, desde"),
     sb.auth.getClaims(),
   ]);
-  const problema = p.error ?? e.error ?? t.error ?? g.error;
+  const problema = p.error ?? e.error ?? t.error ?? g.error ?? f.error;
   if (problema) return falhou("Não consegui carregar os dados. Recarregue a página.");
   pessoas = p.data as Pessoa[];
   eu = pessoas.find((x) => x.user_id === sessao.data?.claims.sub)?.slug ?? null;
@@ -84,6 +96,7 @@ async function carregar() {
   empresas = e.data as Empresa[];
   tags = (g.data as Tag[]).map((x) => ({ id: x.id, nome: x.nome, cor: x.cor, ...(x.aprovacao && { aprovacao: true as const }) }));
   tarefas = (t.data as LinhaTarefa[]).map((l) => daLinha(l, anexos.get(l.id)));
+  fazendo = doBanco(f.data as LinhaFazendo[]);
   avisar();
 }
 
@@ -151,4 +164,24 @@ export async function salvarTag(nova: Omit<Tag, "id">): Promise<Tag> {
   const { error } = await supabase().from("tags").insert({ id: tag.id, nome: tag.nome, cor: tag.cor, aprovacao: !!tag.aprovacao });
   if (error) { tags = tags.filter((t) => t.id !== tag.id); falhou("Não consegui criar a tag. Tente de novo."); }
   return tag;
+}
+
+/** Marca a tarefa em que `eu` está agora (troca a anterior, se houver). Otimista; volta se o banco recusar. */
+export async function comecar(tarefaId: string): Promise<void> {
+  if (!eu) return falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham.");
+  const antes = fazendo;
+  fazendo = trocarFazendo(fazendo, eu, tarefaId);
+  avisar();
+  const { error } = await supabase().from("fazendo_agora").upsert({ pessoa_id: idDe(eu), tarefa_id: tarefaId, desde: fazendo[tarefaId].desde });
+  if (error) { fazendo = antes; falhou("Não consegui marcar a tarefa. Tente de novo."); }
+}
+
+/** Tira o selo de `eu`. */
+export async function parar(): Promise<void> {
+  if (!eu) return;
+  const antes = fazendo;
+  fazendo = trocarFazendo(fazendo, eu, null);
+  avisar();
+  const { error } = await supabase().from("fazendo_agora").delete().eq("pessoa_id", idDe(eu));
+  if (error) { fazendo = antes; falhou("Não consegui tirar a marca. Tente de novo."); }
 }

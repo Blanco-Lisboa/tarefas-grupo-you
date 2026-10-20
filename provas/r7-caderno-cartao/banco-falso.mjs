@@ -31,7 +31,9 @@ const tarefas = [
   t("Depoimento de cliente", "matheus", "2026-10-15T18:00", { tipo: "postagem", empresa_id: "you", rede: "instagram", etapa: "postado", concluida: true }),
   t("Dica rápida de IR", "natham", "2026-10-22T12:00", { tipo: "postagem", empresa_id: "you", rede: "kwai", etapa: "aprovado", objetivo: "Lembrar o prazo do imposto de renda" }),
 ];
-const tabelas = { pessoas, empresas, tags, tarefas };
+// Selo "fazendo agora" (item 170): uma linha por pessoa; POST = upsert, DELETE = tira a da pessoa.
+const fazendoAgora = [{ pessoa_id: P.matheus, tarefa_id: "t3", desde: "2026-10-20T08:40:00Z" }];
+const tabelas = { pessoas, empresas, tags, tarefas, fazendo_agora: fazendoAgora };
 
 const sub = (req) => {
   try { return JSON.parse(Buffer.from((req.headers.authorization ?? "").split(".")[1], "base64url").toString()).sub; } catch { return undefined; }
@@ -55,5 +57,20 @@ createServer((req, res) => {
   const eu = pessoas.find((p) => p.user_id === sub(req))?.id;
   const le = (x) => x.dono_id === eu || x.enviada_por === eu || (x.etapa && x.empresa_id);
   if (req.method === "GET" && tabela) return res.end(JSON.stringify(tabela === "tarefas" ? tarefas.filter(le) : tabelas[tabela] ?? []));
+  if (tabela === "fazendo_agora" && req.method === "DELETE") {
+    const quem = url.searchParams.get("pessoa_id")?.replace(/^eq\./, "");
+    for (let i = fazendoAgora.length; i--;) if (fazendoAgora[i].pessoa_id === quem) fazendoAgora.splice(i, 1);
+    return res.writeHead(204).end();
+  }
+  if (tabela === "fazendo_agora" && req.method === "POST") {
+    let corpo = "";
+    req.on("data", (c) => (corpo += c)).on("end", () => {
+      const l = JSON.parse(corpo || "{}");
+      const i = fazendoAgora.findIndex((x) => x.pessoa_id === l.pessoa_id);
+      if (i >= 0) fazendoAgora[i] = l; else fazendoAgora.push(l);
+      res.writeHead(201).end();
+    });
+    return;
+  }
   res.writeHead(req.method === "POST" ? 201 : 200).end(JSON.stringify([{ id: "x" }]));
 }).listen(3299, "127.0.0.1", () => console.log("banco falso em 127.0.0.1:3299"));

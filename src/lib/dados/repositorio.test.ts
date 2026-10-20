@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daLinha, paraBanco } from "./repositorio";
+import { daLinha, paraBanco, trocarFazendo } from "./repositorio";
 
 const quem = (id: string | null) => ({ a: "natham", b: "matheus" } as const)[id as "a" | "b"];
 const linha: Parameters<typeof daLinha>[0] = {
@@ -19,5 +19,15 @@ describe("repositório: linha do banco <-> tarefa da tela", () => {
     expect(campos).not.toHaveProperty("dono_id");
     expect(campos).not.toHaveProperty("criado_por");
     expect(campos).not.toHaveProperty("enviada_por");
+  });
+});
+
+describe("fazendo agora", () => {
+  it("começar outra tarefa troca a anterior; parar tira; os outros ficam", () => {
+    let m = trocarFazendo({}, "natham", "t1", "d1");
+    m = trocarFazendo(m, "matheus", "t2", "d2");
+    m = trocarFazendo(m, "natham", "t3", "d3");
+    expect(m).toEqual({ t2: { quem: "matheus", desde: "d2" }, t3: { quem: "natham", desde: "d3" } });
+    expect(trocarFazendo(m, "natham", null)).toEqual({ t2: { quem: "matheus", desde: "d2" } });
   });
 });
