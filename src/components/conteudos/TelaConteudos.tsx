@@ -12,6 +12,8 @@ import { ETAPAS, podeAlterar, salvarTarefa, useEmpresas, useEu, useFazendo, useT
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { diasDeAtraso } from "@/lib/atraso";
+import { ConfirmarPostado } from "./ConfirmarPostado";
+import { confirmarPostado } from "./confirmar";
 import { tipoDaColuna } from "./tipo";
 import "./conteudos.css";
 
@@ -55,6 +57,7 @@ export function TelaConteudos() {
   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
   const [arraste, setArraste] = useState<Arraste | null>(null);
   const [destino, setDestino] = useState<Etapa | null>(null);
+  const [pendentePostado, setPendentePostado] = useState<Tarefa | null>(null);
   const pegada = useRef<{ id: string; px: number; py: number; caixa: DOMRect; ativo: boolean } | null>(null);
   const quadro = useRef<HTMLDivElement>(null);
   const hoje = useSyncExternalStore(semAviso, hojeTexto, () => ""); // servidor: "" até hidratar (fuso)
@@ -107,7 +110,10 @@ export function TelaConteudos() {
     if (!p?.ativo) return;
     const etapa = cancelado ? null : colunaEm(evento.clientX, evento.clientY);
     const tarefa = tarefas.find((item) => item.id === p.id);
-    if (tarefa && etapa) void mudarEtapa(tarefa, etapa);
+    if (tarefa && etapa) {
+      if (confirmarPostado(tarefa.etapa, etapa)) setPendentePostado(tarefa);
+      else void mudarEtapa(tarefa, etapa);
+    }
     setArraste(null);
     setDestino(null);
   }
@@ -227,6 +233,10 @@ export function TelaConteudos() {
         })}
       </div>
       {aberta && <Ficha tarefa={aberta} tipos={["roteiro", "gravacao", "edicao", "postagem"]} aoFechar={() => setAberta(null)} soLer={!!aberta.id && !podeAlterar(aberta as Tarefa, eu)} />}
+      {pendentePostado && <ConfirmarPostado titulo={pendentePostado.titulo} aoCancelar={() => setPendentePostado(null)} aoConfirmar={() => {
+        void mudarEtapa(pendentePostado, "postado");
+        setPendentePostado(null);
+      }} />}
     </section>
   );
 }

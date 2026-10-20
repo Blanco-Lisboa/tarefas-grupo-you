@@ -1,0 +1,13 @@
+.confirmar-postado {
+  width: min(420px, calc(100vw - 32px));
+  padding: var(--s-24);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-c);
+  background: var(--sup);
+  color: var(--texto);
+  box-shadow: var(--sombra-alta);
+}
+.confirmar-postado::backdrop { background: rgb(20 30 45 / .4); }
+.confirmar-postado h2 { margin: 0; font-size: var(--t-20); }
+.confirmar-postado p { margin: var(--s-12) 0 var(--s-24); color: var(--fraco); overflow-wrap: anywhere; }
+.confirmar-postado-acoes { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--s-8); }
