@@ -41,3 +41,7 @@ export function montarGrade(tarefas: Tarefa[], porHora: boolean): (Tarefa | null
 /** Milissegundos até a próxima meia-noite local (mais 500 de folga para o relógio já ter virado). */
 export const msAteMeiaNoite = (agora: Date): number =>
   new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1).getTime() - agora.getTime() + 500;
+
+/** O caderno de `de` = o que é DELE (dono; o banco não transfere dono ao trocar o responsável). Conteúdo com empresa segue o responsável. Sem `de`, tudo. */
+export const doCaderno = (t: Tarefa, de: string | null | undefined) =>
+  !de || (t.etapa && t.empresaId ? t.responsavel === de : (t.dono ?? t.responsavel) === de);

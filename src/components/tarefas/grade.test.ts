@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS } from "./grade";
 import { notaDaChave } from "./notas";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
@@ -43,5 +43,22 @@ describe("virada da meia-noite", () => {
   it("conta até a próxima meia-noite local", () => {
     expect(msAteMeiaNoite(new Date(2026, 9, 19, 23, 59, 0))).toBe(60_500);
     expect(msAteMeiaNoite(new Date(2026, 9, 19, 0, 0, 0))).toBe(86_400_500);
+  });
+});
+
+describe("de quem é o caderno", () => {
+  const priv = { ...t("p"), empresaId: undefined, dono: "natham", responsavel: "matheus" } as unknown as Tarefa;
+  const conteudo = { ...t("c"), etapa: "roteiro", dono: "natham", responsavel: "matheus" } as Tarefa;
+  it("privada segue o dono, não o responsável", () => {
+    expect(doCaderno(priv, "natham")).toBe(true);
+    expect(doCaderno(priv, "matheus")).toBe(false);
+  });
+  it("sem dono cai no responsável; sem `de` mostra tudo", () => {
+    expect(doCaderno({ ...priv, dono: undefined }, "matheus")).toBe(true);
+    expect(doCaderno(priv, null)).toBe(true);
+  });
+  it("conteúdo com empresa segue o responsável", () => {
+    expect(doCaderno(conteudo, "matheus")).toBe(true);
+    expect(doCaderno(conteudo, "natham")).toBe(false);
   });
 });

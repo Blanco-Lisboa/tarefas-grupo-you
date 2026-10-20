@@ -28,6 +28,9 @@ const tarefas = [
   // Item 177: tarefas enviadas (dono = quem recebe, enviada_por = quem mandou)
   t("Conferir o roteiro do Reels", "natham", "2026-10-20T13:00", { dono_id: P.natham, criado_por: P.matheus, enviada_por: P.matheus }),
   t("Mandar a logo da Beec ao contador", "matheus", "2026-10-20T09:30", { dono_id: P.matheus, criado_por: P.natham, enviada_por: P.natham }),
+  // Item 177 (achado 10): dono diferente do responsável. O banco não transfere dono ao trocar o responsável.
+  t("Privada do Natham, passada ao Matheus", "matheus", "2026-10-20T15:30", { dono_id: P.natham, criado_por: P.natham }),
+  t("Privada do Matheus, passada ao Natham", "natham", "2026-10-20T16:30", { dono_id: P.matheus, criado_por: P.matheus }),
   t("Roteiro: 5 erros no MEI", "matheus", "2026-10-24T10:00", { tipo: "roteiro", empresa_id: "you", rede: "tiktok", etapa: "roteiro", objetivo: "Educar quem está abrindo MEI" }),
   t("Carrossel de impostos", "natham", "2026-10-18T09:00", { tipo: "edicao", empresa_id: "beec", rede: "instagram", etapa: "edicao" }),
   t("Vídeo institucional", "adrian", null, { tipo: "gravacao", empresa_id: "beec", rede: "youtube", etapa: "gravacao" }),
