@@ -20,15 +20,18 @@ Regras que valem sempre:
 
 O n8n conecta **uma única conta Google: `contato@assessoriabeec.com.br`**, com permissão **somente leitura** (escopo `calendar.readonly`). Nunca conecte a conta pessoal de ninguém.
 
-Nessa conta existem 5 agendas. Cada uma vira um valor de `p_fonte` (o nome que o banco usa):
+Nessa conta existem 5 agendas. Cada uma vira um valor de `p_fonte` (o nome que o banco usa). **TABELA FINAL (011 aplicado em 21/10; é a única fonte da verdade, as três pontas batem):**
 
-| p_fonte | Agenda | Como é a permissão | Situação |
+| calendarId (Google) | p_fonte (IDA, `agenda_receber`) | Quem lê no Tarefas (`agenda_acesso`) | Recebe tarefas? (VOLTA, `agenda_pessoa`) |
 |---|---|---|---|
-| `contato` | a própria agenda da contato@ | dona | ligar agora |
-| `natham` | agenda pessoal do Natham (`nathamsud@gmail.com`) | compartilhada, só leitura ("Ver detalhes dos eventos") | já compartilhada, ligar agora |
-| `matheus` | agenda do Matheus | compartilhada, só leitura | já compartilhada, ligar agora |
-| `adrian` | agenda do Adrian | ainda não compartilhada | **depois** (deixe o fluxo pronto para entrar só acrescentando uma linha) |
-| `lucas` | agenda do Lucas | **decidido (21/10): o Lucas não entra** | não ligar; o 010 também tira o Lucas de quem vê as agendas |
+| `contato@assessoriabeec.com.br` (a própria, dona) | `contato` | Natham e Matheus | Não (não é pessoa) |
+| `nathamsud@gmail.com` | `natham` | só o Natham (o Matheus NUNCA vê) | **Sim**: tarefas do Natham |
+| `matheus.germano@assessoriabeec.com.br` | `matheus` | Natham e Matheus | **Sim**: tarefas do Matheus |
+| `adrian@blcontabil.com.br` (profissional) | `adrian` | Natham e Matheus | **Sim**: tarefas do Adrian ("deixa a profissional pra receber") |
+| `blanco.adrian@gmail.com` (pessoal) | `adrian_pessoal` | Natham e Matheus (mesmas regras da profissional) | **Não** (só lê) |
+| (agenda do Lucas) | `lucas` | ninguém | Não: **o Lucas não entra** (21/10), não ligar |
+
+O Adrian não lê agenda nenhuma. As duas agendas dele são fontes separadas de propósito (cada uma com os seus ids do Google): se a mesma reunião estiver nas duas, o banco junta pelo `iCalUID` na leitura e o Calendário mostra um evento só. **Mande cada agenda na sua chamada, com o seu `p_fonte`.** Os `calendarId` acima foram informados pelo Natham; confirme cada um na `calendarList` e, se algum `id` vier diferente ou faltar, pare e avise.
 
 ### Como achar o `calendarId` de cada uma
 Não adivinhe. Pergunte ao Google quais agendas essa conta enxerga:
@@ -201,7 +204,7 @@ Tudo em **America/Sao_Paulo** (Brasília, -03:00). Peça `timeZone=America/Sao_P
 5. **Leitura real, só da `contato`:** rode a janela inteira (seção 4) e envie. Peça ao Natham para conferir 3 compromissos que ele conhece.
 6. **A "Reunião - Caderno":** ela está na contato@ e na do Natham. Rode a `contato` e depois a `natham`. Esperado: em `agenda_copias`, **uma linha por agenda** (`fonte = contato` e `fonte = natham`, a ficha de cada uma sozinha); na leitura `agenda_eventos` elas aparecem **juntas, como um evento**, para quem enxerga as duas. Nada muda para o n8n: continue mandando cada agenda com o seu `p_fonte`; quem junta é o banco, na leitura. Compromisso particular: o banco guarda sempre "Ocupado" e sem `local`, mesmo que o `local` venha no corpo.
 7. **Apagar de verdade:** o Natham apaga um compromisso de teste no Google. Em até alguns minutos (ou na varredura) ele deve sumir do banco.
-8. Só então ligue `matheus`. Depois `adrian`, quando o Natham avisar que compartilhou. `lucas` não entra (decisão do Natham, 21/10).
+8. Só então ligue `matheus`, `adrian` e `adrian_pessoal` (as três já estão compartilhadas e o banco já as aceita, 011 aplicado). `lucas` não entra (decisão do Natham, 21/10).
 
 ## 12. Entrega
 
@@ -279,18 +282,18 @@ Resposta: `{"estado": "feito"}`, ou `{"estado": "pendente"}` (vai tentar de novo
 Os outros campos da lista (`titulo`, `inicio`, `fim`, `dia_inteiro`, `fuso`, `calendar_id`, `tarefa_id`) **não** voltam na confirmação: o banco já os guardou ao entregar o item.
 
 ### 13.7 As agendas (quem recebe a tarefa de quem)
-A tabela `agenda_pessoa` do banco liga cada pessoa à agenda dela. Hoje só o Natham tem linha (`nathamsud@gmail.com`; confirme na `calendarList` que é esse mesmo o `id`). Quando o Natham liberar a agenda do Matheus (13.8), **você descobre o `calendarId` exato** pela `calendarList` (seção 2, mesmo método) e o Natham grava uma linha:
+A tabela `agenda_pessoa` do banco liga cada pessoa à agenda dela. Desde o `supabase/011_agendas_matheus_adrian.sql` (aplicado em 21/10) ela tem as três: Natham `nathamsud@gmail.com`, Matheus `matheus.germano@assessoriabeec.com.br`, Adrian `adrian@blcontabil.com.br` (a agenda pessoal do Adrian, `blanco.adrian@gmail.com`, só é lida, nunca recebe tarefa). É a mesma tabela da seção 2: confirme na `calendarList` que cada `id` é esse mesmo. Para trocar uma agenda no futuro, uma linha:
 ```sql
 insert into public.agenda_pessoa (pessoa_id, calendar_id)
-select id, '<calendarId do Matheus>' from public.pessoas where slug = 'matheus'
+select id, '<calendarId>' from public.pessoas where slug = '<slug>'
 on conflict (pessoa_id) do update set calendar_id = excluded.calendar_id;
 ```
-O Adrian entra do mesmo jeito, só depois. **O que já existia antes do 010 não é enviado** (nenhuma tarefa antiga tem `vai_pro_google`): só tarefa criada pelo Calendário depois do 010, e só se a pessoa responsável já estiver no mapa na hora em que a tarefa é criada ou mudada. Marcar a tarefa como feita não muda o evento no Google.
+**O que já existia antes do 010 não é enviado** (nenhuma tarefa antiga tem `vai_pro_google`): só tarefa criada pelo Calendário depois do 010, e só se a pessoa responsável já estiver no mapa na hora em que a tarefa é criada ou mudada. Marcar a tarefa como feita não muda o evento no Google.
 
 ### 13.8 Passos do Natham (antes de ligar a volta)
 1. **Natham, na agenda pessoal dele** (`nathamsud@gmail.com`): Configurações da agenda > "Compartilhar com pessoas específicas" > `contato@assessoriabeec.com.br` > permissão **"Fazer alterações nos eventos"** (hoje está "Ver todos os detalhes do evento").
 2. **Matheus, na agenda dele:** o mesmo, para a contato@.
-3. **Adrian (depois):** o mesmo, para a contato@. **Ninguém compartilha nada com o Adrian:** ele não vê as agendas do Natham nem do Matheus, para não poluir a dele. O Natham e o Matheus passam a ver a do Adrian (isso já está no banco).
+3. **Adrian:** já compartilhou as duas agendas com a contato@ (21/10). Para a volta chegar nele, a **profissional** (`adrian@blcontabil.com.br`) precisa estar em "Fazer alterações nos eventos"; a pessoal (`blanco.adrian@gmail.com`) pode ficar só em "Ver todos os detalhes". **Ninguém compartilha nada com o Adrian:** ele não vê as agendas do Natham nem do Matheus, para não poluir a dele. O Natham e o Matheus passam a ver a do Adrian (isso já está no banco).
 4. Natham aplica o 010 **antes de tudo** (antes de qualquer teste da IDA ou da VOLTA) e avisa o agente do n8n por escrito. Imediatamente antes, ele confere `select count(*) from public.agenda_eventos` (tem de ser `0`; se tiver linha, o 010 para sozinho e a migração dos dados é feita à mão).
 5. Natham publica o fluxo da volta no painel do n8n (como na IDA).
 
