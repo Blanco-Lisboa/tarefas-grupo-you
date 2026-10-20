@@ -156,7 +156,7 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
           const colado = parseFloat(getComputedStyle(f.parentElement!).top);
           const ganho = parseFloat(pa.style.getPropertyValue("--mapa-topo")) - colado;
           if (ganho > 0) ScrollTrigger.create({ start: 0, end: ganho, scrub: true, onUpdate: (st) => pa.style.setProperty("--cresce", String(st.progress)) });
-          const tl = gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: p, start: `top top+=${colado}`, end: "+=" + dist, scrub: true } });
+          const tl = gsap.timeline({ defaults: { ease: "none" }, onUpdate: ajustarBlocos, scrollTrigger: { trigger: p, start: `top top+=${colado}`, end: "+=" + dist, scrub: true } });
           tl.fromTo(fx, { x: 0 }, { x: -dist, duration: 1 }, 0);
           tl.fromTo(".mapa-progresso", { scaleX: 0 }, { scaleX: 1, duration: 1 }, 0);
 
