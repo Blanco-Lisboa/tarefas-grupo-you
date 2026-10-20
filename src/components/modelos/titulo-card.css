@@ -1,0 +1,16 @@
+/* Comparação isolada do item 166. O card de Conteúdos conserva o estilo atual. */
+.tc-topo { max-width: 76ch; margin-bottom: var(--s-16); }
+.tc-topo h1 { margin: 0; font-size: var(--t-20); font-weight: 600; }
+.tc-topo p { margin: var(--s-8) 0 0; color: var(--fraco); font-size: var(--t-14); }
+.tc-opcoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--s-16); align-items: start; }
+.tc-bloco { min-width: 0; padding: var(--s-16); border-radius: var(--raio-c); background: var(--sup); box-shadow: var(--sombra); }
+.tc-bloco > h2 { margin: 0; font-size: var(--t-16); font-weight: 600; }
+.tc-bloco > p { min-height: 3em; margin: var(--s-4) 0 var(--s-16); color: var(--fraco); font-size: var(--t-12); }
+.tc-bloco .conteudos-coluna { min-height: 390px; }
+.tc-cartao { cursor: default; }
+.tc-cartao:hover { transform: none; }
+.tc-cartao .conteudos-titulo { cursor: default; }
+.tc-bloco[data-opcao="1"] .conteudos-titulo { padding: var(--s-8); border-radius: 8px; background: var(--sup); box-shadow: var(--sombra); }
+.tc-bloco[data-opcao="2"] .conteudos-titulo { padding: var(--s-8); border: 1px solid color-mix(in srgb, var(--etapa) 72%, var(--texto)); border-radius: 8px; }
+.tc-bloco[data-opcao="3"] .conteudos-titulo { padding: var(--s-8); border-radius: 8px; background: color-mix(in srgb, var(--etapa) 35%, var(--sup)); font-size: var(--t-20); }
+.tc-bloco[data-opcao="4"] .conteudos-titulo { padding: var(--s-4) 0 var(--s-4) var(--s-12); border-left: 3px solid color-mix(in srgb, var(--etapa) 72%, var(--texto)); font-size: var(--t-20); font-weight: 700; }
