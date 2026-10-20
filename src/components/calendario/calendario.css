@@ -109,7 +109,7 @@
 
 /* Compromisso do Google (item 190, Compromisso.tsx): só leitura, então não pega para arrastar. Fora a reunião (âmbar acima),
    fica em branco com contorno e filete cinza: dá para distinguir da tarefa, que vem pintada na cor da empresa. */
-.evento.compromisso { cursor: pointer; }
+.evento.compromisso, .evento[data-editavel="false"] { cursor: pointer; } /* tarefa só de leitura (item 191) também não arrasta */
 .evento.compromisso:not(.evento-reuniao) {
   --tarefa-fundo: var(--sup); --tarefa-texto: var(--texto);
   box-shadow: inset 3px 0 0 var(--fraco), inset 0 0 0 1px var(--borda);
@@ -177,7 +177,7 @@
     repeating-linear-gradient(to bottom, var(--linha) 0 1px, transparent 1px 48px),
     repeating-linear-gradient(to bottom, transparent 0 24px, rgb(0 0 0 / 0.04) 24px 25px, transparent 25px 48px);
 }
-.grade-coluna .evento-bloco { cursor: grab; }
+.grade-coluna .evento-bloco:not([data-editavel="false"]) { cursor: grab; }
 .grade-fantasma {
   position: absolute; left: 2px; right: 2px; z-index: 2; pointer-events: none; border: 2px dashed var(--azul); border-radius: 6px;
   background: var(--azul-claro); color: var(--azul); font: 600 11px var(--fonte); padding: 2px 6px;

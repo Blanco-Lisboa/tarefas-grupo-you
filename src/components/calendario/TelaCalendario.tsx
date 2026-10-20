@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
-import { salvarTarefa, useAgendaEventos, useEu, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { podeAlterar, salvarTarefa, useAgendaEventos, useEu, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { Ano } from "./Ano";
@@ -66,7 +66,7 @@ function Calendario({ agora }: { agora: string }) {
     })),
     soltar: (id, d) => {
       const t = tarefas.find((x) => x.id === id);
-      if (t) void salvarTarefa(mover(t, d));
+      if (t && podeAlterar(t, eu)) void salvarTarefa(mover(t, d));
     },
     irPara: (v, dia) => { setVisao(v); setCursor(dia); },
   };
@@ -139,7 +139,7 @@ function Calendario({ agora }: { agora: string }) {
         </div>
       </div>
 
-      {aberta && <Ficha key={aberta.id ?? "nova"} tarefa={aberta} aoFechar={() => setAberta(null)} />}
+      {aberta && <Ficha key={aberta.id ?? "nova"} tarefa={aberta} aoFechar={() => setAberta(null)} soLer={!!aberta.id && !podeAlterar(aberta as Tarefa, eu)} />}
     </section>
   );
 }

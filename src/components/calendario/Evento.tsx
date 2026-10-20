@@ -1,6 +1,6 @@
 "use client";
 import { useState, type CSSProperties, type DragEvent } from "react";
-import { useEmpresas, type Tarefa } from "@/lib/dados";
+import { podeAlterar, useEmpresas, useEu, type Tarefa } from "@/lib/dados";
 import { NOMES } from "@/components/ficha/Ficha";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
@@ -32,6 +32,7 @@ function cores(t: Tarefa, temEmpresa: boolean) {
     curto = bloco de até 45 min: tudo numa linha só. */
 export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "bloco" | "chip" | "cartao"; abrir: (t: Tarefa) => void; style?: CSSProperties; curto?: boolean }) {
   const dona = useEmpresas().find((e) => e.id === t.empresaId);
+  const arrasta = podeAlterar(t, useEu()); // tarefa só de leitura (item 191) não sai do lugar
   const empresa = dona?.nome ?? "Sem empresa";
   const pessoa = NOMES.responsavel[t.responsavel];
   const hora = horario(t, modo === "bloco");
@@ -46,7 +47,8 @@ export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "blo
   return (
     <button
       type="button"
-      draggable
+      draggable={arrasta}
+      data-editavel={arrasta}
       className={`evento evento-${modo}${curto ? " evento-curto" : ""}${reuniao ? " evento-reuniao" : ""}`}
       style={{ ...cores(t, !!dona), ...style } as CSSProperties}
       title={`${t.titulo}\n${empresa} · ${pessoa}${hora ? ` · ${hora}` : ""}${detalhes ? `\n${detalhes}` : ""}`}
