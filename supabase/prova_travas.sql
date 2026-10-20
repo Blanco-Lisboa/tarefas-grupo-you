@@ -16,9 +16,9 @@ begin
   r := r || jsonb_build_object('ligacao_por_email', (select user_id = n from public.pessoas where slug = 'natham') and (select user_id = m from public.pessoas where slug = 'matheus'));
 
   -- eventos de agenda das 4 fontes (como dono do banco; o app não escreve nelas)
-  insert into public.agenda_eventos (fonte, google_id, titulo, inicio) values
-    ('natham', 'g1', 'Evento do Natham', now()), ('matheus', 'g2', 'Evento do Matheus', now()),
-    ('adrian', 'g3', 'Evento do Adrian', now()), ('lucas', 'g4', 'Evento do Lucas', now());
+  insert into public.agenda_eventos (chave, fontes, titulo, inicio) values
+    ('g1', '{natham}', 'Evento do Natham', now()), ('g2', '{matheus}', 'Evento do Matheus', now()),
+    ('g3', '{adrian}', 'Evento do Adrian', now()), ('g4', '{lucas}', 'Evento do Lucas', now());
 
   -- NATHAM cria
   set local role authenticated;
@@ -47,7 +47,7 @@ begin
   select count(*) into v from public.tarefas where titulo like 'C2%'; r := r || jsonb_build_object('matheus_ve_conteudo_SEM_empresa_do_natham', v);
   select count(*) into v from public.tarefas where titulo like 'E1%'; r := r || jsonb_build_object('matheus_ve_a_enviada_a_ele', v);
   select count(*) into v from public.anotacoes_dia; r := r || jsonb_build_object('matheus_ve_notas_do_natham', v);
-  select count(*) into v from public.agenda_eventos where fonte = 'natham'; r := r || jsonb_build_object('matheus_ve_eventos_fonte_natham', v);
+  select count(*) into v from public.agenda_eventos where fontes = '{natham}'; r := r || jsonb_build_object('matheus_ve_eventos_fonte_natham', v);
   select count(*) into v from public.agenda_eventos; r := r || jsonb_build_object('matheus_ve_eventos_total', v);
   update public.tarefas set titulo = 'hackeado' where titulo like 'P%'; get diagnostics v = row_count;
   r := r || jsonb_build_object('matheus_altera_privada_do_natham_linhas', v);
@@ -64,7 +64,7 @@ begin
     r := r || jsonb_build_object('matheus_se_passa_por_natham', 'PASSOU (ERRO)');
   exception when others then r := r || jsonb_build_object('matheus_se_passa_por_natham', 'barrado: ' || sqlerrm); end;
   begin
-    insert into public.agenda_eventos (fonte, google_id, titulo, inicio) values ('natham', 'x', 'forjado', now());
+    insert into public.agenda_eventos (chave, fontes, titulo, inicio) values ('x', '{natham}', 'forjado', now());
     r := r || jsonb_build_object('matheus_escreve_agenda', 'PASSOU (ERRO)');
   exception when others then r := r || jsonb_build_object('matheus_escreve_agenda', 'barrado: ' || sqlerrm); end;
 

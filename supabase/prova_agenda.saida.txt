@@ -1,0 +1,58 @@
+ERROR:  RESULTADO: {
+    "U1_fontes": [
+        "contato",
+        "natham"
+    ],
+    "U1_linhas": 1,
+    "varredura": {
+        "gravados": 1,
+        "varridos": 1,
+        "removidos": 0,
+        "varredura_ignorada": false
+    },
+    "anon_chama": "barrado: permission denied for function agenda_receber",
+    "logado_chama": "barrado: permission denied for function agenda_receber",
+    "fonte_invalida": "barrado: fonte invalida: banana",
+    "matheus_escreve": "barrado: permission denied for table agenda_eventos",
+    "cancela_na_contato": {
+        "gravados": 0,
+        "varridos": 0,
+        "removidos": 1,
+        "varredura_ignorada": false
+    },
+    "particular_sozinho": "Ocupado / particular=true",
+    "natham_ve_esperado_8": 8,
+    "U1_titulo_e_hora_nova": "Reunião - Caderno / 14:30:00",
+    "matheus_ve_esperado_4": 4,
+    "natham_primeira_carga": {
+        "gravados": 5,
+        "varridos": 0,
+        "removidos": 0,
+        "varredura_ignorada": false
+    },
+    "varredura_lista_vazia": {
+        "gravados": 0,
+        "varridos": 0,
+        "removidos": 0,
+        "varredura_ignorada": true
+    },
+    "U3_continua_esperado_1": 1,
+    "contato_primeira_carga": {
+        "gravados": 3,
+        "varridos": 0,
+        "removidos": 0,
+        "varredura_ignorada": false
+    },
+    "matheus_le_ids_do_google": "barrado: permission denied for table agenda_eventos",
+    "total_eventos_esperado_7": 7,
+    "U4_apos_varredura_esperado_0": 0,
+    "total_apos_reenvio_esperado_7": 7,
+    "U1_fontes_apos_cancelar_contato": [
+        "natham"
+    ],
+    "dia_inteiro_meia_noite_de_brasilia": true,
+    "matheus_ve_so_do_natham_esperado_0": 0,
+    "U1_linhas_apos_cancelar_os_dois_esperado_0": 0,
+    "matheus_ve_a_reuniao_da_contato_esperado_1": 1
+}
+CONTEXT:  PL/pgSQL function inline_code_block line 96 at RAISE
