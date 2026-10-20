@@ -3,6 +3,7 @@ begin;
 --
 -- Colunas novas em tarefas:
 --   postar_em  text  "AAAA-MM-DDTHH:mm" na hora de Brasília, sem fuso (mesmo jeito de inicio/fim). Data e hora do post, escolhida em "Aprovar".
+--   formato    text  'reels' | 'post' | 'carrossel' | 'story' (nulo = sem formato). O banco NÃO exige formato junto de postar_em: a tela exige.
 --   conserto   bool  etiqueta vermelha "Conserto": o aprovador mandou voltar para Edição.
 -- O que o banco garante sozinho (gatilho private.tarefas_aprovacao):
 --   * Só o Natham ou o aprovador do card (tarefas.aprovador, comparado com o nome da pessoa) põe um card em "Aprovado" (de onde vier, ou
@@ -18,7 +19,10 @@ begin;
 
 alter table public.tarefas
   add column if not exists postar_em text,
-  add column if not exists conserto boolean not null default false;
+  add column if not exists conserto boolean not null default false,
+  add column if not exists formato text;  -- formato do post, escolhido na tela; o n8n usa ESTE campo para a pasta do Drive (017). Nulo = sem formato.
+alter table public.tarefas drop constraint if exists tarefas_formato_ok;
+alter table public.tarefas add constraint tarefas_formato_ok check (formato in ('reels', 'post', 'carrossel', 'story'));
 alter table public.tarefas drop constraint if exists tarefas_postar_em_ok;
 alter table public.tarefas add constraint tarefas_postar_em_ok check (postar_em ~ '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$');
 
@@ -99,6 +103,7 @@ begin
       responsavel_id = r.responsavel_id, inicio = r.inicio, fim = r.fim, dia_inteiro = r.dia_inteiro, cor = r.cor,
       concluida = r.concluida, objetivo = r.objetivo, notas = r.notas, links = r.links, aprovador = r.aprovador,
       postar_em = case when p ? 'postar_em' then r.postar_em else t.postar_em end,
+      formato = case when p ? 'formato' then r.formato else t.formato end,
       conserto = case when p ? 'conserto' then coalesce(r.conserto, false) else t.conserto end
     where t.id = r.id;
     get diagnostics v_linhas = row_count;
@@ -106,9 +111,9 @@ begin
     delete from public.tarefa_tags where tarefa_id = r.id;
   else
     insert into public.tarefas (id, titulo, tipo, empresa_id, rede, etapa, responsavel_id, inicio, fim, dia_inteiro, cor,
-      concluida, objetivo, notas, links, aprovador, dono_id, criado_por, enviada_por, vai_pro_google, postar_em)
+      concluida, objetivo, notas, links, aprovador, dono_id, criado_por, enviada_por, vai_pro_google, postar_em, formato)
     values (r.id, r.titulo, r.tipo, r.empresa_id, r.rede, r.etapa, r.responsavel_id, r.inicio, r.fim, r.dia_inteiro, r.cor,
-      r.concluida, r.objetivo, r.notas, r.links, r.aprovador, r.dono_id, r.criado_por, r.enviada_por, coalesce(r.vai_pro_google, false), r.postar_em);
+      r.concluida, r.objetivo, r.notas, r.links, r.aprovador, r.dono_id, r.criado_por, r.enviada_por, coalesce(r.vai_pro_google, false), r.postar_em, r.formato);
   end if;
   insert into public.tarefa_tags (tarefa_id, tag_id) select r.id, unnest(p_tags);
 end $$;
