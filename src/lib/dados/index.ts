@@ -28,3 +28,4 @@ export * from "./pecas";
 export * from "./ideias";
 export * from "./pastas";
 export * from "./agenda";
+export * from "./anotacoes";

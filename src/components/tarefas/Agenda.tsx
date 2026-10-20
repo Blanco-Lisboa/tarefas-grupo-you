@@ -1,9 +1,8 @@
 "use client";
-import { useState, type CSSProperties } from "react";
-import { useAgendaEventos, type Responsavel, type Tarefa } from "@/lib/dados";
+import { useEffect, type CSSProperties } from "react";
+import { subirNotasDoNavegador, useAgendaEventos, useNotaDia, type Responsavel, type Tarefa } from "@/lib/dados";
 import { ehReuniao, eventosDoDia, quandoEvento } from "./grade";
 import type { OpcaoLetra } from "./fontes";
-import { notaDaChave, type Armazem, type EstadoNota } from "./notas";
 import "./caderno.css";
 
 type Props = {
@@ -14,24 +13,17 @@ type Props = {
   rotuloDia: string;
   /** Tarefas do dia seguinte (a lista "Para amanhã"). */
   amanha: Tarefa[];
-  /** Caderno de outra pessoa: as anotações são do Natham (ficam neste navegador), então não aparecem. */
+  /** Caderno de outra pessoa (só o Natham espia): as anotações dela aparecem, só para ler. */
   alheio?: boolean;
   /** De quem é o caderno: só entram os compromissos da agenda dele (o banco já esconde as que a pessoa logada não vê). */
   dono: Responsavel | null;
 };
 
-const armazem = (): Armazem => { try { return localStorage; } catch { return { getItem: () => null, setItem: () => {} }; } };
-function useNota(chave: string) {
-  const [estado, setEstado] = useState<EstadoNota | null>(null);
-  const atual = notaDaChave(estado, chave, armazem()); // trocou o dia: lê a nota do dia novo, nunca mostra a do anterior
-  const mudar = (valor: string) => { setEstado({ chave, valor }); try { localStorage.setItem(chave, valor); } catch {} };
-  return [atual.valor, mudar] as const;
-}
-
 export function Agenda({ letra, dia, rotuloDia, amanha, alheio, dono }: Props) {
   const compromissos = eventosDoDia(useAgendaEventos(), dia, dono);
-  const [notas, setNotas] = useNota(`grade:caderno:${dia}:notas`);
-  const [lembrar, setLembrar] = useNota(`grade:caderno:${dia}:lembrar`);
+  const [notas, setNotas] = useNotaDia("notas", dono, dia, !alheio);
+  const [lembrar, setLembrar] = useNotaDia("lembrar", dono, dia, !alheio);
+  useEffect(() => { if (dono && !alheio) void subirNotasDoNavegador(dono); }, [dono, alheio]);
   return (
     <section className={`pag agenda ${letra.fonte.className}`} style={{ "--escala": letra.escala } as CSSProperties}>
       <header className="pag-faixa">
@@ -63,20 +55,20 @@ export function Agenda({ letra, dia, rotuloDia, amanha, alheio, dono }: Props) {
         )}
 
         <div className="ag-blocos">
-          {!alheio && <label className="ag-bloco ag-bloco-notas">
+          <label className="ag-bloco ag-bloco-notas">
             <span className="ag-bloco-titulo">Anotações do dia</span>
-            <textarea className="ag-texto folha-tinta" rows={3} maxLength={4000} value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Escreva o que quiser lembrar deste dia…" />
-          </label>}
+            <textarea className="ag-texto folha-tinta" rows={3} maxLength={4000} value={notas} readOnly={alheio} onChange={(e) => setNotas(e.target.value)} placeholder={alheio ? "Sem anotações neste dia." : "Escreva o que quiser lembrar deste dia…"} />
+          </label>
           <div className="ag-bloco ag-bloco-amanha">
             <span className="ag-bloco-titulo">Para amanhã</span>
             <ul className="ag-amanha folha-tinta">
               {amanha.length ? amanha.map((t) => <li key={t.id}>{t.titulo}</li>) : <li className="folha-lapis">Nada ainda.</li>}
             </ul>
           </div>
-          {!alheio && <label className="ag-bloco">
+          <label className="ag-bloco">
             <span className="ag-bloco-titulo">Não esquecer</span>
-            <textarea className="ag-texto folha-tinta" rows={3} maxLength={4000} value={lembrar} onChange={(e) => setLembrar(e.target.value)} placeholder="Recados soltos, que não são tarefa…" />
-          </label>}
+            <textarea className="ag-texto folha-tinta" rows={3} maxLength={4000} value={lembrar} readOnly={alheio} onChange={(e) => setLembrar(e.target.value)} placeholder={alheio ? "Nada anotado neste dia." : "Recados soltos, que não são tarefa…"} />
+          </label>
         </div>
       </div>
     </section>
