@@ -243,3 +243,15 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
 - **Avisos de erro:** o WhatsApp continua JUNTO com a Alexa (os dois).
 
 **Ainda em aberto:** capa própria no Reels do Facebook (resposta no teste do rascunho).
+
+### Card que NÃO é post (decisão do Natham, 23/10)
+
+- **Botão "Concluir"** no card da Esteira, no lugar de Aprovar e Consertar, para todo card cujo Tipo não é Postagem. Concluir **APAGA o card**: ele some de vez e não guarda histórico. Por isso não precisa de `concluida_em` nem de `concluida_por`, e não existe filtro "Concluídos" (as propostas anteriores caem).
+- **Aprovado e Postado só para Tipo Postagem.**
+- **Princípio dele:** nada guardado à toa. No Supabase não fica vídeo nenhum, só no Drive. 7 dias depois de postado, o arquivo sai do Drive (203).
+- **Em aberto:**
+  - (a) Concluir pede confirmação?
+  - (b) O card POSTADO continua no Mapa como histórico (só texto e link do post, sem arquivo, como o 204 previa) ou também é apagado depois de 7 dias?
+- **Observações do Sextante para o desenho (não são decisão):**
+  - Apagar o card tem de apagar junto os anexos dele (Supabase e Drive). Senão sobra arquivo órfão, que é justamente o "guardado à toa".
+  - O 203 dizia que o anexo de card SEM empresa fica privado no Supabase. Com "no Supabase não fica vídeo nenhum", falta decidir para onde vai o vídeo de um card sem empresa (Drive também, ou não aceitar vídeo sem empresa).
