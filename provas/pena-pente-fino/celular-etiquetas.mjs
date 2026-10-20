@@ -1,0 +1,23 @@
+// Celular (390): as linhas com prioridade (item 164), rolando até elas.
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const PASTA = fileURLToPath(new URL("./", import.meta.url));
+const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+const exp = 1893456000, uid = "u-natham";
+const jwt = [b64({ alg: "HS256", typ: "JWT" }), b64({ sub: uid, exp, role: "authenticated", aud: "authenticated" }), b64("assinatura")].join(".");
+const sessao = { access_token: jwt, refresh_token: "x", expires_in: 3600, expires_at: exp, token_type: "bearer", user: { id: uid, aud: "authenticated", role: "authenticated", email: "foto@exemplo.invalid", app_metadata: {}, user_metadata: {}, created_at: "2026-10-19T00:00:00Z" } };
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const ctx = await nav.newContext({ viewport: { width: 390, height: 844 } });
+await ctx.addCookies([{ name: "sb-127-auth-token", value: "base64-" + b64(sessao), domain: "127.0.0.1", path: "/" }]);
+const p = await ctx.newPage();
+await p.clock.setFixedTime(new Date(2026, 9, 20, 15, 0));
+await p.goto("http://127.0.0.1:3199/tarefas", { waitUntil: "networkidle" });
+await p.waitForTimeout(800);
+await p.locator(".linha", { hasText: "Pagar boleto" }).scrollIntoViewIfNeeded();
+await p.evaluate(() => { window.scrollBy(0, 120); const d = document.createElement("div"); d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;right:8px;bottom:8px;z-index:2147483647;background:#000;color:#fff;font:700 12px monospace;padding:3px 8px"; document.body.append(d); });
+await p.waitForTimeout(300);
+await p.screenshot({ path: join(PASTA, "164-celular-prioridades.png") });
+await nav.close();
