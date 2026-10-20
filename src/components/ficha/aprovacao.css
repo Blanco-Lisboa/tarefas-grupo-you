@@ -50,9 +50,9 @@
 .aprovacao-nota, .aprovacao-aviso { grid-column: 1 / -1; flex-basis: 100%; margin: 0; color: var(--fraco); font: 500 11px/1.35 var(--fonte); }
 .aprovacao-falta { flex-basis: 100%; margin: 0; padding-left: 16px; color: var(--atrasado); font: 600 11px/1.45 var(--fonte); }
 /* Confirmação (Concluir, Postar agora): mesmo desenho da de "Postado" da Esteira */
-.confirmar { position: fixed; inset: 0; margin: auto; width: min(420px, calc(100vw - 32px)); padding: var(--s-24); border: 1px solid var(--linha); border-radius: var(--raio-c); background: var(--sup); color: var(--texto); box-shadow: var(--sombra-alta); cursor: default; }
+.confirmar { white-space: normal; text-align: left; position: fixed; inset: 0; margin: auto; width: min(420px, calc(100vw - 32px)); padding: var(--s-24); border: 1px solid var(--linha); border-radius: var(--raio-c); background: var(--sup); color: var(--texto); box-shadow: var(--sombra-alta); cursor: default; }
 .confirmar::backdrop { background: rgb(20 30 45 / .4); }
-.confirmar h2 { margin: 0; font-size: var(--t-20); }
+.confirmar h2 { margin: 0; font-size: var(--t-20); line-height: 1.25; white-space: normal; overflow-wrap: anywhere; } /* o diálogo nasce dentro do card, que não quebra linha */
 .confirmar p { margin: var(--s-12) 0 var(--s-24); color: var(--fraco); overflow-wrap: anywhere; }
 .confirmar-acoes { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--s-8); }
 .confirmar .btn[data-perigo="true"] { background: var(--atrasado); border-color: var(--atrasado); color: #fff; }
