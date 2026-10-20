@@ -6,37 +6,25 @@
 .config-erro { padding: var(--s-12) var(--s-16); border-radius: var(--raio-b); background: var(--sup); }
 .config-bloco-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-12); min-height: 64px; padding: var(--s-16) 0; }
 .config-bloco-topo h2 { margin: 0; color: var(--texto); font-size: var(--app-t-secao); }
-.config-bloco-topo span { color: var(--fraco); font-size: var(--app-t-rotulo); }
 .config-lista { display: grid; gap: var(--s-12); margin: 0; padding: 0; list-style: none; }
 .config-empresa { display: flex; align-items: start; gap: var(--s-16); padding: var(--s-24); border-radius: var(--raio-c); background: var(--sup); box-shadow: var(--sombra); }
 .config-monograma { display: grid; flex: none; place-items: center; width: 44px; height: 44px; border-radius: var(--raio-b); background: var(--sup-2); color: var(--texto); font: 600 var(--t-16) var(--fonte); }
 .config-empresa-corpo { display: flex; flex: 1; flex-direction: column; gap: var(--s-4); min-width: 0; }
 .config-empresa-corpo strong { color: var(--texto); font-size: var(--t-16); overflow-wrap: anywhere; }
 .config-empresa-corpo > span { color: var(--fraco); font-size: var(--app-t-texto); }
-.config-acoes { display: flex; gap: var(--s-16); margin-top: var(--s-8); }
-.config-acoes button, .config-botao-texto { min-height: var(--app-controle); padding: var(--s-4); border: 0; background: none; color: var(--azul); font: 500 var(--app-t-texto) var(--fonte); cursor: pointer; }
-.config-acoes button:last-child { color: var(--fraco); }
-.config-acoes button:hover, .config-botao-texto:hover { text-decoration: underline; text-underline-offset: 3px; }
-.config-edicao { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
-.config-edicao input { flex: 1; min-width: 160px; }
 .config-tela input { min-height: var(--app-controle); padding: var(--s-8) var(--s-12); border: 1px solid var(--borda); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); font: var(--t-16) var(--fonte); }
-.config-botao, .config-botao-perigo { min-height: var(--app-controle); padding: var(--s-8) var(--s-16); border: 1px solid transparent; border-radius: var(--raio-b); background: var(--azul); color: var(--no-azul); font: 500 var(--app-t-texto) var(--fonte); cursor: pointer; transition: background var(--dur-rapida) var(--curva); }
-.config-botao:hover, .config-botao-perigo:hover { background: var(--azul-hover); }
-.config-confirmacao { margin-top: var(--s-12); padding: var(--s-16); border-radius: var(--raio-b); background: var(--sup-2); }
-.config-confirmacao p { margin: 0 0 var(--s-12); font-weight: 600; }
-.config-confirmacao > div { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12); }
+.config-botao { min-height: var(--app-controle); padding: var(--s-8) var(--s-16); border: 1px solid transparent; border-radius: var(--raio-b); background: var(--azul); color: var(--no-azul); font: 500 var(--app-t-texto) var(--fonte); cursor: pointer; transition: background var(--dur-rapida) var(--curva); }
+.config-botao:hover { background: var(--azul-hover); }
 .config-incluir-sombra { margin-top: var(--s-24); }
 .config-incluir { padding: var(--s-24); border-radius: var(--raio-c); background: var(--sup); box-shadow: var(--sombra); }
 .config-incluir h2 { margin: 0 0 var(--s-16); color: var(--texto); font-size: var(--app-t-secao); }
 .config-incluir label { display: block; margin-bottom: var(--s-8); color: var(--texto); font-size: var(--app-t-texto); font-weight: 600; }
 .config-incluir > div { display: flex; gap: var(--app-vao); }
 .config-incluir input { flex: 1; min-width: 0; }
-.config-escondido { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @media (max-width: 767px) {
   .config-cabecalho { align-items: start; flex-direction: column; gap: var(--s-12); }
   .config-bloco-topo, .config-empresa, .config-incluir { padding: var(--s-16); }
   .config-empresa { flex-wrap: wrap; gap: var(--s-8); }
-  .config-acoes { width: 100%; margin: 0 0 0 52px; }
   .config-incluir > div { flex-direction: column; }
 }
-@media (prefers-reduced-motion: reduce) { .config-botao, .config-botao-perigo { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .config-botao { transition: none; } }
