@@ -1,50 +1,48 @@
-/* Item 167: só para /modelos/fazendo-agora. O card de verdade (conteudos.css) não foi tocado. */
-.fa { --fa-verde: #1F9D55; --fa-verde-texto: #14653A; }
+/* Item 167b: só para /modelos/fazendo-agora. O card de verdade (conteudos.css) não foi tocado. */
+.fa { --fa-verde: #17663A; --fa-verde-escuro: #0F4727; }
 .fa-topo { max-width: 76ch; margin-bottom: var(--s-16); }
 .fa-topo h1 { font-size: var(--t-20); font-weight: 600; }
 .fa-topo p { margin-top: var(--s-8); color: var(--fraco); font-size: var(--t-14); }
-.fa-colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: var(--s-16); align-items: start; }
+.fa-colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--s-16); align-items: start; }
 .fa-bloco { padding: var(--s-16); background: var(--sup); border-radius: var(--raio-c); box-shadow: var(--sombra); }
 .fa-bloco h2 { font-size: var(--t-16); font-weight: 600; }
 .fa-bloco > p { margin: var(--s-4) 0 var(--s-16); min-height: 4.2em; color: var(--fraco); font-size: var(--t-12); }
 .fa-bloco .fa-pilha + .fa-pilha { margin-top: var(--s-12); }
 .fa-pilha { padding: var(--s-12); border-radius: var(--raio-c); }
 .fa-cartao { position: relative; cursor: default; }
-.fa-linha { margin: calc(-1 * var(--s-4)) 0 var(--s-12); }
 
-/* Base dos selos: canto de 8px, nada de pílula */
-.fa-selo { display: inline-flex; align-items: center; gap: var(--s-8); max-width: 100%; padding: 4px var(--s-8); border-radius: 8px; font-size: var(--t-12); font-weight: 600; line-height: 1.3; }
-.fa-selo svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* Espaço em volta do card para a orelha caber dentro do bloco */
+.fa-pilha[data-fa="1"], .fa-pilha[data-fa="2"], .fa-pilha[data-fa="4"] { padding-top: 40px; }
+.fa-pilha[data-fa="3"] { padding-right: 44px; }
+.fa-pilha[data-fa="5"] { padding-top: 32px; }
+.fa-pilha[data-fa="6"] { padding-top: 36px; padding-left: 20px; }
 
-/* 1 · bolinha verde que pulsa */
-.fa-1 { background: color-mix(in srgb, var(--fa-verde) 12%, var(--sup)); color: var(--fa-verde-texto); }
-.fa-bolinha { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--fa-verde); }
-.fa-bolinha::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--fa-verde); animation: fa-pulso 1.6s ease-out infinite; }
-@keyframes fa-pulso { from { transform: scale(1); opacity: .6; } to { transform: scale(3); opacity: 0; } }
-
-/* 2 · brilho correndo, o mesmo do item ativo do menu (menu-brilho em casca.css) */
-.fa-2 { color: var(--azul); background: linear-gradient(110deg, var(--azul-claro) 40%, color-mix(in srgb, var(--azul) 26%, var(--sup)) 50%, var(--azul-claro) 60%) 0 0 / 200% 100%; animation: fa-brilho 2.4s linear infinite; }
-@keyframes fa-brilho { to { background-position: -200% 0; } }
-
-/* 3 · foto com anel girando (a foto gira ao contrário e fica parada) */
-.fa-3 { padding-left: 4px; background: var(--sup-2); color: var(--texto); }
-.fa-anel { display: grid; place-items: center; flex: none; padding: 2px; border-radius: 50%; background: conic-gradient(var(--fa-verde) 0 30%, transparent 30% 100%); animation: fa-gira 1.6s linear infinite; }
-.fa-anel .pessoa { outline: 2px solid var(--sup-2); animation: fa-gira 1.6s linear infinite reverse; }
-@keyframes fa-gira { to { transform: rotate(360deg); } }
-
-/* 4 · faixa fina no topo do card */
-.fa-faixa { position: absolute; top: -1px; left: -1px; right: -1px; height: 4px; border-radius: var(--raio-c) var(--raio-c) 0 0; background: linear-gradient(90deg, var(--fa-verde) 30%, #7BE0A4 50%, var(--fa-verde) 70%) 0 0 / 200% 100%; animation: fa-brilho 1.8s linear infinite; }
-.fa-cartao[data-fa="4"] { border-color: color-mix(in srgb, var(--fa-verde) 45%, var(--vidro-linha)); }
-
-.fa-4 { padding-inline: 0; color: var(--fa-verde-texto); }
-
-/* 5 · cronômetro */
-.fa-5 { background: var(--sup-2); color: var(--texto); box-shadow: inset 0 0 0 1px var(--linha); font-variant-numeric: tabular-nums; }
-.fa-5 svg { color: var(--fa-verde-texto); }
-.fa-ponteiro { transform-origin: 12px 12px; animation: fa-gira 6s linear infinite; }
-
-@media (prefers-reduced-motion: reduce) {
-  .fa-bolinha::after, .fa-2, .fa-anel, .fa-anel .pessoa, .fa-faixa, .fa-ponteiro { animation: none; }
-  .fa-bolinha::after { opacity: .35; transform: scale(2); }
-  .fa-faixa { background: var(--fa-verde); }
+/* Orelha: verde sóbrio com o vidro brilhando do item ativo do menu (menu-brilho em casca.css) */
+.fa-orelha {
+  position: absolute; z-index: 1; display: flex; align-items: center; gap: var(--s-8); white-space: nowrap;
+  padding: 4px var(--s-12) 4px var(--s-8); color: #fff; font-size: var(--t-12); font-weight: 600; line-height: 1.3;
+  background: linear-gradient(110deg, var(--fa-verde) 40%, color-mix(in srgb, #fff 26%, var(--fa-verde)) 50%, var(--fa-verde) 60%) 0 0 / 200% 100%;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), inset 1px 0 0 rgb(255 255 255 / .18), 0 4px 10px -4px rgb(15 71 39 / .55);
+  animation: fa-brilho 2.4s linear infinite;
 }
+@keyframes fa-brilho { to { background-position: -200% 0; } }
+.fa-orelha .pessoa { outline: 1.5px solid rgb(255 255 255 / .85); }
+
+/* 1 · topo à esquerda: aba de pasta */
+[data-fa="1"] > .fa-orelha { left: 16px; bottom: 100%; margin-bottom: -1px; height: 28px; border-radius: 8px 8px 0 0; }
+/* 2 · topo à direita */
+[data-fa="2"] > .fa-orelha { right: 16px; bottom: 100%; margin-bottom: -1px; height: 28px; border-radius: 8px 8px 0 0; }
+/* 3 · lateral direita, para fora, nome na vertical */
+[data-fa="3"] > .fa-orelha { top: 28px; left: 100%; margin-left: -1px; flex-direction: column; padding: var(--s-8) 6px var(--s-12); border-radius: 0 8px 8px 0; }
+[data-fa="3"] > .fa-orelha > span { writing-mode: vertical-rl; }
+/* 4 · fita no canto com a ponta dobrada (o triângulo escuro é a dobra) */
+[data-fa="4"] > .fa-orelha { right: -8px; bottom: 100%; margin-bottom: -1px; height: 28px; border-radius: 8px 8px 0 0; }
+[data-fa="4"] > .fa-orelha::after { content: ""; position: absolute; top: 100%; right: 0; width: 8px; height: 8px; background: var(--fa-verde-escuro); clip-path: polygon(0 0, 100% 0, 0 100%); }
+/* 5 · marcador de página descendo do topo, ponta em V */
+[data-fa="5"] > .fa-orelha { top: -18px; right: 56px; flex-direction: column; gap: 2px; width: 64px; height: 64px; padding: var(--s-8) 4px 14px; border-radius: 8px 8px 0 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%); font-size: 11px; justify-content: flex-start; box-shadow: none; }
+/* 6 · orelha torta com pino */
+[data-fa="6"] > .fa-orelha { top: -22px; left: -8px; height: 28px; padding-left: 22px; border-radius: 8px; transform: rotate(-3deg); }
+.fa-pino { position: absolute; left: 3px; top: 50%; width: 15px; height: 15px; margin-top: -7px; border: 1px solid rgb(255 255 255 / .7); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #5FA77F, var(--fa-verde-escuro) 70%); box-shadow: 0 2px 3px rgb(0 0 0 / .4); }
+[data-fa="6"] > .fa-orelha .pessoa { margin-left: 0; }
+
+@media (prefers-reduced-motion: reduce) { .fa-orelha { animation: none; } }
