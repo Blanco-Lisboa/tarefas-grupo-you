@@ -279,3 +279,5 @@ Fotos dele em `docs/referencias/2026-10-19-rodada-4/` (01 a 11). Instruções: `
 - Ficam para depois (Lupa, Re-revisão 3, baixa, não bloqueiam):
   - celular: perto da borda da tela, o card do Mapa pode ficar ~22px mais para dentro (a folga de 22px da caixa entra na conta que segura o card dentro da tela; `TelaMapa.tsx:117-131`, `mapa.css:74-83`);
   - acessibilidade: no cartão de perfil do menu, o leitor de tela lê o nome da pessoa duas vezes (foto e texto); deixar a foto decorativa quando o nome escrito estiver ao lado (`Menu.tsx`, `Pessoa.tsx:18`).
+
+- **Código no GitHub (22/10):** repositório PRIVADO `https://github.com/YOU-CONTABILIDADE/tarefas-grupo-you`, branch `main`. Publicar continua pelo comando do Natham; o GitHub NÃO está ligado à Vercel nem ao Supabase. `provas/r5-textura/` ficou fora (sem dono).
