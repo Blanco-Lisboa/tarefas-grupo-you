@@ -16,8 +16,9 @@
 .aprovacao-formato:hover { background: var(--realce); }
 .aprovacao-formato[aria-checked="true"] { background: var(--azul); box-shadow: none; color: #fff; }
 .aprovacao-formato:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
-.aprovacao-quando .campo-data-botao { flex: 1; min-width: 0; height: 32px; padding: 0 var(--s-8); font-size: var(--t-12); } /* o botão do CampoData não encolhe sozinho (flex: none) */
-.aprovacao-quando .campo-data-botao > span { overflow: hidden; text-overflow: ellipsis; }
+/* Data e hora numa linha inteira, quebrando se precisar: no card estreito o texto cortado ("Qua...") não dizia nada */
+.aprovacao-quando .campo-data-botao { flex: 1 1 100%; min-width: 0; height: auto; min-height: 32px; padding: 4px var(--s-8); font-size: var(--t-12); }
+.aprovacao-quando .campo-data-botao > span { white-space: normal; text-align: left; }
 .aprovacao-cancelar { flex: none; padding: 4px; border: 0; background: none; color: var(--fraco); font: 600 var(--t-12) var(--fonte); cursor: pointer; }
 .aprovacao-cancelar:hover { color: var(--texto); }
 /* Etiqueta "Conserto": a fita do "fazendo agora" do card (conteudos.css), em vermelho, menor e só com o texto */

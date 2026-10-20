@@ -53,8 +53,8 @@
 .conteudos-trilha span { margin-left: var(--s-4); color: var(--fraco); font-size: var(--t-12); font-weight: 600; font-variant-numeric: tabular-nums; }
 .conteudos-titulo:hover { color: var(--azul); }
 .conteudos-cartao-rodape { margin-top: var(--s-12); padding-top: var(--s-12); border-top: 1px solid var(--linha); color: var(--texto); font-size: var(--app-t-rotulo); font-weight: 500; }
-.conteudos-quem-faz { display: inline-flex; align-items: center; gap: var(--s-8); min-width: 0; font-weight: 600; }
-.conteudos-cartao-rodape time { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.conteudos-quem-faz { display: inline-flex; flex: none; align-items: center; gap: var(--s-8); font-weight: 600; } /* o nome não encolhe: quem quebra linha é a data, senão um texto passava por cima do outro */
+.conteudos-cartao-rodape time { flex: 1 1 0; min-width: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
 .conteudos-prazo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-8); margin-top: var(--s-8); font-size: var(--app-t-rotulo); font-weight: 500; }
 .conteudos-contagem-dias { display: inline-flex; align-items: center; gap: 6px; color: var(--fraco); }
 .conteudos-contagem-dias::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }

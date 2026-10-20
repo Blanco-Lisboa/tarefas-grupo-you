@@ -15,7 +15,7 @@ export function CamposPost({ t, arquivos, travado, mudar, aoMudarCapa }: {
     <>
       <label className="ficha-campo">
         <span className="ficha-legenda ficha-legenda-post">Legenda<small>{(t.legenda ?? "").length}/2200</small></span>
-        <textarea rows={4} maxLength={2200} value={t.legenda ?? ""} readOnly={travado} onChange={(e) => mudar("legenda", e.target.value)}
+        <textarea className="ficha-legenda-texto" rows={5} maxLength={2200} value={t.legenda ?? ""} readOnly={travado} onChange={(e) => mudar("legenda", e.target.value)}
           placeholder="O texto que vai junto do post no Instagram e no Facebook" />
       </label>
       {t.formato === "reels" && (

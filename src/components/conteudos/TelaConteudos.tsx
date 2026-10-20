@@ -157,7 +157,8 @@ export function TelaConteudos() {
                 {itens.length === 0 && <p className="conteudos-vazio">Solte um conteúdo aqui.</p>}
                 {itens.map((tarefa) => {
                   const levantado = arraste?.id === tarefa.id ? arraste : null;
-                  const falta = prazo({ ...tarefa, inicio: tarefa.postarEm ?? tarefa.inicio }, hoje); // aprovado: conta até a hora do post (item 195)
+                  // aprovado: conta até a hora do post (item 195); postando ou com erro (196) a contagem sai, senão um texto contradiz o outro
+                  const falta = tarefa.postagens?.some((p) => p.status !== "postado") ? null : prazo({ ...tarefa, inicio: tarefa.postarEm ?? tarefa.inicio }, hoje);
                   const drive = linkDrive(tarefa);
                   const quemFazAgora = fazendo[tarefa.id]?.quem;
                   const nomeEmpresa = tarefa.empresaId ? nomesEmpresas.get(tarefa.empresaId) : undefined;
