@@ -37,7 +37,11 @@
   .cal-painel { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: auto; }
   .grade-janela, .grade { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .grade-rolagem { flex: 1; min-height: 0; max-height: none; }
-  .cal-painel .mes { flex: 1; grid-template-rows: auto repeat(var(--semanas), minmax(112px, 1fr)); }
+  /* min-height 0: sem ele todas as semanas cresciam até a mais cheia (163px a 1440) e a última sumia embaixo.
+     Cada semana tem 106px (número + 3 tarefas) ou o que o conteúdo pedir; a sobra da tela se divide entre elas.
+     Mês de 5 semanas cabe inteiro a 1440x760; só uma semana cheia faz o painel rolar, e só o que falta. */
+  .cal-painel .mes { flex: 1; min-height: 0; grid-template-rows: min-content repeat(var(--semanas), minmax(min-content, auto)); }
+  .cal-painel .mes-celula { min-height: 106px; }
 }
 
 /* ---------- tarefa (evento) ---------- */
@@ -53,21 +57,14 @@
 .evento-titulo { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .evento-hora { flex: none; font-weight: 700; }
 .evento-detalhes { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-weight: 500; font-size: 11px; min-width: 0; }
-.evento-bolinha {
-  flex: none; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%;
-  font: 600 9px / 1 var(--fonte); color: var(--no-azul);
-}
-/* Natham em cinza (branco sobre ele 6,0), Matheus no azul: as duas pessoas se distinguem sem cor nova */
-.evento-bolinha-natham { background: var(--fraco); }
-.evento-bolinha-matheus { background: var(--azul); }
-/* Selo da empresa: pílula branca dentro da cor da tarefa */
+/* Selo da empresa: etiqueta branca dentro da cor da tarefa (cantos curtos, nada de pílula) */
 .selo {
-  flex: none; padding: 0 6px; margin: 0 3px; border-radius: var(--raio-pilula); background: var(--sup);
+  flex: none; padding: 0 6px; margin: 0 3px; border-radius: 4px; background: var(--sup);
   font: 600 10px / 15px var(--fonte); letter-spacing: .02em; color: var(--texto); white-space: nowrap;
 }
-/* Etapa (item 78): pílula colorida, com um fio escuro leve para não sumir no fundo claro da empresa */
+/* Etapa (item 78): etiqueta colorida, com um fio escuro leve para não sumir no fundo claro da empresa */
 .etapa {
-  flex: none; padding: 0 6px; border-radius: var(--raio-pilula); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .1);
+  flex: none; padding: 0 6px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .1);
   font: 600 10px / 15px var(--fonte); letter-spacing: .02em; color: #fff; white-space: nowrap;
 }
 .etapa-roteiro { background: var(--etapa-roteiro); }
@@ -97,11 +94,10 @@
 }
 .evento-cartao { padding: var(--s-8) 10px; gap: 6px; font-size: var(--t-14); border-radius: var(--raio-b); }
 .evento-cartao .evento-titulo { white-space: normal; }
-.evento-cartao .evento-bolinha { width: 20px; height: 20px; font-size: 10px; }
 
 /* Criar pelo teclado (Evento.tsx, CriarAqui): escondido e sem ocupar lugar até o Tab chegar nele */
 .cal-criar {
-  position: absolute; z-index: 4; top: 4px; left: 4px; padding: 3px 10px; border: 0; border-radius: var(--raio-pilula);
+  position: absolute; z-index: 4; top: 4px; left: 4px; padding: 3px 10px; border: 0; border-radius: 6px;
   background: var(--azul); color: var(--no-azul); font: 600 var(--t-12) / 1.3 var(--fonte); white-space: nowrap; cursor: pointer;
 }
 .cal-criar:not(:focus) { width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
@@ -120,12 +116,12 @@
 }
 .grade-dia-nome { font-size: var(--t-12); letter-spacing: .06em; text-transform: uppercase; color: var(--fraco); font-weight: 600; }
 .grade-dia-num {
-  display: grid; place-items: center; min-width: 40px; height: 40px; padding: 0 6px;
-  border-radius: var(--raio-pilula); font: 500 var(--t-25) var(--fonte); font-variant-numeric: tabular-nums;
+  display: grid; place-items: center; width: 40px; height: 40px;
+  border-radius: 50%; font: 500 var(--t-25) var(--fonte); font-variant-numeric: tabular-nums;
   transition: background-color var(--dur-rapida) var(--curva);
 }
 .grade-dia:hover .grade-dia-num { background: var(--realce); }
-/* Hoje = círculo azul (pílula no mês, onde cabe "1 de out"), como o vermelho do Calendário da Apple */
+/* Hoje = círculo azul na semana (bolinha, como o vermelho do Calendário da Apple); no mês, onde cabe "1 de out", cantos curtos */
 .grade-dia[data-hoje="true"] .grade-dia-num, .mes-celula[data-hoje="true"] .mes-numero { background: var(--azul); color: var(--no-azul); }
 .grade-dia[data-hoje="true"]:hover .grade-dia-num, .mes-celula[data-hoje="true"] .mes-numero:hover { background: var(--azul-hover); }
 .grade-dia[data-hoje="true"] .grade-dia-nome { color: var(--azul); }
@@ -160,15 +156,16 @@
 .mes { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto repeat(var(--semanas), minmax(124px, auto)); }
 .mes-semana { padding: var(--s-12) var(--s-8) var(--s-8); text-align: center; font-size: var(--t-12); letter-spacing: .06em; text-transform: uppercase; color: var(--fraco); font-weight: 600; border-bottom: 1px solid var(--borda); }
 .mes-celula {
-  container-type: inline-size; display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 4px 4px 6px; cursor: copy;
+  container-type: inline-size; display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 3px 4px 4px; cursor: copy;
   border-right: 1px solid var(--linha); border-bottom: 1px solid var(--linha);
 }
 .mes-celula:nth-child(7n + 7) { border-right: 0; }
+.mes-celula > * { flex-shrink: 0; } /* tarefa nunca se espreme por cima da outra quando a semana fica baixa */
 .mes-celula[data-fora="true"] { background: var(--sup-2); }
 .mes-celula[data-fora="true"] .mes-numero { color: var(--fraco); }
 .mes-celula[data-alvo="true"] { background: var(--azul-claro); outline: 2px dashed var(--azul); outline-offset: -2px; }
 .mes-numero {
-  align-self: center; min-width: 28px; height: 26px; padding: 0 8px; margin-bottom: 2px; border: 0; border-radius: var(--raio-pilula); background: none; cursor: pointer;
+  align-self: center; min-width: 28px; height: 26px; padding: 0 8px; border: 0; border-radius: 6px; background: none; cursor: pointer;
   font: 500 var(--t-14) var(--fonte); font-variant-numeric: tabular-nums; color: var(--texto);
 }
 .mes-numero:hover { background: var(--realce); }
