@@ -162,3 +162,10 @@
 .mapa-sem-data { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); padding-bottom: var(--s-12); }
 .mapa-sem-data span { font-size: var(--app-t-rotulo); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fraco); }
 .mapa-sem-data button { padding: var(--s-4) var(--s-12); border: 1px solid var(--linha); border-radius: 999px; background: transparent; color: var(--texto); font: inherit; font-size: var(--app-t-texto); cursor: pointer; }
+
+/* Card Postado (204): formato, redes, data e links do post. Fora do botão do card; só aparece ao passar o mouse ou focar. */
+.mapa-postado { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; display: none; flex-direction: column; gap: 2px; padding: 6px 8px; border-radius: var(--raio-b); background: var(--sup); box-shadow: var(--sombra-alta); font-size: 12px; color: var(--fraco); }
+.mapa-postado a { color: var(--azul); font-weight: 600; text-decoration: none; }
+.mapa-postado a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.mapa-pilha > .borda-animada:is(:hover, :focus-within) > .mapa-postado { display: flex; }
+@media (hover: none) { .mapa-postado { position: static; display: flex; box-shadow: none; padding: 2px 8px 6px; background: transparent; } }

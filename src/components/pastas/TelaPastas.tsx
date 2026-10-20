@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { excluirPeca, nomeEmUso, pecasDaPasta, salvarPeca, useEmpresas, useIdeias, usePastas, usePecas, type Empresa, type Pasta, type Peca } from "@/lib/dados";
+import { excluirPeca, nomeEmUso, pecasDaPasta, renomearOcasiao, salvarPeca, useEmpresas, useIdeias, useOcasioes, usePastas, usePecas, useTarefas, type Empresa, type Pasta, type Peca } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { SeloEmpresa } from "@/components/ui/Marca";
@@ -24,6 +24,10 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
   // nome: pasta nova (id vazio) ou renomeando; excluir: pedindo a confirmação
   const [nome, setNome] = useState<{ id?: string } | null>(null);
   const [excluir_, setExcluir] = useState<Pasta | null>(null);
+  // Ocasiões (203): cada uma é uma pasta do Drive da empresa, com os cards dela
+  const ocasioes = useOcasioes().filter((o) => o.empresaId === empresa.id);
+  const cards = useTarefas().filter((c) => c.empresaId === empresa.id && c.ocasiaoId);
+  const [renomeando, setRenomeando] = useState<string | null>(null);
   const t = tomDaEmpresa(empresa.id);
   const tom = { base: t.r, sombra: `${t.g}99` };
   const categorias = [...new Set(ideias.map((i) => i.categoria))];
@@ -76,7 +80,35 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
             </div>
           );
         })}
+        {ocasioes.map((o, i) => {
+          const daOcasiao = cards.filter((c) => c.ocasiaoId === o.id);
+          const arte = receitaDaEmpresa("post", empresa.id);
+          return (
+            <div key={o.id} className="pastas-cel">
+              <PastaDeVidro
+                rotulo={o.nome}
+                legenda={daOcasiao.length === 1 ? "1 card" : `${daOcasiao.length} cards`}
+                vazio="Nenhum card nesta ocasião."
+                tom={tom}
+                arte={arte}
+                seed={31 + i * 4}
+                atraso={(pastas.length + i) * 120}
+                acoes={<MenuPasta nome={o.nome} aoRenomear={() => setRenomeando(o.id)} />}
+                arquivos={daOcasiao.map((c) => ({ nome: c.titulo, meta: [c.formato, c.etapa].filter(Boolean).join(" · ") || undefined, arte }))}
+              />
+            </div>
+          );
+        })}
       </div>
+      {renomeando && (
+        <CardNome
+          titulo="Renomear ocasião"
+          inicial={ocasioes.find((o) => o.id === renomeando)?.nome ?? ""}
+          emUso={(n) => ocasioes.some((o) => o.id !== renomeando && o.nome.trim().toLowerCase() === n.toLowerCase())}
+          aoSalvar={async (n) => { await renomearOcasiao(renomeando, n); setRenomeando(null); }}
+          aoFechar={() => setRenomeando(null)}
+        />
+      )}
       {nome && (
         <CardNome
           titulo={nome.id ? "Renomear pasta" : "Nova pasta"}
@@ -121,7 +153,7 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
   );
 }
 
-function CardNome({ titulo, inicial, emUso, aoSalvar, aoFechar }: { titulo: string; inicial: string; emUso: (n: string) => boolean; aoSalvar: (n: string) => void; aoFechar: () => void }) {
+function CardNome({ titulo, inicial, emUso, aoSalvar, aoFechar }: { titulo: string; inicial: string; emUso: (n: string) => boolean; aoSalvar: (n: string) => void | Promise<void>; aoFechar: () => void }) {
   const [erro, setErro] = useState("");
   const campo = useRef<HTMLInputElement>(null);
   // o <dialog> só abre depois deste efeito e leva o foco para o X: o foco no campo vem em seguida
@@ -134,7 +166,7 @@ function CardNome({ titulo, inicial, emUso, aoSalvar, aoFechar }: { titulo: stri
     const n = String(new FormData(e.currentTarget).get("nome")).trim();
     if (!n) return setErro("Escreva um nome para a pasta.");
     if (emUso(n)) return setErro("Já existe uma pasta com esse nome nesta empresa.");
-    aoSalvar(n);
+    Promise.resolve(aoSalvar(n)).catch((e: unknown) => setErro(e instanceof Error ? e.message : "Não consegui renomear."));
   };
   return (
     <CardFlutuante titulo={titulo} aoFechar={aoFechar}>

@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { salvarEmpresa, useEmpresas, useEu, useTarefas } from "@/lib/dados";
 import { SeloEmpresa, temLogo } from "@/components/ui/Marca";
+import { BlocoGoogleDrive } from "./BlocoGoogleDrive";
 import "./configuracoes.css";
 
 function sigla(nome: string) {
@@ -55,6 +56,7 @@ export function TelaConfiguracoes() {
           })}
         </ul>
       </section>
+      {eu === "natham" && <BlocoGoogleDrive />}
       <div className="config-incluir-sombra"><form className="config-incluir" onSubmit={(evento) => void incluir(evento)}>
         <h2>Incluir empresa</h2>
         <label htmlFor="config-nova-empresa">Nome da empresa</label>
