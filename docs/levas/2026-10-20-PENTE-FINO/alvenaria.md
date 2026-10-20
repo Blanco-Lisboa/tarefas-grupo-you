@@ -9,3 +9,11 @@
 - [ ] 7 · Calendário, Mapa, Conteúdos, Pastas · elementos passam da borda da janela dentro de rolagem própria (grade, linha do tempo, colunas); sem sobra na página · melhoria · PARA: Sextante / Régua / Vitral conferirem que é rolagem intencional (no celular /pastas `gf-art` passa da borda)
 - [x] 8 · design.md e tarefas-tokens.css apontavam para o modelo Névoa apagado (achado 6 da Lupa) · limpeza · CONSERTADO (commit seguinte): agora apontam para tarefas-tokens.css e globals.css
 - [x] 9 · chip de tag e contador da seleção em pílula (achado 7 da Lupa) · feio · CONSERTADO (commit seguinte): cantos 8px e 6px; token --raio-pilula removido (sem uso)
+
+## Veredito das fotos do Mapa (item 176), commit 3c15d61 · fotos em provas/pente-regua/ (3 larguras; zoom-20-* = 3 conteúdos fechado/aberto, zoom-22-* = dia solto, pastas-* = referência)
+Console sem erro nas 3 larguras. Dia solto: brilho `menu-brilho` anima (fundo muda a cada 600 ms) e para com movimento reduzido. Dia com vários: título + contador 1/3, 2/3, 3/3 visíveis em cada folha, aberto mostra as 3 cartas completas. Bate com o pedido na ideia. Diferenças concretas:
+- [ ] PARA: Régua · 1440/1903 `zoom-20-1440.png` · as folhas do Mapa estão INCLINADAS e a 1ª é mais estreita (efeito de leque); nas Pastas as folhas são retas, mesma largura, só deslocadas para cima/lado. O Natham pediu "exatamente" como as Pastas: tirar a rotação e igualar a largura · feio
+- [ ] PARA: Régua · `zoom-20-1440.png` · a carta da frente (3/3) fica bem mais alta que as de trás (título quebra em 2 linhas + empresa/rede/etapa); nas Pastas a frente mostra o conteúdo em tamanho próprio, as de trás só a faixa do título. Conferir se é isso mesmo que ele quer ver; cores diferentes por etapa (pêssego/lilás/verde-água) também não existem nas folhas das Pastas (mesma cor da pasta) · decisão dela, avisar o Maestro
+- [ ] PARA: Régua · 390 `mapa-20-390.png` · a haste azul atravessa o texto "Ter, 20/10" (data riscada pela linha). Dar fundo/deslocar a data ou parar a haste atrás do rótulo · feio
+- Dia solto (`zoom-22-1440.png`): card branco com brilho OK; sobra um vazio embaixo do texto (card mais alto que o conteúdo) · melhoria, PARA: Régua
+Nota: banco-falso.mjs ganhou 2 conteúdos tipo "postagem" em 20/10 (só os de tipo postagem entram no Mapa).
