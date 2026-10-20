@@ -4,6 +4,8 @@ export const REDES = ["instagram", "tiktok", "youtube", "kwai"] as const;
 export const ETAPAS = ["roteiro", "gravacao", "edicao", "analise", "aprovado", "postado"] as const;
 /** Formato do post (item 200): escolhido em "Programar postagem"; o n8n usa para a pasta do Drive (sem formato = "Sem formato"). */
 export const FORMATOS = ["reels", "post", "carrossel", "story"] as const;
+/** Onde a postagem automática (196) publica. Só a You por enquanto. */
+export const REDES_POST = ["instagram", "facebook"] as const;
 export const RESPONSAVEIS = ["natham", "matheus", "adrian", "lucas"] as const; // as 4 pessoas do banco; só Natham e Matheus têm login
 export const ETIQUETAS = [
   "etiqueta-1", "etiqueta-2", "etiqueta-3", "etiqueta-4", "etiqueta-5",
@@ -16,6 +18,7 @@ export type Rede = (typeof REDES)[number];
 export type Etapa = (typeof ETAPAS)[number];
 export type Responsavel = (typeof RESPONSAVEIS)[number];
 export type Formato = (typeof FORMATOS)[number];
+export type RedePost = (typeof REDES_POST)[number];
 export type Etiqueta = (typeof ETIQUETAS)[number]; // usa var(--etiqueta-N) e var(--etiqueta-N-texto)
 
 export type Link = { rotulo: string; url: string }; // vídeo = link do Google Drive
@@ -23,7 +26,12 @@ export type Link = { rotulo: string; url: string }; // vídeo = link do Google D
 /** `caminho` = onde está no balde "arquivos" do Storage (só existe depois de guardado); `pendente` = o arquivo escolhido que ainda não subiu. */
 export type Arquivo = { nome: string; url?: string; tipo?: "imagem" | "video" | "documento"; caminho?: string; pendente?: File;
   /** Depois da limpeza de 3 dias o arquivo sai do Storage: `removido` e o `driveLink` toma o lugar da `url`. `aviso` é o texto do banco (ex.: cópia no Drive falhou). */
-  driveLink?: string; removido?: boolean; aviso?: string };
+  driveLink?: string; removido?: boolean; aviso?: string;
+  /** 203: `id` = linha da tabela arquivos; `driveId` = arquivo no Drive (aí não há `caminho`); `ordem` = posição no carrossel; `papel` "capa" = capa do Reels. */
+  id?: string; driveId?: string; ordem?: number; papel?: "anexo" | "capa" };
+
+/** Uma rede de uma postagem automática (196), escrita só pela função postar-meta. fila/enviando/processando = "Postando…". */
+export type Postagem = { rede: RedePost; status: "fila" | "enviando" | "processando" | "postado" | "erro"; link?: string; erro?: string; postadoEm?: string };
 
 export type Tarefa = {
   id: string;
@@ -55,6 +63,16 @@ export type Tarefa = {
   formato?: Formato;
   /** Etiqueta "Conserto" (item 195): quem aprova mandou voltar para Edição. Some quando o card sai de Edição. */
   conserto?: boolean;
+  /** Postagem automática (196). Depois de Aprovado, legenda, formato, redes e quadro da capa só mudam pelo Natham ou pelo aprovador (019). */
+  legenda?: string;
+  /** Ausente = as duas redes (padrão do banco). */
+  postarRedes?: RedePost[];
+  /** Quadro do vídeo usado como capa do Reels no Instagram, em ms (thumb_offset). Ausente = primeiro quadro. Capa própria vence. */
+  capaQuadroMs?: number;
+  /** Pasta da ocasião no Drive (203); quem cuida é o Vitral (CampoOcasiao). */
+  ocasiaoId?: string;
+  /** Resultado por rede, só leitura (tabela postagens). */
+  postagens?: Postagem[];
   /** Vêm do banco, só leitura. dono = de quem é o caderno; enviadaPor = quem mandou (só se foi enviada). */
   dono?: Responsavel;
   criadoPor?: Responsavel;

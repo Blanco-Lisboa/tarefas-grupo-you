@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daLinha, funcaoAusente, paraBanco, podeAlterar, podeApagar, trocarFazendo } from "./repositorio";
+import { daLinha, funcaoAusente, motivoDoBanco, paraBanco, podeAlterar, podeApagar, trocarFazendo } from "./repositorio";
 
 const quem = (id: string | null) => ({ a: "natham", b: "matheus" } as const)[id as "a" | "b"];
 const linha: Parameters<typeof daLinha>[0] = {
@@ -44,9 +44,9 @@ describe("quem pode mexer na tarefa (espelha o banco)", () => {
     expect([podeAlterar(base, "natham"), podeApagar(base, "natham")]).toEqual([true, true]);
     expect([podeAlterar(base, "matheus"), podeApagar(base, "matheus")]).toEqual([false, false]);
   });
-  it("enviada com empresa: quem recebeu continua só lendo", () => {
+  it("enviada com empresa: quem recebeu continua só lendo, mas a lixeira do conteúdo é do Natham e do Matheus (019)", () => {
     const c = { ...base, etapa: "roteiro" as const, empresaId: "you" };
-    expect([podeAlterar(c, "matheus"), podeApagar(c, "matheus"), podeAlterar(c, "natham"), podeApagar(c, "natham")]).toEqual([false, false, true, true]);
+    expect([podeAlterar(c, "matheus"), podeApagar(c, "matheus"), podeAlterar(c, "natham"), podeApagar(c, "natham")]).toEqual([false, true, true, true]);
   });
   it("não enviada: o dono faz os dois", () => {
     expect([podeAlterar(privadaDoMatheus, "matheus"), podeApagar(privadaDoMatheus, "matheus")]).toEqual([true, true]);
@@ -59,9 +59,17 @@ describe("quem pode mexer na tarefa (espelha o banco)", () => {
     expect(podeAlterar(c, "natham")).toBe(true);
     expect(podeAlterar(c, null)).toBe(false);
   });
-  it("conteúdo com empresa: só o dono apaga", () => {
+  it("conteúdo com empresa: o Natham e o Matheus apagam (lixeira e Concluir, 019); Adrian e Lucas não", () => {
     const c = { ...privadaDoMatheus, etapa: "roteiro" as const, empresaId: "you" };
-    expect([podeApagar(c, "matheus"), podeApagar(c, "natham"), podeApagar(c, null)]).toEqual([true, false, false]);
+    expect([podeApagar(c, "matheus"), podeApagar(c, "natham"), podeApagar(c, "adrian"), podeApagar(c, null)]).toEqual([true, true, false, false]);
+  });
+});
+
+describe("recusa do banco em português", () => {
+  it("42501 = quem aprova; 23514 de Postagem = use Concluir; o resto fica no texto padrão", () => {
+    expect(motivoDoBanco({ code: "42501" }, "x")).toMatch(/quem aprova/);
+    expect(motivoDoBanco({ code: "23514", message: "so card do tipo Postagem vai para Aprovado" }, "x")).toMatch(/Concluir/);
+    expect([motivoDoBanco({ code: "23514", message: "tarefas_legenda_ok" }, "x"), motivoDoBanco(null, "x")]).toEqual(["x", "x"]);
   });
 });
 

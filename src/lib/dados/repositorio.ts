@@ -3,13 +3,14 @@
 // Escrita otimista: a tela muda na hora; se o banco recusar, volta ao que era e mostra o aviso (ver lerErro).
 import { supabase } from "@/lib/supabase/cliente";
 import { Upload } from "tus-js-client";
-import type { Empresa, Fazendo, NovaTarefa, Responsavel, Tag, Tarefa } from "./tipos";
+import type { Empresa, Fazendo, NovaTarefa, Postagem, Responsavel, Tag, Tarefa } from "./tipos";
 
 type LinhaTarefa = {
   id: string; titulo: string; tipo: Tarefa["tipo"]; empresa_id: string | null; rede: Tarefa["rede"] | null; etapa: Tarefa["etapa"] | null;
   responsavel_id: string; inicio: string | null; fim: string | null; dia_inteiro: boolean; cor: Tarefa["cor"]; concluida: boolean;
   objetivo: string | null; notas: string | null; links: Tarefa["links"]; aprovador: string | null;
   dono_id: string; criado_por: string; enviada_por: string | null; vai_pro_google?: boolean; postar_em?: string | null; conserto?: boolean; formato?: Tarefa["formato"] | null;
+  legenda?: string | null; postar_redes?: Tarefa["postarRedes"] | null; capa_quadro_ms?: number | null; ocasiao_id?: string | null;
   tarefa_tags?: { tag_id: string }[];
 };
 type Pessoa = { id: string; slug: Responsavel; user_id: string | null };
@@ -52,8 +53,8 @@ export function trocarFazendo(mapa: Record<string, Fazendo>, quem: Responsavel, 
 const doBanco = (ls: LinhaFazendo[]) =>
   ls.toSorted((a, b) => a.desde.localeCompare(b.desde)).reduce((m, l) => { const q = slugDe(l.pessoa_id); return q ? trocarFazendo(m, q, l.tarefa_id, l.desde) : m; }, {} as Record<string, Fazendo>);
 
-/** Linha do banco -> Tarefa da tela. `arquivos` vem da tabela arquivos (ver carregarAnexos). */
-export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem: (id: string | null) => Responsavel | undefined = slugDe): Tarefa {
+/** Linha do banco -> Tarefa da tela. `arquivos` vem da tabela arquivos (ver carregarAnexos); `postagens`, da tabela postagens (019). */
+export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem: (id: string | null) => Responsavel | undefined = slugDe, postagens?: Postagem[]): Tarefa {
   const ids = l.tarefa_tags?.map((x) => x.tag_id);
   return {
     id: l.id, titulo: l.titulo, tipo: l.tipo, empresaId: l.empresa_id ?? "", rede: l.rede ?? undefined, etapa: l.etapa ?? undefined,
@@ -62,6 +63,8 @@ export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem:
     links: l.links ?? [], arquivos, tags: ids?.length ? ids : undefined, aprovador: l.aprovador ?? undefined,
     dono: quem(l.dono_id), criadoPor: quem(l.criado_por), enviadaPor: quem(l.enviada_por), vaiProGoogle: l.vai_pro_google || undefined,
     postarEm: l.postar_em ?? undefined, conserto: l.conserto || undefined, formato: l.formato ?? undefined,
+    legenda: l.legenda ?? undefined, postarRedes: l.postar_redes ?? undefined, capaQuadroMs: l.capa_quadro_ms ?? undefined, ocasiaoId: l.ocasiao_id ?? undefined,
+    postagens: postagens?.length ? postagens : undefined,
   };
 }
 
@@ -75,8 +78,9 @@ export const paraBanco = (t: Tarefa, responsavelId: string | undefined) => ({
 /** Espelha as travas do banco (009). Tarefa ENVIADA: só quem enviou altera; quem recebeu só lê. Não enviada: o dono, ou qualquer um se for conteúdo com empresa. */
 export const podeAlterar = (t: Tarefa, eu: Responsavel | null) =>
   !!eu && (t.enviadaPor ? t.enviadaPor === eu : t.dono === eu || (!!t.etapa && !!t.empresaId));
-/** Quem pode APAGAR: enviada = quem enviou; não enviada = o dono (conteúdo com empresa de outro dono não apaga). */
-export const podeApagar = (t: Tarefa, eu: Responsavel | null) => !!eu && (t.enviadaPor ?? t.dono) === eu;
+/** Quem pode APAGAR (019): enviada = quem enviou; não enviada = o dono; e conteúdo com empresa, também o Natham e o Matheus (lixeira e Concluir). */
+export const podeApagar = (t: Tarefa, eu: Responsavel | null) =>
+  !!eu && ((t.enviadaPor ?? t.dono) === eu || (!!t.etapa && !!t.empresaId && (eu === "natham" || eu === "matheus")));
 
 function iniciar() {
   if (typeof window === "undefined" || iniciado) return;
@@ -100,12 +104,31 @@ async function carregar() {
   pessoas = p.data as Pessoa[];
   eu = pessoas.find((x) => x.user_id === sessao.data?.claims.sub)?.slug ?? null;
   if (!eu) falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham.");
-  const anexos = await carregarAnexos(sb);
+  const [anexos, postagens] = await Promise.all([carregarAnexos(sb), carregarPostagens(sb)]);
   empresas = e.data as Empresa[];
   tags = (g.data as Tag[]).map((x) => ({ id: x.id, nome: x.nome, cor: x.cor, ...(x.aprovacao && { aprovacao: true as const }) }));
-  tarefas = (t.data as LinhaTarefa[]).map((l) => daLinha(l, anexos.get(l.id) ?? tarefas.find((x) => x.id === l.id)?.arquivos.filter((a) => a.pendente)));
+  tarefas = (t.data as LinhaTarefa[]).map((l) => daLinha(l, anexos.get(l.id) ?? tarefas.find((x) => x.id === l.id)?.arquivos.filter((a) => a.pendente), slugDe, postagens.get(l.id)));
   fazendo = doBanco(f.data as LinhaFazendo[]);
   avisar();
+  // Postando (196): a função grava o resultado no servidor; enquanto algum card posta, olha de novo a cada 15 s (só leitura, só com a aba aberta).
+  clearTimeout(espiando);
+  if (tarefas.some(postando)) espiando = setTimeout(() => { if (!document.hidden) void carregar(); }, 15_000);
+}
+
+let espiando: ReturnType<typeof setTimeout> | undefined;
+/** Alguma rede na fila, enviando ou processando. */
+export const postando = (t: Tarefa) => !!t.postagens?.some((p) => p.status !== "postado" && p.status !== "erro");
+
+type LinhaPostagem = { tarefa_id: string; rede: Postagem["rede"]; status: Postagem["status"]; link: string | null; erro: string | null; postado_em: string | null };
+/** Resultado da postagem automática por card. Antes do 019 a tabela não existe: segue sem nada (não derruba a carga). */
+async function carregarPostagens(sb: Cliente): Promise<Map<string, Postagem[]>> {
+  const porTarefa = new Map<string, Postagem[]>();
+  const { data, error } = await sb.from("postagens").select("tarefa_id, rede, status, link, erro, postado_em");
+  if (error || !data) return porTarefa;
+  for (const l of data as LinhaPostagem[]) {
+    porTarefa.set(l.tarefa_id, [...(porTarefa.get(l.tarefa_id) ?? []), { rede: l.rede, status: l.status, link: l.link ?? undefined, erro: l.erro ?? undefined, postadoEm: l.postado_em ?? undefined }]);
+  }
+  return porTarefa;
 }
 
 type LinhaArquivo = { tarefa_id: string; caminho: string; nome: string; tipo: NonNullable<Tarefa["arquivos"][number]["tipo"]>; drive_link?: string | null; removido_em?: string | null; aviso?: string | null };
@@ -175,6 +198,13 @@ async function sincronizarAnexos(sb: Cliente, tarefaId: string, antes: Tarefa["a
 
 const soLeitura = "Essa tarefa é só para olhar: você não pode mexer nela.";
 const semAcesso = "O banco não deixou salvar (sem permissão ou o item não existe mais).";
+/** Recusas do banco que a pessoa entende (015/019): quem aprova, e Aprovado/Postado só para Postagem. */
+export function motivoDoBanco(e: unknown, padrao: string) {
+  const { code, message } = (e ?? {}) as { code?: string; message?: string };
+  if (code === "42501") return "Só o Natham ou quem aprova o card pode fazer isso.";
+  if (code === "23514" && message?.includes("Postagem")) return "Só card de Postagem vai para Aprovado e Postado. Para terminar, use Concluir.";
+  return e instanceof Error && e.message === semAcesso ? e.message : padrao;
+}
 
 /** A função public.salvar_tarefa só existe depois do 007. PGRST202 = a API não a encontrou (42883 = o Postgres não a achou). */
 let semSalvarTarefa = false;
@@ -197,6 +227,9 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
     const sb = supabase();
     const campos = paraBanco(tarefa, idDe(tarefa.responsavel));
     const linha = { id, ...campos, postar_em: tarefa.postarEm ?? null, conserto: !!tarefa.conserto, formato: tarefa.formato ?? null, responsavel_id: campos.responsavel_id ?? null, dono_id: idDe(dono), criado_por: idDe(eu), enviada_por: dono !== eu ? idDe(eu) : null,
+      legenda: tarefa.legenda?.trim() || null, postar_redes: tarefa.postarRedes ?? null, capa_quadro_ms: tarefa.capaQuadroMs ?? null,
+      // ocasião só vai quando a tela sabe qual é: a função drive cria a ocasião no 1º envio, e mandar nulo depois a apagaria
+      ...(tarefa.ocasiaoId ? { ocasiao_id: tarefa.ocasiaoId } : {}),
       // só vai quando é verdade: antes do 010 a coluna não existe e mandar `false` derrubaria o salvar de toda tarefa do Caderno
       ...(tarefa.vaiProGoogle ? { vai_pro_google: true } : {}) };
     // Caminho novo: tarefa e tags numa só chamada (007). Se a função ainda não existe no banco, segue pelo caminho antigo.
@@ -224,7 +257,7 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
     }
   } catch (e) {
     tarefas = antes ? tarefas.map((t) => (t.id === id ? antes : t)) : tarefas.filter((t) => t.id !== id);
-    falhou(e instanceof Error && e.message === semAcesso ? e.message : "Não consegui salvar a tarefa. Tente de novo.");
+    falhou(motivoDoBanco(e, "Não consegui salvar a tarefa. Tente de novo."));
     return tarefa;
   }
   // A tarefa já está no banco (o anexo precisa dela). Se o anexo falhar, a tarefa fica e o aviso diz que o anexo não subiu.
@@ -250,6 +283,25 @@ export async function removerTarefa(id: string): Promise<void> {
     tarefas = antes;
     falhou(error ? "Não consegui apagar a tarefa. Tente de novo." : semAcesso);
   }
+}
+
+/** "Postar agora" (196): só Natham/aprovador, card de Postagem em Aprovado; o banco marca a hora e chama a função. */
+export async function postarAgora(id: string): Promise<void> {
+  const { error } = await supabase().rpc("postar_agora", { p_tarefa: id });
+  if (error) return falhou(motivoDoBanco(error, "Não consegui mandar postar. Tente de novo."));
+  // Mostra "Postando…" na hora (a rede que já saiu fica como está); a próxima carga traz o que a função gravou.
+  tarefas = tarefas.map((t) => (t.id === id ? { ...t, postagens: (t.postarRedes ?? ["instagram", "facebook"]).map((rede) => t.postagens?.find((p) => p.rede === rede && p.status === "postado") ?? { rede, status: "fila" as const }) } : t));
+  avisar();
+  void carregar();
+}
+
+/** "Tentar de novo" (196): volta para a fila só as redes que deram erro (a que já saiu não repete). */
+export async function tentarDeNovo(id: string): Promise<void> {
+  const { error } = await supabase().rpc("tentar_de_novo", { p_tarefa: id });
+  if (error) return falhou(motivoDoBanco(error, "Não consegui tentar de novo. Tente outra vez."));
+  tarefas = tarefas.map((t) => (t.id === id ? { ...t, postagens: t.postagens?.map((p) => (p.status === "erro" ? { ...p, status: "fila" as const, erro: undefined } : p)) } : t));
+  avisar();
+  void carregar();
 }
 
 export async function salvarEmpresa(empresa: Empresa): Promise<Empresa> {

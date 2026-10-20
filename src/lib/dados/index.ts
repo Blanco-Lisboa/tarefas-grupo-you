@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import { assinar, lerEmpresas, lerErro, lerEu, lerFazendo, lerTags, lerTarefas } from "./repositorio";
 
 export * from "./tipos";
-export { salvarTarefa, removerTarefa, salvarEmpresa, salvarTag, limparErro, comecar, parar, podeAlterar, podeApagar } from "./repositorio";
+export { salvarTarefa, removerTarefa, salvarEmpresa, salvarTag, limparErro, comecar, parar, podeAlterar, podeApagar, postarAgora, tentarDeNovo, postando } from "./repositorio";
 
 // Na hidratação vale o que o servidor desenhou: nada carregado. Se o 3º argumento lesse os dados vivos, a tela que hidrata depois
 // de os dados chegarem (código atrasado, servidor recém-ligado) montava com eles e dava o erro React #418 (item 177, achado 4 do pedido).
