@@ -15,7 +15,7 @@
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
-  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, comecar, limparErro, parar, podeApagar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useFazendo, useTags, useTarefas,
+  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, limparErro, podeApagar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas,
   type Etapa, type Etiqueta, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
@@ -25,6 +25,7 @@ import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { Aprovador, TagChip } from "@/components/ui/Tag";
+import { Agora } from "./Agora";
 import { Anexos } from "./Anexos";
 import { TextoComLinks } from "@/components/pastas/links";
 import { CampoData } from "@/components/ui/CampoData";
@@ -54,9 +55,6 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
   const tags = useTags();
   const todas = useTarefas();
   const eu = useEu();
-  const fazendo = useFazendo();
-  const agora = tarefa.id ? fazendo[tarefa.id] : undefined;
-  const souEu = !!agora && agora.quem === eu;
   const [novaTag, setNovaTag] = useState<{ nome: string; cor: Etiqueta } | null>(null);
   const [novoNome, setNovoNome] = useState<string | null>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -77,6 +75,8 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
   const [enviou, setEnviou] = useState(false);
   useEffect(() => { if (enviou && !erro) aoFechar(); }, [enviou, erro, aoFechar]);
   const nova = !tarefa.id;
+  const dono = tarefa.dono ?? tarefa.responsavel;
+  const fica = !nova && !soLer && !(t.etapa && t.empresaId) && t.responsavel !== dono ? dono : undefined; // o banco não deixa mudar o dono
   const lixeira = !nova && !soLer && podeApagar({ ...tarefa, id: tarefa.id! }, eu); // vale o que está no banco, não o que foi mudado na ficha
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
@@ -124,8 +124,10 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
     limparErro();
     setEnviou(false);
     setSalvando(true);
+    // Tarefa nova para outra pessoa vai para o caderno dela (achado 2, igual ao Caderno). Conteúdo com empresa todos já veem: fica de quem criou.
+    const enviarPara = nova && t.responsavel !== eu && !(t.etapa && t.empresaId) ? t.responsavel : undefined;
     await salvarTarefa({
-      ...t, ...quando, arquivos, aprovador: pedeAprovador ? t.aprovador : undefined, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
+      ...t, ...quando, enviarPara, arquivos, aprovador: pedeAprovador ? t.aprovador : undefined, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
     setSalvando(false);
@@ -154,21 +156,7 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
         <header className="ficha-faixa">
           <div className="ficha-faixa-topo">
             <span className="ficha-rotulo"><span className="ficha-cor-marca" aria-hidden />{nova ? "Nova tarefa" : NOMES.tipo[t.tipo]}</span>
-            {!nova && (
-              <div className="ficha-agora">
-                {agora && (
-                  <span className="ficha-agora-selo" role="status">
-                    <Pessoa quem={agora.quem} tamanho={22} />
-                    {souEu ? "Você está fazendo" : `${NOMES.responsavel[agora.quem]} está fazendo`} desde {desde(agora.desde)}
-                  </span>
-                )}
-                {!soLer && eu && (
-                  <button type="button" className="ficha-agora-botao" aria-pressed={souEu} onClick={() => void (souEu ? parar() : comecar(tarefa.id!))}>
-                    {souEu ? "Parar" : "Começar"}
-                  </button>
-                )}
-              </div>
-            )}
+            {!nova && <Agora tarefaId={tarefa.id!} soLer={soLer} nomes={NOMES.responsavel} />}
             <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>
           </div>
           <textarea
@@ -223,6 +211,7 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
                   </button>
                 ))}
               </div>
+              {fica && <p className="ficha-dica ficha-dica-fica">Continua no caderno de {NOMES.responsavel[fica]}: trocar o responsável não entrega a tarefa a outra pessoa.</p>}
             </fieldset>
 
             <fieldset className="ficha-campo" aria-label="Quando">
@@ -332,13 +321,6 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
 
 function Campo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return <label className="ficha-campo"><span className="ficha-legenda">{rotulo}</span>{children}</label>;
-}
-
-// "08:40" se foi hoje; senão "19/10, 08:40".
-function desde(iso: string) {
-  const d = new Date(iso);
-  const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  return d.toDateString() === new Date().toDateString() ? hora : `${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}, ${hora}`;
 }
 
 // Fim só vale se vier depois do início; senão a tarefa fica sem fim (vira um ponto no horário).

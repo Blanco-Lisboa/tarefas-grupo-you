@@ -111,7 +111,7 @@
   .ficha-opcional { margin-top: 0; }
   .ficha-anexos { padding-top: 4px; }
   .ficha-anexo-tirar { top: -4px; right: -4px; }
-  .ficha-dica { display: none; }
+  .ficha-dica:not(.ficha-dica-fica) { display: none; }
   .ficha-anexo-solta { height: 36px; padding: 0 var(--s-8); font-size: var(--t-12); }
   .ficha-anexo-mini { width: 36px; height: 36px; }
   .ficha-corpo { gap: var(--s-8); padding-top: var(--s-12); }

@@ -43,8 +43,10 @@ function Calendario({ agora }: { agora: string }) {
   const [cursor, setCursor] = useState(hoje);
   const [filtros, setFiltros] = useState<Filtros>(SEM_FILTROS);
   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
-  const tarefas = useTarefas();
   const eu = useEu();
+  // Só o que é meu (dono) ou conteúdo com empresa, a mesma regra do Caderno: depois do 006 o Natham também recebe as tarefas privadas do Matheus.
+  const todas = useTarefas();
+  const tarefas = useMemo(() => todas.filter((t) => (t.dono ?? t.responsavel) === eu || (!!t.etapa && !!t.empresaId)), [todas, eu]);
   const { aplicar, selecionadas } = useFiltroEmpresa();
 
   const visiveis = useMemo(() => aplicar(tarefas).filter(passa(filtros)), [aplicar, tarefas, filtros]);
