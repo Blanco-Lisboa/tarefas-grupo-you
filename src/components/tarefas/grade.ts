@@ -1,4 +1,5 @@
 import type { EventoAgenda, Responsavel, Tarefa } from "@/lib/dados";
+import { ultimoDia } from "@/components/calendario/logica";
 
 // Margem de horários do caderno (igual ao CRM): a linha k vale 07:00 + 30 min × k, 31 linhas até 22:00.
 export const PRIMEIRA = 7 * 60;
@@ -51,9 +52,13 @@ export const ehReuniao = (t: { titulo: string; tipo?: string }): boolean =>
     Reunião nunca é conteúdo (fica no Calendário e no Caderno, fora da Esteira, do Mapa e da Fila). */
 export const ehConteudo = (t: Pick<Tarefa, "etapa" | "empresaId" | "titulo" | "tipo">): boolean => !!(t.etapa && t.empresaId) && !ehReuniao(t);
 
-/** O caderno de `de` = o que é DELE (dono; o banco não transfere dono ao trocar o responsável). Conteúdo com empresa segue o responsável. Sem `de`, tudo. */
+/** Tarefa pessoal que `de` mandou para outra pessoa: continua no caderno de quem enviou (item 144), onde ele edita e apaga. */
+export const enviadaPorMim = (t: Tarefa, de: string | null | undefined) =>
+  !!de && !ehConteudo(t) && t.enviadaPor === de && !!t.dono && t.dono !== de;
+
+/** O caderno de `de` = o que é DELE (dono; o banco não transfere dono ao trocar o responsável) mais o que ele enviou. Conteúdo com empresa segue o responsável. Sem `de`, tudo. */
 export const doCaderno = (t: Tarefa, de: string | null | undefined) =>
-  !de || (ehConteudo(t) ? t.responsavel === de : (t.dono ?? t.responsavel) === de);
+  !de || (ehConteudo(t) ? t.responsavel === de : (t.dono ?? t.responsavel) === de || enviadaPorMim(t, de));
 
 /** Nas listas pessoais, conteúdo com empresa aparece para todos; o restante segue o dono do Caderno. */
 export const daMinhaLista = (t: Tarefa, eu: string | null | undefined) =>
@@ -62,7 +67,7 @@ export const daMinhaLista = (t: Tarefa, eu: string | null | undefined) =>
 /** Compromissos do Google que caem em `dia` (também os de vários dias), dia inteiro primeiro, depois por hora. */
 export const eventosDoDia = (eventos: EventoAgenda[], dia: string, dono: Responsavel | null) =>
   eventos
-    .filter((e) => !!dono && e.fontes.includes(dono) && e.inicio.slice(0, 10) <= dia && dia <= (e.fim ?? e.inicio).slice(0, 10))
+    .filter((e) => !!dono && e.fontes.includes(dono) && e.inicio.slice(0, 10) <= dia && dia <= ultimoDia(e))
     .sort((a, b) => Number(b.diaInteiro) - Number(a.diaInteiro) || a.inicio.localeCompare(b.inicio));
 
 /** "09:00 às 10:00", "a partir das 09:00" ou "dia inteiro". Compromisso que vem de outro dia mostra só o que vale hoje. */

@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { doCaderno, ehConteudo, ehReuniao, horaDe, horaDoSlot, minutos, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { doCaderno, enviadaPorMim, ehConteudo, ehReuniao, horaDe, horaDoSlot, minutos, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -89,6 +89,7 @@ export function TelaTarefas() {
     cor: t.cor,
     responsavel: t.responsavel,
     enviadaPor: !ehConteudo(t) && t.enviadaPor ? NOMES[t.enviadaPor] : undefined,
+    enviadaPara: enviadaPorMim(t, de) && t.dono ? NOMES[t.dono] : undefined,
     podeAlterar: podeAlterar(t, eu),
     podeApagar: podeApagar(t, eu),
   });

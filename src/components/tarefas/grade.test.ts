@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { doCaderno, daMinhaLista, ehConteudo, ehReuniao, eventosDoDia, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, daMinhaLista, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 import { notaDaChave } from "./notas";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
@@ -52,6 +52,12 @@ describe("de quem é o caderno", () => {
   it("privada segue o dono, não o responsável", () => {
     expect(doCaderno(priv, "natham")).toBe(true);
     expect(doCaderno(priv, "matheus")).toBe(false);
+  });
+  it("tarefa enviada fica no caderno de quem enviou e no de quem recebeu, sem repetir (R4-3)", () => {
+    const enviada = { ...priv, dono: "natham", enviadaPor: "matheus", responsavel: "natham" } as Tarefa;
+    expect([doCaderno(enviada, "matheus"), doCaderno(enviada, "natham"), doCaderno(enviada, "adrian")]).toEqual([true, true, false]);
+    expect([enviadaPorMim(enviada, "matheus"), enviadaPorMim(enviada, "natham")]).toEqual([true, false]);
+    expect(daMinhaLista(enviada, "matheus")).toBe(true);
   });
   it("sem dono cai no responsável; sem `de` mostra tudo", () => {
     expect(doCaderno({ ...priv, dono: undefined }, "matheus")).toBe(true);
@@ -130,6 +136,11 @@ describe("agenda do Google no caderno (item 190)", () => {
     expect(eventosDoDia(todos, "2026-10-20", "natham").map((e) => e.id)).toEqual(["viagem", "manha", "tarde"]);
     expect(eventosDoDia(todos, "2026-10-20", "matheus").map((e) => e.id)).toEqual(["do-matheus"]);
     expect(eventosDoDia(todos, "2026-10-20", null)).toEqual([]);
+  });
+  it("compromisso que termina 00:00 não ocupa o dia seguinte (R4-5)", () => {
+    const noite = ev("noite", "2026-10-20T22:00", { fim: "2026-10-21T00:00" });
+    expect(eventosDoDia([noite], "2026-10-20", "natham")).toHaveLength(1);
+    expect(eventosDoDia([noite], "2026-10-21", "natham")).toEqual([]);
   });
   it("escreve o horário", () => {
     expect(quandoEvento(ev("a", "2026-10-20T09:00", { fim: "2026-10-20T10:30" }), "2026-10-20")).toBe("09:00 às 10:30");

@@ -10,6 +10,7 @@ import "./caderno.css";
 
 export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; /** Tarefa com nome de reunião (item 188): destaque âmbar. */ reuniao?: boolean; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao;
   /** Nome de quem mandou a tarefa (selo "enviada por"). Vazio = não foi enviada. */ enviadaPor?: string;
+  /** Nome de quem recebeu, no caderno de quem enviou (selo "enviada →"). Vale no lugar de enviadaPor. */ enviadaPara?: string;
   /** false = só leitura para quem está olhando (trava do banco). Vazio = pode. */ podeAlterar?: boolean; podeApagar?: boolean };
 export type Opcao = { id: string; nome: string };
 const NENHUMA = "nenhuma"; // valor do seletor; a tarefa sem empresa guarda empresaId ""
@@ -163,7 +164,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
                   <span className="folha-tinta risco">{l.titulo}</span>
                 </button>
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
-                {l.enviadaPor && <span className="linha-selo">enviada por {l.enviadaPor}</span>}
+                {l.enviadaPara ? <span className="linha-selo">enviada → {l.enviadaPara}</span> : l.enviadaPor && <span className="linha-selo">enviada por {l.enviadaPor}</span>}
                 {(() => { const e = ETIQUETAS.find((x) => x.cor && x.valor === l.cor); return e && (
                   <span className="linha-etq" style={{ "--e": `var(--${e.valor})`, "--et": `var(--${e.valor}-texto)` } as CSSProperties}>{e.rotulo}</span>
                 ); })()}

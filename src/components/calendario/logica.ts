@@ -80,7 +80,7 @@ export function porDia(tarefas: Tarefa[]) {
 }
 
 /** Último dia de um compromisso do Google (item 190). O que termina à meia-noite em ponto não ocupa o dia seguinte. */
-const ultimoDia = (e: EventoAgenda) => {
+export const ultimoDia = (e: EventoAgenda) => {
   const f = e.fim ?? e.inicio;
   return !e.diaInteiro && f.endsWith("T00:00") && f.slice(0, 10) > e.inicio.slice(0, 10) ? somarDias(f.slice(0, 10), -1) : f.slice(0, 10);
 };
