@@ -24,3 +24,40 @@
 .selo-conserto { position: absolute; z-index: 1; top: -10px; left: 14px; padding: 3px 9px 9px; border-radius: 6px 6px 0 0; background: linear-gradient(110deg, var(--atrasado) 40%, color-mix(in srgb, var(--atrasado) 65%, #fff) 50%, var(--atrasado) 60%) 0 0 / 200% 100%; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); color: #fff; font: 700 10px/1.2 var(--fonte); letter-spacing: .04em; text-transform: uppercase; animation: selo-conserto-brilho 2.4s linear infinite; }
 @keyframes selo-conserto-brilho { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .selo-conserto { animation: none; } .aprovacao-botao { transition: none; } }
+/* Postagem automática (196): a situação, as redes, o que falta e o Postar agora. Concluir (card que não é post) em verde, como o Aprovar. */
+.aprovacao-postagem { flex-wrap: wrap; }
+.aprovacao-botao[data-acao="postar"] { background: var(--azul); color: var(--no-azul); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1); }
+.aprovacao-botao[data-acao="postar"]:hover { background: var(--azul-hover); }
+.aprovacao-botao[data-acao="concluir"] { background: transparent; color: var(--aprovar); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 0 0 0 1px color-mix(in srgb, var(--aprovar) 40%, transparent); }
+.aprovacao-botao[data-acao="concluir"]:hover { background: color-mix(in srgb, var(--aprovar) 8%, transparent); }
+.aprovacao-botao[data-acao="tentar"] { flex: none; background: var(--atrasado); color: #fff; }
+.aprovacao-botao[data-acao="tentar"]:hover { background: color-mix(in srgb, #000 14%, var(--atrasado)); }
+.aprovacao-situacao { flex-basis: 100%; margin: 0; color: var(--fraco); font: 600 var(--t-12) var(--fonte); }
+.aprovacao-situacao[data-tipo="postando"] { display: flex; align-items: center; gap: 6px; color: var(--azul); }
+.aprovacao-situacao[data-tipo="postando"]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: aprovacao-pulso 1.2s ease-in-out infinite; }
+@keyframes aprovacao-pulso { 50% { opacity: .25; } }
+.aprovacao-erro { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); flex-basis: 100%; padding: var(--s-8) 10px; border-radius: 8px; background: color-mix(in srgb, var(--atrasado) 9%, transparent); box-shadow: inset 3px 0 0 var(--atrasado); }
+.aprovacao-erro p { flex-basis: 100%; margin: 0; color: var(--atrasado); font: 600 var(--t-12)/1.35 var(--fonte); overflow-wrap: anywhere; }
+.aprovacao-link { color: var(--azul); font: 600 var(--t-12) var(--fonte); text-decoration: none; }
+.aprovacao-link:hover { text-decoration: underline; }
+.aprovacao-links { gap: var(--s-12); }
+.aprovacao-redes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); flex-basis: 100%; }
+.aprovacao-rede { min-height: 28px; padding: 2px; border: 0; border-radius: 7px; background: var(--sup-2); box-shadow: inset 0 0 0 1px var(--linha); color: var(--texto); font: 600 11px var(--fonte); cursor: pointer; }
+.aprovacao-rede:hover:not(:disabled) { background: var(--realce); }
+.aprovacao-rede[aria-pressed="true"] { background: var(--azul); box-shadow: none; color: #fff; }
+.aprovacao-rede:disabled { opacity: .45; cursor: not-allowed; }
+.aprovacao-rede:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.aprovacao-nota, .aprovacao-aviso { grid-column: 1 / -1; flex-basis: 100%; margin: 0; color: var(--fraco); font: 500 11px/1.35 var(--fonte); }
+.aprovacao-falta { flex-basis: 100%; margin: 0; padding-left: 16px; color: var(--atrasado); font: 600 11px/1.45 var(--fonte); }
+/* Confirmação (Concluir, Postar agora): mesmo desenho da de "Postado" da Esteira */
+.confirmar { position: fixed; inset: 0; margin: auto; width: min(420px, calc(100vw - 32px)); padding: var(--s-24); border: 1px solid var(--linha); border-radius: var(--raio-c); background: var(--sup); color: var(--texto); box-shadow: var(--sombra-alta); cursor: default; }
+.confirmar::backdrop { background: rgb(20 30 45 / .4); }
+.confirmar h2 { margin: 0; font-size: var(--t-20); }
+.confirmar p { margin: var(--s-12) 0 var(--s-24); color: var(--fraco); overflow-wrap: anywhere; }
+.confirmar-acoes { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--s-8); }
+.confirmar .btn[data-perigo="true"] { background: var(--atrasado); border-color: var(--atrasado); color: #fff; }
+.confirmar .btn[data-perigo="true"]:hover { background: color-mix(in srgb, #000 14%, var(--atrasado)); }
+/* Chave inglesa da etiqueta Conserto */
+.selo-conserto { display: inline-flex; align-items: center; gap: 4px; }
+.selo-conserto svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
+@media (prefers-reduced-motion: reduce) { .aprovacao-situacao[data-tipo="postando"]::before { animation: none; } }

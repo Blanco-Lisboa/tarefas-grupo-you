@@ -1,0 +1,52 @@
+// Regras de tela da postagem automática (196). O banco (019) e a função postar-meta conferem de novo; aqui é para mostrar o que falta antes.
+import { REDES_POST, type Formato, type Postagem, type RedePost, type Tarefa } from "@/lib/dados";
+
+export const NOME_REDE: Record<RedePost, string> = { instagram: "Instagram", facebook: "Facebook" };
+export const textoRedes = (redes: readonly RedePost[]) => redes.map((r) => NOME_REDE[r]).join(" + ");
+/** Ausente no banco = as duas. */
+export const redesDe = (t: Pick<Tarefa, "postarRedes">): RedePost[] => t.postarRedes ?? [...REDES_POST];
+
+type Base = Pick<Tarefa, "arquivos" | "legenda" | "empresaId">;
+const midias = (t: Pick<Tarefa, "arquivos">) => t.arquivos.filter((a) => a.papel !== "capa" && (a.tipo === "imagem" || a.tipo === "video"));
+
+/** Carrossel com vídeo só vai para o Instagram: o Facebook não mistura foto e vídeo num post. */
+export const carrosselComVideo = (t: Pick<Tarefa, "arquivos">, formato?: Formato) => formato === "carrossel" && midias(t).some((a) => a.tipo === "video");
+export const redesValidas = (t: Pick<Tarefa, "arquivos">, formato: Formato | undefined, redes: readonly RedePost[]) =>
+  carrosselComVideo(t, formato) ? redes.filter((r) => r === "instagram") : [...redes];
+
+/** O que falta para programar ou postar agora. Vazio = pode seguir. */
+export function faltaParaPostar(t: Base, formato: Formato | undefined, redes: readonly RedePost[]): string[] {
+  if (t.empresaId !== "you") return [t.empresaId === "beec" ? "A Beec ainda não está ligada à postagem automática." : "Só a You está ligada à postagem automática."];
+  const falta: string[] = [];
+  if (!formato) falta.push("Escolha o formato.");
+  if (!redes.length) falta.push("Escolha pelo menos uma rede.");
+  if (formato && formato !== "story" && !t.legenda?.trim()) falta.push("Falta a legenda: escreva na ficha do card.");
+  const m = midias(t), videos = m.filter((a) => a.tipo === "video").length;
+  if (formato === "post" && (m.length !== 1 || videos)) falta.push("Post leva 1 imagem.");
+  if (formato === "reels" && (m.length !== 1 || !videos)) falta.push("Reels leva 1 vídeo.");
+  if (formato === "carrossel" && (m.length < 2 || m.length > 10)) falta.push("Carrossel leva de 2 a 10 imagens ou vídeos.");
+  if (formato === "story" && m.length !== 1) falta.push("Story leva 1 imagem ou 1 vídeo.");
+  return falta;
+}
+
+const emAndamento = (p: Postagem) => p.status === "fila" || p.status === "enviando" || p.status === "processando";
+const quando = (s: string) => `${s.slice(8, 10)}/${s.slice(5, 7)} ${s.slice(11, 16)}`;
+
+export type Situacao =
+  | { tipo: "postando" }
+  | { tipo: "erro"; texto: string; saiu?: Postagem; refazer: RedePost[] }
+  | { tipo: "programado"; texto: string };
+
+/** O que o card Aprovado mostra sobre a postagem. Postando vence erro; erro vence a data programada. */
+export function situacao(t: Pick<Tarefa, "postagens" | "postarEm" | "postarRedes">): Situacao | null {
+  const ps = t.postagens ?? [];
+  if (ps.some(emAndamento)) return { tipo: "postando" };
+  const erros = ps.filter((p) => p.status === "erro");
+  if (erros.length) {
+    const saiu = ps.find((p) => p.status === "postado");
+    const motivo = erros[0].erro ?? "a Meta não disse o motivo";
+    const texto = saiu ? `Saiu no ${NOME_REDE[saiu.rede]}, falhou no ${erros.map((p) => NOME_REDE[p.rede]).join(" e ")}: ${motivo}` : `Não postou: ${motivo}`;
+    return { tipo: "erro", texto, saiu, refazer: erros.map((p) => p.rede) };
+  }
+  return t.postarEm ? { tipo: "programado", texto: `Programado · ${quando(t.postarEm)} · ${textoRedes(redesDe(t))}` } : null;
+}

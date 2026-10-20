@@ -3,6 +3,7 @@
 // Escrita otimista: a tela muda na hora; se o banco recusar, volta ao que era e mostra o aviso (ver lerErro).
 import { supabase } from "@/lib/supabase/cliente";
 import { Upload } from "tus-js-client";
+import { apagarTarefaComArquivos } from "./drive";
 import type { Empresa, Fazendo, NovaTarefa, Postagem, Responsavel, Tag, Tarefa } from "./tipos";
 
 type LinhaTarefa = {
@@ -278,10 +279,18 @@ export async function removerTarefa(id: string): Promise<void> {
   const antes = tarefas;
   tarefas = tarefas.filter((t) => t.id !== id);
   avisar();
+  // Card com anexo guardado só sai pela função drive (019): ela tira os arquivos do Drive e do Storage antes, para nada ficar órfão.
+  if (alvo?.arquivos.some((a) => !a.pendente)) {
+    try { await apagarTarefaComArquivos(id); } catch (e) {
+      tarefas = antes;
+      falhou(e instanceof Error && e.message ? e.message : "Não consegui apagar a tarefa. Tente de novo.");
+    }
+    return;
+  }
   const { data, error } = await supabase().from("tarefas").delete().eq("id", id).select("id");
   if (error || !data?.length) {
     tarefas = antes;
-    falhou(error ? "Não consegui apagar a tarefa. Tente de novo." : semAcesso);
+    falhou(error ? motivoDoBanco(error, "Não consegui apagar a tarefa. Tente de novo.") : semAcesso);
   }
 }
 
