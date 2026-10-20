@@ -47,6 +47,8 @@ export type Tarefa = {
   dono?: Responsavel;
   criadoPor?: Responsavel;
   enviadaPor?: Responsavel;
+  /** Vai para a agenda do Google do responsável (volta da agenda, 010). Só o Calendário liga isto, ao CRIAR a tarefa; depois não muda (o banco trava). Tarefa do Caderno nunca vai. */
+  vaiProGoogle?: boolean;
 };
 
 /** Rótulo colorido que se cria e se marca nos conteúdos. aprovacao = marcar pede "Quem aprova". */

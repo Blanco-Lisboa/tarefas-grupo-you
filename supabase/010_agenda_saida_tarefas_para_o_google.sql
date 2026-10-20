@@ -11,6 +11,58 @@
 --   agenda_saida_vinculo   tarefa -> (agenda, id do evento no Google). Fica FORA da tabela tarefas de propósito: o app lê tarefas com select("*")
 --                          e quem edita a própria tarefa poderia trocar o id e fazer o n8n apagar outro evento. Sobrevive à tarefa apagada.
 
+-- 0) SÓ VAI PARA O GOOGLE a tarefa CRIADA PELO CALENDÁRIO (Natham, 21/10: "só se eu marcar no calendário! Tarefas simples, coisas pontuais,
+--    eu marco no Caderno"). O Calendário marca `vai_pro_google` ao criar. Tarefa do Caderno, mesmo com data e hora, fica false e nunca vai.
+--    Depois de criada o campo NÃO muda mais (o banco trava, como criado_por): editar em qualquer tela mantém a sincronização, e ninguém
+--    liga ou desliga por engano. Vem false para o que já existe.
+alter table public.tarefas add column if not exists vai_pro_google boolean not null default false;
+
+-- tarefas_antes (002) + a trava nova: vai_pro_google é decidido na criação e não muda.
+create or replace function private.tarefas_antes() returns trigger
+language plpgsql set search_path = ''
+as $$
+begin
+  if tg_op = 'UPDATE' then
+    new.criado_por := old.criado_por;
+    new.enviada_por := old.enviada_por;
+    new.dono_id := old.dono_id;
+    new.vai_pro_google := old.vai_pro_google;
+  end if;
+  new.updated_at := now();
+  return new;
+end $$;
+
+-- salvar_tarefa (007) + vai_pro_google na CRIAÇÃO (a edição não o toca). Resto igual ao 007.
+create or replace function public.salvar_tarefa(p jsonb, p_tags text[] default '{}') returns void
+language plpgsql security invoker set search_path = ''
+as $$
+declare
+  r public.tarefas;
+  v_linhas int;
+begin
+  r := jsonb_populate_record(null::public.tarefas, p);
+  if r.id is null then raise exception 'salvar_tarefa: falta o id'; end if;
+  if exists (select 1 from public.tarefas where id = r.id) then
+    update public.tarefas t set
+      titulo = r.titulo, tipo = r.tipo, empresa_id = r.empresa_id, rede = r.rede, etapa = r.etapa,
+      responsavel_id = r.responsavel_id, inicio = r.inicio, fim = r.fim, dia_inteiro = r.dia_inteiro, cor = r.cor,
+      concluida = r.concluida, objetivo = r.objetivo, notas = r.notas, links = r.links, aprovador = r.aprovador
+    where t.id = r.id;
+    get diagnostics v_linhas = row_count;
+    if v_linhas = 0 then raise exception 'sem permissao para alterar a tarefa'; end if;
+    delete from public.tarefa_tags where tarefa_id = r.id;
+  else
+    insert into public.tarefas (id, titulo, tipo, empresa_id, rede, etapa, responsavel_id, inicio, fim, dia_inteiro, cor,
+      concluida, objetivo, notas, links, aprovador, dono_id, criado_por, enviada_por, vai_pro_google)
+    values (r.id, r.titulo, r.tipo, r.empresa_id, r.rede, r.etapa, r.responsavel_id, r.inicio, r.fim, r.dia_inteiro, r.cor,
+      r.concluida, r.objetivo, r.notas, r.links, r.aprovador, r.dono_id, r.criado_por, r.enviada_por, coalesce(r.vai_pro_google, false));
+  end if;
+  insert into public.tarefa_tags (tarefa_id, tag_id) select r.id, unnest(p_tags);
+end $$;
+revoke all on function public.salvar_tarefa(jsonb, text[]) from public, anon;
+grant execute on function public.salvar_tarefa(jsonb, text[]) to authenticated;
+notify pgrst, 'reload schema';
+
 -- 1) Mapeamento pessoa -> agenda do Google. Só o Natham é conhecido; Matheus e Adrian entram com uma linha (ver o brief do n8n).
 create table if not exists public.agenda_pessoa (
   pessoa_id uuid primary key references public.pessoas (id) on delete cascade,
@@ -51,7 +103,7 @@ alter table public.agenda_saida enable row level security;
 alter table public.agenda_saida_vinculo enable row level security;
 revoke all on public.agenda_pessoa, public.agenda_saida, public.agenda_saida_vinculo from public, anon, authenticated;
 
--- 3) O gatilho. Só tarefa COM DATA (inicio) vai para o Google. Nunca derruba o salvar da tarefa: se algo falhar aqui, avisa e segue.
+-- 3) O gatilho. Só tarefa COM DATA (inicio) E criada pelo Calendário (vai_pro_google) vai para o Google. Nunca derruba o salvar da tarefa: se algo falhar aqui, avisa e segue.
 --    Não manda nada de tarefa que já existia: só o que for criado ou mudado depois do 010 (sem enxurrada de eventos antigos no Google).
 create or replace function private.agenda_saida_tarefa() returns trigger
 language plpgsql security definer set search_path = ''
@@ -81,7 +133,7 @@ begin
         end if;
       end if;
       -- só quem tem agenda mapeada manda; e se já há um "salvar" esperando, ele lê a tarefa na hora de sair (basta um)
-      if exists (select 1 from public.agenda_pessoa where pessoa_id = new.responsavel_id)
+      if new.vai_pro_google and exists (select 1 from public.agenda_pessoa where pessoa_id = new.responsavel_id)
          and not exists (select 1 from public.agenda_saida where tarefa_id = v_id and acao = 'salvar' and estado = 'pendente' and pegou_em is null and pessoa_id = new.responsavel_id) then
         insert into public.agenda_saida (tarefa_id, acao, pessoa_id) values (v_id, 'salvar', new.responsavel_id);
       end if;

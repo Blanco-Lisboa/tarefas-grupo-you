@@ -20,6 +20,11 @@ describe("repositório: linha do banco <-> tarefa da tela", () => {
     expect(campos).not.toHaveProperty("criado_por");
     expect(campos).not.toHaveProperty("enviada_por");
   });
+  it("vai_pro_google: lido do banco, nunca reenviado na edição (o banco trava depois de criada)", () => {
+    expect(daLinha({ ...linha, vai_pro_google: true }, [], quem).vaiProGoogle).toBe(true);
+    expect(daLinha({ ...linha }, [], quem).vaiProGoogle).toBeUndefined();
+    expect(paraBanco(daLinha({ ...linha, vai_pro_google: true }, [], quem), "b")).not.toHaveProperty("vai_pro_google");
+  });
 });
 
 describe("fazendo agora", () => {

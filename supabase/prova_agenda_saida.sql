@@ -3,7 +3,7 @@
 -- Esperado: ver supabase/prova_agenda_saida.saida.txt (chaves terminadas em _esperado_X trazem o valor certo no nome)
 do $$
 declare
-  n uuid; m uuid; pn uuid; pm uuid; pa uuid; t1 uuid; t2 uuid; t3 uuid; t4 uuid; t5 uuid;
+  n uuid; m uuid; pn uuid; pm uuid; pa uuid; t1 uuid; t2 uuid; t3 uuid; t4 uuid; t5 uuid; t6 uuid; b boolean;
   r jsonb := '{}'; x jsonb; v int; s text;
 begin
   insert into auth.users (id, instance_id, aud, role, email) values
@@ -19,10 +19,16 @@ begin
   -- 1) criar tarefa como o Natham (logado de verdade): com data entra na fila; sem data e de quem não tem agenda, não
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', n, 'role', 'authenticated')::text, true);
-  insert into public.tarefas (titulo, tipo, responsavel_id, inicio, fim, dia_inteiro, dono_id, criado_por)
-    values ('Gravar reels', 'gravacao', pn, '2026-10-22T14:00', '2026-10-22T15:30', false, pn, pn) returning id into t1;
-  insert into public.tarefas (titulo, tipo, responsavel_id, dono_id, criado_por) values ('Sem data', 'outro', pn, pn, pn);
-  insert into public.tarefas (titulo, tipo, responsavel_id, inicio, dono_id, criado_por) values ('Do Adrian', 'outro', pa, '2026-10-23T09:00', pn, pn);
+  insert into public.tarefas (vai_pro_google, titulo, tipo, responsavel_id, inicio, fim, dia_inteiro, dono_id, criado_por)
+    values (true, 'Gravar reels', 'gravacao', pn, '2026-10-22T14:00', '2026-10-22T15:30', false, pn, pn) returning id into t1;
+  insert into public.tarefas (vai_pro_google, titulo, tipo, responsavel_id, dono_id, criado_por) values (true, 'Sem data', 'outro', pn, pn, pn);
+  insert into public.tarefas (vai_pro_google, titulo, tipo, responsavel_id, inicio, dono_id, criado_por) values (true, 'Do Adrian', 'outro', pa, '2026-10-23T09:00', pn, pn);
+  -- tarefa do CADERNO (vai_pro_google false), mesmo com data e hora: nunca entra na fila, nem editada; e ninguém liga o campo depois
+  insert into public.tarefas (titulo, tipo, responsavel_id, inicio, dono_id, criado_por) values ('Do caderno com hora', 'outro', pn, '2026-10-24T10:00', pn, pn) returning id into t6;
+  update public.tarefas set titulo = 'Do caderno editada', inicio = '2026-10-24T11:00' where id = t6;
+  update public.tarefas set vai_pro_google = true where id = t6;
+  update public.tarefas set titulo = 'Do caderno editada de novo' where id = t6;
+  select vai_pro_google into b from public.tarefas where id = t6; r := r || jsonb_build_object('caderno_tentou_ligar_o_campo_esperado_false', b);
   begin perform 1 from public.agenda_saida; r := r || jsonb_build_object('logado_le_a_fila', 'PASSOU (ERRO)');
   exception when others then r := r || jsonb_build_object('logado_le_a_fila', 'barrado: ' || sqlerrm); end;
   begin perform public.agenda_saida_pendentes(); r := r || jsonb_build_object('logado_chama_pendentes', 'PASSOU (ERRO)');
@@ -34,7 +40,7 @@ begin
   begin perform public.agenda_saida_pendentes(); r := r || jsonb_build_object('anon_chama_pendentes', 'PASSOU (ERRO)');
   exception when others then r := r || jsonb_build_object('anon_chama_pendentes', 'barrado: ' || sqlerrm); end;
   reset role;
-  select count(*) into v from public.agenda_saida; r := r || jsonb_build_object('fila_esperado_1', v);
+  select count(*) into v from public.agenda_saida; r := r || jsonb_build_object('fila_esperado_1_so_a_do_calendario', v);
 
   -- 2) o n8n pega: um item "criar", com a hora pronta para o Google; pegar de novo logo em seguida não devolve nada
   set local role service_role;
@@ -82,12 +88,12 @@ begin
   select count(*) into v from public.agenda_saida_vinculo where tarefa_id = t1; r := r || jsonb_build_object('vinculo_do_adrian_esperado_0', v);
 
   -- 6) formatos para o Google: dia inteiro (fim = dia seguinte), dia inteiro sem fim, hora sem fim (+1h, virando o dia)
-  insert into public.tarefas (titulo, tipo, responsavel_id, inicio, fim, dia_inteiro, dono_id, criado_por)
-    values ('Feriado', 'outro', pn, '2026-11-02', '2026-11-03', true, pn, pn) returning id into t2;
-  insert into public.tarefas (titulo, tipo, responsavel_id, inicio, dia_inteiro, dono_id, criado_por)
-    values ('Prazo', 'outro', pn, '2026-11-09', true, pn, pn);
-  insert into public.tarefas (titulo, tipo, responsavel_id, inicio, dono_id, criado_por)
-    values ('Tarde', 'outro', pn, '2026-10-22T23:30', pn, pn);
+  insert into public.tarefas (vai_pro_google, titulo, tipo, responsavel_id, inicio, fim, dia_inteiro, dono_id, criado_por)
+    values (true, 'Feriado', 'outro', pn, '2026-11-02', '2026-11-03', true, pn, pn) returning id into t2;
+  insert into public.tarefas (vai_pro_google, titulo, tipo, responsavel_id, inicio, dia_inteiro, dono_id, criado_por)
+    values (true, 'Prazo', 'outro', pn, '2026-11-09', true, pn, pn);
+  insert into public.tarefas (vai_pro_google, titulo, tipo, responsavel_id, inicio, dono_id, criado_por)
+    values (true, 'Tarde', 'outro', pn, '2026-10-22T23:30', pn, pn);
   set local role service_role;
   x := public.agenda_saida_pendentes();
   r := r || jsonb_build_object('formatos', (select jsonb_agg(jsonb_build_object('t', i->>'titulo', 'ini', i->>'inicio', 'fim', i->>'fim', 'dia', i->'dia_inteiro', 'fuso', i->>'fuso') order by i->>'titulo') from jsonb_array_elements(x) i));
@@ -97,7 +103,7 @@ begin
   -- 7) apagar a tarefa, ou tirar a data: some do Google. Criou e apagou antes de o n8n pegar: nada vai (nem apagar)
   delete from public.tarefas where id = t2;
   update public.tarefas set inicio = null, fim = null where titulo = 'Prazo';
-  insert into public.tarefas (titulo, tipo, responsavel_id, inicio, dono_id, criado_por) values ('Efemera', 'outro', pn, '2026-12-01T10:00', pn, pn) returning id into t3;
+  insert into public.tarefas (vai_pro_google, titulo, tipo, responsavel_id, inicio, dono_id, criado_por) values (true, 'Efemera', 'outro', pn, '2026-12-01T10:00', pn, pn) returning id into t3;
   delete from public.tarefas where id = t3;
   set local role service_role;
   x := public.agenda_saida_pendentes(); r := r || jsonb_build_object('apagados', (select jsonb_agg(jsonb_build_object('acao', i->>'acao', 'ev', i->>'google_event_id', 'cal', i->>'calendar_id')) from jsonb_array_elements(x) i));
@@ -107,7 +113,7 @@ begin
   select count(*) into v from public.agenda_saida_vinculo; r := r || jsonb_build_object('vinculos_que_sobram_esperado_1_a_Tarde', v);
 
   -- 8) erro do Google: tentativa conta, a linha volta; na 5ª falha vira "falhou" e a tarefa não trava a fila
-  insert into public.tarefas (titulo, tipo, responsavel_id, inicio, dono_id, criado_por) values ('Teimosa', 'outro', pn, '2026-12-05T10:00', pn, pn) returning id into t4;
+  insert into public.tarefas (vai_pro_google, titulo, tipo, responsavel_id, inicio, dono_id, criado_por) values (true, 'Teimosa', 'outro', pn, '2026-12-05T10:00', pn, pn) returning id into t4;
   for v in 1 .. 5 loop
     update public.agenda_saida set pegou_em = now() - interval '6 minutes' where tarefa_id = t4 and estado = 'pendente';
     set local role service_role;
@@ -125,7 +131,7 @@ begin
 
   -- 9) um defeito na fila nunca impede o Natham de salvar a tarefa
   alter table public.agenda_saida rename to agenda_saida_quebrada;
-  insert into public.tarefas (titulo, tipo, responsavel_id, inicio, dono_id, criado_por) values ('Salva mesmo assim', 'outro', pn, '2026-12-06T10:00', pn, pn) returning id into t5;
+  insert into public.tarefas (vai_pro_google, titulo, tipo, responsavel_id, inicio, dono_id, criado_por) values (true, 'Salva mesmo assim', 'outro', pn, '2026-12-06T10:00', pn, pn) returning id into t5;
   alter table public.agenda_saida_quebrada rename to agenda_saida;
   select count(*) into v from public.tarefas where id = t5; r := r || jsonb_build_object('tarefa_salvou_com_fila_quebrada_esperado_1', v);
 

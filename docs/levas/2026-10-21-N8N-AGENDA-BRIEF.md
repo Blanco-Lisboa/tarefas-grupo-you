@@ -211,7 +211,7 @@ Deixe o fluxo **salvo, sem publicar** e responda ao Natham com: o nome do fluxo,
 Pré-requisito: o Natham aplica `supabase/010_agenda_saida_tarefas_para_o_google.sql` (depois do 008). Sem ele, as duas funções abaixo respondem `404` com `PGRST202`: avise o Natham.
 
 ### 13.1 O que queremos
-Quando alguém cria, muda a data/hora/título/responsável ou apaga uma **tarefa com data** no Tarefas, o evento correspondente aparece, muda ou some **na agenda do Google do RESPONSÁVEL** da tarefa. Tarefa do Matheus vai para a agenda do Matheus, não para a do Adrian nem para a contato@. Tarefa sem data não vai. Quem não tem agenda mapeada (Adrian, por ora) não manda nada.
+Quando alguém cria, muda a data/hora/título/responsável ou apaga uma **tarefa com data** no Tarefas, o evento correspondente aparece, muda ou some **na agenda do Google do RESPONSÁVEL** da tarefa. Tarefa do Matheus vai para a agenda do Matheus, não para a do Adrian nem para a contato@. Tarefa sem data não vai. **Só vai a tarefa que o Natham criou pelo Calendário** (o banco guarda isso na tarefa, `vai_pro_google`); tarefa criada no Caderno, mesmo com data e hora, nunca vai. Isso é decidido no banco: o fluxo não precisa filtrar nada, só entrega o que a fila trouxer. Quem não tem agenda mapeada (Adrian, por ora) não manda nada.
 
 Analogia: o banco tem uma **fila de saída** (as encomendas a entregar). Seu fluxo é o motoboy: a cada 1 ou 2 minutos pergunta "o que tem pra entregar?", entrega no Google e avisa o banco "entregue".
 
@@ -279,7 +279,7 @@ insert into public.agenda_pessoa (pessoa_id, calendar_id)
 select id, '<calendarId do Matheus>' from public.pessoas where slug = 'matheus'
 on conflict (pessoa_id) do update set calendar_id = excluded.calendar_id;
 ```
-O Adrian entra do mesmo jeito, só depois. **O que já existia antes do 010 não é enviado**: só tarefa criada ou mudada depois da linha entrar no mapa. Marcar a tarefa como feita não muda o evento no Google.
+O Adrian entra do mesmo jeito, só depois. **O que já existia antes do 010 não é enviado** (nenhuma tarefa antiga tem `vai_pro_google`): só tarefa criada pelo Calendário depois do 010, e só se a pessoa responsável já estiver no mapa na hora em que a tarefa é criada ou mudada. Marcar a tarefa como feita não muda o evento no Google.
 
 ### 13.8 Passos do Natham (antes de ligar a volta)
 1. **Natham, na agenda pessoal dele** (`nathamsud@gmail.com`): Configurações da agenda > "Compartilhar com pessoas específicas" > `contato@assessoriabeec.com.br` > permissão **"Fazer alterações nos eventos"** (hoje está "Ver todos os detalhes do evento").
@@ -293,14 +293,15 @@ A permissão "Fazer alterações nos eventos" também deixa a IDA continuar lend
 ### 13.9 Testes da volta (nesta ordem; avise o Natham onde depender dele)
 1. **Recusa:** chame `agenda_saida_pendentes` sem a chave. Tem de dar `permission denied`. Se aceitar, **pare e avise**.
 2. **Fila vazia:** com a chave, `{"p_limite": 20}` devolve `[]`.
-3. **Criar:** o Natham cria no Tarefas uma tarefa de teste com data e hora, responsável Natham, título `TESTE volta (apagar)`. Em até 2 minutos o evento aparece na agenda pessoal dele. Confira `extendedProperties.private.tarefa_id` no evento.
-4. **Sem duplicar:** rode a IDA da `natham`. Esperado: `ignorados: 1` e a tarefa continua **uma vez só** no Calendário do Tarefas (como tarefa, não como compromisso).
-5. **Editar:** o Natham muda hora e título. O MESMO evento muda no Google (não nasce outro).
-6. **Trocar de responsável** para o Matheus (depois de 13.7): o evento some da agenda do Natham e nasce na do Matheus.
-7. **Dia inteiro:** tarefa de dia inteiro com início e fim em dias diferentes. No Google, o último dia aparece incluído.
-8. **Apagar:** o Natham apaga a tarefa. O evento some do Google.
-9. **Erro (opcional):** tire a permissão de escrita de uma agenda e crie uma tarefa para ela: o item deve voltar `pendente` e, após 5 tentativas, `falhou`, sem travar os outros.
-10. Só então o fluxo fica ligado. O Adrian entra por último, quando o Natham avisar que a agenda dele está liberada para a contato@.
+3. **Criar:** o Natham cria **pelo Calendário** (clicando num horário vazio) uma tarefa de teste, responsável Natham, título `TESTE volta (apagar)`. Em até 2 minutos o evento aparece na agenda pessoal dele. Confira `extendedProperties.private.tarefa_id` no evento.
+4. **Caderno não vai:** o Natham cria no **Caderno** uma tarefa com data e hora. Em 2 minutos nada aparece no Google, e a fila continua vazia.
+5. **Sem duplicar:** rode a IDA da `natham`. Esperado: `ignorados: 1` e a tarefa continua **uma vez só** no Calendário do Tarefas (como tarefa, não como compromisso).
+6. **Editar:** o Natham muda hora e título. O MESMO evento muda no Google (não nasce outro).
+7. **Trocar de responsável** para o Matheus (depois de 13.7): o evento some da agenda do Natham e nasce na do Matheus.
+8. **Dia inteiro:** tarefa de dia inteiro com início e fim em dias diferentes. No Google, o último dia aparece incluído.
+9. **Apagar:** o Natham apaga a tarefa. O evento some do Google.
+10. **Erro (opcional):** tire a permissão de escrita de uma agenda e crie uma tarefa para ela: o item deve voltar `pendente` e, após 5 tentativas, `falhou`, sem travar os outros.
+11. Só então o fluxo fica ligado. O Adrian entra por último, quando o Natham avisar que a agenda dele está liberada para a contato@.
 
 ### 13.10 Entrega da volta
 Fluxo **salvo, sem publicar**. Responda ao Natham com: o nome do fluxo, o `calendarId` de cada pessoa que você achou (sem nenhuma chave) e o resultado de cada teste de 13.9.
