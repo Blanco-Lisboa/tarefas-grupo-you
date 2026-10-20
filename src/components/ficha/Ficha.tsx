@@ -8,13 +8,14 @@
 //
 // - Renderize só quando houver tarefa (o estado interno nasce da tarefa recebida).
 // - A ficha salva sozinha (salvarTarefa / removerTarefa) e chama aoFechar. Esc e clique fora fecham sem salvar.
-// - soLer: só para olhar (Caderno de outra pessoa): campos travados, sem Salvar nem Excluir; links do Drive e das notas seguem abrindo.
+// - soLer: só para olhar (Caderno de outra pessoa): campos travados, sem Salvar nem lixeira; links do Drive e das notas seguem abrindo.
+//   Lixeira no pé (item 179) só para quem podeApagar: clicar troca o pé por Apagar (vermelho) e Cancelar; Esc também cancela.
 // - Fazendo agora (item 170): tarefa já salva mostra Começar/Parar no topo e quem está nela desde quando (todos veem de todos).
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
-  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, comecar, limparErro, parar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useFazendo, useTags, useTarefas,
+  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, comecar, limparErro, parar, podeApagar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useFazendo, useTags, useTarefas,
   type Etapa, type Etiqueta, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
@@ -68,6 +69,7 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
   const [links, setLinks] = useState<LinkDrive[]>(tarefa.links);
   const [arquivos, setArquivos] = useState(tarefa.arquivos);
   const [editandoNotas, setEditandoNotas] = useState(false);
+  const [apagando, setApagando] = useState(false);
   // Só fecha depois que o banco aceitou: se recusar, a ficha fica aberta com o aviso e nada do que foi escrito se perde.
   // (O aviso geral da casca fica atrás da ficha, então o erro aparece também no pé dela.)
   const erro = useErroDados();
@@ -75,6 +77,7 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
   const [enviou, setEnviou] = useState(false);
   useEffect(() => { if (enviou && !erro) aoFechar(); }, [enviou, erro, aoFechar]);
   const nova = !tarefa.id;
+  const lixeira = !nova && !soLer && podeApagar({ ...tarefa, id: tarefa.id! }, eu); // vale o que está no banco, não o que foi mudado na ficha
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
   const aprovadores = [...new Set<string>([...APROVADORES, ...todas.flatMap((x) => (x.aprovador ? [x.aprovador] : [])), ...(t.aprovador ? [t.aprovador] : [])])];
@@ -130,7 +133,7 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
   }
 
   async function excluir() {
-    if (!tarefa.id || !window.confirm(`Excluir a tarefa "${tarefa.titulo}"? Não dá para desfazer.`)) return;
+    if (!tarefa.id) return;
     limparErro();
     await removerTarefa(tarefa.id);
     setEnviou(true);
@@ -144,7 +147,7 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
       ref={dialogo}
       className="ficha"
       aria-label={nova ? "Nova tarefa" : `Tarefa ${tarefa.titulo}`}
-      onClose={aoFechar}
+      onClose={aoFechar} onCancel={(e) => { if (apagando) { e.preventDefault(); setApagando(false); } }}
       onClick={(e) => e.target === e.currentTarget && dialogo.current?.close()}
     >
       <form className="ficha-cartao" onSubmit={salvar} style={corAtual}>
@@ -313,10 +316,14 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
 
         <footer className="ficha-pe">
           {soLer && <p className="ficha-so-ler">Só para olhar: tarefa de outra pessoa.</p>}
-          {!nova && !soLer && <button type="button" className="ficha-texto-botao ficha-excluir" onClick={excluir}>Excluir</button>}
+          {apagando ? (
+            <div className="ficha-apagando"><button type="button" className="btn ficha-apagar" onClick={() => void excluir()}>Apagar</button><button type="button" className="btn btn-2" autoFocus onClick={() => setApagando(false)}>Cancelar</button></div>
+          ) : lixeira && (
+            <button type="button" className="ficha-lixeira" aria-label="Apagar tarefa" title="Apagar tarefa" onClick={() => setApagando(true)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4" /></svg></button>
+          )}
           {enviou && erro && <p className="ficha-erro" role="alert">{erro}</p>}
-          <button type="button" className="btn btn-2" onClick={() => dialogo.current?.close()}>{soLer ? "Fechar" : "Cancelar"}</button>
-          {!soLer && <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>}
+          {!apagando && <button type="button" className="btn btn-2" onClick={() => dialogo.current?.close()}>{soLer ? "Fechar" : "Cancelar"}</button>}
+          {!soLer && !apagando && <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>}
         </footer>
       </form>
     </dialog>

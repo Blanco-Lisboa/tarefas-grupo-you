@@ -72,9 +72,17 @@
 .ficha-link .ficha-texto-botao, .ficha-tag-nova .ficha-texto-botao { align-self: center; padding: 0; }
 .ficha-texto-botao:hover { text-decoration: underline; text-underline-offset: 3px; }
 .ficha-pe { display: flex; align-items: center; justify-content: flex-end; gap: var(--s-12); padding: var(--s-12) var(--s-24); border-top: 1px solid var(--linha); }
-.ficha-excluir { margin-right: auto; color: var(--fraco); }
+/* Lixeira (item 179): ícone do menu das tarefas; ao clicar o pé vira Apagar (vermelho) e Cancelar. Cantos de 8px, nada em pílula */
+.ficha-lixeira { display: grid; place-items: center; flex: none; width: 36px; height: 36px; margin-right: auto; padding: 0; border: 1px solid transparent; border-radius: 8px; background: transparent; cursor: pointer; }
+.ficha-lixeira svg { width: 20px; height: 20px; fill: none; stroke: var(--fraco); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ficha-lixeira:hover { border-color: var(--borda); background: var(--sup-2); }
+.ficha-lixeira:hover svg { stroke: var(--atrasado); }
+.ficha-apagando { display: flex; gap: var(--s-8); margin-right: auto; }
+.ficha-apagando .btn { border-radius: 8px; }
+.ficha-pe .ficha-apagar, .ficha-pe .ficha-apagar:hover { background: var(--atrasado); border-color: var(--atrasado); color: #fff; }
+.ficha-pe .ficha-apagar:hover { background: color-mix(in srgb, #000 14%, var(--atrasado)); }
 .ficha-erro { margin: 0 auto 0 0; color: var(--atrasado); font-size: var(--t-14); font-weight: 600; } /* banco recusou: a ficha fica aberta */
-.ficha-excluir:has(+ .ficha-erro) { margin-right: 0; }
+:is(.ficha-lixeira, .ficha-apagando):has(+ .ficha-erro) { margin-right: 0; }
 .ficha-so-ler { margin: 0 auto 0 0; color: var(--fraco); font-size: var(--t-14); }
 /* Só para olhar (soLer): some o que é de editar e nada acende no hover */
 .ficha-corpo:disabled :is(.ficha-texto-botao, .ficha-anexo-solta, .ficha-anexo-tirar, .selecao-seta) { display: none; }
