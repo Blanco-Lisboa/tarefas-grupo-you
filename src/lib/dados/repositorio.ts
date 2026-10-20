@@ -2,6 +2,7 @@
 // O app fala com o banco COM a sessão de quem está logado: quem decide o que cada pessoa vê são as travas (RLS) do banco.
 // Escrita otimista: a tela muda na hora; se o banco recusar, volta ao que era e mostra o aviso (ver lerErro).
 import { supabase } from "@/lib/supabase/cliente";
+import { Upload } from "tus-js-client";
 import type { Empresa, Fazendo, NovaTarefa, Responsavel, Tag, Tarefa } from "./tipos";
 
 type LinhaTarefa = {
@@ -107,9 +108,31 @@ async function carregar() {
   avisar();
 }
 
-type LinhaArquivo = { tarefa_id: string; caminho: string; nome: string; tipo: "imagem" | "video" };
+type LinhaArquivo = { tarefa_id: string; caminho: string; nome: string; tipo: NonNullable<Tarefa["arquivos"][number]["tipo"]> };
 type Cliente = ReturnType<typeof supabase>;
 const BALDE = "arquivos";
+const ATE_6_MB = 6 * 1024 * 1024;
+
+/** Até 6 MB sobe de uma vez; acima disso, envio em partes de 6 MB (TUS) que aguenta vídeo grande e retoma se a rede cair. */
+async function subir(sb: Cliente, caminho: string, f: File) {
+  if (f.size <= ATE_6_MB) {
+    const { error } = await sb.storage.from(BALDE).upload(caminho, f, { contentType: f.type });
+    if (error) throw error;
+    return;
+  }
+  const { data } = await sb.auth.getSession();
+  await new Promise<void>((ok, nao) => new Upload(f, {
+    endpoint: `${process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(".supabase.co", ".storage.supabase.co")}/storage/v1/upload/resumable`,
+    headers: { authorization: `Bearer ${data.session?.access_token}`, apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! },
+    retryDelays: [0, 3000, 5000, 10000],
+    chunkSize: ATE_6_MB,
+    uploadDataDuringCreation: true,
+    removeFingerprintOnSuccess: true,
+    metadata: { bucketName: BALDE, objectName: caminho, contentType: f.type, cacheControl: "3600" },
+    onError: nao,
+    onSuccess: () => ok(),
+  }).start());
+}
 
 /** Anexos de todas as tarefas, com endereço assinado (o balde é privado; vale 1 hora e é renovado a cada carga). */
 async function carregarAnexos(sb: Cliente): Promise<Map<string, Tarefa["arquivos"]>> {
@@ -136,8 +159,7 @@ async function sincronizarAnexos(sb: Cliente, tarefaId: string, antes: Tarefa["a
   for (const a of agora) {
     if (!a.pendente) { guardados.push(a); continue; }
     const caminho = `tarefas/${tarefaId}/${crypto.randomUUID()}-${a.nome.replace(/[^\w.-]+/g, "_")}`;
-    const { error: e1 } = await sb.storage.from(BALDE).upload(caminho, a.pendente, { contentType: a.pendente.type });
-    if (e1) throw e1;
+    await subir(sb, caminho, a.pendente);
     const { error: e2 } = await sb.from("arquivos").insert({ tarefa_id: tarefaId, caminho, nome: a.nome, tipo: a.tipo, tamanho: a.pendente.size, criado_por: pessoa });
     if (e2) { await sb.storage.from(BALDE).remove([caminho]); throw e2; }
     const { data } = await sb.storage.from(BALDE).createSignedUrl(caminho, 3600);
