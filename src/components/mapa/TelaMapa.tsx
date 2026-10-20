@@ -111,6 +111,34 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
   useLayoutEffect(() => {
     const [pa, p, f, fx] = [pai.current, palco.current, fixo.current, faixa.current];
     if (!pa || !p || !f || !fx) return;
+    // No celular, a faixa se move atrás da janela. Mantém o bloco do dia visível
+    // quando sua haste chega perto da borda, inclusive durante a rolagem horizontal.
+    const ajustarBlocos = () => {
+      const celular = matchMedia("(max-width: 767px)").matches;
+      const janela = f.getBoundingClientRect();
+      f.querySelectorAll<HTMLElement>(".mapa-marco").forEach((marco) => {
+        const bloco = marco.querySelector<HTMLElement>(".mapa-bloco");
+        if (!bloco) return;
+        const x = marco.getBoundingClientRect().left;
+        if (!celular || x < janela.left || x > janela.right) {
+          bloco.style.removeProperty("translate");
+          return;
+        }
+        const inicio = x + (parseFloat(getComputedStyle(bloco).left) || 0);
+        const minimo = janela.left + 8;
+        const maximo = Math.max(minimo, janela.right - bloco.offsetWidth - 8);
+        bloco.style.translate = `${Math.round(Math.max(minimo, Math.min(inicio, maximo)) - inicio)}px 0`;
+      });
+    };
+    let quadro = 0;
+    const agendarAjuste = () => {
+      cancelAnimationFrame(quadro);
+      quadro = requestAnimationFrame(ajustarBlocos);
+    };
+    addEventListener("scroll", agendarAjuste, { passive: true });
+    f.addEventListener("scroll", agendarAjuste, { passive: true });
+    addEventListener("resize", agendarAjuste);
+    agendarAjuste();
     // O palco (cabeçalho + card) gruda onde começa, logo abaixo do filtro, e tem a altura que sobra da tela: tudo cabe na primeira tela.
     const medir = () => { pa.style.setProperty("--mapa-topo", `${Math.round(pa.getBoundingClientRect().top + scrollY)}px`); };
     medir();
@@ -162,7 +190,15 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
       ro.observe(f);
       return () => { ro.disconnect(); limpar(); };
     });
-    return () => { mm.revert(); removeEventListener("resize", medir); };
+    return () => {
+      mm.revert();
+      removeEventListener("resize", medir);
+      removeEventListener("resize", agendarAjuste);
+      removeEventListener("scroll", agendarAjuste);
+      f.removeEventListener("scroll", agendarAjuste);
+      cancelAnimationFrame(quadro);
+      f.querySelectorAll<HTMLElement>(".mapa-bloco").forEach((bloco) => bloco.style.removeProperty("translate"));
+    };
   }, [dias, marcos]);
 
   return (
