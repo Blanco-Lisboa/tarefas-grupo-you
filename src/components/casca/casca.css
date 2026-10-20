@@ -27,9 +27,12 @@ html[data-menu="recolhido"] { --menu-w: 64px; --menu-p: var(--s-8); --menu-recuo
 }
 @media (prefers-reduced-motion: reduce) { .menu, .casca-conteudo, .menu-item, .menu-nome, .menu-rotulo { transition: none; } }
 
-.menu-marca { display: flex; align-items: center; gap: var(--s-12); flex: none; height: var(--app-controle); padding-left: calc(var(--menu-recuo) - 4px); margin-bottom: var(--app-respiro); }
-.menu-logo { width: auto; height: 26px; flex: none; }
-.menu-nome { font: 600 17px / 1 var(--fonte); letter-spacing: -0.02em; color: var(--texto); white-space: nowrap; transition: opacity var(--dur-rapida) var(--curva); }
+/* Marca (item 174): selo branco com a logo no centro (mesmo selo da tela Entrar), nome ao lado; o conjunto fica centrado no menu.
+   Recolhido/celular o nome encolhe a zero largura e sobra só o selo, também centrado. */
+.menu-marca { display: flex; align-items: center; justify-content: center; flex: none; height: var(--app-controle); margin-bottom: var(--app-respiro); }
+.menu-selo { display: grid; place-items: center; flex: none; width: var(--app-controle); height: var(--app-controle); border-radius: var(--raio-b); background: var(--sup); box-shadow: var(--sombra), 0 0 0 1px var(--azul-claro); }
+.menu-logo { width: auto; height: 24px; }
+.menu-nome { max-width: 100px; margin-left: var(--s-12); overflow: hidden; font: 600 17px / 1 var(--fonte); letter-spacing: -0.02em; color: var(--texto); white-space: nowrap; transition: opacity var(--dur-rapida) var(--curva), max-width var(--dur) var(--curva), margin-left var(--dur) var(--curva); }
 
 .menu-lista { display: flex; flex-direction: column; gap: 2px; list-style: none; margin: 0; padding: 0; }
 .menu-item {
@@ -57,9 +60,11 @@ html[data-menu="recolhido"] { --menu-w: 64px; --menu-p: var(--s-8); --menu-recuo
 
 /* Recolhido (botão) e celular (sempre): só ícones, na mesma coluna */
 html[data-menu="recolhido"] .menu-nome, html[data-menu="recolhido"] .menu-rotulo { opacity: 0; }
+html[data-menu="recolhido"] .menu-nome { max-width: 0; margin-left: 0; }
 html[data-menu="recolhido"] .menu-pessoas { flex-direction: column; align-items: flex-start; padding-block: var(--s-4); }
 @media (max-width: 767px) {
   .menu-nome, .menu-rotulo { opacity: 0; }
+  .menu-nome { max-width: 0; margin-left: 0; }
   .menu-pessoas { flex-direction: column; align-items: flex-start; padding-block: var(--s-4); }
   .menu-alterna { display: none; }
 }

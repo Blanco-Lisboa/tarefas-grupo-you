@@ -52,7 +52,7 @@ export function Menu({ recolhido, alternar, caminho }: Props) {
     <nav className="menu" aria-label="Menu principal">
       {/* Logo + nome. Recolhido, fica só a logo (o CSS esconde o nome pelo data-menu do <html>). */}
       <div className="menu-marca">
-        <Image className="menu-logo" src="/marca/fivecon.png" alt="" width={483} height={512} priority />
+        <span className="menu-selo"><Image className="menu-logo" src="/marca/fivecon.png" alt="" width={483} height={512} priority /></span>
         <span className="menu-nome">Tarefas</span>
       </div>
       <ul className="menu-lista">
