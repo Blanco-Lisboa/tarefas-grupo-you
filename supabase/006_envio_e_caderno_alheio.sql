@@ -1,0 +1,56 @@
+-- Item 177 (decisão do Natham, 21/10). Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Idempotente.
+--  (b) o Natham LÊ tudo do caderno do Matheus (só leitura);
+--  (c) o Matheus continua vendo só as dele + as enviadas a ele (nada muda para ele);
+--  (e) quem ENVIOU a tarefa pode EDITAR o que mandou (antes só lia). Apagar continua como estava.
+-- Depende de 001 e 002. Aplicar ANTES do 007.
+
+-- Natham logado + a pessoa dona do caderno é o Matheus. Ninguém mais ganha leitura extra.
+create or replace function private.natham_le_matheus(dono uuid) returns boolean
+language sql stable security definer set search_path = ''
+as $$
+  select exists (
+    select 1 from public.pessoas n, public.pessoas m
+    where n.user_id = (select auth.uid()) and n.slug = 'natham' and m.slug = 'matheus' and m.id = dono
+  )
+$$;
+revoke all on function private.natham_le_matheus(uuid) from public, anon;
+grant execute on function private.natham_le_matheus(uuid) to authenticated;
+
+-- Quem pode ALTERAR uma tarefa: o dono, quem a enviou, ou qualquer um dos dois se for conteúdo com empresa.
+-- Uma só regra, usada nas travas de tarefas, tags, arquivos (007).
+create or replace function private.pode_alterar(dono uuid, enviada uuid, etapa text, empresa text) returns boolean
+language sql stable set search_path = ''
+as $$
+  select dono = (select private.minha_pessoa())
+    or enviada = (select private.minha_pessoa())
+    or (etapa is not null and empresa is not null)
+$$;
+revoke all on function private.pode_alterar(uuid, uuid, text, text) from public, anon;
+grant execute on function private.pode_alterar(uuid, uuid, text, text) to authenticated;
+
+drop policy if exists tarefas_le on public.tarefas;
+create policy tarefas_le on public.tarefas for select to authenticated using (
+  dono_id = (select private.minha_pessoa())
+  or enviada_por = (select private.minha_pessoa())
+  or (etapa is not null and empresa_id is not null)
+  or (select private.natham_le_matheus(dono_id))
+);
+
+drop policy if exists tarefas_altera on public.tarefas;
+create policy tarefas_altera on public.tarefas for update to authenticated
+  using ((select private.pode_alterar(dono_id, enviada_por, etapa, empresa_id)))
+  with check ((select private.pode_alterar(dono_id, enviada_por, etapa, empresa_id)));
+
+-- tags da tarefa: mexe quem pode alterar a tarefa (inclui quem enviou)
+drop policy if exists tarefa_tags_cria on public.tarefa_tags;
+create policy tarefa_tags_cria on public.tarefa_tags for insert to authenticated
+  with check (exists (
+    select 1 from public.tarefas t where t.id = tarefa_id
+      and (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id))
+  ));
+drop policy if exists tarefa_tags_apaga on public.tarefa_tags;
+create policy tarefa_tags_apaga on public.tarefa_tags for delete to authenticated
+  using (exists (
+    select 1 from public.tarefas t where t.id = tarefa_id
+      and (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id))
+  ));

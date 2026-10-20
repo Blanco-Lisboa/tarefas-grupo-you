@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import { assinar, lerEmpresas, lerErro, lerEu, lerFazendo, lerTags, lerTarefas } from "./repositorio";
 
 export * from "./tipos";
-export { salvarTarefa, removerTarefa, salvarEmpresa, salvarTag, limparErro, comecar, parar } from "./repositorio";
+export { salvarTarefa, removerTarefa, salvarEmpresa, salvarTag, limparErro, comecar, parar, podeAlterar, podeApagar } from "./repositorio";
 
 /** Todas as tarefas (reativo: re-renderiza quando alguma é criada, editada ou removida). */
 export const useTarefas = () => useSyncExternalStore(assinar, lerTarefas, lerTarefas);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daLinha, paraBanco, trocarFazendo } from "./repositorio";
+import { daLinha, paraBanco, podeAlterar, podeApagar, trocarFazendo } from "./repositorio";
 
 const quem = (id: string | null) => ({ a: "natham", b: "matheus" } as const)[id as "a" | "b"];
 const linha: Parameters<typeof daLinha>[0] = {
@@ -29,5 +29,22 @@ describe("fazendo agora", () => {
     m = trocarFazendo(m, "natham", "t3", "d3");
     expect(m).toEqual({ t2: { quem: "matheus", desde: "d2" }, t3: { quem: "natham", desde: "d3" } });
     expect(trocarFazendo(m, "natham", null)).toEqual({ t2: { quem: "matheus", desde: "d2" } });
+  });
+});
+
+describe("quem pode mexer na tarefa (espelha o banco)", () => {
+  const base = daLinha({ ...linha, etapa: null, enviada_por: "a", dono_id: "b" }, [], quem); // Natham enviou ao Matheus
+  const privadaDoMatheus = daLinha({ ...linha, etapa: null, enviada_por: null, dono_id: "b", criado_por: "b" }, [], quem);
+  it("quem enviou edita, mas não apaga; o dono faz os dois", () => {
+    expect([podeAlterar(base, "natham"), podeApagar(base, "natham")]).toEqual([true, false]);
+    expect([podeAlterar(base, "matheus"), podeApagar(base, "matheus")]).toEqual([true, true]);
+  });
+  it("Natham só lê a privada do Matheus", () => {
+    expect([podeAlterar(privadaDoMatheus, "natham"), podeApagar(privadaDoMatheus, "natham")]).toEqual([false, false]);
+  });
+  it("conteúdo com empresa: os dois editam", () => {
+    const c = { ...privadaDoMatheus, etapa: "roteiro" as const, empresaId: "you" };
+    expect(podeAlterar(c, "natham")).toBe(true);
+    expect(podeAlterar(c, null)).toBe(false);
   });
 });
