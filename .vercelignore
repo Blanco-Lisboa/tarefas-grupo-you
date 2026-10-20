@@ -1,8 +1,8 @@
-# fora do envio para a Vercel (fotos de prova e docs nao vao para o ar)
-provas
-prototipos
-docs
-supabase
+# fora do envio para a Vercel (fotos de prova e docs nao vao para o ar); barra no inicio = so a pasta da raiz
+/provas
+/prototipos
+/docs
+/supabase
 .env*
 !.env.example
-dev-3100.log
+/dev-3100.log
