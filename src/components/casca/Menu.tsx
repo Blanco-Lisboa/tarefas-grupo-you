@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Pessoa } from "@/components/ui/Pessoa";
+import { NOME_PESSOA, Pessoa } from "@/components/ui/Pessoa";
 import { useEu } from "@/lib/dados";
 import { BotaoSair } from "./BotaoSair";
 
@@ -52,21 +52,28 @@ export function Menu({ recolhido, alternar, caminho }: Props) {
   const acao = recolhido ? "Expandir menu" : "Recolher menu";
   return (
     <nav className="menu" aria-label="Menu principal">
-      {/* Logo + nome. Recolhido, fica só a logo (o CSS esconde o nome pelo data-menu do <html>). */}
+      {/* Cabeçalho de vidro (item 186): só a logo, sem quadro, e o nome. Recolhido, fica só a logo (o CSS esconde o nome pelo data-menu do <html>). */}
       <div className="menu-marca">
-        <span className="menu-selo"><Image className="menu-logo" src="/marca/fivecon.png" alt="" width={483} height={512} priority /></span>
+        <Image className="menu-logo" src="/marca/fivecon.png" alt="" width={483} height={512} priority />
         <span className="menu-nome">Tarefas</span>
       </div>
       <ul className="menu-lista">
         {ITENS.map((i) => <Item key={i.href} item={i} caminho={caminho} />)}
       </ul>
       <div className="menu-pe">
-        <ul className="menu-lista">
-          <Item item={CONFIGURACOES} caminho={caminho} />
-          <li><BotaoSair /></li>
-        </ul>
-        {/* Só a foto de quem está logado (item 185). Sem pessoa ligada ao login, nada. */}
-        {eu && <div className="menu-pessoas"><Pessoa quem={eu} tamanho={28} /></div>}
+        {/* Cartão de perfil (item 187): foto + nome de quem está logado, com Configurações e Sair no mesmo vidro do cabeçalho. Sem pessoa ligada ao login, só os dois itens. */}
+        <div className="menu-perfil">
+          {eu && (
+            <div className="menu-pessoa">
+              <Pessoa quem={eu} tamanho={28} />
+              <span className="menu-rotulo menu-pessoa-nome">{NOME_PESSOA[eu]}</span>
+            </div>
+          )}
+          <ul className="menu-lista">
+            <Item item={CONFIGURACOES} caminho={caminho} />
+            <li><BotaoSair /></li>
+          </ul>
+        </div>
         <button type="button" className="menu-item menu-alterna" onClick={alternar} aria-label={acao} aria-expanded={!recolhido} title={acao}>
           <Icone nome="recolher" />
           <span className="menu-rotulo">{acao}</span>
