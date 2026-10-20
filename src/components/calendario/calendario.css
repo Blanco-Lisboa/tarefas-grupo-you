@@ -68,7 +68,7 @@
 /* Etapa (item 78): pílula colorida, com um fio escuro leve para não sumir no fundo claro da empresa */
 .etapa {
   flex: none; padding: 0 6px; border-radius: var(--raio-pilula); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .1);
-  font: 600 10px / 15px var(--fonte); letter-spacing: .02em; color: var(--texto); white-space: nowrap;
+  font: 600 10px / 15px var(--fonte); letter-spacing: .02em; color: #fff; white-space: nowrap;
 }
 .etapa-roteiro { background: var(--etapa-roteiro); }
 .etapa-gravacao { background: var(--etapa-gravacao); }

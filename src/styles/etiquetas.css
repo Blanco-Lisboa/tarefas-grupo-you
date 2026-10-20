@@ -25,14 +25,14 @@
   --etiqueta-16: #C72A62; --etiqueta-16-texto: #FFFFFF;  /* rosa forte · branco 5,34 */
 }
 
-/* Etiqueta da ETAPA (item 78): pílula pequena dentro do bloco do calendário, que fica na cor clara da empresa.
-   Tons suaves, um por etapa, letra escura (#1D1D1F) com contraste de 10,3 a 15,1 (mínimo 4,5). Sem roxo e sem laranja
-   cheios, que são das empresas, e sem o azul do que se clica. */
+/* Etiqueta da ETAPA (item 78, recolorida no item 168 com a paleta C "escuros vibrantes", escolha do Natham em 20/10/2026):
+   cores fortes com letra branca (calendário), mínimo exigido 4,5. A ordem lê como avanço: azul que começa, verde que fecha.
+   Sem o azul #0064CC (do que se clica). Contraste do branco sobre cada cor: */
 :root {
-  --etapa-roteiro: #FFE08A;   /* amarelo · 13,05 */
-  --etapa-gravacao: #FFB8BE;  /* rosa-coral · 10,30 */
-  --etapa-edicao: #AED9F5;    /* azul-céu · 11,25 */
-  --etapa-analise: #EBDDC0;   /* areia · 13,6 (suave, só dela) */
-  --etapa-aprovado: #ABE5BB;  /* verde · 11,75 */
-  --etapa-postado: #CBD3DF;   /* cinza-azulado · 11,16 */
+  --etapa-roteiro: #2D4FC7;   /* azul royal · branco 6,87 */
+  --etapa-gravacao: #6B3FB5;  /* roxo · branco 6,99 */
+  --etapa-edicao: #0B6E75;    /* teal · branco 6,00 */
+  --etapa-analise: #B24A0A;   /* laranja queimado · branco 5,42 */
+  --etapa-aprovado: #5C6B14;  /* verde-oliva · branco 5,89 */
+  --etapa-postado: #0B7A4B;   /* esmeralda · branco 5,39 */
 }
