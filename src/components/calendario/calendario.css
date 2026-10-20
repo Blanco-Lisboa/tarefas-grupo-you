@@ -107,6 +107,30 @@
 }
 @media (prefers-reduced-motion: reduce) { .evento.evento-reuniao { animation: none; } }
 
+/* Compromisso do Google (item 190, Compromisso.tsx): só leitura, então não pega para arrastar. Fora a reunião (âmbar acima),
+   fica em branco com contorno e filete cinza: dá para distinguir da tarefa, que vem pintada na cor da empresa. */
+.evento.compromisso { cursor: pointer; }
+.evento.compromisso:not(.evento-reuniao) {
+  --tarefa-fundo: var(--sup); --tarefa-texto: var(--texto);
+  box-shadow: inset 3px 0 0 var(--fraco), inset 0 0 0 1px var(--borda);
+}
+/* Marca da agenda da contato@: etiqueta de cantos curtos, como o selo da empresa */
+.cal-equipe {
+  flex: none; padding: 0 5px; border-radius: 4px; background: var(--texto); color: var(--sup);
+  font: 600 10px / 15px var(--fonte); letter-spacing: .02em; white-space: nowrap;
+}
+.selecao-pop.cal-compromisso-pop { width: min(320px, calc(100vw - 24px)); }
+.cal-compromisso {
+  display: flex; flex-direction: column; gap: 6px; padding: var(--s-16) var(--s-16) var(--s-16) var(--s-24);
+  background: var(--vidro-forte); border: 1px solid var(--vidro-linha); border-radius: var(--raio-v); box-shadow: var(--sombra-lista);
+  -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); color: var(--texto);
+}
+.cal-compromisso h2 { margin: 0; font-size: var(--app-t-secao); line-height: 1.3; }
+.cal-compromisso p { margin: 0; font-size: var(--app-t-texto); color: var(--fraco); }
+.cal-compromisso .cal-compromisso-origem { font-size: var(--t-12); font-weight: 600; letter-spacing: .02em; }
+.cal-compromisso-agendas { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0 0; padding: 0; list-style: none; }
+.cal-compromisso-agendas li { display: flex; align-items: center; gap: 6px; font-size: var(--app-t-texto); font-weight: 600; }
+
 /* Criar pelo teclado (Evento.tsx, CriarAqui): escondido e sem ocupar lugar até o Tab chegar nele */
 .cal-criar {
   position: absolute; z-index: 4; top: 4px; left: 4px; padding: 3px 10px; border: 0; border-radius: 6px;

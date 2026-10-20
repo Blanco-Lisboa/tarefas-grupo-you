@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
-import { salvarTarefa, useEu, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { salvarTarefa, useAgendaEventos, useEu, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { Ano } from "./Ano";
 import { Evento, useSoltar, type Acoes } from "./Evento";
-import { BarraFiltros, passa, SEM_FILTROS, type Filtros } from "./Filtros";
+import { BarraFiltros, passa, passaEvento, SEM_FILTROS, type Filtros } from "./Filtros";
 import { Grade } from "./Grade";
-import { andar, comMinuto, diasDaSemana, diasDoMes, esperarFimDoArraste, mover, paraHora, porDia, tituloPeriodo, type Destino, type Visao } from "./logica";
+import { agendaPorDia, andar, comMinuto, diasDaSemana, diasDoMes, esperarFimDoArraste, mover, paraHora, porDia, tituloPeriodo, type Destino, type Visao } from "./logica";
 import { Mes } from "./Mes";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { daMinhaLista } from "@/components/tarefas/grade";
@@ -53,6 +53,9 @@ function Calendario({ agora }: { agora: string }) {
   const visiveis = useMemo(() => aplicar(tarefas).filter(passa(filtros)), [aplicar, tarefas, filtros]);
   const mapa = useMemo(() => porDia(visiveis), [visiveis]);
   const semData = visiveis.filter((t) => !t.inicio);
+  // Compromissos do Google (item 190), só leitura. O banco já entrega só as agendas que a pessoa pode ver.
+  const eventos = useAgendaEventos();
+  const agenda = useMemo(() => agendaPorDia(eventos.filter(passaEvento(filtros))), [eventos, filtros]);
 
   const acoes: Acoes = {
     abrir: setAberta,
@@ -129,9 +132,9 @@ function Calendario({ agora }: { agora: string }) {
       <div className="cal-painel-pai">
         <div className="cal-painel" data-visao={visao}>
           {(visao === "dia" || visao === "semana") && (
-            <Grade key={visao} dias={visao === "dia" ? [cursor] : diasDaSemana(cursor)} mapa={mapa} agora={agora} acoes={acoes} />
+            <Grade key={visao} dias={visao === "dia" ? [cursor] : diasDaSemana(cursor)} mapa={mapa} agenda={agenda} agora={agora} acoes={acoes} />
           )}
-          {visao === "mes" && <Mes cursor={cursor} mapa={mapa} hoje={hoje} acoes={acoes} />}
+          {visao === "mes" && <Mes cursor={cursor} mapa={mapa} agenda={agenda} hoje={hoje} acoes={acoes} />}
           {visao === "ano" && <Ano cursor={cursor} mapa={mapa} hoje={hoje} acoes={acoes} />}
         </div>
       </div>

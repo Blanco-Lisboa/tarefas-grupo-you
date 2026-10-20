@@ -1,6 +1,6 @@
 // Datas do calendário: SEMPRE pelo relógio local, em texto "AAAA-MM-DD" e "AAAA-MM-DDTHH:MM".
 // Nunca toISOString: ele converte para o fuso de Londres e, depois das 21h, já marca o dia seguinte.
-import type { NovaTarefa, Tarefa } from "@/lib/dados";
+import type { EventoAgenda, NovaTarefa, Tarefa } from "@/lib/dados";
 
 export type Visao = "dia" | "semana" | "mes" | "ano";
 /** Para onde a tarefa foi solta. null = coluna "Sem data". */
@@ -76,6 +76,20 @@ export function porDia(tarefas: Tarefa[]) {
   for (const t of tarefas) for (const d of diasCobertos(t)) mapa.set(d, [...(mapa.get(d) ?? []), t]);
   const chave = (t: Tarefa) => (t.diaInteiro || variosDias(t) ? "" : t.inicio!);
   for (const lista of mapa.values()) lista.sort((a, b) => chave(a).localeCompare(chave(b)) || a.titulo.localeCompare(b.titulo));
+  return mapa;
+}
+
+/** Último dia de um compromisso do Google (item 190). O que termina à meia-noite em ponto não ocupa o dia seguinte. */
+const ultimoDia = (e: EventoAgenda) => {
+  const f = e.fim ?? e.inicio;
+  return !e.diaInteiro && f.endsWith("T00:00") && f.slice(0, 10) > e.inicio.slice(0, 10) ? somarDias(f.slice(0, 10), -1) : f.slice(0, 10);
+};
+/** Compromisso que vai para a faixa de dia inteiro: o de dia inteiro e o que tem hora e passa para outro dia (como a tarefa). */
+export const eventoNoTopo = (e: EventoAgenda) => e.diaInteiro || ultimoDia(e) > e.inicio.slice(0, 10);
+/** Compromissos do Google por dia (um de vários dias entra em cada um), na ordem do banco (início). */
+export function agendaPorDia(eventos: EventoAgenda[]) {
+  const mapa = new Map<string, EventoAgenda[]>();
+  for (const e of eventos) for (let d = e.inicio.slice(0, 10); d <= ultimoDia(e); d = somarDias(d, 1)) mapa.set(d, [...(mapa.get(d) ?? []), e]);
   return mapa;
 }
 

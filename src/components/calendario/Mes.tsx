@@ -1,13 +1,16 @@
 "use client";
 import type { CSSProperties } from "react";
-import type { Tarefa } from "@/lib/dados";
+import type { EventoAgenda, Tarefa } from "@/lib/dados";
+import { Compromisso } from "./Compromisso";
 import { CriarAqui, Evento, useSoltar, type Acoes } from "./Evento";
-import { diasDoMes, nomeMes, nomeSemana } from "./logica";
+import { diasDoMes, eventoNoTopo, nomeMes, nomeSemana, variosDias } from "./logica";
 
-// Visão MÊS: uma célula por dia, até 3 tarefas e "+N" para o resto (leva ao dia).
+// Visão MÊS: uma célula por dia, até 3 itens (tarefas e compromissos do Google, por hora) e "+N" para o resto (leva ao dia).
 const CABEM = 3;
 
-export function Mes({ cursor, mapa, hoje, acoes }: { cursor: string; mapa: Map<string, Tarefa[]>; hoje: string; acoes: Acoes }) {
+type Props = { cursor: string; mapa: Map<string, Tarefa[]>; agenda: Map<string, EventoAgenda[]>; hoje: string; acoes: Acoes };
+
+export function Mes({ cursor, mapa, agenda, hoje, acoes }: Props) {
   const dias = diasDoMes(cursor);
   const mes = cursor.slice(0, 7);
   const { marcado, alvo } = useSoltar(acoes.soltar);
@@ -15,7 +18,11 @@ export function Mes({ cursor, mapa, hoje, acoes }: { cursor: string; mapa: Map<s
     <div className="mes" style={{ "--semanas": dias.length / 7 } as CSSProperties}>
       {dias.slice(0, 7).map((d) => <div key={d} className="mes-semana">{nomeSemana(d)}</div>)}
       {dias.map((dia) => {
-        const lista = mapa.get(dia) ?? [];
+        // dia inteiro primeiro, depois por hora; a ordem que cada lista já tinha se mantém (sort estável)
+        const lista = [
+          ...(agenda.get(dia) ?? []).map((e) => ({ k: eventoNoTopo(e) ? "" : e.inicio, el: <Compromisso key={`g-${e.id}`} e={e} modo="chip" /> })),
+          ...(mapa.get(dia) ?? []).map((t) => ({ k: t.diaInteiro || variosDias(t) ? "" : t.inicio!, el: <Evento key={t.id} t={t} modo="chip" abrir={acoes.abrir} /> })),
+        ].sort((a, b) => a.k.localeCompare(b.k));
         const sobra = lista.length - CABEM;
         const n = Number(dia.slice(8, 10));
         return (
@@ -32,7 +39,7 @@ export function Mes({ cursor, mapa, hoje, acoes }: { cursor: string; mapa: Map<s
               {n === 1 ? `1 de ${nomeMes(dia).slice(0, 3).toLowerCase()}` : n}
             </button>
             <CriarAqui destino={{ dia }} criar={acoes.criar} />
-            {lista.slice(0, sobra > 0 ? CABEM - 1 : CABEM).map((t) => <Evento key={t.id} t={t} modo="chip" abrir={acoes.abrir} />)}
+            {lista.slice(0, sobra > 0 ? CABEM - 1 : CABEM).map((x) => x.el)}
             {sobra > 0 && (
               <button type="button" className="mes-mais" onClick={() => acoes.irPara("dia", dia)}>+{sobra + 1} mais</button>
             )}

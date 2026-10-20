@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Tarefa } from "@/lib/dados";
-import { andar, diasCobertos, diasDoMes, esperarFimDoArraste, faixas, inicioSemana, mover, paraDia, tituloPeriodo } from "./logica";
+import type { EventoAgenda, Tarefa } from "@/lib/dados";
+import { agendaPorDia, andar, diasCobertos, eventoNoTopo, diasDoMes, esperarFimDoArraste, faixas, inicioSemana, mover, paraDia, tituloPeriodo } from "./logica";
 
 const base: Tarefa = {
   id: "x", titulo: "Gravar", tipo: "gravacao", empresaId: "beec", responsavel: "matheus",
@@ -54,5 +54,18 @@ describe("calendário", () => {
     parar();
     janela.dispatchEvent(new Event("dragend"));
     expect(vezes).toBe(1);
+  });
+
+  it("compromisso do Google: por dia, dia inteiro no topo, meia-noite em ponto não ocupa o dia seguinte", () => {
+    const ev = (id: string, inicio: string, fim?: string, diaInteiro = false): EventoAgenda => ({ id, titulo: id, inicio, fim, diaInteiro, particular: false, fontes: ["contato"] });
+    const hora = ev("hora", "2026-10-22T14:00", "2026-10-22T15:00");
+    const ateMeiaNoite = ev("23h", "2026-10-22T23:00", "2026-10-23T00:00");
+    const viraDia = ev("vira", "2026-10-22T22:00", "2026-10-23T02:00");
+    const feriado = ev("feriado", "2026-10-22", "2026-10-24", true);
+    const mapa = agendaPorDia([hora, ateMeiaNoite, viraDia, feriado]);
+    expect(mapa.get("2026-10-22")?.map((e) => e.id)).toEqual(["hora", "23h", "vira", "feriado"]);
+    expect(mapa.get("2026-10-23")?.map((e) => e.id)).toEqual(["vira", "feriado"]);
+    expect(mapa.get("2026-10-24")?.map((e) => e.id)).toEqual(["feriado"]);
+    expect([hora, ateMeiaNoite, viraDia, feriado].map(eventoNoTopo)).toEqual([false, false, true, true]);
   });
 });
