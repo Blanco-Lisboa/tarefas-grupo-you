@@ -49,7 +49,7 @@
 
 ## Contrato (o que a Etapa 1 entrega e todo mundo consome)
 
-**Tabela `tarefas`** (colunas novas): `legenda text` (até 2200), `postar_redes text[]` (subconjunto de `{instagram,facebook}`, padrão os dois), `ocasiao_id uuid` (FK `ocasioes`, `on delete set null`).
+**Tabela `tarefas`** (colunas novas): `legenda text` (até 2200), `postar_redes text[]` (subconjunto de `{instagram,facebook}`, padrão os dois), `ocasiao_id uuid` (FK `ocasioes`, `on delete set null`), `capa_quadro_ms int` (quadro do vídeo escolhido como capa do Reels no Instagram, em milissegundos; nulo = primeiro quadro).
 **Tabela `arquivos`** (colunas novas): `drive_id text unique` (arquivo no Drive; aí `caminho` é nulo), `ordem int` (carrossel), `papel text` (`anexo` | `capa`). Regras: exatamente um lugar (`caminho` XOR `drive_id`); vídeo só com `drive_id`; capa é imagem e no máximo 1 por card.
 **Tabela `ocasioes`** (nova): `id, empresa_id, nome, drive_pasta_id, criado_por, created_at`; nome único por empresa (sem diferenciar maiúscula). Leitura: qualquer pessoa logada. Escrita: só a função `drive`.
 **Tabela `drive_pastas`** (nova): `chave text pk` (`raiz` ou `empresa:<id>`), `drive_id text`. Só a função `drive`.
@@ -57,12 +57,14 @@
 **Balde `postagens`** (novo, privado, imagens até 50 MB): cópia de minutos da foto/capa para a Meta baixar. Só a função.
 **Balde `arquivos`**: deixa de aceitar `video/*`.
 
+**Capa do Reels (decisão de 23/10):** Instagram: (a) com capa própria (`arquivos.papel='capa'`) vai a capa (`cover_url`, JPG 9:16 até 8 MB, convertida se PNG); (b) sem capa própria e com `capa_quadro_ms` vai `thumb_offset` (o vídeo não é mexido); (c) sem nada, primeiro quadro. Facebook: sempre o quadro da Meta (capa própria no Facebook fica para DEPOIS, sem chave nova). Post sem capa é aceito.
+
 **RPCs para a tela (`authenticated`):**
 - `postar_agora(p_tarefa uuid)`: só Natham/aprovador, card Postagem em Aprovado. Marca a hora como agora e dispara.
 - `tentar_de_novo(p_tarefa uuid)`: só Natham/aprovador. Volta as redes com erro para a fila e dispara.
 - `pode_mexer_anexos(p_tarefa uuid) returns boolean`: a função `drive` chama com a chave do usuário antes de abrir envio.
 - `pode_apagar_tarefa(p_tarefa uuid) returns boolean`: idem antes de apagar.
-- `salvar_tarefa(p jsonb, p_tags text[])`: passa a aceitar `legenda`, `postar_redes`, `ocasiao_id` (chave ausente = mantém o valor).
+- `salvar_tarefa(p jsonb, p_tags text[])`: passa a aceitar `legenda`, `postar_redes`, `ocasiao_id`, `capa_quadro_ms` (chave ausente = mantém o valor).
 
 **RPCs só para as funções (`service_role`):**
 - `pegar_postagens(p_tarefa uuid) returns setof postagens`: a catraca.
@@ -77,7 +79,7 @@
 
 **Funções no servidor (Edge Functions), todas com `--no-verify-jwt` e checagem própria:**
 - `postar-meta` (Correio): `POST {acao: "postar", tarefa_id}` com `x-tarefas-segredo`. Responde 202 na hora e trabalha em segundo plano (`EdgeRuntime.waitUntil`).
-- `drive` (Vitral): `POST` com `Authorization: Bearer <chave do usuário>` para `sessao_envio`, `confirmar_envio`, `criar_ocasiao`, `renomear_ocasiao`, `apagar_anexo`, `apagar_tarefa`; com `x-tarefas-segredo` só para `limpar`.
+- `drive` (Vitral): `POST` com `Authorization: Bearer <chave do usuário>` para `sessao_envio`, `confirmar_envio`, `link_video`, `criar_ocasiao`, `renomear_ocasiao`, `apagar_anexo`, `apagar_tarefa`; com `x-tarefas-segredo` só para `limpar`; `GET ?ver=<arquivo_id>&ate=<expira>&sig=<hmac>` devolve os bytes do vídeo com suporte a `Range` (para a barrinha de escolher o quadro da capa).
 - `google-autorizar` (Vitral): `GET ?inicio=1` (com a chave do Natham) devolve o endereço do Google; `GET ?code=..&state=..` é a volta do Google.
 - `_shared/google.ts` (Vitral, o Correio consome): `tokenGoogle(): Promise<string>` e `baixarDoDrive(driveId: string): Promise<Response>` (corpo em fluxo, sem carregar na memória).
 
@@ -105,7 +107,10 @@ begin;
 alter table public.tarefas
   add column if not exists legenda text,
   add column if not exists postar_redes text[] not null default '{instagram,facebook}',
-  add column if not exists ocasiao_id uuid;
+  add column if not exists ocasiao_id uuid,
+  add column if not exists capa_quadro_ms int;  -- quadro da capa do Reels no Instagram (thumb_offset); nulo = primeiro quadro
+alter table public.tarefas drop constraint if exists tarefas_capa_quadro_ok;
+alter table public.tarefas add constraint tarefas_capa_quadro_ok check (capa_quadro_ms >= 0);
 alter table public.tarefas drop constraint if exists tarefas_legenda_ok;
 alter table public.tarefas add constraint tarefas_legenda_ok check (char_length(legenda) <= 2200);
 alter table public.tarefas drop constraint if exists tarefas_postar_redes_ok;
@@ -238,7 +243,8 @@ begin
        or new.aprovador is distinct from old.aprovador
        or (old.etapa in ('aprovado', 'postado') and new.etapa in ('aprovado', 'postado') and (
             new.postar_em is distinct from old.postar_em or new.legenda is distinct from old.legenda
-            or new.formato is distinct from old.formato or new.postar_redes is distinct from old.postar_redes)) then
+            or new.formato is distinct from old.formato or new.postar_redes is distinct from old.postar_redes
+            or new.capa_quadro_ms is distinct from old.capa_quadro_ms)) then
       if not (select private.pode_aprovar(old.aprovador)) then
         raise exception 'so o Natham ou o aprovador do card aprova, programa, muda o que vai para a rede ou manda consertar' using errcode = '42501';
       end if;
@@ -254,7 +260,7 @@ begin
   return new;
 end $$;
 
--- 7. salvar_tarefa (015) + legenda, postar_redes, ocasiao_id. Chave ausente no JSON = mantém o valor atual.
+-- 7. salvar_tarefa (015) + legenda, postar_redes, ocasiao_id, capa_quadro_ms. Chave ausente no JSON = mantém o valor atual.
 create or replace function public.salvar_tarefa(p jsonb, p_tags text[] default '{}') returns void
 language plpgsql security invoker set search_path = ''
 as $$
@@ -274,7 +280,8 @@ begin
       conserto = case when p ? 'conserto' then coalesce(r.conserto, false) else t.conserto end,
       legenda = case when p ? 'legenda' then r.legenda else t.legenda end,
       postar_redes = case when p ? 'postar_redes' then coalesce(r.postar_redes, '{instagram,facebook}') else t.postar_redes end,
-      ocasiao_id = case when p ? 'ocasiao_id' then r.ocasiao_id else t.ocasiao_id end
+      ocasiao_id = case when p ? 'ocasiao_id' then r.ocasiao_id else t.ocasiao_id end,
+      capa_quadro_ms = case when p ? 'capa_quadro_ms' then r.capa_quadro_ms else t.capa_quadro_ms end
     where t.id = r.id;
     get diagnostics v_linhas = row_count;
     if v_linhas = 0 then raise exception 'sem permissao para alterar a tarefa'; end if;
@@ -282,10 +289,10 @@ begin
   else
     insert into public.tarefas (id, titulo, tipo, empresa_id, rede, etapa, responsavel_id, inicio, fim, dia_inteiro, cor,
       concluida, objetivo, notas, links, aprovador, dono_id, criado_por, enviada_por, vai_pro_google, postar_em, formato,
-      legenda, postar_redes, ocasiao_id)
+      legenda, postar_redes, ocasiao_id, capa_quadro_ms)
     values (r.id, r.titulo, r.tipo, r.empresa_id, r.rede, r.etapa, r.responsavel_id, r.inicio, r.fim, r.dia_inteiro, r.cor,
       r.concluida, r.objetivo, r.notas, r.links, r.aprovador, r.dono_id, r.criado_por, r.enviada_por, coalesce(r.vai_pro_google, false),
-      r.postar_em, r.formato, r.legenda, coalesce(r.postar_redes, '{instagram,facebook}'), r.ocasiao_id);
+      r.postar_em, r.formato, r.legenda, coalesce(r.postar_redes, '{instagram,facebook}'), r.ocasiao_id, r.capa_quadro_ms);
   end if;
   insert into public.tarefa_tags (tarefa_id, tag_id) select r.id, unnest(p_tags);
 end $$;
@@ -489,6 +496,7 @@ commit;
 
 #### Tarefa V0: provas de conceito (spikes) com Drive falso agora e Drive real na Etapa 5
 - [ ] **S1 · navegador → Drive direto (CORS).** Sessão de envio retomável criada no servidor com o cabeçalho `Origin: <endereço do app>` e `PUT` em partes de 8 MB (múltiplo de 256 KB) feito pelo navegador para o endereço da sessão. Critério: o navegador recebe a resposta final com o `id` do arquivo. Se o Google não devolver CORS: plano B = a função `drive` recebe as partes e repassa (avisar o Maestro: muda o custo de execução).
+- [ ] **S5 · vídeo do Drive tocando por pedaços (Range) pela função `drive`.** Critério: `<video src=linkDeVideo>` toca e pula para qualquer ponto. Se não der: a barrinha só aparece na hora de anexar (arquivo ainda no computador) e o quadro fica gravado; avisar o Maestro.
 - [ ] **S2 · vídeo grande em fluxo.** `baixarDoDrive(id)` devolve o `Response` do `files/{id}?alt=media` sem ler o corpo; repassar o `body` direto para outro `fetch` (sem `arrayBuffer()`). Critério: o maior vídeo real deles passa dentro de 256 MB e 2 s de CPU (ler o uso no log da função). Se não: avisar o Maestro (plano B = n8n faz o transporte do vídeo).
 
 #### Tarefa V1: `supabase/functions/_shared/google.ts` + `google-autorizar`
@@ -509,6 +517,7 @@ Todas as ações com a chave do usuário criam DOIS clientes: um com a chave do 
 #### Tarefa V3: `src/lib/dados/drive.ts` + `Anexos.tsx` + `sincronizarAnexos`
 - [ ] `enviarParaDrive(tarefa, arquivo, papel, ordem, aoProgredir)`: chama `sessao_envio`, envia em partes de 8 MB com `Content-Range`, retoma a parte que falhou (até 3 vezes), chama `confirmar_envio`. Exportado por `@/lib/dados`.
 - [ ] `sincronizarAnexos` (repositorio.ts, trecho do Vitral): card com empresa → Drive para TODO tipo (imagem, vídeo, documento); sem empresa → Supabase como hoje, sem vídeo. Remover anexo do Drive → `apagar_anexo`.
+- [ ] `linkDeVideo(arquivoId): Promise<string>` em `drive.ts`: pede à função `drive` (`link_video`, checa que o usuário vê o card) um endereço assinado de 10 min (`?ver=...&ate=...&sig=...`, HMAC com `tarefas_funcoes_segredo`) que serve o vídeo do Drive com `Range`. Para o `<video>` da barrinha de capa do Sextante. Prova: arrastar a barrinha num vídeo de 300 MB busca só pedaços (ver `Range` no log), sem baixar o arquivo inteiro.
 - [ ] `Anexos.tsx`: vídeo em card sem empresa é recusado com "Escolha a empresa para anexar vídeo"; anexo do Drive abre no player do Drive (`https://drive.google.com/file/d/<id>/preview` num `iframe` dentro do diálogo grande, item 206); barra de progresso no envio; prop `papel="capa"` (aceita 1 imagem) para o Sextante usar no campo Capa; ordem arrastável quando `formato='carrossel'`.
 
 #### Tarefa V4: Ocasião + Pastas
@@ -536,7 +545,7 @@ Todas as ações com a chave do usuário criam DOIS clientes: um com a chave do 
 |---|---|---|
 | post (1 imagem) | `POST /media` `image_url` (JPG, convertido se PNG) + `caption` → `POST /media_publish` | `POST /photos` `url` (original) + `message` |
 | carrossel (2 a 10) | itens `is_carousel_item=true` (imagem: `image_url`; vídeo: ver S3) → `media_type=CAROUSEL` `children` + `caption` → `media_publish` | só imagens: cada uma `POST /photos` `published=false` → `POST /feed` `attached_media` + `message` (com vídeo: o Facebook nem é escolhido, a tela apaga o botão) |
-| reels (1 vídeo) | `POST /media` `media_type=REELS` `upload_type=resumable` `caption` `cover_url` (capa JPG ≤ 8 MB, se houver) → bytes do Drive em fluxo para `RUPLOAD_BASE/ig-api-upload/v26.0/{conteiner}` (`Authorization: OAuth`, `offset: 0`, `file_size`) → `status_code` até `FINISHED` → `media_publish` | `POST /video_reels` `upload_phase=start` → bytes em fluxo para `RUPLOAD_BASE/video-upload/v26.0/{video_id}` → `upload_phase=finish` `video_state=PUBLISHED` `description`. Capa: só se D1 = sim (`POST /{video-id}/thumbnails` `is_preferred=true`) |
+| reels (1 vídeo) | `POST /media` `media_type=REELS` `upload_type=resumable` `caption` + capa: `cover_url` (capa própria, JPG ≤ 8 MB, convertida se PNG) OU `thumb_offset=capa_quadro_ms` (sem capa própria) OU nada (primeiro quadro); nunca os dois → bytes do Drive em fluxo para `RUPLOAD_BASE/ig-api-upload/v26.0/{conteiner}` (`Authorization: OAuth`, `offset: 0`, `file_size`) → `status_code` até `FINISHED` → `media_publish` | `POST /video_reels` `upload_phase=start` → bytes em fluxo para `RUPLOAD_BASE/video-upload/v26.0/{video_id}` → `upload_phase=finish` `video_state=PUBLISHED` `description`. Sem capa própria: sai o quadro da Meta (D1 = depois) |
 | story (1 imagem ou vídeo) | `media_type=STORIES` (imagem: `image_url`; vídeo: retomável como o Reels) → `media_publish` | imagem: `POST /photos` `published=false` → `POST /photo_stories` `photo_id`; vídeo: `POST /video_stories` `upload_phase=start` → rupload → `finish` |
 
 - [ ] **Foto e capa para a Meta:** copia do Drive para o balde `postagens` (converte para JPG se for para o Instagram), gera link assinado de 1 h, apaga o objeto ao terminar (deu certo ou erro).
@@ -558,17 +567,17 @@ Todas as ações com a chave do usuário criam DOIS clientes: um com a chave do 
 ### Sextante · ficha, card e regras de tela
 
 #### Tarefa S1: dados (`tipos.ts`, `repositorio.ts`, `index.ts`)
-- [ ] `Tarefa` ganha `legenda?: string`, `postarRedes: ("instagram" | "facebook")[]`, `ocasiaoId?: string`, `postagens: Postagem[]`; `Arquivo` ganha `driveId?`, `ordem`, `papel`. `Postagem = { rede, status, link?, erro?, postadoEm? }`.
-- [ ] Carregar `postagens` junto das tarefas; salvar `legenda`, `postar_redes`, `ocasiao_id` no `salvar_tarefa`.
+- [ ] `Tarefa` ganha `legenda?: string`, `postarRedes: ("instagram" | "facebook")[]`, `ocasiaoId?: string`, `capaQuadroMs?: number`, `postagens: Postagem[]`; `Arquivo` ganha `driveId?`, `ordem`, `papel`. `Postagem = { rede, status, link?, erro?, postadoEm? }`.
+- [ ] Carregar `postagens` junto das tarefas; salvar `legenda`, `postar_redes`, `ocasiao_id`, `capa_quadro_ms` no `salvar_tarefa`.
 - [ ] Exportar `postarAgora(id)` e `tentarDeNovo(id)` (RPCs).
 - [ ] `podeApagar`: dono/enviou OU (conteúdo e eu ∈ {natham, matheus}). `removerTarefa`: card com algum anexo → função `drive` `apagar_tarefa`; sem anexo → `delete` direto como hoje.
 - [ ] Commit antes do Vitral mexer em `sincronizarAnexos` (avisar o Vitral pelo Maestro).
 
 #### Tarefa S2: ficha (`Ficha.tsx`)
 - [ ] Caixa "Legenda" abaixo do título, contador "0/2200" (só em card de conteúdo).
-- [ ] Campo "Capa" (componente `Anexos` do Vitral com `papel="capa"`) só quando o formato é Reels.
+- [ ] Capa (só quando o formato é Reels), três jeitos: (a) campo "Capa própria" (componente `Anexos` do Vitral com `papel="capa"`, imagem 9:16); (b) sem capa própria: o vídeo do card aparece num `<video>` (endereço de `linkDeVideo` do Vitral) com uma barrinha (`<input type="range">`, passo de 100 ms) para escolher o quadro; o quadro escolhido grava `capa_quadro_ms` e aparece como "Capa: quadro em 0:12,4" com "Voltar ao primeiro quadro" (grava nulo); (c) nada escolhido: "Capa: primeiro quadro". Com capa própria, a barrinha some (a capa própria vence). Aviso pequeno: "No Facebook sai o quadro que a Meta escolher." Post sem capa é aceito (não entra na checagem).
 - [ ] `CampoOcasiao` (Vitral) em card com empresa.
-- [ ] Depois de Aprovado: legenda, formato, anexos e capa só leitura para quem não aprova (o banco já recusa; a tela não oferece).
+- [ ] Depois de Aprovado: legenda, formato, anexos, capa e quadro da capa só leitura para quem não aprova (o banco já recusa; a tela não oferece).
 - [ ] Lixeira (já existe, item 179): passa a aparecer pelo novo `podeApagar`; o "Apagar" chama `removerTarefa` (que leva o Drive junto).
 
 #### Tarefa S3: card da Esteira (`Aprovacao.tsx`)
@@ -621,7 +630,7 @@ Todas as ações com a chave do usuário criam DOIS clientes: um com a chave do 
 | # | O quê | Quando |
 |---|---|---|
 | D0 | Publicar a rodada 193-207 (comando de sempre) | Antes de tudo |
-| D1 | **Capa no Reels do Facebook:** gerar a chave do robô de novo com `pages_read_user_content` + `pages_manage_engagement` e liberar "Atividade da comunidade"? Sim = Facebook com a capa deles; não = a Meta escolhe o quadro | Antes da Etapa 2 (muda a Tarefa C1) |
+| D1 | Capa no Reels do Facebook: **DECIDIDO 23/10, NÃO agora, fica para DEPOIS** (sem gerar chave nova). O Facebook sai com o quadro da Meta | Fechado |
 | D2 | Google: criar o projeto e a autorização no Google Cloud com o nathamsud@gmail.com (guiado), colar `GOOGLE_CLIENT_ID`/`SECRET` nos Secrets, tela de consentimento em "Em produção" | Antes da Etapa 4 (S1/S2 reais) |
 | D3 | E-mail Google do Matheus para compartilhar a pasta "Tarefas · Conteúdos" (o cadastro tem `matheus.germano@assessoriabeec.com.br`: é conta Google?) | Antes da Etapa 4 |
 | D4 | Colar o 019, rodar o deploy guiado, publicar o front, clicar "Ligar Google Drive" | Etapa 4 |

@@ -276,3 +276,12 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
 
 ### Achado ao montar o plano (23/10)
 - A **lixeira no rodapé da ficha JÁ EXISTE** (item 179, canto inferior esquerdo, com confirmação "Apagar / Cancelar"). Ela só aparece para o DONO do card (`podeApagar`: quem criou ou quem enviou). Por isso o Natham não a vê nos cards criados pelo Matheus. O pedido vira: **mostrar a lixeira também ao Natham e ao Matheus em todo card de conteúdo**, e fazer o apagar levar junto os arquivos do Drive.
+
+### Capa do Reels (decisão do Natham, 23/10)
+- **D1 = NÃO agora:** capa própria no Reels do Facebook fica para DEPOIS (sem gerar chave nova). O Facebook sai com o quadro que a Meta escolher.
+- **Instagram:**
+  - (a) com capa própria: vai a capa (JPG 9:16 até 8 MB; convertida se for PNG);
+  - (b) sem capa própria: a ficha mostra o vídeo com uma barrinha para escolher o QUADRO da capa, e o sistema manda o momento escolhido (`thumb_offset`, em milissegundos) para a Meta, sem mexer no vídeo;
+  - (c) sem nada: primeiro quadro.
+- Ele aceita post sem capa.
+- Banco: coluna `tarefas.capa_quadro_ms` (travada depois de Aprovado, como a legenda). Tela: Sextante. Envio: Correio. Vídeo tocando na ficha para a barrinha: Vitral (endereço assinado de 10 min que serve o vídeo do Drive por pedaços).
