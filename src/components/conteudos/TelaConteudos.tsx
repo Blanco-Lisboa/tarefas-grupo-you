@@ -167,6 +167,7 @@ export function TelaConteudos() {
                       {tarefa.rede && <span className="conteudos-rede" title={NOMES.rede[tarefa.rede]}><IconeRede rede={tarefa.rede} tamanho={18} /></span>}
                     </div>
                     {tarefa.tipo !== "outro" && <span className="conteudos-tipo">{NOMES.tipo[tarefa.tipo]}</span>}
+                    {/* Item 166b: título com a barra da etapa; a cor vem de --etapa na coluna. */}
                     <button className="conteudos-titulo" type="button" onClick={() => setAberta(tarefa)}>{tarefa.titulo}</button>
                     {tarefa.objetivo && <p className="conteudos-objetivo">{tarefa.objetivo}</p>}
                     <div className="conteudos-trilha" role="img" aria-label={`Etapa ${ETAPAS.indexOf(tarefa.etapa) + 1} de ${ETAPAS.length}: ${nomes[tarefa.etapa]}`}>
