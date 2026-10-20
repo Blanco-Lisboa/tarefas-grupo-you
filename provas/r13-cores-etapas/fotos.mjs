@@ -15,13 +15,13 @@ for (const [w, h] of [[1903, 900], [1440, 760], [390, 844]]) {
   const ctx = await nav.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2 });
   await ctx.addCookies([{ name: "sb-127-auth-token", value: "base64-" + b64(sessao), domain: "127.0.0.1", path: "/" }]);
   const p = await ctx.newPage();
-  for (const [rota, nome] of [["conteudos", "conteudos"], ["calendario", "calendario"], ["conteudos", "c-cheia"]]) {
+  for (const [rota, nome] of [["modelos/cabecalho-colunas", "cabecalho"]]) {
   const erros = [];
   p.on("pageerror", (e) => erros.push(e.message));
   await p.goto(`http://127.0.0.1:3199/${rota}${nome === "c-cheia" ? "?cheia" : ""}`, { waitUntil: "networkidle" });
   await p.waitForTimeout(800);
   await p.evaluate(() => { if (location.search === "?cheia") { const e = document.createElement("style"); e.textContent = ".conteudos-coluna-topo{background:var(--etapa)!important;border-bottom-width:1px!important}.conteudos-numero,.conteudos-coluna h2,.conteudos-novo{color:#fff!important}"; document.head.append(e); } const d = document.createElement("div"); d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;left:4px;bottom:4px;z-index:2147483647;background:#000;color:#fff;font:700 10px monospace;padding:2px 6px"; document.body.append(d); });
-  await p.screenshot({ path: join(PASTA, `${nome === "c-cheia" ? "c-cheia" : "meio-termo-" + nome}-${w}.png`), fullPage: w < 600 });
+  await p.screenshot({ path: join(PASTA, `${nome === "c-cheia" ? "c-cheia" : nome}-${w}.png`), fullPage: true });
   console.log(nome, w, "erros:", erros.length ? erros : "nenhum");
   }
   await ctx.close();

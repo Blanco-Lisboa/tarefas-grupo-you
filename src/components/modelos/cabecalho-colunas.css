@@ -1,0 +1,28 @@
+/* Item 168b: só para a página /modelos/cabecalho-colunas. O cabeçalho de verdade (conteudos.css) não foi tocado. */
+.cab-topo { max-width: 76ch; margin-bottom: var(--s-16); }
+.cab-topo h1 { font-size: var(--t-20); font-weight: 600; }
+.cab-topo p { margin-top: var(--s-8); color: var(--fraco); font-size: var(--t-14); }
+.cab-bloco { margin-bottom: var(--s-24); }
+.cab-bloco h2 { font-size: var(--t-16); font-weight: 600; }
+.cab-bloco > p { margin: var(--s-4) 0 var(--s-8); max-width: 90ch; color: var(--fraco); font-size: var(--t-12); }
+.cab-quadro { padding-bottom: 0; }
+
+/* 1: grafite escuro igual em todas, barra de 4px da etapa, número em tom claro da etapa */
+.cab-1 .conteudos-coluna-topo { --topo-texto: #fff; background: #2B2F36; border-bottom: 4px solid var(--etapa); }
+.cab-1 .conteudos-numero { color: color-mix(in srgb, var(--etapa) 45%, #fff); font-weight: 700; }
+.cab-1 .conteudos-novo:hover { background: rgb(255 255 255 / .16); }
+/* 2: branco, faixa lateral de 5px, nome escuro pesado */
+.cab-2 .conteudos-coluna-topo { --topo-texto: var(--texto); background: var(--sup); border-bottom: 1px solid var(--linha); border-left: 5px solid var(--etapa); border-top-left-radius: var(--raio-c); }
+.cab-2 .conteudos-numero { color: var(--fraco); }
+.cab-2 h2 { font-weight: 800; }
+.cab-2 .conteudos-contagem { background: var(--sup-2); }
+.cab-2 .conteudos-novo:hover { background: var(--sup-2); }
+/* 3: a cor da etapa escurecida e fosca, letra branca */
+.cab-3 .conteudos-coluna-topo { --topo-texto: #fff; background: var(--cab); border-bottom: 1px solid var(--linha); }
+.cab-3 .conteudos-numero { color: rgb(255 255 255 / .85); }
+.cab-3 .conteudos-novo:hover { background: rgb(255 255 255 / .2); }
+/* 4: branco, fio de 4px no topo, contador em pastilha da etapa */
+.cab-4 .conteudos-coluna-topo { --topo-texto: var(--texto); background: var(--sup); border-top: 4px solid var(--etapa); border-bottom: 1px solid var(--linha); }
+.cab-4 .conteudos-numero { color: var(--etapa); font-weight: 700; }
+.cab-4 .conteudos-contagem { background: var(--etapa); color: #fff; }
+.cab-4 .conteudos-novo:hover { background: var(--sup-2); }
