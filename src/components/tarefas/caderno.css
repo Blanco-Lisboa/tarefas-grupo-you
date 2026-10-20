@@ -236,16 +236,6 @@
   .caixa-fx { display: none; }
 }
 
-/* Página de escolha da letra: 3 folhas lado a lado (empilha no celular) */
-.letras-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--app-respiro); align-items: start; }
-.letras-grade .folha { --passo: 36px; --col-hora: 8px; background: var(--sup); border-radius: var(--raio-v); overflow: hidden; box-shadow: var(--sombra); }
-.letras-grade .linha-hora { display: none; }
-.letras-grade .linha { grid-template-columns: minmax(0, 1fr); }
-.letras-grade .folha-linhas::before { display: none; }
-.letras-grade .pag-miolo { overflow: visible; }
-.letras-nome { font: 500 var(--app-t-texto) / 1.4 var(--fonte); color: var(--fraco); margin-bottom: var(--s-8); }
-@media (max-width: 1099px) { .letras-grade { grid-template-columns: minmax(0, 1fr); } }
-
 /* ===== A folha que vira (item 51): camada própria por cima de tudo; quadro a quadro só transform e opacity ===== */
 .fv-camada { position: fixed; inset: 0; z-index: 900; pointer-events: none; }
 .fv-folha { position: absolute; transform-style: preserve-3d; pointer-events: none; }
