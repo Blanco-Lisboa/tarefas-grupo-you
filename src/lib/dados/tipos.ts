@@ -43,6 +43,10 @@ export type Tarefa = {
   tags?: string[];
   /** Quem aprova este conteúdo (nome livre). Só vale com uma tag de aprovação marcada; fica no conteúdo, não na tag. */
   aprovador?: string;
+  /** Data e hora do post (item 195), "AAAA-MM-DDTHH:mm" em Brasília. Só em Aprovado/Postado; o banco passa para Postado quando ela chega. */
+  postarEm?: string;
+  /** Etiqueta "Conserto" (item 195): quem aprova mandou voltar para Edição. Some quando o card sai de Edição. */
+  conserto?: boolean;
   /** Vêm do banco, só leitura. dono = de quem é o caderno; enviadaPor = quem mandou (só se foi enviada). */
   dono?: Responsavel;
   criadoPor?: Responsavel;

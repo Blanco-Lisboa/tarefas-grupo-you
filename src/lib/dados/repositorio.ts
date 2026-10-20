@@ -8,7 +8,7 @@ type LinhaTarefa = {
   id: string; titulo: string; tipo: Tarefa["tipo"]; empresa_id: string | null; rede: Tarefa["rede"] | null; etapa: Tarefa["etapa"] | null;
   responsavel_id: string; inicio: string | null; fim: string | null; dia_inteiro: boolean; cor: Tarefa["cor"]; concluida: boolean;
   objetivo: string | null; notas: string | null; links: Tarefa["links"]; aprovador: string | null;
-  dono_id: string; criado_por: string; enviada_por: string | null; vai_pro_google?: boolean;
+  dono_id: string; criado_por: string; enviada_por: string | null; vai_pro_google?: boolean; postar_em?: string | null; conserto?: boolean;
   tarefa_tags?: { tag_id: string }[];
 };
 type Pessoa = { id: string; slug: Responsavel; user_id: string | null };
@@ -60,6 +60,7 @@ export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem:
     cor: l.cor, concluida: l.concluida || undefined, objetivo: l.objetivo ?? undefined, notas: l.notas ?? undefined,
     links: l.links ?? [], arquivos, tags: ids?.length ? ids : undefined, aprovador: l.aprovador ?? undefined,
     dono: quem(l.dono_id), criadoPor: quem(l.criado_por), enviadaPor: quem(l.enviada_por), vaiProGoogle: l.vai_pro_google || undefined,
+    postarEm: l.postar_em ?? undefined, conserto: l.conserto || undefined,
   };
 }
 
@@ -119,7 +120,9 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   const dono = antes?.dono ?? nova.enviarPara ?? eu ?? undefined;
   const { enviarPara: _enviarPara, ...resto } = nova;
   void _enviarPara;
-  const tarefa: Tarefa = { ...resto, id, dono, criadoPor: antes?.criadoPor ?? eu ?? undefined, enviadaPor: antes ? antes.enviadaPor : dono !== eu ? eu ?? undefined : undefined };
+  // O gatilho do 015 faz o mesmo no banco: Conserto só em Edição, data do post só em Aprovado/Postado.
+  const tarefa: Tarefa = { ...resto, conserto: resto.etapa === "edicao" && resto.conserto ? true : undefined,
+    postarEm: resto.etapa === "aprovado" || resto.etapa === "postado" ? resto.postarEm : undefined, id, dono, criadoPor: antes?.criadoPor ?? eu ?? undefined, enviadaPor: antes ? antes.enviadaPor : dono !== eu ? eu ?? undefined : undefined };
   if (!eu || !dono) { falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham."); return tarefa; }
   if (antes && !podeAlterar(antes, eu)) { falhou(soLeitura); return antes; } // trava na origem: nenhuma tela mexe em tarefa só de leitura
   tarefas = antes ? tarefas.map((t) => (t.id === id ? tarefa : t)) : [...tarefas, tarefa];
@@ -127,7 +130,7 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   try {
     const sb = supabase();
     const campos = paraBanco(tarefa, idDe(tarefa.responsavel));
-    const linha = { id, ...campos, responsavel_id: campos.responsavel_id ?? null, dono_id: idDe(dono), criado_por: idDe(eu), enviada_por: dono !== eu ? idDe(eu) : null,
+    const linha = { id, ...campos, postar_em: tarefa.postarEm ?? null, conserto: !!tarefa.conserto, responsavel_id: campos.responsavel_id ?? null, dono_id: idDe(dono), criado_por: idDe(eu), enviada_por: dono !== eu ? idDe(eu) : null,
       // só vai quando é verdade: antes do 010 a coluna não existe e mandar `false` derrubaria o salvar de toda tarefa do Caderno
       ...(tarefa.vaiProGoogle ? { vai_pro_google: true } : {}) };
     // Caminho novo: tarefa e tags numa só chamada (007). Se a função ainda não existe no banco, segue pelo caminho antigo.
