@@ -40,16 +40,16 @@ Mesmo modelo da agenda. Projeto Supabase `uruhjlurcxpjhhgvuzwt`. Todas as chamad
   "nome": "video-final.mp4",
   "tipo": "video",
   "tamanho": 83886080,
-  "pasta": ["Postagens", "Beec", "Reels"],
+  "pasta": ["Postagens", "Beec", "Reels"],  // o 3º nível vem do campo formato do card (Reels, Post, Carrossel, Story ou "Sem formato"); use o que vier, não deduza pelo arquivo
   "nome_no_drive": "2026-10-22 Titulo do card.mp4"
 }
 ```
 
-O banco entrega o item e o "reserva" por 5 minutos: se você não confirmar nesse prazo, outro disparo pega de novo. Confirmar duas vezes o mesmo `id` é inofensivo.
+O banco entrega o item e o "reserva" por **30 minutos** (vídeo de até 500 MB demora): se você não confirmar nesse prazo, outro disparo pega de novo; por isso o passo 4.4 procura o arquivo pela propriedade antes de criar. Se o card sair de Postado no meio, o item deixa de existir para o banco: confirmar depois não faz nada (e o arquivo no Drive pode ficar; não apague). Confirmar duas vezes o mesmo `id` é inofensivo.
 
 **4.2 Pasta no Drive:** `pasta` é a lista de níveis, da raiz para dentro: **Postagens → empresa → formato**. Para cada nível, **ache a pasta pelo nome dentro da anterior; se não existir, crie** (nunca crie duplicada: busque por `name = '...' and '<pai>' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`). O primeiro nível ("Postagens") fica na raiz do "Meu Drive" da conta. Os nomes já vêm limpos (sem `/ \ : * ? " < > |`).
 
-**4.3 Baixar do Storage:** crie uma URL assinada e baixe: `POST /storage/v1/object/sign/arquivos/<caminho>` com `{"expiresIn": 600}` e a chave de serviço; a resposta traz `signedURL` (prefixe com `https://uruhjlurcxpjhhgvuzwt.supabase.co/storage/v1`). Arquivos chegam a **500 MB**: configure o n8n para guardar binários em disco (`N8N_DEFAULT_BINARY_DATA_MODE=filesystem`) e use **upload resumível** do Drive (`uploadType=resumable`) em vez de carregar tudo na memória.
+**4.3 Baixar do Storage:** crie uma URL assinada e baixe: `POST /storage/v1/object/sign/arquivos/<caminho>` com `{"expiresIn": 600}` e a chave de serviço; a resposta traz `signedURL` (prefixe com `https://uruhjlurcxpjhhgvuzwt.supabase.co/storage/v1`). Arquivos chegam a **500 MB**. ANTES de montar o fluxo, descubra com o Natham como este n8n executa e guarda binários: o modo `filesystem` (`N8N_DEFAULT_BINARY_DATA_MODE=filesystem`) **não funciona no modo de fila (queue mode)**, e carregar 500 MB na memória derruba o n8n. Se o seu n8n aceita `filesystem` (modo normal), use-o com **upload resumível** do Drive (`uploadType=resumable`). Se não aceita, não passe arquivo grande pelo n8n: processe só arquivos de até 50 MB e, para os maiores, confirme com `p_erro` e `"p_definitivo": true` (texto "arquivo grande demais para o n8n"); ele fica guardado no Storage e o Natham decide o que fazer. Avise o Natham do que descobriu.
 
 **4.4 Subir:** crie o arquivo na pasta do último nível com o nome `nome_no_drive` e **grave nele a propriedade própria `appProperties = {"tarefas_anexo_id": "<id do item>"}`** (no corpo de criação do arquivo). O arquivo do Drive pertence ao anexo por ESSA propriedade, nunca por nome nem por tamanho. Antes de criar, procure (`files.list`, `q = "appProperties has { key='tarefas_anexo_id' and value='<id>' } and trashed = false"`, `fields = "files(id,size,webViewLink)"`): se achar um, é o seu de uma tentativa anterior; reaproveite-o só se o `size` for igual ao `tamanho` do item, senão apague **só esse arquivo seu** (o que tem a propriedade) e envie de novo. Nunca reaproveite arquivo que não tenha a propriedade. Não compartilhe com ninguém, não torne público: o link é só para quem já tem acesso à pasta.
 
@@ -81,7 +81,7 @@ A linha do anexo continua no banco com o `drive_link`: o card passa a mostrar o 
 ## 7. Como saber que deu certo (teste, só depois do Natham aplicar o SQL)
 
 1. O Natham cria um card de teste com 1 imagem pequena, leva a Aprovado e depois a Postado.
-2. A campainha toca; `drive_fila` devolve 1 item com `pasta: ["Postagens", "<empresa>", "Post"]`.
+2. A campainha toca; `drive_fila` devolve 1 item com `pasta: ["Postagens", "<empresa>", "<formato do card>"]`.
 3. O arquivo aparece em Drive: Postagens / empresa / Post, com nome `AAAA-MM-DD Título.ext`.
 4. `drive_confirmar` volta `{"estado":"feito"}`; no card, o anexo mostra o link do Drive.
 5. A limpeza só terá o que apagar 3 dias depois (para testar antes, o Natham muda `postado_em` do card de teste no SQL Editor; você não faz isso).

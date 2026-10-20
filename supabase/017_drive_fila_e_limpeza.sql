@@ -9,7 +9,7 @@ begin;
 --   1) card vai para 'postado'  -> tarefas.postado_em = agora; cada anexo do card (que ainda não foi) entra na fila (arquivos.drive_estado='pendente')
 --      e o banco toca a campainha do n8n (pg_net). Anexo posto num card JÁ postado entra na fila na hora.
 --   2) n8n: drive_fila() devolve os anexos a enviar -> envia -> drive_confirmar(id, file_id, link, pasta) (ou com erro).
---      Erro: volta para a fila em 5 min; na 5ª falha vira 'falhou' (e fica o aviso). Reenfileirar à mão: ver o fim do arquivo.
+--      Erro: volta para a fila em ~5 min; na 5ª falha vira 'falhou' (e fica o aviso). Reserva de quem pegou: 30 min (vídeo de 500 MB demora). Reenfileirar à mão: ver o fim do arquivo.
 --   3) n8n, 1x por dia: drive_limpar_pendentes() devolve os anexos com recibo e postado há 3 dias+ -> o n8n apaga o arquivo do Storage
 --      -> drive_limpeza_confirmar(id) grava removido_em. A linha continua, com o drive_link no lugar do arquivo.
 --      (Apagar de dentro do banco NÃO serve: apagar a linha de storage.objects deixa o arquivo físico para trás. Só a API do Storage apaga de verdade.)
@@ -46,7 +46,8 @@ language plpgsql set search_path = ''
 as $$
 begin
   if new.etapa = 'postado' then
-    if tg_op = 'INSERT' or old.etapa is distinct from 'postado' then new.postado_em := now(); else new.postado_em := old.postado_em; end if;  -- a pessoa não muda a data: vale a do banco
+    if tg_op = 'INSERT' or old.etapa is distinct from 'postado' then new.postado_em := now();
+    else new.postado_em := coalesce(old.postado_em, new.postado_em, now()); end if;  -- a pessoa não muda a data: vale a do banco (só preenche card antigo sem data)
   else
     new.postado_em := null;  -- saiu de Postado (voltou atrás): a contagem dos 3 dias zera
   end if;
@@ -54,6 +55,10 @@ begin
 end $$;
 drop trigger if exists tarefas_postado_antes on public.tarefas;
 create trigger tarefas_postado_antes before insert or update on public.tarefas for each row execute function private.tarefas_postado_antes();
+-- Cards que JÁ estão em Postado quando este arquivo entra: ganham postado_em (a última alteração, melhor palpite) e os anexos vão para a fila.
+update public.tarefas set postado_em = updated_at where etapa = 'postado' and postado_em is null;
+update public.arquivos a set drive_estado = 'pendente', drive_na_fila_em = now()
+  from public.tarefas t where t.id = a.tarefa_id and t.etapa = 'postado' and a.drive_estado is null;
 
 -- Toca a campainha do n8n (mesmo molde do 012). Sem segredo no Vault: só um WARNING; a fila espera o despertador.
 create or replace function private.drive_avisar_n8n(p_so_se_travado boolean default false) returns void
@@ -64,7 +69,7 @@ begin
   if p_so_se_travado and not exists (
     select 1 from public.arquivos
     where drive_estado = 'pendente'
-      and ((drive_pegou_em is null and drive_na_fila_em < now() - interval '2 minutes') or (drive_pegou_em < now() - interval '5 minutes'))
+      and ((drive_pegou_em is null and drive_na_fila_em < now() - interval '2 minutes') or (drive_pegou_em < now() - interval '30 minutes'))
   ) then return; end if;
   select decrypted_secret into v_url from vault.decrypted_secrets where name = 'n8n_drive_url';
   select decrypted_secret into v_segredo from vault.decrypted_secrets where name = 'n8n_drive_secret';
@@ -94,6 +99,20 @@ drop trigger if exists tarefas_postado_depois on public.tarefas;
 create trigger tarefas_postado_depois after insert or update of etapa on public.tarefas
   for each row when (new.etapa = 'postado') execute function private.tarefas_postado_depois();
 
+-- Card saiu de Postado (voltou atrás): o que ainda não tinha recibo sai da fila (nada de copiar o que não está mais postado). Recibo 'feito' fica.
+create or replace function private.tarefas_saiu_de_postado() returns trigger
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  update public.arquivos set drive_estado = null, drive_na_fila_em = null, drive_pegou_em = null, drive_tentativas = 0, drive_erro = null, aviso = null
+  where tarefa_id = new.id and drive_estado in ('pendente', 'falhou');
+  return null;
+end $$;
+revoke all on function private.tarefas_saiu_de_postado() from public, anon, authenticated;
+drop trigger if exists tarefas_saiu_de_postado on public.tarefas;
+create trigger tarefas_saiu_de_postado after update of etapa on public.tarefas
+  for each row when (old.etapa = 'postado' and new.etapa is distinct from 'postado') execute function private.tarefas_saiu_de_postado();
+
 -- Anexo novo em card que já está Postado entra direto na fila (o aviso vem pelo despertador, no máximo 5 min).
 create or replace function private.arquivos_antes() returns trigger
 language plpgsql security definer set search_path = ''
@@ -113,8 +132,7 @@ create trigger arquivos_antes before insert on public.arquivos for each row exec
 --   id, caminho (no balde "arquivos"), nome (original), tipo, tamanho,
 --   pasta: ["Postagens", <empresa>, <formato>]   (o n8n acha ou cria cada nível; a conta é a da contato@)
 --   nome_no_drive: "2026-10-22 Titulo do card.mp4" (data do post + título; com mais de um anexo no card: "... (2).jpg")
--- Formato (ponytail: o card ainda não tem campo "formato"; vem do que foi anexado): algum vídeo = Reels; 2+ imagens = Carrossel;
--- 1 imagem = Post; só documento = Documentos. Story e outros entram quando o card ganhar o campo.
+-- Formato: vem do campo tarefas.formato (reels, post, carrossel, story; 015). Sem formato = pasta 'Sem formato'.
 create or replace function public.drive_fila(p_limite int default 10) returns jsonb
 language plpgsql security definer set search_path = ''
 as $$
@@ -122,16 +140,14 @@ declare r record; v_lista jsonb := '[]'; v_formato text; v_data text; v_base tex
 begin
   p_limite := least(greatest(coalesce(p_limite, 10), 1), 50);
   for r in
-    select a.id, a.caminho, a.nome, a.tipo, a.tamanho, a.tarefa_id, t.titulo, t.postar_em, t.postado_em, e.nome as empresa
+    select a.id, a.caminho, a.nome, a.tipo, a.tamanho, a.tarefa_id, t.titulo, t.postar_em, t.postado_em, t.formato, e.nome as empresa
     from public.arquivos a
     join public.tarefas t on t.id = a.tarefa_id
     left join public.empresas e on e.id = t.empresa_id
-    where a.drive_estado = 'pendente' and a.removido_em is null and (a.drive_pegou_em is null or a.drive_pegou_em < now() - interval '5 minutes')
+    where a.drive_estado = 'pendente' and a.removido_em is null and (a.drive_pegou_em is null or a.drive_pegou_em < now() - interval '30 minutes')
     order by a.drive_na_fila_em, a.id limit p_limite for update of a skip locked
   loop
-    select case when bool_or(tipo = 'video') then 'Reels' when count(*) filter (where tipo = 'imagem') >= 2 then 'Carrossel'
-                when count(*) filter (where tipo = 'imagem') = 1 then 'Post' else 'Documentos' end
-      into v_formato from public.arquivos where tarefa_id = r.tarefa_id;
+    v_formato := case r.formato when 'reels' then 'Reels' when 'post' then 'Post' when 'carrossel' then 'Carrossel' when 'story' then 'Story' else 'Sem formato' end;
     v_data := coalesce(left(r.postar_em, 10), to_char(r.postado_em at time zone 'America/Sao_Paulo', 'YYYY-MM-DD'));
     v_base := left(btrim(regexp_replace(coalesce(nullif(btrim(r.titulo), ''), 'Sem titulo'), '[\\/:*?"<>|\r\n]+', ' ', 'g')), 120);
     v_ext := coalesce(substring(r.nome from '\.[A-Za-z0-9]{1,8}$'), '');
