@@ -93,6 +93,11 @@ export function agendaPorDia(eventos: EventoAgenda[]) {
   return mapa;
 }
 
+/** Item 192 + Lupa R5-3/R5-5: vai para o Google a tarefa marcada pelo Calendário, COM data, que quem criou fez para si mesmo
+    ou que o Natham criou para alguém. Espelha private.pode_ir_pro_google do 010 (o banco decide; isto só evita prometer na tela). */
+export const vaiProGoogle = (t: Pick<Tarefa, "vaiProGoogle" | "responsavel">, temData: boolean, criador: Tarefa["criadoPor"] | null) =>
+  !!t.vaiProGoogle && temData && !!criador && (t.responsavel === criador || criador === "natham");
+
 /** Nova versão da tarefa depois de arrastada. Mantém a duração quando dá. */
 export function mover(t: Tarefa, destino: Destino): NovaTarefa {
   if (!destino) return { ...t, inicio: undefined, fim: undefined, diaInteiro: false };

@@ -16,11 +16,11 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { ehConteudo } from "@/components/tarefas/grade";
 import {
-  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, limparErro, podeApagar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas,
+  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, limparErro, podeApagar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
   type Etapa, type Etiqueta, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
-import { deTexto, paraHora } from "@/components/calendario/logica";
+import { deTexto, paraHora, vaiProGoogle } from "@/components/calendario/logica";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
@@ -76,6 +76,9 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
   const [enviou, setEnviou] = useState(false);
   useEffect(() => { if (enviou && !erro) aoFechar(); }, [enviou, erro, aoFechar]);
   const nova = !tarefa.id;
+  // Selo do Google (item 192, Lupa R5-5): "Na agenda" só depois que o n8n confirmou; antes, "Indo" se a regra do banco deixa ir.
+  const noGoogle = useTarefasNoGoogle().has(tarefa.id ?? "");
+  const vai = vaiProGoogle(t, !!data, nova ? eu : tarefa.criadoPor);
   const dono = tarefa.dono ?? tarefa.responsavel;
   const fica = !nova && !soLer && !ehConteudo(t) && t.responsavel !== dono ? dono : undefined; // o banco não deixa mudar o dono
   const lixeira = !nova && !soLer && podeApagar({ ...tarefa, id: tarefa.id! }, eu); // vale o que está no banco, não o que foi mudado na ficha
@@ -128,7 +131,7 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
     // Tarefa nova para outra pessoa vai para o caderno dela (achado 2, igual ao Caderno). Conteúdo com empresa todos já veem: fica de quem criou.
     const enviarPara = nova && t.responsavel !== eu && !ehConteudo(t) ? t.responsavel : undefined;
     await salvarTarefa({
-      ...t, ...quando, enviarPara, arquivos, aprovador: pedeAprovador ? t.aprovador : undefined, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
+      ...t, ...quando, enviarPara, arquivos, vaiProGoogle: nova ? vai : tarefa.vaiProGoogle, // só liga na criação e se pode ir (R5-5) aprovador: pedeAprovador ? t.aprovador : undefined, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
     setSalvando(false);
@@ -157,10 +160,10 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
         <header className="ficha-faixa">
           <div className="ficha-faixa-topo">
             <span className="ficha-rotulo"><span className="ficha-cor-marca" aria-hidden />{nova ? "Nova tarefa" : NOMES.tipo[t.tipo]}
-              {t.vaiProGoogle && (
-                <span className="ficha-google">
+              {(noGoogle || vai) && (
+                <span className={`ficha-google${noGoogle ? "" : " ficha-google-indo"}`}>
                   <svg viewBox="0 0 24 24" aria-hidden><rect x="3.5" y="5" width="17" height="15.5" rx="3" /><path d="M3.5 10h17M8 3v4M16 3v4" /></svg>
-                  Na agenda do Google
+                  {noGoogle ? "Na agenda do Google" : "Indo para o Google"}
                 </span>
               )}
             </span>

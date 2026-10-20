@@ -11,6 +11,7 @@
 .ficha-rotulo { display: inline-flex; align-items: center; gap: var(--s-8); color: var(--fraco); font-size: var(--t-12); font-weight: 600; }
 /* Item 192: tarefa criada pelo Calendário vai para a agenda do Google. Discreto, cantos de 8px, nada em pílula. */
 .ficha-google { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 8px; background: var(--fundo); color: var(--fraco); font-weight: 500; white-space: nowrap; }
+.ficha-google-indo { background: none; box-shadow: inset 0 0 0 1px var(--linha); opacity: 0.8; } /* ainda não confirmada no Google (R5-5) */
 .ficha-google svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 .ficha-cor-marca { width: 10px; height: 10px; border-radius: 50%; background: var(--etiqueta-atual); }
 .ficha-fechar { min-height: 32px; padding: 4px 10px; border: 1px solid var(--borda); border-radius: var(--raio-b); background: var(--vidro); color: var(--texto); font: 500 var(--t-12) var(--fonte); cursor: pointer; }

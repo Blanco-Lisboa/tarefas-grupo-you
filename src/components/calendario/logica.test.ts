@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { agendaPorDia, andar, diasCobertos, eventoNoTopo, ultimoDia, diasDoMes, esperarFimDoArraste, faixas, inicioSemana, mover, paraDia, tituloPeriodo } from "./logica";
+import { agendaPorDia, andar, diasCobertos, eventoNoTopo, ultimoDia, diasDoMes, esperarFimDoArraste, faixas, inicioSemana, mover, paraDia, tituloPeriodo, vaiProGoogle } from "./logica";
 
 const base: Tarefa = {
   id: "x", titulo: "Gravar", tipo: "gravacao", empresaId: "beec", responsavel: "matheus",
@@ -68,5 +68,16 @@ describe("calendário", () => {
     expect(mapa.get("2026-10-24")?.map((e) => e.id)).toEqual(["feriado"]);
     expect([hora, ateMeiaNoite, viraDia, feriado].map(eventoNoTopo)).toEqual([false, false, true, true]);
     expect([hora, ateMeiaNoite, viraDia, feriado].map(ultimoDia)).toEqual(["2026-10-22", "2026-10-22", "2026-10-23", "2026-10-24"]);
+  });
+
+  it("vai para o Google: marcada, com data, e para si mesmo ou criada pelo Natham (R5-3, R5-5)", () => {
+    const m = (responsavel: Tarefa["responsavel"], marcada = true) => ({ vaiProGoogle: marcada, responsavel });
+    expect(vaiProGoogle(m("natham"), true, "natham")).toBe(true);
+    expect(vaiProGoogle(m("matheus"), true, "natham")).toBe(true); // Natham cria para alguém
+    expect(vaiProGoogle(m("matheus"), true, "matheus")).toBe(true); // para si mesmo
+    expect(vaiProGoogle(m("natham"), true, "matheus")).toBe(false); // Matheus cria para o Natham: não vai
+    expect(vaiProGoogle(m("natham"), false, "natham")).toBe(false); // sem data
+    expect(vaiProGoogle(m("natham", false), true, "natham")).toBe(false); // criada no Caderno
+    expect(vaiProGoogle(m("natham"), true, null)).toBe(false);
   });
 });
