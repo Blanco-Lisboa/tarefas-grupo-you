@@ -6,7 +6,7 @@ import { Ficha, NOMES, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
-import { ETAPAS, salvarTarefa, useEmpresas, useEu, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { ETAPAS, salvarTarefa, useEmpresas, useEu, useFazendo, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { diasDeAtraso } from "@/lib/atraso";
@@ -47,6 +47,7 @@ export function TelaConteudos() {
   const eu = useEu();
   const empresas = useEmpresas();
   const tags = useTags();
+  const fazendo = useFazendo();
   const { aplicar } = useFiltroEmpresa();
   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
   const [arraste, setArraste] = useState<Arraste | null>(null);
@@ -149,8 +150,9 @@ export function TelaConteudos() {
                   const levantado = arraste?.id === tarefa.id ? arraste : null;
                   const falta = prazo(tarefa, hoje);
                   const drive = linkDrive(tarefa);
+                  const quemFazAgora = fazendo[tarefa.id]?.quem;
                   return (
-                  <div className="conteudos-cartao-sombra" data-vazio={!!levantado} style={levantado ? { height: levantado.h } : undefined} key={tarefa.id}>
+                  <div className="conteudos-cartao-sombra" data-vazio={!!levantado} data-fazendo={!!quemFazAgora} style={levantado ? { height: levantado.h } : undefined} key={tarefa.id}>
                   <article
                     className="conteudos-cartao"
                     data-arrastando={!!levantado}
@@ -160,6 +162,11 @@ export function TelaConteudos() {
                     onPointerUp={(evento) => soltar(evento)}
                     onPointerCancel={(evento) => soltar(evento, true)}
                   >
+                    {quemFazAgora && (
+                      <span className="conteudos-fazendo" role="status" aria-label={`${NOMES.responsavel[quemFazAgora]} está fazendo agora`} title={`${NOMES.responsavel[quemFazAgora]} está fazendo agora`}>
+                        <Pessoa quem={quemFazAgora} tamanho={26} />
+                      </span>
+                    )}
                     {/* Card do conteúdo (item 156): de quem é e onde sai, o quê, para quê, em que etapa está, quem faz e quando */}
                     <div className="conteudos-cartao-topo">
                       <span className="conteudos-empresa" style={{ "--marca": tomDaEmpresa(tarefa.empresaId).r } as CSSProperties}>
