@@ -6,10 +6,10 @@
   display: inline-flex; align-items: center; gap: var(--s-8); flex: none;
   height: var(--app-controle); padding: 0 var(--s-12) 0 14px;
   font: 500 var(--t-14) / 1 var(--fonte); color: var(--texto); white-space: nowrap;
-  background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-b); box-shadow: var(--sombra); cursor: pointer;
+  background: var(--vidro); border: 1px solid var(--linha); border-radius: var(--raio-b); box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 10px -6px rgb(0 0 0 / 0.14); cursor: pointer; /* contorno fino e sombra curta: opção 2 do item 158, escolhida no 165 */
   transition: background-color var(--dur-rapida) var(--curva), border-color var(--dur-rapida) var(--curva);
 }
-.selecao-botao:hover, .selecao-botao:has(+ .selecao-pop:popover-open) { background: var(--sup); border-color: var(--sup); }
+.selecao-botao:hover, .selecao-botao:has(+ .selecao-pop:popover-open) { background: var(--sup); }
 .selecao-seta {
   width: 16px; height: 16px; flex: none; fill: none; stroke: var(--fraco); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
   transition: transform var(--dur) var(--curva);
