@@ -74,7 +74,7 @@ export function criarTrabalho(d: Deps) {
       let r: Resultado;
       try {
         if (!token) throw new ErroLocal("Falta a chave da Meta no servidor (Secrets).");
-        if (l.rodadas > RODADAS_MAX) throw new ErroLocal("A postagem travou: a Meta não terminou de processar ou a função caiu várias vezes. Confira o perfil antes de tentar de novo.");
+        if (l.rodadas > RODADAS_MAX) throw new ErroLocal("Estado incerto: a postagem travou (a Meta não terminou de processar ou a função caiu várias vezes). Confira a rede antes de tentar de novo.");
         const c: Ctx = {
           meta, banco, card, arqs, linha: l, verdade: d.env("POSTAR_DE_VERDADE") === "sim", igId, pageId, prazo, agora, dormir,
           baixarDrive: d.baixarDrive, paraJpg: d.paraJpg, tokenPagina, copias, log: logRede,

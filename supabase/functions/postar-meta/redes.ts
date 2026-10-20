@@ -149,7 +149,7 @@ export async function instagram(c: Ctx): Promise<Resultado> {
 
 // ---------------- Facebook ----------------
 
-const INCERTO_FB = "Não dá para saber se saiu no Facebook (a postagem caiu no meio). Confira a página; se não saiu, use Tentar de novo.";
+const INCERTO_FB = "Estado incerto: não dá para saber se saiu no Facebook (a postagem caiu no meio). Confira a página; se não saiu, use Tentar de novo.";
 type FbStatus = { video_status?: string; uploading_phase?: { status?: string }; processing_phase?: { status?: string }; publishing_phase?: { status?: string } };
 
 /** Vídeo já no Facebook: publica UMA vez (marca "video-pub" antes de pedir) e acompanha até sair. */
