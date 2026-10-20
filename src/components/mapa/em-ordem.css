@@ -1,6 +1,6 @@
 /* Mapa, formato Fila (itens 113 a 116): um card por dia. Névoa: superfície branca lisa, azul só no que é urgente ou clicável. */
-.mapa-formato { grid-column: 1 / -1; justify-self: start; display: flex; gap: var(--s-4); padding: var(--s-4); max-width: 100%; border-radius: var(--raio-pilula); background: var(--realce); overflow-x: auto; }
-.mapa-formato button { flex: none; height: 32px; padding: 0 var(--s-16); border: 0; border-radius: var(--raio-pilula); background: transparent; color: var(--fraco); font: inherit; font-size: var(--t-14); font-weight: 600; cursor: pointer; }
+.mapa-formato { grid-column: 1 / -1; justify-self: start; display: flex; gap: var(--s-4); padding: var(--s-4); max-width: 100%; border-radius: var(--raio-b); background: var(--realce); overflow-x: auto; }
+.mapa-formato button { flex: none; height: 32px; padding: 0 var(--s-16); border: 0; border-radius: var(--raio-b); background: transparent; color: var(--fraco); font: inherit; font-size: var(--t-14); font-weight: 600; cursor: pointer; }
 .mapa-formato button:hover { color: var(--texto); }
 .mapa-formato button[aria-pressed="true"] { background: var(--sup); color: var(--texto); box-shadow: 0 1px 2px rgb(0 0 0 / 0.1); }
 
@@ -9,7 +9,7 @@
 .eo-marcas { display: inline-flex; align-items: center; gap: var(--s-8); min-width: 0; }
 .eo-prazo { flex: none; font-size: 12px; font-weight: 600; color: var(--fraco); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .eo-prazo[data-urgente="true"] { color: var(--atrasado); }
-.eo-passo { flex: none; padding: 3px 10px; border-radius: var(--raio-pilula); background: var(--azul-claro); color: var(--azul); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; }
+.eo-passo { flex: none; padding: 3px 10px; border-radius: var(--raio-b); background: var(--azul-claro); color: var(--azul); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; }
 .eo-titulo { min-width: 0; font-size: 15px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; color: var(--texto); }
 
 .eo-fila { display: flex; flex-direction: column; gap: var(--s-12); }
