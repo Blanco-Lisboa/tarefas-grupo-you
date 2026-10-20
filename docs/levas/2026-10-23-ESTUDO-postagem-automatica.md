@@ -173,3 +173,26 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
 **O que é da sua parte, além das respostas:** subir o limite do Storage (pergunta 6), dar o clique de autorização do Google do 203, colar o 019 no SQL Editor, dar o OK por escrito para subir o funcionário e aprovar o primeiro post. **O lado da Meta (app, robô, chave e permissões) já está pronto e não precisa de nada seu.**
 
 **O que dá para fazer já, sem você:** escrever o 019 (sem aplicar), o funcionário com a Meta falsa e a tela com o banco falso. Ou seja, os Passos 1 a 4 inteiros. Só o Passo 5 espera o 203, e só o Passo 6 espera você.
+
+---
+
+## (g) Respostas do Natham (23/10)
+
+**Estado:** NADA construído. Aguardando ele fechar as decisões ("decidir tudo antes").
+
+- **Despertador:** NÃO quer relógio tocando a cada minuto procurando card ("não quero gastar execuções atoa"). Quer que acione só quando ele mandar: Programar ou Postar agora.
+  - Proposta do Maestro (em aberto): ao clicar Programar, o banco cria UM alarme de uso único para aquele horário (pg_cron com data exata, que se apaga depois de rodar). O cron de todo minuto `tarefas_postar_vencidos` sai. Vídeo só ganha mais 2 ou 3 conferências curtas logo após a entrega.
+- **Vídeo sempre na MÁXIMA qualidade:** o sistema nunca recomprime; manda o arquivo original.
+- **1 · Instagram + Facebook acesos:** SIM.
+- **2 · Legenda:** SIM, "ele gera e eu posso editar". O Maestro entendeu "ele" = Matheus; **confirmar se não é IA**.
+- **3 · Aviso de erro:** WhatsApp.
+- **4 · Postar agora:** SIM, com botão de confirmar.
+- **5 · PNG:** ele quer aceitar PNG. Proposta: aceita PNG e converte para JPG na qualidade máxima só na hora de mandar ao Instagram (o app do Instagram já faz isso hoje); o Facebook recebe o PNG original.
+- **6 · Vídeo:** no DRIVE, como no 203 (pastas no Drive), NÃO no Supabase, por limite de armazenamento. Proposta: o vídeo vai do Drive direto para a Meta pelo envio em partes (resumable), sem cópia no Supabase, e o limite de 500 MB deixa de ser necessário. Foto pequena pode usar cópia de minutos.
+- **7 · Story:** Instagram E Facebook.
+- **8 · Tentar 1 vez sozinho:** SIM.
+- **9 · Primeiro post:** testar na prática depois de pronto. A trava continua: foto e legenda aprovadas por ele antes.
+
+**Observações do Sextante para o desenho (não são decisão):**
+- O pg_cron instalado (1.6.4) não tem "rodar uma vez numa data". O alarme único se faz com a expressão do minuto, hora, dia e mês exatos, e o próprio trabalho se desagenda ao rodar. Reprogramar = trocar o alarme pelo mesmo nome; desaprovar ou arrastar o card = apagar o alarme. As 2 ou 3 conferências do vídeo podem ser alarmes únicos encadeados do mesmo jeito.
+- Converter PNG para JPG dentro da função do servidor exige uma biblioteca em JavaScript puro (as nativas, como sharp, não rodam lá) e cabe no limite de 2 s de processamento só para imagens de tamanho normal. Provar com o maior PNG real antes de fechar.
