@@ -46,7 +46,7 @@ type Props = {
 export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, acoes, aoExcluir }: Props) {
   const uid = useId();
   const pop = useRef<HTMLDivElement>(null);
-  const [vista, setVista] = useState<"menu" | "hora" | "criar" | "pessoa" | "empresa">("menu");
+  const [vista, setVista] = useState<"menu" | "hora" | "criar" | "pessoa" | "empresa" | "excluir">("menu");
   const ancora = `--menu-${uid.replace(/[^\w-]/g, "")}`;
   const feito = (f: () => void) => () => { f(); pop.current?.hidePopover(); };
   const pessoas = (aoEscolher: (q: Responsavel) => void, marcada?: Responsavel) => (
@@ -108,7 +108,7 @@ export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, 
                 ))}
               </div>
               <hr className="mt-sep" />
-              <button type="button" className="selecao-opcao mt-perigo" onClick={feito(aoExcluir)}>
+              <button type="button" className="selecao-opcao mt-perigo" onClick={() => setVista("excluir")}>
                 <Icone><path d="M4 6h12M8 6V4h4v2M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4" /></Icone>
                 <span className="selecao-opcao-rotulo">Excluir</span>
               </button>
@@ -122,7 +122,18 @@ export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, 
               </div>
             </>
           )}
-          {vista === "criar" && pessoas((q) => acoes.criarPara(id, q))}
+          {vista === "excluir" && (
+            <>
+              <p className="mt-pergunta">Apagar esta tarefa? Ela some do calendário também.</p>
+              <button type="button" className="selecao-opcao mt-perigo" onClick={feito(aoExcluir)}>
+                <span className="selecao-opcao-rotulo">Apagar</span>
+              </button>
+              <button type="button" className="selecao-opcao" autoFocus onClick={() => setVista("menu")}>
+                <span className="selecao-opcao-rotulo">Manter</span>
+              </button>
+            </>
+          )}
+          {vista === "criar" &&pessoas((q) => acoes.criarPara(id, q))}
           {vista === "empresa" && (
             <>
               <button type="button" className="selecao-opcao mt-voltar" onClick={() => setVista("menu")}>‹ Voltar</button>

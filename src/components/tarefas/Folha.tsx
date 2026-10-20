@@ -171,7 +171,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
                   <button type="button" className="confirmar-nao" autoFocus onClick={() => setConfirmando(null)}>Manter</button>
                 </span>
               ) : acoes ? (
-                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} acoes={acoes} aoExcluir={() => setConfirmando(l.id)} />
+                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} acoes={acoes} aoExcluir={() => aoApagar(l.id)} />
               ) : (
                 <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => setConfirmando(l.id)}>
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>
