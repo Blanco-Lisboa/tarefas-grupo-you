@@ -3,7 +3,7 @@
 // Marcas em `conteiner_id`: "<id>" contêiner do Instagram; "filhos:<a>,<b>" itens do carrossel ainda processando;
 // "fotos:<a>,<b>" fotos do Facebook subidas sem publicar; "video:<id>" vídeo no Facebook sem publicar; "video-pub:<id>" já pedimos para publicar.
 import type { Arq, Banco, Card, Linha } from "./banco.ts";
-import { ErroIncerto, ErroLocal, ErroMeta, type Meta } from "./meta.ts";
+import { ErroDescartado, ErroIncerto, ErroLocal, ErroMeta, type Meta } from "./meta.ts";
 
 export const ESPERA = 15_000;
 
@@ -88,7 +88,7 @@ async function esperarIg(c: Ctx, ids: string[], umaVez = false): Promise<"pronto
     const ruim = st.find((s) => s.status_code === "ERROR" || s.status_code === "EXPIRED");
     if (ruim) {
       const sub = Number(/\b(2\d{6})\b/.exec(ruim.status ?? "")?.[1] ?? 0);
-      throw new ErroMeta(200, 0, sub, ruim.status_code === "EXPIRED" ? "o rascunho na Meta venceu (24 h)" : "a Meta não conseguiu processar o arquivo");
+      throw new ErroDescartado(200, 0, sub, ruim.status_code === "EXPIRED" ? "o rascunho na Meta venceu (24 h)" : "a Meta não conseguiu processar o arquivo");
     }
     if (st.every((s) => s.status_code === "PUBLISHED")) return "publicado";
     if (st.every((s) => s.status_code === "FINISHED" || s.status_code === "PUBLISHED")) return "pronto";
@@ -161,10 +161,10 @@ async function videoFb(c: Ctx, vid: string, pedido: boolean, token: string): Pro
     if (pub === "complete") return { fim: "postado", post_id: vid, link: `https://www.facebook.com/${ponto === "video_reels" ? `reel/${vid}` : vid}` };
     if ([s.video_status, s.uploading_phase?.status, s.processing_phase?.status, pub].includes("error")) {
       if (pedido) throw new ErroIncerto(`${INCERTO_FB} (a Meta acusou erro no vídeo)`);
-      throw new ErroMeta(200, 0, 0, "a Meta não conseguiu processar o vídeo");
+      throw new ErroDescartado(200, 0, 0, "a Meta não conseguiu processar o vídeo");
     }
     if (!pedido) {
-      if (s.uploading_phase?.status && s.uploading_phase.status !== "complete") throw new ErroMeta(200, 0, 0, "o envio do vídeo ao Facebook não terminou");
+      if (s.uploading_phase?.status && s.uploading_phase.status !== "complete") throw new ErroDescartado(200, 0, 0, "o envio do vídeo ao Facebook não terminou");
       if (!c.verdade) return { fim: "teste" };
       await c.salvar(`video-pub:${vid}`);
       pedido = true;
@@ -172,7 +172,10 @@ async function videoFb(c: Ctx, vid: string, pedido: boolean, token: string): Pro
         await c.meta.post(`${c.pageId}/${ponto}`, { upload_phase: "finish", video_id: vid, ...(ponto === "video_reels" ? { video_state: "PUBLISHED", description: c.card.legenda ?? "" } : {}) }, token);
         c.log("publicou");
       } catch (e) {
-        if (e instanceof ErroMeta) throw e; // recusa clara: não publicou
+        if (e instanceof ErroMeta) {
+          await c.salvar(`video:${vid}`); // recusa clara: não publicou; a nova tentativa pede de novo o mesmo vídeo
+          throw e;
+        }
         c.log("publicar-sem-resposta");
       }
       continue;
@@ -211,7 +214,7 @@ export async function facebook(c: Ctx): Promise<Resultado> {
     c.log("publicou");
     return { fim: "postado", post_id: r.id, link: `https://www.facebook.com/${r.id}` };
   } catch (e) {
-    if (e instanceof ErroMeta) throw e;
+    if (e instanceof ErroMeta) throw new ErroDescartado(e.http, e.codigo, e.sub, e.message); // recusa clara: não publicou
     throw new ErroIncerto(INCERTO_FB);
   }
 }

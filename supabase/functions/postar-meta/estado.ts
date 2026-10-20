@@ -3,7 +3,7 @@
 // Log: só tarefa, rede, etapa e código. Nunca a chave, nunca o pedido inteiro.
 import { iguais } from "../_shared/google.ts";
 import { criarBanco, type Banco, type Card, type Linha } from "./banco.ts";
-import { criarMeta, ErroLocal, traduzir, VERSAO } from "./meta.ts";
+import { criarMeta, ErroDescartado, ErroIncerto, ErroLocal, traduzir, VERSAO } from "./meta.ts";
 import { facebook, instagram, type Ctx, type Resultado } from "./redes.ts";
 
 type Busca = typeof fetch;
@@ -60,7 +60,11 @@ export function criarTrabalho(d: Deps) {
     const prazo = agora() + PRAZO_MS;
     const banco = criarBanco(d.env, d.fetch);
     const linhas = await banco.pegar(tarefa);
-    if (!linhas.length) return log(null, "nada-a-pegar"); // outra execução já pegou, ou nada venceu
+    if (!linhas.length) {
+      // Nada a pegar: outra execução está nisso, ou tudo já saiu e só faltou mover o card (a mudança para Postado falhou antes).
+      const card = await banco.card(tarefa);
+      return log(null, card && (await concluir(banco, tarefa, card)) ? "card-postado" : "nada-a-pegar");
+    }
     const token = d.env("META_PUBLISHER_TOKEN") ?? "";
     const meta = criarMeta({ base: d.env("META_BASE") ?? `https://graph.facebook.com/${VERSAO}`, rupload: d.env("RUPLOAD_BASE") ?? "https://rupload.facebook.com", token, fetch: d.fetch });
     const [card, arqs] = await Promise.all([banco.card(tarefa), banco.arquivos(tarefa)]);
@@ -87,11 +91,14 @@ export function criarTrabalho(d: Deps) {
       } catch (e) {
         const t = traduzir(e, token);
         logRede("erro", (e as { codigo?: number }).codigo ?? (e instanceof Error ? e.name : "desconhecido"));
+        // O rascunho só sai quando a Meta o descartou ou o Natham vai conferir (estado incerto). Fora isso ele fica, e a retomada
+        // (inclusive o Tentar de novo) confere na Meta antes de publicar: uma falha passageira nunca vira um segundo post.
+        const rascunho = e instanceof ErroDescartado || e instanceof ErroIncerto ? { conteiner_id: null } : {};
         if (t.repetir && l.tentativas < 2) {
-          await banco.gravar(l.id, { status: "fila", erro: null, conteiner_id: null });
+          await banco.gravar(l.id, { status: "fila", erro: null, ...rascunho });
           return "fila";
         }
-        await banco.gravar(l.id, { status: "erro", erro: t.erro, conteiner_id: null });
+        await banco.gravar(l.id, { status: "erro", erro: t.erro, ...rascunho });
         await avisar(banco, card, l, t.erro, tarefa, logRede);
         return "erro";
       }
@@ -118,15 +125,24 @@ export function criarTrabalho(d: Deps) {
       await banco.apagarCopias([...new Set([...copias, ...todas])]).catch(() => log(null, "copias-ficaram"));
     }
     if (fins.includes("postado")) {
-      const redes = await banco.redes(tarefa);
-      if (card.postar_redes.every((r) => redes.some((p) => p.rede === r && p.status === "postado"))) {
-        await banco.moverParaPostado(tarefa); // o banco desarma o alarme e arma a limpeza de 7 dias
-        return log(null, "card-postado");
+      try {
+        if (await concluir(banco, tarefa, card)) return log(null, "card-postado");
+      } catch {
+        log(null, "mover-falhou");
+        return void (await banco.armar(tarefa, 5)); // a próxima chamada não pega linha nenhuma e só move o card
       }
     }
     if (fins.includes("processando")) await banco.armar(tarefa, 5);
     else if (fins.includes("fila")) await banco.armar(tarefa, 10);
     else await banco.desarmar(tarefa);
+  }
+
+  /** Todas as redes do card saíram: move para Postado (o banco desarma o alarme e arma a limpeza de 7 dias). */
+  async function concluir(banco: Banco, tarefa: string, card: Card): Promise<boolean> {
+    const redes = await banco.redes(tarefa);
+    if (!card.postar_redes.every((r) => redes.some((p) => p.rede === r && p.status === "postado"))) return false;
+    await banco.moverParaPostado(tarefa);
+    return true;
   }
 
   /** WhatsApp do Natham via n8n (brief: docs/levas/N8N-AVISO-POSTAGEM-BRIEF.md). Sem endereço cadastrado: só não avisa. */

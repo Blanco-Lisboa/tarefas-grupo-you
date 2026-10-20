@@ -52,6 +52,32 @@ describe("postar-meta: postar", () => {
     expect(pubs(m, "instagram")).toHaveLength(1);
   });
 
+  it("retomada com a Meta fora do ar por um instante: o rascunho fica e NÃO sai um segundo post (achado da Lupa)", async () => {
+    const m = mundo();
+    m.card({ formato: "post", postar_redes: ["instagram"] }, [{ tipo: "imagem", bytes: JPG }]);
+    const chamar = (caminho: string, campos: Record<string, string>) =>
+      m.meta.fetch(`https://meta.falsa/v26.0/${caminho}`, { method: "POST", headers: { authorization: `Bearer ${TOKEN}` }, body: new URLSearchParams(campos) }).then((r: Response) => r.json());
+    const { id } = await chamar("17841445114922887/media", { image_url: "", caption: "Legenda do post" });
+    await chamar("17841445114922887/media_publish", { creation_id: id }); // publicou, e a gravação de "postado" se perdeu
+    m.b.estado.tabelas.postagens.push({ id: "p-instagram", tarefa_id: TAREFA, rede: "instagram", status: "processando", conteiner_id: id, tentativas: 1, rodadas: 1, pego_em: 0 });
+    m.meta.estado.falhasDeRede = 1; // a consulta do contêiner cai
+    await m.trabalhar(TAREFA);
+    expect(m.linha("instagram")).toMatchObject({ status: "fila", conteiner_id: id });
+    await m.trabalhar(TAREFA);
+    expect(m.linha("instagram")?.status).toBe("postado");
+    expect(pubs(m, "instagram")).toHaveLength(1);
+    expect(m.etapa()).toBe("postado");
+  });
+
+  it("tudo saiu mas o card não mudou para Postado: a próxima chamada só move o card", async () => {
+    const m = mundo();
+    m.card({ formato: "post", postar_redes: ["instagram"] }, [{ tipo: "imagem", bytes: JPG }]);
+    m.b.estado.tabelas.postagens.push({ id: "p-instagram", tarefa_id: TAREFA, rede: "instagram", status: "postado", conteiner_id: "1", tentativas: 1, rodadas: 1, pego_em: 0 });
+    await m.trabalhar(TAREFA);
+    expect(m.etapa()).toBe("postado");
+    expect(pubs(m)).toHaveLength(0);
+  });
+
   it("erro: tenta sozinho 1 vez (alarme de 10 min), depois para, avisa e desarma", async () => {
     const m = mundo();
     m.card({ formato: "post", legenda: "ERRO-PNG", postar_redes: ["instagram"] }, [{ tipo: "imagem", bytes: JPG }]);

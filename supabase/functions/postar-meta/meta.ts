@@ -10,6 +10,8 @@ export class ErroMeta extends Error {
     super(mensagem);
   }
 }
+/** A Meta descartou o rascunho (contêiner em ERROR/EXPIRED, vídeo que não processou, publicar recusado): nada saiu, recomeçar do zero é seguro. */
+export class ErroDescartado extends ErroMeta {}
 /** Problema nosso, que nova tentativa não resolve (formato, arquivo faltando). */
 export class ErroLocal extends Error {}
 /** Não dá para saber se publicou (queda no meio do publicar sem como conferir): nunca repetir sozinho. */
