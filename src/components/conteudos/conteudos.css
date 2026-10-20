@@ -54,6 +54,12 @@
 .conteudos-contagem-dias[data-tom="atrasado"] { color: var(--atrasado); }
 .conteudos-drive { margin-left: auto; white-space: nowrap; font-weight: 600; color: var(--azul); text-decoration: none; }
 .conteudos-drive:hover { text-decoration: underline; }
+/* Item 169: a ?rea do quadro ocupa o espa?o livre abaixo do t?tulo; com muitos cards, a p?gina cresce. */
+@media (min-width: 768px) {
+  .casca-conteudo:has(> .conteudos-tela) { display: flex; flex-direction: column; }
+  .conteudos-tela { display: flex; flex: 1 0 auto; flex-direction: column; }
+  .conteudos-quadro { flex: 1 0 auto; }
+}
 @media (max-width: 767px) {
   .conteudos-cabecalho { align-items: start; flex-direction: column; gap: var(--s-12); }
   .conteudos-quadro { grid-template-columns: repeat(6, min(240px, 72vw)); }
