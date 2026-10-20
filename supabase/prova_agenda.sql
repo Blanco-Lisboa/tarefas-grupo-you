@@ -1,4 +1,4 @@
--- PROVA da porta de entrada da agenda (008). Não grava nada: termina com erro de propósito e o banco desfaz tudo.
+-- PROVA da porta de entrada da agenda (008). Vale só com 001 a 008 (formato antigo, uma linha mesclada). Depois do 010 use prova_agenda_privacidade.sql. Não grava nada: termina com erro de propósito e o banco desfaz tudo.
 -- Rodar no projeto Tarefas (uruhjlurcxpjhhgvuzwt) DEPOIS de aplicar o 008. O resultado vem na mensagem "RESULTADO: {...}".
 -- Esperado: ver supabase/prova_agenda.esperado.txt
 do $$

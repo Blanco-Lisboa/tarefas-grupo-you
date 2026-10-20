@@ -193,11 +193,11 @@ Tudo em **America/Sao_Paulo** (Brasília, -03:00). Peça `timeZone=America/Sao_P
 1. **Teste de recusa:** chame a função **sem** a chave. Tem de dar erro (`permission denied`/401). Se aceitar, **pare e avise**: a trava falhou.
 2. **Teste com 1 evento falso**, `p_fonte` `contato`:
    `{"id":"teste-n8n-1","ical_uid":"teste-n8n-1@n8n","titulo":"TESTE n8n (apagar)","inicio":"2027-03-01T10:00:00-03:00","fim":"2027-03-01T11:00:00-03:00"}`
-   Esperado: `gravados: 1`. Peça ao Natham para olhar na tabela `agenda_eventos` do Supabase (uma linha, `fontes = {contato}`).
-3. **Repita a mesma chamada.** Esperado: `gravados: 1` de novo e **continua uma linha só**.
-4. **Apague o teste:** `{"id":"teste-n8n-1","status":"cancelled"}`. Esperado: `removidos: 1`, a linha some.
+   Esperado: `gravados: 1`. Peça ao Natham para olhar na tabela `agenda_copias` do Supabase (uma linha, `fonte = contato`; depois do 010 a `agenda_eventos` é só a lista de leitura).
+3. **Repita a mesma chamada.** Esperado: `gravados: 1` de novo e **continua uma linha só** (a chave é `fonte` + `id`).
+4. **Apague o teste:** `{"id":"teste-n8n-1","status":"cancelled"}`. Esperado: `removidos: 1`, a linha some (cancelar numa agenda só apaga a ficha daquela agenda).
 5. **Leitura real, só da `contato`:** rode a janela inteira (seção 4) e envie. Peça ao Natham para conferir 3 compromissos que ele conhece.
-6. **A "Reunião - Caderno":** ela está na contato@ e na do Natham. Rode a `contato` e depois a `natham`. Esperado: no banco, **uma linha só**, com `fontes = {contato, natham}`.
+6. **A "Reunião - Caderno":** ela está na contato@ e na do Natham. Rode a `contato` e depois a `natham`. Esperado: em `agenda_copias`, **uma linha por agenda** (`fonte = contato` e `fonte = natham`, a ficha de cada uma sozinha); na leitura `agenda_eventos` elas aparecem **juntas, como um evento**, para quem enxerga as duas. Nada muda para o n8n: continue mandando cada agenda com o seu `p_fonte`; quem junta é o banco, na leitura. Compromisso particular: o banco guarda sempre "Ocupado" e sem `local`, mesmo que o `local` venha no corpo.
 7. **Apagar de verdade:** o Natham apaga um compromisso de teste no Google. Em até alguns minutos (ou na varredura) ele deve sumir do banco.
 8. Só então ligue `matheus`. Depois `adrian`, quando o Natham avisar que compartilhou. `lucas` não entra (decisão do Natham, 21/10).
 

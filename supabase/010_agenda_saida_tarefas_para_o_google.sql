@@ -1,5 +1,5 @@
 -- Item 192: VOLTA da agenda. Tarefa COM DATA criada/alterada/apagada no Tarefas vira evento na agenda do Google do RESPONSÁVEL.
--- Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Idempotente. Depende do 001, 002, 003 e 008. NÃO aplicado: o Accept é do Natham.
+-- Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Idempotente. Depende do 001, 002, 003, 006, 008 e 009. NÃO aplicado: o Accept é do Natham.
 --
 -- Analogia: o gatilho é o funcionário do balcão que anota cada mudança numa FILA DE SAÍDA (agenda_saida). O n8n é o motoboy:
 -- a cada 1-2 min pergunta "o que tem pra entregar?" (agenda_saida_pendentes), entrega no Google e avisa "entregue" (agenda_saida_confirmar).
@@ -261,17 +261,74 @@ grant execute on function public.agenda_saida_confirmar(bigint, text, text) to s
 -- a porta de entrada (008) e as funções novas leem/escrevem tabelas fechadas: service_role precisa enxergar o esquema
 grant usage on schema public to service_role;
 
--- 6) Sem loop e sem duplicata: o evento que o Tarefas criou volta a aparecer na leitura do n8n (a agenda é lida de volta). Ele leva
+-- 6) PRIVACIDADE DA AGENDA (Lupa, Re-revisão 4, R4-1). Analogia: antes, a mesma reunião vista por duas agendas era UMA ficha com dois
+--    carimbos, e os detalhes de uma agenda "vazavam" para quem só via a outra. Agora cada agenda guarda a SUA ficha, sozinha
+--    (agenda_copias: uma linha por agenda + evento) e a tela recebe uma lista JUNTA só na hora de ler (a view agenda_eventos):
+--    cada pessoa vê as fichas das agendas que ela enxerga, e "junta" só essas. Matheus nunca recebe nada que veio da agenda do Natham.
+--    Compromisso particular nunca guarda título nem local (o banco recusa: check agenda_copias_particular_ok).
+--    A agenda_eventos de produção está vazia (conferido 20/10: count = 0); se tiver linha, o 010 para e pede migração à mão.
+do $$
+begin
+  if (select relkind from pg_class where oid = to_regclass('public.agenda_eventos')) = 'r' then
+    if exists (select 1 from public.agenda_eventos) then
+      raise exception 'agenda_eventos tem linhas: migrar à mão antes de trocar o formato';
+    end if;
+    drop policy if exists agenda_eventos_le on public.agenda_eventos;
+    drop index if exists public.agenda_eventos_chave_idx, public.agenda_eventos_ids_idx;
+    alter table public.agenda_eventos drop column fontes, drop column ids;  -- leva junto o check agenda_eventos_fontes_ok
+    alter table public.agenda_eventos rename to agenda_copias;
+    alter index if exists public.agenda_eventos_inicio_idx rename to agenda_copias_inicio_idx;
+  end if;
+end $$;
+
+alter table public.agenda_copias
+  add column if not exists fonte text not null,
+  add column if not exists google_id text not null,
+  add column if not exists grupo text generated always as (md5(chave)) stored;  -- o que junta as cópias na leitura, sem expor o iCalUID
+alter table public.agenda_copias drop constraint if exists agenda_copias_fonte_ok;
+alter table public.agenda_copias add constraint agenda_copias_fonte_ok check (fonte in ('natham','matheus','adrian','lucas','contato'));
+alter table public.agenda_copias drop constraint if exists agenda_copias_particular_ok;
+alter table public.agenda_copias add constraint agenda_copias_particular_ok check (not particular or (titulo = 'Ocupado' and local is null));
+create unique index if not exists agenda_copias_fonte_google_idx on public.agenda_copias (fonte, google_id);
+create index if not exists agenda_copias_grupo_idx on public.agenda_copias (grupo);
+
+-- trava de leitura: cada ficha só para quem tem acesso à agenda DELA
+alter table public.agenda_copias enable row level security;
+drop policy if exists agenda_copias_le on public.agenda_copias;
+create policy agenda_copias_le on public.agenda_copias for select to authenticated using (
+  exists (select 1 from public.agenda_acesso a where a.pessoa_id = (select private.minha_pessoa()) and a.fonte = agenda_copias.fonte)
+);
+revoke all on public.agenda_copias from public, anon, authenticated;
+grant select (id, grupo, fonte, titulo, particular, inicio, fim, dia_inteiro, local) on public.agenda_copias to authenticated;  -- sem chave, iCalUID nem id do Google
+
+-- A lista que o app lê (mesmas colunas de sempre: id, fontes, titulo, particular, inicio, fim, dia_inteiro, local).
+-- security_invoker: roda com os direitos de quem lê, então a trava acima já filtra ANTES de juntar; `fontes` só traz agendas que a pessoa vê.
+-- Entre cópias visíveis do mesmo evento, a que tem detalhes vence a particular; só vira "Ocupado" se todas as que ela vê forem particulares.
+-- ponytail: filtros por data agregam depois do agrupamento; com milhares de eventos, trocar por função com janela.
+create or replace view public.agenda_eventos with (security_invoker = true) as
+select (array_agg(id order by particular, fonte))[1] as id,
+       array_agg(distinct fonte order by fonte) as fontes,
+       (array_agg(titulo order by particular, fonte))[1] as titulo,
+       bool_and(particular) as particular,
+       (array_agg(inicio order by particular, fonte))[1] as inicio,
+       (array_agg(fim order by particular, fonte))[1] as fim,
+       (array_agg(dia_inteiro order by particular, fonte))[1] as dia_inteiro,
+       (array_agg(local order by particular, fonte))[1] as local
+from public.agenda_copias group by grupo;
+revoke all on public.agenda_eventos from public, anon, authenticated;
+grant select on public.agenda_eventos to authenticated;
+
+-- 7) Sem loop e sem duplicata: o evento que o Tarefas criou volta a aparecer na leitura do n8n (a agenda é lida de volta). Ele leva
 --    extendedProperties.private.tarefa_id; o n8n manda esse valor como `tarefa_id` e a porta de entrada IGNORA o evento
---    (senão a tarefa apareceria 2x no Calendário: como tarefa e como compromisso). Igual ao 008, mais o desvio `tarefa_id`.
+--    (senão a tarefa apareceria 2x no Calendário: como tarefa e como compromisso). Mesma assinatura do 008; agora grava UMA ficha por agenda.
 create or replace function public.agenda_receber(
   p_fonte text, p_eventos jsonb, p_varredura_de timestamptz default null, p_varredura_ate timestamptz default null
 ) returns jsonb
 language plpgsql security definer set search_path = ''
 as $$
 declare
-  e jsonb; v_id text; v_uid text; v_chave text; v_dia boolean; v_part boolean; v_ini timestamptz; v_fim timestamptz; v_titulo text;
-  v_alvo uuid[]; v_vistos text[] := '{}';
+  e jsonb; v_id text; v_uid text; v_chave text; v_dia boolean; v_part boolean; v_ini timestamptz; v_fim timestamptz;
+  v_vistos text[] := '{}'; n int;
   gravados int := 0; removidos int := 0; varridos int := 0; ignorada boolean := false; ignorados int := 0;
 begin
   if p_fonte is null or p_fonte <> all (array['natham','matheus','adrian','lucas','contato']) then
@@ -290,15 +347,15 @@ begin
     if nullif(btrim(e->>'tarefa_id'), '') is not null then ignorados := ignorados + 1; continue; end if;  -- veio do Tarefas: já é tarefa, não vira compromisso
     v_vistos := v_vistos || v_id;
 
-    if e->>'status' = 'cancelled' then  -- apagado: tira só desta agenda; some de vez quando não sobra nenhuma
-      select coalesce(array_agg(id), '{}') into v_alvo from public.agenda_eventos where ids @> jsonb_build_object(p_fonte, v_id);
-      if cardinality(v_alvo) > 0 then removidos := removidos + private.agenda_tirar_fonte(v_alvo, p_fonte); end if;
+    if e->>'status' = 'cancelled' then  -- apagado: some a ficha desta agenda (as das outras agendas não mudam)
+      delete from public.agenda_copias where fonte = p_fonte and google_id = v_id;
+      get diagnostics n = row_count;
+      removidos := removidos + n;
       continue;
     end if;
 
     v_dia := coalesce((e->>'dia_inteiro')::boolean, false);
     v_part := coalesce((e->>'particular')::boolean, false);
-    v_titulo := case when v_part then 'Ocupado' else coalesce(nullif(btrim(e->>'titulo'), ''), '(Sem título)') end;
     if v_dia then  -- dia inteiro = meia-noite de Brasília (o fim já vem exclusivo, como no Google)
       v_ini := ((e->>'inicio')::date)::timestamp at time zone 'America/Sao_Paulo';
       v_fim := ((coalesce(e->>'fim', e->>'inicio'))::date)::timestamp at time zone 'America/Sao_Paulo';
@@ -310,16 +367,15 @@ begin
     v_uid := nullif(btrim(e->>'ical_uid'), '');
     v_chave := case when v_uid is null then 'id:' || v_id else v_uid || '#' || coalesce(nullif(btrim(e->>'inicio_original'), ''), '') end;
 
-    insert into public.agenda_eventos as a (chave, ical_uid, fontes, ids, titulo, particular, inicio, fim, dia_inteiro, local)
-    values (v_chave, v_uid, array[p_fonte], jsonb_build_object(p_fonte, v_id), v_titulo, v_part, v_ini, v_fim, v_dia, nullif(btrim(e->>'local'), ''))
-    on conflict (chave) do update set
-      fontes = (select array_agg(distinct x order by x) from unnest(a.fontes || p_fonte) x),
-      ids = a.ids || jsonb_build_object(p_fonte, v_id),
-      -- a cópia particular (sem detalhes) nunca troca o título e o local de uma cópia que os tem
-      titulo = case when excluded.particular and not a.particular then a.titulo else excluded.titulo end,
-      local = case when excluded.particular and not a.particular then a.local else excluded.local end,
-      particular = a.particular and excluded.particular,
-      inicio = excluded.inicio, fim = excluded.fim, dia_inteiro = excluded.dia_inteiro, atualizado_em = now();
+    -- a ficha é desta agenda: reescreve tudo. Particular: título "Ocupado" e SEM local, qualquer que seja o que veio (nunca guarda detalhe em claro).
+    insert into public.agenda_copias (fonte, google_id, chave, ical_uid, titulo, particular, inicio, fim, dia_inteiro, local)
+    values (p_fonte, v_id, v_chave, v_uid,
+            case when v_part then 'Ocupado' else coalesce(nullif(btrim(e->>'titulo'), ''), '(Sem título)') end,
+            v_part, v_ini, v_fim, v_dia,
+            case when v_part then null else nullif(btrim(e->>'local'), '') end)
+    on conflict (fonte, google_id) do update set
+      chave = excluded.chave, ical_uid = excluded.ical_uid, titulo = excluded.titulo, particular = excluded.particular,
+      inicio = excluded.inicio, fim = excluded.fim, dia_inteiro = excluded.dia_inteiro, local = excluded.local, atualizado_em = now();
     gravados := gravados + 1;
   end loop;
 
@@ -327,17 +383,29 @@ begin
     if jsonb_array_length(p_eventos) = 0 then
       ignorada := true;
     else
-      select coalesce(array_agg(id), '{}') into v_alvo from public.agenda_eventos
-      where ids ? p_fonte and inicio >= p_varredura_de and inicio < p_varredura_ate and (ids->>p_fonte) <> all (v_vistos);
-      if cardinality(v_alvo) > 0 then varridos := private.agenda_tirar_fonte(v_alvo, p_fonte); end if;
+      delete from public.agenda_copias
+      where fonte = p_fonte and inicio >= p_varredura_de and inicio < p_varredura_ate and google_id <> all (v_vistos);
+      get diagnostics varridos = row_count;
     end if;
   end if;
   return jsonb_build_object('gravados', gravados, 'removidos', removidos, 'varridos', varridos, 'varredura_ignorada', ignorada, 'ignorados', ignorados);
 end $$;
 revoke all on function public.agenda_receber(text, jsonb, timestamptz, timestamptz) from public, anon, authenticated;
 grant execute on function public.agenda_receber(text, jsonb, timestamptz, timestamptz) to service_role;
+drop function if exists private.agenda_tirar_fonte(uuid[], text);  -- do 008: não há mais cópia mesclada para tirar fonte
 
--- 7) "Lucas não entra aqui" (Natham, 21/10): tira a agenda do Lucas de quem a via. Só essas linhas de agenda_acesso;
+-- 8) "Fazendo agora" de tarefa RECEBIDA (Lupa R4-4): quem recebeu não mexe no selo, nem para APAGAR (o 005 só conferia pessoa_id).
+--    Só bloqueia o caso "tarefa que eu enxergo, enviada por outra pessoa"; o resto (inclusive tarefa que sumiu da minha vista) apaga como antes.
+--    Selos antigos nesse caso são limpos agora (senão ficariam presos); em produção são 0 (conferido 20/10).
+delete from public.fazendo_agora f using public.tarefas t
+where t.id = f.tarefa_id and t.enviada_por is not null and t.enviada_por <> f.pessoa_id;
+drop policy if exists fazendo_agora_apaga on public.fazendo_agora;
+create policy fazendo_agora_apaga on public.fazendo_agora for delete to authenticated
+  using (pessoa_id = (select private.minha_pessoa()) and not exists (
+    select 1 from public.tarefas t where t.id = tarefa_id and t.enviada_por is not null
+      and not (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id))));
+
+-- 9) "Lucas não entra aqui" (Natham, 21/10): tira a agenda do Lucas de quem a via. Só essas linhas de agenda_acesso;
 --    a pessoa Lucas, as tarefas e os eventos de ninguém são tocados. Voltar = inserir ('natham','lucas') e ('matheus','lucas').
 delete from public.agenda_acesso where fonte = 'lucas';
 
