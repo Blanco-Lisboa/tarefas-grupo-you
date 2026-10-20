@@ -2,6 +2,8 @@
 export const TIPOS = ["ideia", "roteiro", "gravacao", "edicao", "postagem", "reuniao", "outro"] as const;
 export const REDES = ["instagram", "tiktok", "youtube", "kwai"] as const;
 export const ETAPAS = ["roteiro", "gravacao", "edicao", "analise", "aprovado", "postado"] as const;
+/** Formato do post (item 200): escolhido em "Programar postagem"; o n8n usa para a pasta do Drive (sem formato = "Sem formato"). */
+export const FORMATOS = ["reels", "post", "carrossel", "story"] as const;
 export const RESPONSAVEIS = ["natham", "matheus", "adrian", "lucas"] as const; // as 4 pessoas do banco; só Natham e Matheus têm login
 export const ETIQUETAS = [
   "etiqueta-1", "etiqueta-2", "etiqueta-3", "etiqueta-4", "etiqueta-5",
@@ -13,6 +15,7 @@ export type TipoTarefa = (typeof TIPOS)[number];
 export type Rede = (typeof REDES)[number];
 export type Etapa = (typeof ETAPAS)[number];
 export type Responsavel = (typeof RESPONSAVEIS)[number];
+export type Formato = (typeof FORMATOS)[number];
 export type Etiqueta = (typeof ETIQUETAS)[number]; // usa var(--etiqueta-N) e var(--etiqueta-N-texto)
 
 export type Link = { rotulo: string; url: string }; // vídeo = link do Google Drive
@@ -48,6 +51,8 @@ export type Tarefa = {
   aprovador?: string;
   /** Data e hora do post (item 195), "AAAA-MM-DDTHH:mm" em Brasília. Só em Aprovado/Postado; o banco passa para Postado quando ela chega. */
   postarEm?: string;
+  /** Formato do post (item 200). Obrigatório na tela para programar; o banco aceita sem. */
+  formato?: Formato;
   /** Etiqueta "Conserto" (item 195): quem aprova mandou voltar para Edição. Some quando o card sai de Edição. */
   conserto?: boolean;
   /** Vêm do banco, só leitura. dono = de quem é o caderno; enviadaPor = quem mandou (só se foi enviada). */

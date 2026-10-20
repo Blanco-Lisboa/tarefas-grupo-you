@@ -214,7 +214,7 @@ export function TelaConteudos() {
                     )}
                     <div className="conteudos-cartao-rodape">
                       <span className="conteudos-quem-faz"><Pessoa quem={tarefa.responsavel} tamanho={24} />{NOMES.responsavel[tarefa.responsavel]}</span>
-                      <time dateTime={(tarefa.postarEm ?? tarefa.inicio)?.slice(0, 10)}>{dataLegivel(tarefa.postarEm ?? tarefa.inicio)}</time>
+                      <time dateTime={(tarefa.postarEm ?? tarefa.inicio)?.slice(0, 10)}>{tarefa.formato && `${NOMES.formato[tarefa.formato]} · `}{dataLegivel(tarefa.postarEm ?? tarefa.inicio)}</time>
                     </div>
                     {(falta || drive) && (
                       <div className="conteudos-prazo">

@@ -18,7 +18,7 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type R
 import { ehConteudo } from "@/components/tarefas/grade";
 import {
   APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, limparErro, podeApagar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
-  type Etapa, type Etiqueta, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
+  type Etapa, type Etiqueta, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
 import { deTexto, paraHora, vaiProGoogle } from "@/components/calendario/logica";
@@ -29,7 +29,7 @@ import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { Aprovador, TagChip } from "@/components/ui/Tag";
 import { Agora } from "./Agora";
 import { Anexos } from "./Anexos";
-import { arrumar } from "./arrumar";
+import { arrumar, ehQuemAprova } from "./arrumar";
 import { TextoComLinks } from "@/components/pastas/links";
 import { CampoData } from "@/components/ui/CampoData";
 import "./ficha.css";
@@ -37,10 +37,11 @@ import "./ficha.css";
 export const NOMES = {
   tipo: { ideia: "Ideia", roteiro: "Roteiro", gravacao: "Gravação", edicao: "Edição", postagem: "Postagem", reuniao: "Reunião", outro: "Outro" },
   rede: { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", kwai: "Kwai" },
+  formato: { reels: "Reels", post: "Post", carrossel: "Carrossel", story: "Story" },
   etapa: { roteiro: "Roteiro", gravacao: "Gravação", edicao: "Edição", analise: "Em análise", aprovado: "Aprovado", postado: "Postado" },
   responsavel: { natham: "Natham", matheus: "Matheus", adrian: "Adrian", lucas: "Lucas" },
 } as const satisfies {
-  tipo: Record<TipoTarefa, string>; rede: Record<Rede, string>; etapa: Record<Etapa, string>; responsavel: Record<Responsavel, string>;
+  tipo: Record<TipoTarefa, string>; formato: Record<Formato, string>; rede: Record<Rede, string>; etapa: Record<Etapa, string>; responsavel: Record<Responsavel, string>;
 };
 
 /** Tarefa nova com valores padrão. empresaId vazio = a ficha escolhe a primeira empresa cadastrada. */
@@ -86,6 +87,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
   const lixeira = !nova && !soLer && podeApagar({ ...tarefa, id: tarefa.id! }, eu); // vale o que está no banco, não o que foi mudado na ficha
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
+  const aprovadorTravado = !nova && !ehQuemAprova(tarefa.aprovador, eu);
   const aprovadores = [...new Set<string>([...APROVADORES, ...todas.flatMap((x) => (x.aprovador ? [x.aprovador] : [])), ...(t.aprovador ? [t.aprovador] : [])])];
   async function criarTag() {
     if (!novaTag?.nome.trim()) return;
@@ -132,11 +134,12 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
     setSalvando(true);
     // Tarefa nova para outra pessoa vai para o caderno dela (achado 2, igual ao Caderno). Conteúdo com empresa todos já veem: fica de quem criou.
     const enviarPara = nova && t.responsavel !== eu && !ehConteudo(t) ? t.responsavel : undefined;
-    await salvarTarefa(arrumar(t, pedeAprovador, {
+    const pronta = arrumar(t, pedeAprovador, {
       ...quando, enviarPara, arquivos,
       vaiProGoogle: nova ? vai : tarefa.vaiProGoogle, // só liga na criação e se pode ir (R5-5)
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
-    }));
+    });
+    await salvarTarefa(aprovadorTravado ? { ...pronta, aprovador: tarefa.aprovador } : pronta); // só quem aprova muda o aprovador (015), mesmo tirando a tag
     setSalvando(false);
     setEnviou(true);
   }
@@ -279,7 +282,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
                   <Selecao rotulo="Tags" opcoes={tags.map((g) => ({ valor: g.id, rotulo: g.nome, antes: <span className="ficha-ponto" style={{ background: `var(--${g.cor})` }} />, chip: <TagChip tag={g} /> }))} valor={marcadas} aoMudar={(v) => mudar("tags", v)} acao={{ rotulo: "Nova tag", aoClicar: () => setNovaTag({ nome: "", cor: "etiqueta-3" }) }} />
                 </div>
                 {pedeAprovador && (
-                  <div className="ficha-campo ficha-escolha">
+                  <div className="ficha-campo ficha-escolha" inert={aprovadorTravado} title={aprovadorTravado ? "Só o Natham ou quem aprova muda" : undefined}>
                     <Selecao rotulo="Quem aprova" opcoes={aprovadores.map((nome) => ({ valor: nome, rotulo: nome, antes: <Aprovador nome={nome} tamanho={18} /> }))} valor={t.aprovador ? [t.aprovador] : []} multipla={false} rotuloTodos="Ninguém" aoMudar={([v]) => mudar("aprovador", v)} acao={{ rotulo: "Novo nome", aoClicar: () => setNovoNome("") }} />
                   </div>
                 )}

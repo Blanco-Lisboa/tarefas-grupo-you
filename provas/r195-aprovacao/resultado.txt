@@ -1,33 +1,39 @@
 OK natham 1903: Aprovar e Consertar no card em análise
 OK natham 1903: Natham também aprova card de outro aprovador
 OK natham 1903: etiqueta Conserto na Edição
-OK natham 1903: Aprovado mostra a data e hora do post
+OK natham 1903: Aprovado mostra o formato e a data e hora do post
 OK natham 1903: Aprovar leva a Aprovado sem data
-OK natham 1903: Programar grava postar_em 2026-10-22T00:00 e o card mostra a data
+OK natham 1903: Programar pede o formato antes da data
+OK natham 1903: Programar grava formato reels e postar_em 2026-10-22T00:00; o card mostra os dois
 OK natham 1903: Consertar leva a Edição com Conserto
 OK natham 1903: sem erro na página []
 OK matheus 1903: sem botões no card que o Natham aprova
 OK matheus 1903: botões no card que ele aprova
+OK matheus 1903: Quem aprova travado na ficha do card que o Natham aprova
 OK matheus 1903: sem erro na página []
 OK natham 1440: Aprovar e Consertar no card em análise
 OK natham 1440: Natham também aprova card de outro aprovador
 OK natham 1440: etiqueta Conserto na Edição
-OK natham 1440: Aprovado mostra a data e hora do post
+OK natham 1440: Aprovado mostra o formato e a data e hora do post
 OK natham 1440: Aprovar leva a Aprovado sem data
-OK natham 1440: Programar grava postar_em 2026-10-22T00:00 e o card mostra a data
+OK natham 1440: Programar pede o formato antes da data
+OK natham 1440: Programar grava formato reels e postar_em 2026-10-22T00:00; o card mostra os dois
 OK natham 1440: Consertar leva a Edição com Conserto
 OK natham 1440: sem erro na página []
 OK matheus 1440: sem botões no card que o Natham aprova
 OK matheus 1440: botões no card que ele aprova
+OK matheus 1440: Quem aprova travado na ficha do card que o Natham aprova
 OK matheus 1440: sem erro na página []
 OK natham 390: Aprovar e Consertar no card em análise
 OK natham 390: Natham também aprova card de outro aprovador
 OK natham 390: etiqueta Conserto na Edição
-OK natham 390: Aprovado mostra a data e hora do post
+OK natham 390: Aprovado mostra o formato e a data e hora do post
 OK natham 390: Aprovar leva a Aprovado sem data
-OK natham 390: Programar grava postar_em 2026-10-22T00:00 e o card mostra a data
+OK natham 390: Programar pede o formato antes da data
+OK natham 390: Programar grava formato reels e postar_em 2026-10-22T00:00; o card mostra os dois
 OK natham 390: Consertar leva a Edição com Conserto
 OK natham 390: sem erro na página []
 OK matheus 390: sem botões no card que o Natham aprova
 OK matheus 390: botões no card que ele aprova
+OK matheus 390: Quem aprova travado na ficha do card que o Natham aprova
 OK matheus 390: sem erro na página []

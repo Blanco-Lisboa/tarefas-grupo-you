@@ -25,7 +25,7 @@ const tarefas = [
   t("Post - Reels", "matheus", "2026-10-20T08:30", { tipo: "postagem", empresa_id: "you", rede: "instagram", etapa: "analise", dono_id: P.matheus, criado_por: P.matheus, objetivo: "Mostrar os bastidores do escritório", aprovador: "Natham", tarefa_tags: [{ tag_id: "tag-esperando-aprovacao" }], links: [{ rotulo: "Vídeo", url: "https://drive.google.com/file/d/exemplo" }] }),
   t("Carrossel: prazo do MEI", "matheus", "2026-10-21T16:00", { tipo: "postagem", empresa_id: "beec", rede: "instagram", etapa: "analise", dono_id: P.matheus, criado_por: P.matheus, aprovador: "Matheus", tarefa_tags: [{ tag_id: "tag-esperando-aprovacao" }] }),
   t("Reels: 5 erros no IR", "matheus", "2026-10-19T10:00", { tipo: "edicao", empresa_id: "you", rede: "instagram", etapa: "edicao", conserto: true, dono_id: P.matheus, criado_por: P.matheus }),
-  t("Dica rápida de IR", "natham", "2026-10-22T12:00", { tipo: "postagem", empresa_id: "you", rede: "kwai", etapa: "aprovado", postar_em: "2026-10-21T18:30" }),
+  t("Dica rápida de IR", "natham", "2026-10-22T12:00", { tipo: "postagem", empresa_id: "you", rede: "kwai", etapa: "aprovado", postar_em: "2026-10-21T18:30", formato: "post" }),
   t("Roteiro: abrir MEI", "matheus", "2026-10-24T10:00", { tipo: "roteiro", empresa_id: "you", rede: "tiktok", etapa: "roteiro" }),
   t("Vídeo institucional", "adrian", null, { tipo: "gravacao", empresa_id: "beec", rede: "youtube", etapa: "gravacao" }),
   t("Depoimento de cliente", "matheus", "2026-10-15T18:00", { tipo: "postagem", empresa_id: "you", rede: "instagram", etapa: "postado", concluida: true, postar_em: "2026-10-15T18:00" }),

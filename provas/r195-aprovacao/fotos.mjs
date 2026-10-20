@@ -44,7 +44,7 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   confere(await reels.locator(".aprovacao-botao").count() === 2, `natham ${largura}: Aprovar e Consertar no card em análise`);
   confere(await cartao(n.pagina, "Carrossel: prazo do MEI").locator(".aprovacao-botao").count() === 2, `natham ${largura}: Natham também aprova card de outro aprovador`);
   confere(await cartao(n.pagina, "Reels: 5 erros no IR").locator(".selo-conserto").isVisible(), `natham ${largura}: etiqueta Conserto na Edição`);
-  confere((await cartao(n.pagina, "Dica rápida de IR").locator("time").innerText()).includes("21/10 · 18:30"), `natham ${largura}: Aprovado mostra a data e hora do post`);
+  confere((await cartao(n.pagina, "Dica rápida de IR").locator("time").innerText()).includes("Post · 21/10 · 18:30"), `natham ${largura}: Aprovado mostra o formato e a data e hora do post`);
   await reels.scrollIntoViewIfNeeded();
   await marca(n.pagina);
   await n.pagina.screenshot({ path: join(pasta, `natham-${largura}.png`) });
@@ -54,6 +54,12 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   const aprovado = n.pagina.locator('[data-etapa="aprovado"] .conteudos-cartao').filter({ hasText: "Post - Reels" });
   confere(await aprovado.count() === 1 && n.rpc.at(-1)?.p?.etapa === "aprovado" && n.rpc.at(-1)?.p?.postar_em === null, `natham ${largura}: Aprovar leva a Aprovado sem data`);
   await aprovado.getByRole("button", { name: "Programar postagem" }).click();
+  // Formato obrigatório (item 200, Lupa r2): sem ele não há campo de data; escolher abre o painel.
+  confere(await aprovado.getByRole("radio").count() === 4 && await aprovado.locator(".campo-data-botao").count() === 0, `natham ${largura}: Programar pede o formato antes da data`);
+  await aprovado.scrollIntoViewIfNeeded();
+  await marca(n.pagina);
+  await n.pagina.screenshot({ path: join(pasta, `formato-${largura}.png`) });
+  await aprovado.getByRole("radio", { name: "Reels" }).click();
   const painel = n.pagina.locator(".campo-data-pop:popover-open");
   await painel.waitFor();
   await n.pagina.waitForTimeout(400); // o painel entra com transição
@@ -63,8 +69,8 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   await n.pagina.waitForTimeout(300); // o card desce do "hover" e o painel, preso a ele, acompanha
   await painel.getByRole("button", { name: "Selecionar" }).click();
   await n.pagina.waitForTimeout(300);
-  confere(n.rpc.at(-1)?.p?.etapa === "aprovado" && n.rpc.at(-1)?.p?.postar_em === "2026-10-22T00:00" && await aprovado.getByRole("button", { name: "Reprogramar postagem" }).count() === 1
-    && (await aprovado.locator("time").innerText()).includes("22/10 · 00:00"), `natham ${largura}: Programar grava postar_em ${n.rpc.at(-1)?.p?.postar_em} e o card mostra a data`);
+  confere(n.rpc.at(-1)?.p?.etapa === "aprovado" && n.rpc.at(-1)?.p?.postar_em === "2026-10-22T00:00" && n.rpc.at(-1)?.p?.formato === "reels" && await aprovado.getByRole("button", { name: "Reprogramar postagem" }).count() === 1
+    && (await aprovado.locator("time").innerText()).includes("Reels · 22/10 · 00:00"), `natham ${largura}: Programar grava formato ${n.rpc.at(-1)?.p?.formato} e postar_em ${n.rpc.at(-1)?.p?.postar_em}; o card mostra os dois`);
   // Consertar: volta para Edição com a etiqueta.
   await cartao(n.pagina, "Carrossel: prazo do MEI").getByRole("button", { name: "Consertar" }).click();
   await n.pagina.waitForTimeout(300);
@@ -80,6 +86,14 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   const m = await abrir("matheus", largura, altura);
   confere(await cartao(m.pagina, "Post - Reels").locator(".aprovacao-botao").count() === 0, `matheus ${largura}: sem botões no card que o Natham aprova`);
   confere(await cartao(m.pagina, "Carrossel: prazo do MEI").locator(".aprovacao-botao").count() === 2, `matheus ${largura}: botões no card que ele aprova`);
+  // 015: depois de criado, o aprovador só muda pela mão de quem aprova; na ficha, "Quem aprova" fica travado para o Matheus no card do Natham.
+  await cartao(m.pagina, "Post - Reels").locator(".conteudos-titulo").click();
+  const fichaM = m.pagina.locator(".ficha-cartao");
+  await fichaM.waitFor();
+  confere(await fichaM.locator(".ficha-escolha[inert]").count() === 1, `matheus ${largura}: Quem aprova travado na ficha do card que o Natham aprova`);
+  await marca(m.pagina);
+  await m.pagina.screenshot({ path: join(pasta, `matheus-ficha-${largura}.png`) });
+  await m.pagina.keyboard.press("Escape");
   await cartao(m.pagina, "Carrossel: prazo do MEI").scrollIntoViewIfNeeded();
   await marca(m.pagina);
   await m.pagina.screenshot({ path: join(pasta, `matheus-${largura}.png`) });
