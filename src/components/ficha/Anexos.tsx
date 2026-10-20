@@ -47,12 +47,13 @@ export function Anexos({ valor, aoMudar }: { valor: Arquivo[]; aoMudar: (v: Arqu
       <input ref={entrada} type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" multiple hidden onChange={(e) => { adicionar(e.target.files); e.target.value = ""; }} />
       {valor.map((a, i) => (
         <span key={`${a.url}${i}`} className="ficha-anexo">
-          <button type="button" className="ficha-anexo-mini" aria-label={`Abrir ${a.nome} em tamanho grande`} title={a.nome} onClick={() => (a.tipo === "documento" ? window.open(a.url, "_blank", "noopener") : setAberto(a))}>
-            {a.tipo === "video" ? <video src={`${a.url}#t=0.1`} muted preload="metadata" /> : a.tipo === "documento" ? <span className="ficha-anexo-doc">{a.nome.split(".").pop()?.slice(0, 4).toUpperCase()}</span> : <img src={a.url} alt="" />}
+          <button type="button" className="ficha-anexo-mini" aria-label={a.removido ? `Abrir ${a.nome} no Drive` : `Abrir ${a.nome} em tamanho grande`} title={a.aviso ? `${a.nome}: ${a.aviso}` : a.nome} onClick={() => (a.removido || a.tipo === "documento" ? window.open(a.removido ? a.driveLink : a.url, "_blank", "noopener") : setAberto(a))}>
+            {a.removido ? <span className="ficha-anexo-doc">Drive</span> : a.tipo === "video" ? <video src={`${a.url}#t=0.1`} muted preload="metadata" /> : a.tipo === "documento" ? <span className="ficha-anexo-doc">{a.nome.split(".").pop()?.slice(0, 4).toUpperCase()}</span> : <img src={a.url} alt="" />}
           </button>
           <button type="button" className="ficha-anexo-tirar" aria-label={`Tirar ${a.nome}`} onClick={() => aoMudar(valor.filter((_, j) => j !== i))}>×</button>
         </span>
       ))}
+      {valor.filter((a) => a.aviso).map((a) => <small key={a.caminho ?? a.nome} className="ficha-anexo-aviso">{a.nome}: {a.aviso}</small>)}
       {aberto && (
         <dialog ref={grande} className="ficha-grande" aria-label={aberto.nome} onClose={(e) => { e.stopPropagation(); setAberto(null); }} onClick={(e) => e.target === e.currentTarget && grande.current?.close()}>
           {aberto.tipo === "video" ? <video src={aberto.url} controls autoPlay /> : <img src={aberto.url} alt={aberto.nome} />}

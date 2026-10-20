@@ -72,6 +72,20 @@ for (const [largura, altura] of [[1903, 900], [1440, 760]]) {
   await pagina.reload({ waitUntil: "networkidle" });
   await pagina.locator(".mapa-sem-data button").filter({ hasText: "Reels: bastidores" }).click();
   confere(await pagina.locator("dialog[open] .ficha-anexo").count() === 0, `${largura}: tirar o anexo e salvar apaga de vez`);
+  // ---- achado 5: anexo removido do Storage abre o link do Drive e mostra o aviso ----
+  const pedidos = [];
+  pagina.on("request", (r) => { if (r.url().includes("ja-saiu-do-storage")) pedidos.push(r.url()); });
+  await pagina.goto("http://127.0.0.1:3198/mapa", { waitUntil: "networkidle" });
+  await pagina.locator(".mapa-card", { hasText: "Post com data" }).first().click();
+  const fr = pagina.locator("dialog[open]").first();
+  await fr.locator(".ficha-anexo-doc", { hasText: "Drive" }).waitFor();
+  confere(await fr.locator(".ficha-anexo-aviso").innerText().then((x) => x.includes("saiu daqui depois de 3 dias")), `${largura}: aviso do banco aparece na ficha`);
+  const [popup] = await Promise.all([pagina.waitForEvent("popup"), fr.locator(".ficha-anexo-mini").click()]);
+  confere(popup.url().startsWith("http://127.0.0.1:3298/drive-falso"), `${largura}: clicar abre o drive_link (${popup.url()})`);
+  confere(!pedidos.length, `${largura}: nenhum pedido ao objeto apagado do Storage ${JSON.stringify(pedidos)}`);
+  await popup.close();
+  await marca(pagina);
+  await pagina.screenshot({ path: join(pasta, `anexo-no-drive-${largura}.png`) });
   confere(!erros.length, `${largura}: sem erro na página ${JSON.stringify(erros)}`);
   await contexto.close();
 }

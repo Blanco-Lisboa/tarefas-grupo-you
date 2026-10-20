@@ -162,3 +162,6 @@
 
 /* Anexo que não é imagem nem vídeo (item 199): quadrado com a extensão */
 .ficha-anexo-doc { display: grid; place-items: center; width: 100%; height: 100%; font-size: var(--app-t-rotulo); font-weight: 700; letter-spacing: 0.04em; color: var(--fraco); }
+
+.ficha-anexo-aviso { flex-basis: 100%; font-size: var(--app-t-rotulo); color: var(--fraco); }
+.ficha-escolha[inert] { opacity: .6; } /* Quem aprova travado para quem não aprova (015) */

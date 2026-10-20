@@ -18,7 +18,8 @@ const tarefas = [
   t("Reunião com a Beec", { tipo: "reuniao", empresa_id: "beec", etapa: "roteiro" }), // continua fora do Mapa
   t("Anotação do caderno", { tipo: "postagem" }), // sem empresa: continua fora do Mapa
 ];
-const arquivos = [];
+// Item 199 (achado 5 da Lupa): anexo que a limpeza de 3 dias já tirou do Storage; só resta o link do Drive e o aviso.
+const arquivos = [{ id: "a-removido", tarefa_id: "t3", caminho: "tarefas/t3/ja-saiu-do-storage.mp4", nome: "video-postado.mp4", tipo: "video", tamanho: 1000, criado_por: P.natham, created_at: "2026-10-10T10:00:00Z", drive_estado: "feito", drive_link: "http://127.0.0.1:3298/drive-falso", removido_em: "2026-10-19T10:00:00Z", aviso: "Arquivo guardado no Drive; saiu daqui depois de 3 dias" }];
 const objetos = new Map(); // caminho -> { tipo, bytes }
 const sub = (req) => { try { return JSON.parse(Buffer.from((req.headers.authorization ?? "").split(".")[1], "base64url").toString()).sub; } catch { return undefined; } };
 const corpo = (req) => new Promise((ok) => { const c = []; req.on("data", (x) => c.push(x)).on("end", () => ok(Buffer.concat(c))); });

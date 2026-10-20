@@ -108,7 +108,7 @@ async function carregar() {
   avisar();
 }
 
-type LinhaArquivo = { tarefa_id: string; caminho: string; nome: string; tipo: NonNullable<Tarefa["arquivos"][number]["tipo"]> };
+type LinhaArquivo = { tarefa_id: string; caminho: string; nome: string; tipo: NonNullable<Tarefa["arquivos"][number]["tipo"]>; drive_link?: string | null; removido_em?: string | null; aviso?: string | null };
 type Cliente = ReturnType<typeof supabase>;
 const BALDE = "arquivos";
 const ATE_6_MB = 6 * 1024 * 1024;
@@ -139,9 +139,14 @@ async function carregarAnexos(sb: Cliente): Promise<Map<string, Tarefa["arquivos
   const porTarefa = new Map<string, Tarefa["arquivos"]>();
   const { data, error } = await sb.from("arquivos").select("tarefa_id, caminho, nome, tipo").not("tarefa_id", "is", null).order("created_at");
   if (error || !data?.length) return porTarefa;
-  const { data: urls } = await sb.storage.from(BALDE).createSignedUrls(data.map((a) => a.caminho), 3600);
+  const linhas = data as LinhaArquivo[];
+  // arquivo que já saiu do Storage (removido_em, coluna do 017) não tem objeto para assinar: vale o drive_link
+  const { data: urls } = await sb.storage.from(BALDE).createSignedUrls(linhas.filter((a) => !a.removido_em).map((a) => a.caminho), 3600);
   const url = new Map(urls?.map((u) => [u.path, u.signedUrl]));
-  for (const a of data as LinhaArquivo[]) porTarefa.set(a.tarefa_id, [...(porTarefa.get(a.tarefa_id) ?? []), { nome: a.nome, tipo: a.tipo, caminho: a.caminho, url: url.get(a.caminho) ?? undefined }]);
+  for (const a of linhas) {
+    const base = { nome: a.nome, tipo: a.tipo, caminho: a.caminho, aviso: a.aviso ?? undefined, driveLink: a.drive_link ?? undefined };
+    porTarefa.set(a.tarefa_id, [...(porTarefa.get(a.tarefa_id) ?? []), a.removido_em ? { ...base, removido: true } : { ...base, url: url.get(a.caminho) ?? undefined }]);
+  }
   return porTarefa;
 }
 
