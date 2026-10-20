@@ -6,7 +6,7 @@ begin;
 --   conserto   bool  etiqueta vermelha "Conserto": o aprovador mandou voltar para Edição.
 -- O que o banco garante sozinho (gatilho private.tarefas_aprovacao):
 --   * Só o Natham ou o aprovador do card (tarefas.aprovador, comparado com o nome da pessoa) põe um card em "Aprovado" (de onde vier, ou
---     criado já assim), leva a "Postado" sem passar por Aprovado, liga o "Conserto", troca o aprovador depois de "Em análise" ou muda
+--     criado já assim), leva a "Postado" sem passar por Aprovado, liga o "Conserto", troca o aprovador depois de criado o card (em qualquer etapa) ou muda
 --     postar_em depois de Aprovado. Aprovado -> Postado a mão é de qualquer editor. Sem login (despertador, SQL Editor; o app sempre tem login e anon não escreve) não trava.
 --   * postar_em com data impossível (31/02, 99:99) é recusado.
 --   * Voltou para "Em análise" ou saiu de "Edição": o "Conserto" apaga. Saiu de "Aprovado/Postado": o postar_em apaga.
@@ -48,8 +48,9 @@ begin
   v_entra_postado := new.etapa = 'postado' and (tg_op = 'INSERT' or coalesce(old.etapa, '') not in ('aprovado', 'postado'));
   if tg_op = 'UPDATE' then
     if (new.conserto and not old.conserto) or v_entra_aprovado or v_entra_postado
-       -- depois de entrar em análise, quem aprova e quando posta só mudam pela mão de quem aprova
-       or (coalesce(old.etapa, '') in ('analise', 'aprovado', 'postado') and new.aprovador is distinct from old.aprovador)
+       -- depois de criado o card, quem aprova só muda pela mão de quem aprova hoje (em QUALQUER etapa: senão o editor se nomeia
+       -- aprovador enquanto o card está em Edição e se aprova depois). Card sem aprovador: só o Natham define. Quando posta, idem.
+       or new.aprovador is distinct from old.aprovador
        or (old.etapa in ('aprovado', 'postado') and new.etapa in ('aprovado', 'postado') and new.postar_em is distinct from old.postar_em) then
       if not (select private.pode_aprovar(old.aprovador)) then
         raise exception 'so o Natham ou o aprovador do card aprova, programa a postagem ou manda consertar' using errcode = '42501';
