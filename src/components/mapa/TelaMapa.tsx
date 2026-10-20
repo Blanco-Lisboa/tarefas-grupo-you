@@ -172,7 +172,7 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
           {topo}
           <div ref={fixo} className="mapa-cartao">
             <div ref={faixa} className="mapa-faixa">
-              {/* brilho de fundo bem leve, azul-acinzentado, repetido a cada 7 dias e andando com a faixa: é o que o vidro dos cartões desfoca */}
+              {/* Brilho azul discreto, repetido a cada 7 dias e andando com a faixa. */}
               {Array.from({ length: Math.ceil((dias.length + 1) / 7) }, (_, b) => BRILHOS.map(([x, y, d], k) => (
                 <span key={`${b}-${k}`} className="mapa-mancha" aria-hidden style={{ "--d": d, left: `calc(${b * 7 + x / 100 * 7} * var(--dia-w))`, top: `${y}%` } as CSSProperties} />
               )))}
@@ -221,6 +221,7 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
             return (
               <button key={t.id} type="button" className="mapa-card" data-postado={postado} style={{ "--i": i, "--etapa": `var(--etapa-${t.etapa ?? "roteiro"})` } as CSSProperties} onClick={() => clicar(t)}>
                 <span className="mapa-faixa-titulo" aria-hidden>{tituloDe(t)}</span>
+                {ts.length > 1 && <span className="mapa-folha-contagem" aria-hidden>{i + 1}/{ts.length}</span>}
                 <span className="mapa-objetivo" data-alvo>{tituloDe(t)}</span>
                 <span className="mapa-info">
                   <span className="mapa-tag"><SeloEmpresa empresaId={t.empresaId} nome={empresa} tamanho={16} comNome /></span>
