@@ -2,7 +2,7 @@
 
 - [x] 1 · Mapa, linha do tempo · o vidro recusado ainda pintava os cards; dia com várias atividades não parecia as folhas de Pastas e dia sozinho não tinha o brilho do menu · feio · CONSERTADO c9152c5
 - [x] 2 · Mapa, celular · card à direita da haste aparecia cortado pela janela da linha do tempo · quebra · CONSERTADO 8fa5e5b + 2bc4aa0; falta conferir foto logada
-- [x] 3 · Conteúdos, botão + · conteúdo novo de Matheus nascia atribuído a Natham · quebra · CONSERTADO 6c2cf22
+- [x] 3 · Conteúdos, botão + · conteúdo novo de Matheus nascia atribuído a Natham (também achado 4 do Sextante) · quebra · CONSERTADO 6c2cf22; usa `useEu()` e só abre a criação após identificar a conta
 - [x] 4 · Mapa, Fila · seletor de formato e passo usavam formato de pílula, fora da regra visual atual · feio · CONSERTADO b3f41b7
 - [x] 5 · Conteúdos, Drive · link salvo sem `https://` abria como caminho dentro do sistema · quebra · CONSERTADO 095529f
 - [x] 6 · Mapa, Fila · botão do dia fechado apontava para uma lista ausente do documento · melhoria · CONSERTADO f1d9073
