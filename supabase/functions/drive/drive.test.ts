@@ -40,7 +40,7 @@ const lerJson = async (r: Response) => (await r.json()) as Record<string, any>; 
 
 async function anexar(m: ReturnType<typeof montar>, bytes: Uint8Array, nome = "reels.mp4", tipo = "video", mime = "video/mp4", papel = "anexo") {
   const s = await lerJson(await m.chamar({ acao: "sessao_envio", tarefa_id: "t1", nome, tipo, mime, tamanho: bytes.length, papel }));
-  const driveId = await enviarEmPartes(s.sessao_url, new Blob([bytes]), undefined, m.g.fetch, 4);
+  const driveId = await enviarEmPartes(s.sessao_url, new Blob([bytes as BlobPart]), undefined, m.g.fetch, 4);
   return m.chamar({ acao: "confirmar_envio", tarefa_id: "t1", drive_id: driveId, nome, tipo, tamanho: bytes.length, papel, ordem: 0 });
 }
 
@@ -316,5 +316,18 @@ describe("drive: vídeo por pedaços (S5 com Google falso)", () => {
     const r = await m.chamar({ acao: "sessao_envio", tarefa_id: "nao-existe", nome: "a.mp4", tipo: "video", mime: "video/mp4", tamanho: 5, papel: "anexo" });
     const txt = await r.text();
     for (const s of ["chave-servico-falsa", "segredo-google-falso", SEGREDO, "refresh-falso"]) expect(txt).not.toContain(s);
+  });
+});
+
+describe("drive: ordem do carrossel", () => {
+  it("grava a ordem só em arquivos do próprio card e respeita a trava", async () => {
+    const m = montar(); await anexar(m, new Uint8Array(5)); await anexar(m, new Uint8Array(5), "b.png", "imagem", "image/png");
+    m.b.estado.tabelas.arquivos.push({ id: "alheio", tarefa_id: "outro", drive_id: "x", ordem: 7 });
+    const [a, b] = m.b.estado.tabelas.arquivos;
+    const r = await m.chamar({ acao: "ordenar_anexos", tarefa_id: "t1", ordem: [{ id: a.id, ordem: 1 }, { id: b.id, ordem: 0 }, { id: "alheio", ordem: 0 }] });
+    expect(r.status).toBe(200);
+    expect([a.ordem, b.ordem, m.b.estado.tabelas.arquivos[2].ordem]).toEqual([1, 0, 7]);
+    m.b.estado.rpcs.pode_mexer_anexos = () => false;
+    expect((await m.chamar({ acao: "ordenar_anexos", tarefa_id: "t1", ordem: [{ id: a.id, ordem: 5 }] }, "tok-matheus")).status).toBe(403);
   });
 });

@@ -103,7 +103,7 @@ export function criarGoogleFalso(opcoes: { clientId?: string; clientSecret?: str
         if (a.trashed) return json({ error: "na lixeira" }, 404);
         const tam = a.bytes.length;
         const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.get("range") ?? "");
-        if (!m) return new Response(a.bytes, { status: 200, headers: { "content-type": a.mimeType, "content-length": String(tam) } });
+        if (!m) return new Response(a.bytes as BodyInit, { status: 200, headers: { "content-type": a.mimeType, "content-length": String(tam) } });
         const ini = m[1] === "" ? Math.max(0, tam - Number(m[2])) : Number(m[1]);
         const fim = m[1] === "" || m[2] === "" ? tam - 1 : Math.min(Number(m[2]), tam - 1);
         if (ini >= tam) return new Response(null, { status: 416, headers: { "content-range": `bytes */${tam}` } });

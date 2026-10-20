@@ -1,0 +1,8 @@
+/* Anexos do Drive (203): barra de progresso, arrastar para ordenar o carrossel e o player do Drive. */
+.ficha-anexo[data-arrastando="true"] { opacity: .4; }
+.ficha-anexo[data-alvo="true"] .ficha-anexo-mini { border-color: var(--azul); }
+.ficha-anexo-progresso { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--sup-2); border-radius: 0 0 var(--raio-b) var(--raio-b); overflow: hidden; }
+.ficha-anexo-progresso > i { display: block; height: 100%; background: var(--azul); transition: width .2s ease; }
+.ficha-anexo-ordem { position: absolute; left: -4px; bottom: -4px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--azul); color: #fff; font: 600 10px/16px var(--fonte); text-align: center; }
+.ficha-grande iframe { display: block; width: min(960px, calc(100vw - 48px)); height: min(600px, calc(100dvh - 96px)); border: 0; border-radius: var(--raio-b); background: var(--sup-2); }
+.ficha-anexo-recusa { flex-basis: 100%; font-size: var(--app-t-rotulo); color: var(--atrasado, #c0392b); }

@@ -19,9 +19,9 @@ export function criarBancoFalso() {
     objetosRemovidos: [] as string[],
     chamadasRpc: [] as { nome: string; args: Linha }[],
     /** quem pode ler cada tabela com a chave do usuário (RLS falsa); padrão: tudo. */
-    le: (_tabela: string, _linha: Linha, _token: string) => true,
+    le: (...[,,]: [string, Linha, string]) => true as boolean,
     /** trava do banco ao apagar tarefa com a chave do usuário. */
-    podeApagarTarefa: (_id: string, _token: string) => true,
+    podeApagarTarefa: (...[,]: [string, string]) => true as boolean,
     falharStorage: false,
     contador: 0,
   };

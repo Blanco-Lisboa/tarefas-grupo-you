@@ -2,7 +2,7 @@
 // O app fala com o banco COM a sessão de quem está logado: quem decide o que cada pessoa vê são as travas (RLS) do banco.
 // Escrita otimista: a tela muda na hora; se o banco recusar, volta ao que era e mostra o aviso (ver lerErro).
 import { supabase } from "@/lib/supabase/cliente";
-import { Upload } from "tus-js-client";
+import { carregarAnexos, ErroAnexo, sincronizarAnexos } from "./anexos";
 import { apagarTarefaComArquivos } from "./drive";
 import { carregarPostagens, postando } from "./postagens";
 import type { Empresa, Fazendo, NovaTarefa, Postagem, Responsavel, Tag, Tarefa } from "./tipos";
@@ -119,71 +119,6 @@ async function carregar() {
 
 let espiando: ReturnType<typeof setTimeout> | undefined;
 
-type LinhaArquivo = { tarefa_id: string; caminho: string; nome: string; tipo: NonNullable<Tarefa["arquivos"][number]["tipo"]>; drive_link?: string | null; removido_em?: string | null; aviso?: string | null };
-type Cliente = ReturnType<typeof supabase>;
-const BALDE = "arquivos";
-const ATE_6_MB = 6 * 1024 * 1024;
-
-/** Até 6 MB sobe de uma vez; acima disso, envio em partes de 6 MB (TUS) que aguenta vídeo grande e retoma se a rede cair. */
-async function subir(sb: Cliente, caminho: string, f: File) {
-  if (f.size <= ATE_6_MB) {
-    const { error } = await sb.storage.from(BALDE).upload(caminho, f, { contentType: f.type });
-    if (error) throw error;
-    return;
-  }
-  const { data } = await sb.auth.getSession();
-  await new Promise<void>((ok, nao) => new Upload(f, {
-    endpoint: `${process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(".supabase.co", ".storage.supabase.co")}/storage/v1/upload/resumable`,
-    headers: { authorization: `Bearer ${data.session?.access_token}`, apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! },
-    retryDelays: [0, 3000, 5000, 10000],
-    chunkSize: ATE_6_MB,
-    uploadDataDuringCreation: true,
-    removeFingerprintOnSuccess: true,
-    metadata: { bucketName: BALDE, objectName: caminho, contentType: f.type, cacheControl: "3600" },
-    onError: nao,
-    onSuccess: () => ok(),
-  }).start());
-}
-
-/** Anexos de todas as tarefas, com endereço assinado (o balde é privado; vale 1 hora e é renovado a cada carga). */
-async function carregarAnexos(sb: Cliente): Promise<Map<string, Tarefa["arquivos"]>> {
-  const porTarefa = new Map<string, Tarefa["arquivos"]>();
-  const { data, error } = await sb.from("arquivos").select("*").not("tarefa_id", "is", null).order("created_at");
-  if (error || !data?.length) return porTarefa;
-  const linhas = data as LinhaArquivo[];
-  // arquivo que já saiu do Storage (removido_em, coluna do 017) não tem objeto para assinar: vale o drive_link
-  const { data: urls } = await sb.storage.from(BALDE).createSignedUrls(linhas.filter((a) => !a.removido_em).map((a) => a.caminho), 3600);
-  const url = new Map(urls?.map((u) => [u.path, u.signedUrl]));
-  for (const a of linhas) {
-    const base = { nome: a.nome, tipo: a.tipo, caminho: a.caminho, aviso: a.aviso ?? undefined, driveLink: a.drive_link ?? undefined };
-    porTarefa.set(a.tarefa_id, [...(porTarefa.get(a.tarefa_id) ?? []), a.removido_em ? { ...base, removido: true } : { ...base, url: url.get(a.caminho) ?? undefined }]);
-  }
-  return porTarefa;
-}
-
-/** Deixa o Storage e a tabela iguais ao que a ficha mostra: apaga o que saiu, sobe o que é novo. Devolve a lista já com caminho e endereço. */
-async function sincronizarAnexos(sb: Cliente, tarefaId: string, antes: Tarefa["arquivos"], agora: Tarefa["arquivos"]): Promise<Tarefa["arquivos"]> {
-  const ficam = new Set(agora.flatMap((a) => (a.caminho ? [a.caminho] : [])));
-  const saiu = antes.flatMap((a) => (a.caminho && !ficam.has(a.caminho) ? [a.caminho] : []));
-  if (saiu.length) {
-    const { error } = await sb.from("arquivos").delete().in("caminho", saiu);
-    if (error) throw error;
-    await sb.storage.from(BALDE).remove(saiu); // se falhar, sobra um arquivo solto no balde, sem linha: não aparece para ninguém
-  }
-  const pessoa = eu && idDe(eu);
-  const guardados: Tarefa["arquivos"] = [];
-  for (const a of agora) {
-    if (!a.pendente) { guardados.push(a); continue; }
-    const caminho = `tarefas/${tarefaId}/${crypto.randomUUID()}-${a.nome.replace(/[^\w.-]+/g, "_")}`;
-    await subir(sb, caminho, a.pendente);
-    const { error: e2 } = await sb.from("arquivos").insert({ tarefa_id: tarefaId, caminho, nome: a.nome, tipo: a.tipo, tamanho: a.pendente.size, criado_por: pessoa });
-    if (e2) { await sb.storage.from(BALDE).remove([caminho]); throw e2; }
-    const { data } = await sb.storage.from(BALDE).createSignedUrl(caminho, 3600);
-    guardados.push({ nome: a.nome, tipo: a.tipo, caminho, url: data?.signedUrl ?? undefined });
-  }
-  return guardados;
-}
-
 const soLeitura = "Essa tarefa é só para olhar: você não pode mexer nela.";
 const semAcesso = "O banco não deixou salvar (sem permissão ou o item não existe mais).";
 /** Recusas do banco que a pessoa entende (015/019): quem aprova, e Aprovado/Postado só para Postagem. */
@@ -250,12 +185,12 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   }
   // A tarefa já está no banco (o anexo precisa dela). Se o anexo falhar, a tarefa fica e o aviso diz que o anexo não subiu.
   try {
-    const arquivos = await sincronizarAnexos(supabase(), id, antes?.arquivos ?? [], tarefa.arquivos);
+    const arquivos = await sincronizarAnexos(supabase(), id, tarefa.empresaId, eu && idDe(eu), antes?.arquivos ?? [], tarefa.arquivos);
     tarefa.arquivos = arquivos;
     tarefas = tarefas.map((t) => (t.id === id ? { ...t, arquivos } : t));
     avisar();
-  } catch {
-    falhou("A tarefa foi salva, mas não consegui guardar os anexos. Abra a ficha e anexe de novo.");
+  } catch (e) {
+    falhou(e instanceof ErroAnexo ? `A tarefa foi salva, mas ${e.message}` : "A tarefa foi salva, mas não consegui guardar os anexos. Abra a ficha e anexe de novo.");
   }
   return tarefa;
 }

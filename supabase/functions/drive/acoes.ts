@@ -201,6 +201,13 @@ export function criarManipulador(d: Deps) {
         if (!(await eu.apagar("tarefas", { id: tarefaId })).length) throw new Recusa(403, "O banco não deixou apagar o card.");
         return { ok: true };
       }
+      case "ordenar_anexos": {
+        const lista = Array.isArray(c.ordem) ? (c.ordem as { id?: unknown; ordem?: unknown }[]) : [];
+        if (!tarefaId || !lista.length || lista.length > 50 || lista.some((x) => typeof x.id !== "string" || !Number.isInteger(x.ordem))) throw new Recusa(400, "Ordem inválida.");
+        await podeMexer(tarefaId);
+        for (const x of lista) await servico().atualizar("arquivos", { id: x.id as string, tarefa_id: tarefaId }, { ordem: x.ordem as number }); // filtra pelo card: não mexe em arquivo de outro
+        return { ok: true };
+      }
       case "link_video": {
         const id = texto(c.arquivo_id);
         if (!id) throw new Recusa(400, "Vídeo não informado.");

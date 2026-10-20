@@ -68,6 +68,9 @@ export async function enviarParaDrive(tarefaId: string, arquivo: File, papel: "a
   return { id: arquivo_id, nome: arquivo.name, tipo, driveId, ordem, papel };
 }
 
+/** Guarda a ordem do carrossel (só os anexos do Drive que mudaram de lugar). */
+export const ordenarAnexosDrive = (tarefaId: string, ordem: { id: string; ordem: number }[]) => chamar({ acao: "ordenar_anexos", tarefa_id: tarefaId, ordem }).then(() => undefined);
+
 /** Endereço assinado de 10 min que serve o vídeo do Drive por pedaços (Range), para a barrinha de escolher o quadro da capa. */
 export async function linkDeVideo(arquivoId: string): Promise<string> {
   return (await chamar<{ url: string }>({ acao: "link_video", arquivo_id: arquivoId })).url;
@@ -76,6 +79,20 @@ export async function linkDeVideo(arquivoId: string): Promise<string> {
 export const apagarAnexoDrive = (arquivoId: string) => chamar({ acao: "apagar_anexo", arquivo_id: arquivoId }).then(() => undefined);
 /** Apaga o card COM os arquivos dele (Drive e Supabase). Lança Error com a mensagem da tela se falhar; nada some pela metade. */
 export const apagarTarefaComArquivos = (tarefaId: string) => chamar({ acao: "apagar_tarefa", tarefa_id: tarefaId }).then(() => undefined);
+
+// ---- Progresso do envio (a barra do Anexos): chave = endereço local (blob:) do arquivo que está subindo ----
+let progresso: Record<string, number> = {};
+const ouvintesProgresso = new Set<() => void>();
+export function registrarProgresso(chave: string | undefined, fracao: number) {
+  if (!chave) return;
+  const { [chave]: _antigo, ...resto } = progresso;
+  void _antigo;
+  progresso = fracao >= 1 ? resto : { ...resto, [chave]: fracao };
+  ouvintesProgresso.forEach((f) => f());
+}
+const SEM_PROGRESSO: Record<string, number> = {};
+/** Fração (0 a 1) de cada arquivo que está subindo ao Drive agora. */
+export const useProgressoEnvio = () => useSyncExternalStore((f) => (ouvintesProgresso.add(f), () => void ouvintesProgresso.delete(f)), () => progresso, () => SEM_PROGRESSO);
 
 // ---- Ocasiões (pasta do Drive dentro da empresa) ----
 export type Ocasiao = { id: string; empresaId: string; nome: string };
