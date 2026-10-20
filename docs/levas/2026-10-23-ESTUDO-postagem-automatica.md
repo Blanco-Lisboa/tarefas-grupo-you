@@ -184,10 +184,24 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
   - Proposta do Maestro (em aberto): ao clicar Programar, o banco cria UM alarme de uso único para aquele horário (pg_cron com data exata, que se apaga depois de rodar). O cron de todo minuto `tarefas_postar_vencidos` sai. Vídeo só ganha mais 2 ou 3 conferências curtas logo após a entrega.
 - **Vídeo sempre na MÁXIMA qualidade:** o sistema nunca recomprime; manda o arquivo original.
 - **1 · Instagram + Facebook acesos:** SIM.
-- **2 · Legenda:** SIM, "ele gera e eu posso editar". O Maestro entendeu "ele" = Matheus; **confirmar se não é IA**.
+- **2 · Legenda:** SIM, "ele gera e eu posso editar" (resposta completa logo abaixo).
+- **2 · Legenda, fechada em 23/10:** o Matheus cola a descrição quando sobe o conteúdo. O Natham vê o conteúdo e a descrição juntos para validar.
+  - Aprova o conteúdo e não a descrição: ele mesmo edita a descrição e aprova em seguida.
+  - Reprova o conteúdo: o card volta para Edição com a etiqueta Consertar em VERMELHO e com ícone de conserto.
+  - **O que o Aprovar/Consertar da rodada 193-207 já faz** (conferido no código, Sextante 612eebe a bc1d8df, NÃO publicado):
+    - Aprovar e Consertar aparecem só no card da Esteira em "Em análise", para o Natham e o aprovador (na ficha não, porque o Salvar dela desfaria a aprovação).
+    - Consertar já leva o card para Edição e liga a etiqueta. O banco (015) apaga a etiqueta quando o card sai de Edição.
+    - A etiqueta já é vermelha (cor de "atrasado"), com o texto "CONSERTO" e um brilho passando (`selo-conserto` em `aprovacao.css`). Aparece só no card da Esteira.
+  - **Diferença para o que ele pediu:**
+    1. Falta o **ícone de conserto** na etiqueta. Já estava na fila de aparência do Sextante deixá-la no formato da etiqueta "Começar", menor e sem foto.
+    2. Falta o **campo de descrição (legenda)**. Editar e depois aprovar funciona no fluxo atual: ele abre a ficha, corrige, salva (o card continua em "Em análise") e clica Aprovar no card.
+    3. Falta **ver o conteúdo junto da descrição na hora de aprovar**. É o player do item 206, que entra com o 203.
+    4. **Brecha a fechar no banco:** hoje a trava do 015 só protege o `postar_em` depois de Aprovado. Sem trava, o Matheus poderia mudar a legenda de um card já aprovado e o sistema postaria um texto que o Natham não viu. Proposta: depois de Aprovado, só o Natham ou o aprovador muda a legenda (e os anexos), igual ao `postar_em`.
 - **3 · Aviso de erro:** WhatsApp.
 - **4 · Postar agora:** SIM, com botão de confirmar.
 - **5 · PNG:** ele quer aceitar PNG. Proposta: aceita PNG e converte para JPG na qualidade máxima só na hora de mandar ao Instagram (o app do Instagram já faz isso hoje); o Facebook recebe o PNG original.
+  - **Atualização 23/10:** ele quer mandar o PNG como está e deixar a Meta converter. Alerta do Maestro: pela API, a regra oficial do Instagram é só JPG (o app converte, mas a API pode recusar).
+  - Proposta: no teste do Passo 6.3 (só até o rascunho, sem publicar, com o OK dele), mandar 1 PNG. Se a Meta aceitar, fica assim. Se recusar, o sistema converte só para o Instagram (ver a observação do Sextante sobre a conversão no servidor).
 - **6 · Vídeo:** no DRIVE, como no 203 (pastas no Drive), NÃO no Supabase, por limite de armazenamento. Proposta: o vídeo vai do Drive direto para a Meta pelo envio em partes (resumable), sem cópia no Supabase, e o limite de 500 MB deixa de ser necessário. Foto pequena pode usar cópia de minutos.
 - **7 · Story:** Instagram E Facebook.
 - **8 · Tentar 1 vez sozinho:** SIM.
