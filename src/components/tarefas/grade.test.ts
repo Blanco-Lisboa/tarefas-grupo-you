@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { doCaderno, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, daMinhaLista, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS } from "./grade";
 import { notaDaChave } from "./notas";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
@@ -60,5 +60,23 @@ describe("de quem é o caderno", () => {
   it("conteúdo com empresa segue o responsável", () => {
     expect(doCaderno(conteudo, "matheus")).toBe(true);
     expect(doCaderno(conteudo, "natham")).toBe(false);
+  });
+});
+
+describe("lista pessoal compartilhada pelas telas", () => {
+  const privada = { ...t("privada", "2026-10-20"), etapa: "roteiro", empresaId: "", dono: "matheus", responsavel: "matheus" } as Tarefa;
+  const postagem = { ...privada, id: "postagem", tipo: "postagem" } as Tarefa;
+  const atrasada = { ...privada, id: "atrasada", inicio: "2026-10-19" } as Tarefa;
+  const deEmpresa = { ...privada, id: "empresa", empresaId: "beec" } as Tarefa;
+  const minha = { ...privada, id: "minha", dono: "natham", responsavel: "matheus" } as Tarefa;
+
+  it("oculta roteiro, postagem e atraso privados de outra pessoa", () => {
+    expect([privada, postagem, atrasada].filter((tarefa) => daMinhaLista(tarefa, "natham"))).toEqual([]);
+  });
+  it("mostra conteúdo com empresa de todos e tarefas do dono", () => {
+    expect([deEmpresa, minha].filter((tarefa) => daMinhaLista(tarefa, "natham")).map((tarefa) => tarefa.id)).toEqual(["empresa", "minha"]);
+  });
+  it("sem usuário identificado só mostra conteúdo com empresa", () => {
+    expect([privada, deEmpresa, minha].filter((tarefa) => daMinhaLista(tarefa, null)).map((tarefa) => tarefa.id)).toEqual(["empresa"]);
   });
 });

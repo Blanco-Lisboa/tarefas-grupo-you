@@ -6,6 +6,7 @@ import { Ficha, NOMES, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
+import { daMinhaLista } from "@/components/tarefas/grade";
 import { ETAPAS, salvarTarefa, useEmpresas, useEu, useFazendo, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
@@ -43,8 +44,9 @@ function dataLegivel(inicio?: string) {
 }
 
 export function TelaConteudos() {
-  const tarefas = useTarefas();
+  const todas = useTarefas();
   const eu = useEu();
+  const tarefas = todas.filter((t) => daMinhaLista(t, eu));
   const empresas = useEmpresas();
   const tags = useTags();
   const fazendo = useFazendo();

@@ -10,6 +10,7 @@ import { Grade } from "./Grade";
 import { andar, comMinuto, diasDaSemana, diasDoMes, esperarFimDoArraste, mover, paraHora, porDia, tituloPeriodo, type Destino, type Visao } from "./logica";
 import { Mes } from "./Mes";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
+import { daMinhaLista } from "@/components/tarefas/grade";
 import { Selecao } from "@/components/ui/Selecao";
 import "./calendario.css";
 
@@ -44,9 +45,9 @@ function Calendario({ agora }: { agora: string }) {
   const [filtros, setFiltros] = useState<Filtros>(SEM_FILTROS);
   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
   const eu = useEu();
-  // Só o que é meu (dono) ou conteúdo com empresa, a mesma regra do Caderno: depois do 006 o Natham também recebe as tarefas privadas do Matheus.
+  // A mesma regra do Caderno, compartilhada com Conteúdos e Mapa.
   const todas = useTarefas();
-  const tarefas = useMemo(() => todas.filter((t) => (t.dono ?? t.responsavel) === eu || (!!t.etapa && !!t.empresaId)), [todas, eu]);
+  const tarefas = useMemo(() => todas.filter((t) => daMinhaLista(t, eu)), [todas, eu]);
   const { aplicar, selecionadas } = useFiltroEmpresa();
 
   const visiveis = useMemo(() => aplicar(tarefas).filter(passa(filtros)), [aplicar, tarefas, filtros]);

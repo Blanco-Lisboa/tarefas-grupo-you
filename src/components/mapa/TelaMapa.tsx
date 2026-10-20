@@ -3,12 +3,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalS
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
-import { useEmpresas, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { useEmpresas, useEu, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { SeloEmpresa, IconeRede } from "@/components/ui/Marca";
 import { BordaAnimada } from "@/components/ui/BordaAnimada";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
+import { daMinhaLista } from "@/components/tarefas/grade";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
 import { conteudos, hoje, diasDoPeriodo, filaPorDia, foiPostado, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 import { EmOrdem, type Formato } from "./EmOrdem";
@@ -42,7 +43,9 @@ export function TelaMapa() {
 }
 
 function Mapa({ inicio: INICIO }: { inicio: string }) {
-  const tarefas = useTarefas();
+  const todas = useTarefas();
+  const eu = useEu();
+  const tarefas = useMemo(() => todas.filter((t) => daMinhaLista(t, eu)), [todas, eu]);
   const { aplicar } = useFiltroEmpresa();
   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
   const [formato, setFormato] = useState<Formato>(formatoSalvo);
