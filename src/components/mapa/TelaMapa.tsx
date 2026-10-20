@@ -214,12 +214,12 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
       <span className="mapa-bolinha" aria-hidden />
       <div className="mapa-bloco">
         <span className="mapa-data" data-alvo>{nomeSemana(dia)}, {diaCurto(dia)}</span>
-        <div className="mapa-pilha" data-n={ts.length} data-aberta={leque} style={{ "--n": ts.length } as CSSProperties}>
+        <div className="mapa-pilha" data-n={ts.length} data-aberta={leque} style={{ "--n": ts.length, "--etapa": `var(--etapa-${ts.at(-1)?.etapa ?? "roteiro"})` } as CSSProperties}>
           {ts.map((t, i) => {
             const postado = foiPostado(t);
             const empresa = empresas.find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
             return (
-              <button key={t.id} type="button" className="mapa-card" data-postado={postado} style={{ "--i": i } as CSSProperties} onClick={() => clicar(t)}>
+              <button key={t.id} type="button" className="mapa-card" data-postado={postado} style={{ "--i": i, "--etapa": `var(--etapa-${t.etapa ?? "roteiro"})` } as CSSProperties} onClick={() => clicar(t)}>
                 <span className="mapa-faixa-titulo" aria-hidden>{tituloDe(t)}</span>
                 <span className="mapa-objetivo" data-alvo>{tituloDe(t)}</span>
                 <span className="mapa-info">
