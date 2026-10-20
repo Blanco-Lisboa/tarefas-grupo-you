@@ -193,22 +193,37 @@ as $$
   ) a
 $$;
 
+-- Os 3 dias valem em TRÊS momentos: ao montar a lista, ao autorizar (logo antes de apagar) e ao confirmar. O card pode voltar atrás no meio do caminho.
+create or replace function private.anexo_limpavel(p_id uuid) returns boolean
+language sql stable security definer set search_path = ''
+as $$
+  select exists (
+    select 1 from public.arquivos a join public.tarefas t on t.id = a.tarefa_id
+    where a.id = p_id and a.removido_em is null and a.drive_estado = 'feito' and nullif(btrim(a.drive_link), '') is not null
+      and t.etapa = 'postado' and t.postado_em <= now() - interval '3 days')
+$$;
+revoke all on function private.anexo_limpavel(uuid) from public, anon, authenticated;
+
+-- drive_limpeza_autorizar: o n8n chama IMEDIATAMENTE antes de apagar cada arquivo. false = não apague (o card mudou; volta a ser listado se for o caso).
+create or replace function public.drive_limpeza_autorizar(p_id uuid) returns boolean
+language sql stable security definer set search_path = ''
+as $$ select private.anexo_limpavel(p_id) $$;
+
 create or replace function public.drive_limpeza_confirmar(p_id uuid) returns jsonb
 language plpgsql security definer set search_path = ''
 as $$
-declare n int;
 begin
-  update public.arquivos a set removido_em = coalesce(a.removido_em, now()), aviso = null
-  where a.id = p_id and a.drive_estado = 'feito' and nullif(btrim(a.drive_link), '') is not null;
-  get diagnostics n = row_count;
-  if n = 0 then raise exception 'anexo % sem recibo do Drive: nao pode ser dado como removido', p_id using errcode = '22023'; end if;
+  if not private.anexo_limpavel(p_id) then
+    raise exception 'anexo % sem recibo do Drive, ou o card nao esta em Postado ha 3 dias: nao pode ser dado como removido', p_id using errcode = '22023';
+  end if;
+  update public.arquivos set removido_em = now(), aviso = null where id = p_id;
   return jsonb_build_object('removido', true);
 end $$;
 
 revoke all on function public.drive_fila(int), public.drive_confirmar(uuid, text, text, text, text, bigint, boolean),
-  public.drive_limpar_pendentes(int), public.drive_limpeza_confirmar(uuid) from public, anon, authenticated;
+  public.drive_limpar_pendentes(int), public.drive_limpeza_autorizar(uuid), public.drive_limpeza_confirmar(uuid) from public, anon, authenticated;
 grant execute on function public.drive_fila(int), public.drive_confirmar(uuid, text, text, text, text, bigint, boolean),
-  public.drive_limpar_pendentes(int), public.drive_limpeza_confirmar(uuid) to service_role;
+  public.drive_limpar_pendentes(int), public.drive_limpeza_autorizar(uuid), public.drive_limpeza_confirmar(uuid) to service_role;
 grant usage on schema public to service_role;
 
 -- ---------- 3) despertadores ----------
