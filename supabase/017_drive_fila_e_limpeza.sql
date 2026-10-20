@@ -166,6 +166,8 @@ end $$;
 -- do arquivo que acabou de criar no Drive). O arquivo do Drive é do anexo pelo id dele (ver brief), nunca por nome e tamanho.
 -- Erro: volta para a fila em ~5 min; na 5ª falha vira 'falhou'. p_definitivo = true (ex.: arquivo grande demais para o n8n) vira 'falhou' já.
 -- Confirmar duas vezes é inofensivo.
+-- reaplicar o arquivo não deixa a versão antiga (5 parâmetros, sem conferir tamanho) viva ao lado da nova
+drop function if exists public.drive_confirmar(uuid, text, text, text, text);
 create or replace function public.drive_confirmar(p_id uuid, p_file_id text default null, p_link text default null, p_pasta text default null,
   p_erro text default null, p_tamanho bigint default null, p_definitivo boolean default false) returns jsonb
 language plpgsql security definer set search_path = ''
