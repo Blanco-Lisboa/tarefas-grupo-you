@@ -19,7 +19,9 @@
 /* Notas ocupa o que sobra (item 112); só rola quando o texto passa do que cabe. Se o resto não couber, a rolagem é do corpo. */
 .ficha-notas { flex: 1 1 auto; }
 /* Responsável e datas lado a lado, alinhados pelo topo (item 127) */
-.ficha-quem-quando { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--s-16); }
+/* Quando desce para a linha de baixo se não couber ao lado das pessoas: com coluna fixa, Começa e Termina se sobrepunham. */
+.ficha-quem-quando { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--s-16); }
+.ficha-quem-quando > :last-child { flex: 1 1 420px; min-width: 0; }
 /* Opcional: linha suave com rótulo discreto */
 .ficha-opcional { display: flex; align-items: center; gap: var(--s-8); margin-top: var(--s-4); color: var(--fraco); font-size: var(--t-12); font-weight: 600; }
 .ficha-opcional::after { content: ""; flex: 1; height: 1px; background: var(--linha); }
@@ -106,6 +108,6 @@
   .ficha-tags { gap: var(--s-8); }
   .ficha-tags .selecao-antes, .ficha-tags .selecao-rotulo-p { display: none; }
   .ficha .ficha-titulo { font-size: var(--t-20); }
-  .ficha-quem-quando { grid-template-columns: 1fr; gap: var(--s-8); }
+  .ficha-quem-quando { gap: var(--s-8); }
   .ficha-quando { flex-direction: column; gap: var(--s-4); }
   }
