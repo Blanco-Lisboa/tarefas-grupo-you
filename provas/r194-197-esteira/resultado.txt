@@ -1,0 +1,7 @@
+Banco falso local: 127.0.0.1:3295. App isolado: 127.0.0.1:3195. Nenhuma gravação no banco real.
+1903 e 1440: o + da coluna Postado abre Tipo = Postagem.
+1903 e 1440: menu Tipo contém apenas Roteiro, Gravação, Edição e Postagem.
+1903 e 1440: arrastar de Aprovado para Postado abre confirmação com o título certo.
+1903 e 1440: antes de confirmar não há gravação para Postado; Cancelar mantém o card em Aprovado.
+1903 e 1440: Confirmar envia etapa postado; nenhum erro na página.
+Script fotos.mjs: exit code 0.

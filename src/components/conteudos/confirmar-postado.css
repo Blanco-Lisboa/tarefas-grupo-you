@@ -1,4 +1,7 @@
 .confirmar-postado {
+  position: fixed;
+  inset: 0;
+  margin: auto;
   width: min(420px, calc(100vw - 32px));
   padding: var(--s-24);
   border: 1px solid var(--linha);
