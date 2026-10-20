@@ -9,6 +9,9 @@
 .ficha-faixa { padding: var(--s-16) var(--s-24) var(--s-12); background: var(--sup-2); border-bottom: 1px solid var(--linha); }
 .ficha-faixa-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-12); margin-bottom: var(--s-8); }
 .ficha-rotulo { display: inline-flex; align-items: center; gap: var(--s-8); color: var(--fraco); font-size: var(--t-12); font-weight: 600; }
+/* Item 192: tarefa criada pelo Calendário vai para a agenda do Google. Discreto, cantos de 8px, nada em pílula. */
+.ficha-google { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 8px; background: var(--fundo); color: var(--fraco); font-weight: 500; white-space: nowrap; }
+.ficha-google svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 .ficha-cor-marca { width: 10px; height: 10px; border-radius: 50%; background: var(--etiqueta-atual); }
 .ficha-fechar { min-height: 32px; padding: 4px 10px; border: 1px solid var(--borda); border-radius: var(--raio-b); background: var(--vidro); color: var(--texto); font: 500 var(--t-12) var(--fonte); cursor: pointer; }
 .ficha-fechar:hover { background: var(--sup); }
@@ -153,4 +156,5 @@
   .ficha-faixa-topo { flex-wrap: wrap; }
   .ficha-agora { order: 3; flex-basis: 100%; flex-wrap: nowrap; }
   .ficha-agora-botao { margin-left: auto; }
+  .ficha-rotulo { flex: 1 1 0; flex-wrap: wrap; row-gap: var(--s-4); } /* selo do Google (item 192) desce sob o rótulo; Fechar fica no lugar */
 }

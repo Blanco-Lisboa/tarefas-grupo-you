@@ -156,7 +156,14 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
       <form className="ficha-cartao" onSubmit={salvar} style={corAtual}>
         <header className="ficha-faixa">
           <div className="ficha-faixa-topo">
-            <span className="ficha-rotulo"><span className="ficha-cor-marca" aria-hidden />{nova ? "Nova tarefa" : NOMES.tipo[t.tipo]}</span>
+            <span className="ficha-rotulo"><span className="ficha-cor-marca" aria-hidden />{nova ? "Nova tarefa" : NOMES.tipo[t.tipo]}
+              {t.vaiProGoogle && (
+                <span className="ficha-google">
+                  <svg viewBox="0 0 24 24" aria-hidden><rect x="3.5" y="5" width="17" height="15.5" rx="3" /><path d="M3.5 10h17M8 3v4M16 3v4" /></svg>
+                  Na agenda do Google
+                </span>
+              )}
+            </span>
             {!nova && <Agora tarefaId={tarefa.id!} soLer={soLer} nomes={NOMES.responsavel} />}
             <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>
           </div>

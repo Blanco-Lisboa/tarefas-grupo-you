@@ -63,6 +63,7 @@ function Calendario({ agora }: { agora: string }) {
       empresaId: selecionadas[0] ?? "",
       responsavel: filtros.responsavel.length === 1 ? (filtros.responsavel[0] as Tarefa["responsavel"]) : eu ?? "natham", // quem está logado, como no Caderno (item 155)
       ...quando(d),
+      vaiProGoogle: true, // item 192: só a tarefa CRIADA pelo Calendário vai para a agenda do Google
     })),
     soltar: (id, d) => {
       const t = tarefas.find((x) => x.id === id);
