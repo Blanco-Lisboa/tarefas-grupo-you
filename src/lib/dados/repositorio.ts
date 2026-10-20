@@ -137,7 +137,7 @@ async function subir(sb: Cliente, caminho: string, f: File) {
 /** Anexos de todas as tarefas, com endereço assinado (o balde é privado; vale 1 hora e é renovado a cada carga). */
 async function carregarAnexos(sb: Cliente): Promise<Map<string, Tarefa["arquivos"]>> {
   const porTarefa = new Map<string, Tarefa["arquivos"]>();
-  const { data, error } = await sb.from("arquivos").select("tarefa_id, caminho, nome, tipo").not("tarefa_id", "is", null).order("created_at");
+  const { data, error } = await sb.from("arquivos").select("*").not("tarefa_id", "is", null).order("created_at");
   if (error || !data?.length) return porTarefa;
   const linhas = data as LinhaArquivo[];
   // arquivo que já saiu do Storage (removido_em, coluna do 017) não tem objeto para assinar: vale o drive_link
