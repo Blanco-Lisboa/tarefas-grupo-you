@@ -34,7 +34,7 @@ export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
     <div className="aprovacao" onPointerDown={(e) => e.stopPropagation()}>
       {escolhendo ? (
         <div className="aprovacao-quando" ref={quando}>
-          <CampoData rotulo="Data e hora do post" valor="" hora="" min={paraDia(new Date())} semLimpar vazio="Data e hora"
+          <CampoData rotulo="Data e hora do post" valor="" hora="" min={paraDia(new Date())} semLimpar vazio="Quando?"
             aoMudar={(dia, hora) => { if (dia) void salvarTarefa({ ...tarefa, etapa: "aprovado", postarEm: `${dia}T${hora || "00:00"}` }); }} />
           <button type="button" className="aprovacao-cancelar" onClick={() => setEscolhendo(false)}>Cancelar</button>
         </div>
