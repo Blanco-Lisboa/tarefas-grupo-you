@@ -41,6 +41,13 @@ html[data-menu="recolhido"] { --menu-w: 64px; --menu-p: var(--s-8); --menu-recuo
 .menu-item:hover { background: var(--realce); color: var(--texto); }
 .menu-item:focus-visible { outline-offset: -3px; }
 .menu-item[aria-current="page"] { background: var(--sup); color: var(--texto); font-weight: 600; box-shadow: 0 1px 3px rgb(0 0 0 / 0.1); }
+/* Brilho que corre pelo item ativo (item 157, efeito "shimmer" do emerald-ui, faixa num toque de azul para aparecer no branco) */
+.menu-item[aria-current="page"] {
+  background: linear-gradient(110deg, var(--sup) 40%, color-mix(in srgb, var(--azul) 14%, var(--sup)) 50%, var(--sup) 60%) 0 0 / 200% 100%;
+  animation: menu-brilho 2.4s linear infinite;
+}
+@keyframes menu-brilho { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .menu-item[aria-current="page"] { animation: none; } }
 .menu-item[aria-current="page"] .menu-icone { color: var(--azul); }
 .menu-icone { width: 20px; height: 20px; flex: none; }
 .menu-rotulo { transition: opacity var(--dur-rapida) var(--curva); }
