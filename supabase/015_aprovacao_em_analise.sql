@@ -5,8 +5,10 @@ begin;
 --   postar_em  text  "AAAA-MM-DDTHH:mm" na hora de Brasília, sem fuso (mesmo jeito de inicio/fim). Data e hora do post, escolhida em "Aprovar".
 --   conserto   bool  etiqueta vermelha "Conserto": o aprovador mandou voltar para Edição.
 -- O que o banco garante sozinho (gatilho private.tarefas_aprovacao):
---   * Só o Natham ou o aprovador do card (tarefas.aprovador, comparado com o nome da pessoa) tira um card de "Em análise" para
---     "Aprovado" ou liga o "Conserto". Sem pessoa logada (despertador, SQL Editor) não trava.
+--   * Só o Natham ou o aprovador do card (tarefas.aprovador, comparado com o nome da pessoa) põe um card em "Aprovado" (de onde vier, ou
+--     criado já assim), leva a "Postado" sem passar por Aprovado, liga o "Conserto", troca o aprovador depois de "Em análise" ou muda
+--     postar_em depois de Aprovado. Aprovado -> Postado a mão é de qualquer editor. Sem login (despertador, SQL Editor; o app sempre tem login e anon não escreve) não trava.
+--   * postar_em com data impossível (31/02, 99:99) é recusado.
 --   * Voltou para "Em análise" ou saiu de "Edição": o "Conserto" apaga. Saiu de "Aprovado/Postado": o postar_em apaga.
 -- Postar sozinho: um despertador (pg_cron) roda a CADA MINUTO e passa para "Postado" todo card "Aprovado" cujo postar_em já passou.
 --   Por que no banco: roda com o navegador fechado. Analogia: um despertador na parede, não um recado que depende de alguém abrir a loja.
@@ -35,16 +37,29 @@ grant execute on function private.pode_aprovar(text) to authenticated;
 create or replace function private.tarefas_aprovacao() returns trigger
 language plpgsql set search_path = ''
 as $$
+declare v_entra_aprovado boolean; v_entra_postado boolean;
 begin
+  if new.postar_em is not null then
+    begin perform new.postar_em::timestamp;  -- recusa data impossível (31/02, 99:99) que o formato do CHECK deixaria passar
+    exception when others then raise exception 'postar_em invalido: %', new.postar_em using errcode = '22007'; end;
+  end if;
+  v_entra_aprovado := new.etapa = 'aprovado' and (tg_op = 'INSERT' or old.etapa is distinct from 'aprovado');
+  -- Postado só nasce de Aprovado (a mão ou o despertador); vindo de qualquer outra etapa, ou criado já Postado, é como aprovar.
+  v_entra_postado := new.etapa = 'postado' and (tg_op = 'INSERT' or old.etapa not in ('aprovado', 'postado'));
   if tg_op = 'UPDATE' then
-    if (new.conserto and not old.conserto)
-       or (old.etapa = 'analise' and new.etapa = 'aprovado') then
+    if (new.conserto and not old.conserto) or v_entra_aprovado or v_entra_postado
+       -- depois de entrar em análise, quem aprova e quando posta só mudam pela mão de quem aprova
+       or (old.etapa in ('analise', 'aprovado', 'postado') and new.aprovador is distinct from old.aprovador)
+       or (old.etapa in ('aprovado', 'postado') and new.etapa in ('aprovado', 'postado') and new.postar_em is distinct from old.postar_em) then
       if not (select private.pode_aprovar(old.aprovador)) then
-        raise exception 'so o Natham ou o aprovador do card aprova ou manda consertar' using errcode = '42501';
+        raise exception 'so o Natham ou o aprovador do card aprova, programa a postagem ou manda consertar' using errcode = '42501';
       end if;
     end if;
-  elsif new.conserto then
-    raise exception 'conserto so nasce de "Consertar" em um card existente' using errcode = '42501';
+  else
+    if new.conserto then raise exception 'conserto so nasce de "Consertar" em um card existente' using errcode = '42501'; end if;
+    if (v_entra_aprovado or v_entra_postado) and not (select private.pode_aprovar(new.aprovador)) then
+      raise exception 'so o Natham ou o aprovador do card cria um card ja aprovado' using errcode = '42501';
+    end if;
   end if;
   if new.etapa is distinct from 'edicao' then new.conserto := false; end if;
   if new.etapa is null or new.etapa not in ('aprovado', 'postado') then new.postar_em := null; end if;
