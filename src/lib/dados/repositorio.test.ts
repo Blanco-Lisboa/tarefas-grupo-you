@@ -47,4 +47,8 @@ describe("quem pode mexer na tarefa (espelha o banco)", () => {
     expect(podeAlterar(c, "natham")).toBe(true);
     expect(podeAlterar(c, null)).toBe(false);
   });
+  it("conteúdo com empresa: só o dono apaga", () => {
+    const c = { ...privadaDoMatheus, etapa: "roteiro" as const, empresaId: "you" };
+    expect([podeApagar(c, "matheus"), podeApagar(c, "natham"), podeApagar(c, null)]).toEqual([true, false, false]);
+  });
 });

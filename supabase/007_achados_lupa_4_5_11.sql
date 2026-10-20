@@ -97,3 +97,6 @@ begin
 end $$;
 revoke all on function public.salvar_tarefa(jsonb, text[]) from public, anon;
 grant execute on function public.salvar_tarefa(jsonb, text[]) to authenticated;
+
+-- Faz a API enxergar a função nova sem esperar (o app chama public.salvar_tarefa e, se ela não existir, cai no caminho antigo).
+notify pgrst, 'reload schema';

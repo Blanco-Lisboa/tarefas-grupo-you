@@ -73,9 +73,8 @@ export const paraBanco = (t: Tarefa, responsavelId: string | undefined) => ({
 /** Espelha as travas do banco (006): quem pode ALTERAR a tarefa = o dono, quem a enviou, ou qualquer um se for conteúdo com empresa. Natham no caderno do Matheus só lê. */
 export const podeAlterar = (t: Tarefa, eu: Responsavel | null) =>
   !!eu && (t.dono === eu || t.enviadaPor === eu || (!!t.etapa && !!t.empresaId));
-/** Quem pode APAGAR: o dono, ou qualquer um se for conteúdo com empresa que não enviou (quem enviou edita, mas não apaga). */
-export const podeApagar = (t: Tarefa, eu: Responsavel | null) =>
-  !!eu && (t.dono === eu || (!!t.etapa && !!t.empresaId && t.enviadaPor !== eu));
+/** Quem pode APAGAR: só o dono (quem enviou edita, mas não apaga; conteúdo com empresa de outro dono também não). */
+export const podeApagar = (t: Tarefa, eu: Responsavel | null) => !!eu && t.dono === eu;
 
 function iniciar() {
   if (typeof window === "undefined" || iniciado) return;
