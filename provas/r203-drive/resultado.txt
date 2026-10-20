@@ -1,0 +1,41 @@
+OK config 1903: ligado mostra o e-mail e esconde o botão
+OK config 1903: sem erro na página []
+OK config 1903: o Matheus não vê o bloco do Google Drive
+OK pastas 1903: ocasiões aparecem como pastas com a contagem de cards
+OK pastas 1903: sem erro na página []
+OK mapa 1903: card Postado tem o painel de links
+OK mapa 1903: painel mostra formato e redes ("Reels · Instagram + Facebook · 20/10\nVer no Instagram\nVer no Facebook")
+OK mapa 1903: links Ver no Instagram e Ver no Facebook
+OK mapa 1903: sem erro na página []
+OK ficha 1903: o anexo do Drive aparece (sem baixar nada)
+OK ficha 1903: abre no player do Drive
+OK ficha 1903: o campo Ocasião mostra a do card
+OK ficha 1903: sem erro na página []
+OK config 1440: ligado mostra o e-mail e esconde o botão
+OK config 1440: sem erro na página []
+OK config 1440: o Matheus não vê o bloco do Google Drive
+OK pastas 1440: ocasiões aparecem como pastas com a contagem de cards
+OK pastas 1440: sem erro na página []
+OK mapa 1440: card Postado tem o painel de links
+OK mapa 1440: painel mostra formato e redes ("Reels · Instagram + Facebook · 20/10\nVer no Instagram\nVer no Facebook")
+OK mapa 1440: links Ver no Instagram e Ver no Facebook
+OK mapa 1440: sem erro na página []
+OK ficha 1440: o anexo do Drive aparece (sem baixar nada)
+OK ficha 1440: abre no player do Drive
+OK ficha 1440: o campo Ocasião mostra a do card
+OK envio: ordem sessao_envio, upload direto ao Drive, confirmar_envio (sessao_envio,upload-direto,confirmar_envio)
+OK envio: o arquivo inteiro (66408 bytes) foi para o endereço da sessão do Drive (bytes 0-66407/66408)
+OK ficha 1440: sem erro na página []
+OK config 390: ligado mostra o e-mail e esconde o botão
+OK config 390: sem erro na página []
+OK config 390: o Matheus não vê o bloco do Google Drive
+OK pastas 390: ocasiões aparecem como pastas com a contagem de cards
+OK pastas 390: sem erro na página []
+OK mapa 390: card Postado tem o painel de links
+OK mapa 390: painel mostra formato e redes ("Reels · Instagram + Facebook · 20/10\nVer no Instagram\nVer no Facebook")
+OK mapa 390: links Ver no Instagram e Ver no Facebook
+OK mapa 390: sem erro na página []
+OK ficha 390: o anexo do Drive aparece (sem baixar nada)
+OK ficha 390: abre no player do Drive
+OK ficha 390: o campo Ocasião mostra a do card
+OK ficha 390: sem erro na página []

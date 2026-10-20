@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -236,17 +236,17 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
 }
 
 const REDE_NOME = { instagram: "Instagram", facebook: "Facebook" } as const;
-/** Card Postado (204): formato, redes, data e os links do post, sem arquivo. Aparece ao passar o mouse ou focar; os links ficam FORA do botão do card. */
+/** Card Postado (204): formato, redes, data e os links do post, sem arquivo. Fica logo abaixo do card (os links não podem morar dentro do botão); na pilha só aparece com a pilha aberta. */
 function PostadoNasRedes({ t }: { t: Tarefa }) {
   const postadas = (t.postagens ?? []).filter((p) => p.status === "postado");
   if (!postadas.length) return null;
   const quando = postadas.map((p) => p.postadoEm).filter(Boolean).sort()[0];
   const data = quando ? new Date(quando).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" }) : "";
   return (
-    <span className="mapa-postado">
+    <div className="mapa-postado">
       <span>{[t.formato && NOMES.formato[t.formato], postadas.map((p) => REDE_NOME[p.rede]).join(" + "), data].filter(Boolean).join(" · ")}</span>
       {postadas.filter((p) => p.link).map((p) => <a key={p.rede} href={p.link} target="_blank" rel="noopener noreferrer">Ver no {REDE_NOME[p.rede]}</a>)}
-    </span>
+    </div>
   );
 }
 
@@ -289,7 +289,7 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
                 </span>
               </button>
             );
-            return <BordaAnimada key={t.id} style={{ "--i": i } as CSSProperties}>{botao}{postado && <PostadoNasRedes t={t} />}</BordaAnimada>;
+            return <Fragment key={t.id}><BordaAnimada style={{ "--i": i } as CSSProperties}>{botao}</BordaAnimada>{postado && <PostadoNasRedes t={t} />}</Fragment>;
           })}
         </div>
       </div>
