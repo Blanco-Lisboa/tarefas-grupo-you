@@ -1,0 +1,149 @@
+psql:/sb/prova_agenda_saida.sql:147: WARNING:  agenda_saida_tarefa: relation "public.agenda_saida" does not exist (tarefa 33812a08-03db-435f-9d1a-c11ee5f3b457)
+psql:/sb/prova_agenda_saida.sql:147: ERROR:  RESULTADO: {
+    "pega_1": [
+        {
+            "id": 15,
+            "fim": "2026-10-22T15:30:00",
+            "acao": "criar",
+            "fuso": "America/Sao_Paulo",
+            "inicio": "2026-10-22T14:00:00",
+            "titulo": "Gravar reels",
+            "tarefa_id": "a6d423ea-6d40-48e8-b06d-137c0493e447",
+            "calendar_id": "nathamsud@gmail.com",
+            "dia_inteiro": false,
+            "google_event_id": null
+        }
+    ],
+    "vinculo": "ev-1 @ nathamsud@gmail.com",
+    "apagados": [
+        {
+            "ev": "ev-f0",
+            "cal": "nathamsud@gmail.com",
+            "acao": "apagar"
+        },
+        {
+            "ev": "ev-f1",
+            "cal": "nathamsud@gmail.com",
+            "acao": "apagar"
+        }
+    ],
+    "formatos": [
+        {
+            "t": "Feriado",
+            "dia": true,
+            "fim": "2026-11-04",
+            "ini": "2026-11-02",
+            "fuso": "America/Sao_Paulo"
+        },
+        {
+            "t": "Prazo",
+            "dia": true,
+            "fim": "2026-11-10",
+            "ini": "2026-11-09",
+            "fuso": "America/Sao_Paulo"
+        },
+        {
+            "t": "Tarde",
+            "dia": false,
+            "fim": "2026-10-23T00:30:00",
+            "ini": "2026-10-22T23:30:00",
+            "fuso": "America/Sao_Paulo"
+        }
+    ],
+    "mapa_natham": "nathamsud@gmail.com",
+    "pega_editar": [
+        {
+            "id": 16,
+            "fim": "2026-10-22T16:00:00",
+            "acao": "editar",
+            "fuso": "America/Sao_Paulo",
+            "inicio": "2026-10-22T14:00:00",
+            "titulo": "Gravar reels v2",
+            "tarefa_id": "a6d423ea-6d40-48e8-b06d-137c0493e447",
+            "calendar_id": "nathamsud@gmail.com",
+            "dia_inteiro": false,
+            "google_event_id": "ev-1"
+        }
+    ],
+    "apos_5_erros": "falhou / 5 / Google disse 500",
+    "quem_ve_o_que": "matheus:adrian, matheus:contato, matheus:matheus, natham:adrian, natham:contato, natham:matheus, natham:natham",
+    "fila_esperado_1": 1,
+    "logado_le_a_fila": "barrado: permission denied for table agenda_saida",
+    "vinculo_apos_troca": "ev-1b @ matheus@cal.test",
+    "anon_chama_pendentes": "barrado: permission denied for function agenda_saida_pendentes",
+    "troca_primeiro_apaga": [
+        {
+            "id": 18,
+            "acao": "apagar",
+            "tarefa_id": "a6d423ea-6d40-48e8-b06d-137c0493e447",
+            "calendar_id": "nathamsud@gmail.com",
+            "google_event_id": "ev-1"
+        }
+    ],
+    "logado_chama_confirmar": "barrado: permission denied for function agenda_saida_confirmar",
+    "logado_chama_pendentes": "barrado: permission denied for function agenda_saida_pendentes",
+    "para_o_adrian_so_apaga": [
+        {
+            "id": 20,
+            "acao": "apagar",
+            "tarefa_id": "a6d423ea-6d40-48e8-b06d-137c0493e447",
+            "calendar_id": "matheus@cal.test",
+            "google_event_id": "ev-1b"
+        }
+    ],
+    "acesso_lucas_esperado_0": 0,
+    "salvar_sem_id_do_google": "barrado: salvar precisa de p_google_event_id",
+    "efemera_na_fila_esperado_0": 0,
+    "confirma_de_novo_inofensivo": {
+        "estado": "feito"
+    },
+    "eventos_no_banco_esperado_1": 1,
+    "receber_ignora_o_do_tarefas": {
+        "gravados": 1,
+        "varridos": 0,
+        "ignorados": 1,
+        "removidos": 0,
+        "varredura_ignorada": false
+    },
+    "vinculo_do_adrian_esperado_0": 0,
+    "troca_depois_cria_na_do_matheus": [
+        {
+            "id": 19,
+            "fim": "2026-10-22T16:30:00",
+            "acao": "criar",
+            "fuso": "America/Sao_Paulo",
+            "inicio": "2026-10-22T15:00:00",
+            "titulo": "Gravar reels v2",
+            "tarefa_id": "a6d423ea-6d40-48e8-b06d-137c0493e447",
+            "calendar_id": "matheus@cal.test",
+            "dia_inteiro": false,
+            "google_event_id": null
+        }
+    ],
+    "pessoa_lucas_continua_esperado_1": 1,
+    "duas_edicoes_uma_linha_esperado_1": 1,
+    "pega_de_novo_esperado_lista_vazia": [
+    ],
+    "depois_da_confirmacao_sai_a_proxima": [
+        {
+            "id": 17,
+            "fim": "2026-10-22T16:30:00",
+            "acao": "editar",
+            "fuso": "America/Sao_Paulo",
+            "inicio": "2026-10-22T15:00:00",
+            "titulo": "Gravar reels v2",
+            "tarefa_id": "a6d423ea-6d40-48e8-b06d-137c0493e447",
+            "calendar_id": "nathamsud@gmail.com",
+            "dia_inteiro": false,
+            "google_event_id": "ev-1"
+        }
+    ],
+    "depois_do_falhou_a_tarefa_ainda_anda": "criar",
+    "em_voo_nada_novo_esperado_lista_vazia": [
+    ],
+    "vinculos_que_sobram_esperado_1_a_Tarde": 1,
+    "tarefa_salvou_com_fila_quebrada_esperado_1": 1,
+    "para_o_adrian_nada_mais_esperado_lista_vazia": [
+    ]
+}
+CONTEXT:  PL/pgSQL function inline_code_block line 143 at RAISE

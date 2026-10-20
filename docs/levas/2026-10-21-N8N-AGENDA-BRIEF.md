@@ -1,6 +1,6 @@
 # Brief para o agente do n8n: ligar o Google Agenda ao sistema Tarefas
 
-Este documento é tudo o que você precisa. Você não tem acesso ao código do Tarefas e não precisa. Quem publica o fluxo é o Natham.
+Este documento é tudo o que você precisa. Ele tem DOIS fluxos: a **IDA** (Google para o Tarefas, seções 1 a 12) e a **VOLTA** (Tarefas para o Google, seção 13). Você não tem acesso ao código do Tarefas e não precisa. Quem publica o fluxo é o Natham.
 
 ## 1. O que queremos
 
@@ -12,7 +12,7 @@ Regras que valem sempre:
 - **Não mexa em nenhum fluxo que já existe**, em especial o do CRM (`13PbdvnpT8BBz4Zd`). Pode abrir para ver como o aviso do Google (push) foi feito lá e copiar o jeito, nada além disso.
 - **Não publique.** Deixe o fluxo pronto e salvo. O Natham publica.
 - **Nenhuma chave, senha ou token** escrito no fluxo, em nota, em comentário ou em exportação. Tudo no cofre de credenciais do n8n (ver seção 6).
-- Este fluxo **só lê** o Google. Nunca cria, altera ou apaga compromisso lá.
+- O fluxo da **IDA** (seções 1 a 12) **só lê** o Google, com credencial só de leitura. Nunca cria, altera ou apaga compromisso lá. Quem escreve no Google é só o fluxo da **VOLTA** (seção 13), separado e com credencial própria.
 
 Pré-requisito (do Natham, antes de você testar): ele aplica o arquivo `supabase/008_agenda_porta_de_entrada.sql` no banco do Tarefas. Se a função ainda não existir, a chamada responde erro 404 com `PGRST202`; é só avisar o Natham.
 
@@ -28,7 +28,7 @@ Nessa conta existem 5 agendas. Cada uma vira um valor de `p_fonte` (o nome que o
 | `natham` | agenda pessoal do Natham (`nathamsud@gmail.com`) | compartilhada, só leitura ("Ver detalhes dos eventos") | já compartilhada, ligar agora |
 | `matheus` | agenda do Matheus | compartilhada, só leitura | já compartilhada, ligar agora |
 | `adrian` | agenda do Adrian | ainda não compartilhada | **depois** (deixe o fluxo pronto para entrar só acrescentando uma linha) |
-| `lucas` | agenda do Lucas | **sem decisão do Natham** | não ligar; o fluxo deve aceitar entrar depois |
+| `lucas` | agenda do Lucas | **decidido (21/10): o Lucas não entra** | não ligar; o 010 também tira o Lucas de quem vê as agendas |
 
 ### Como achar o `calendarId` de cada uma
 Não adivinhe. Pergunte ao Google quais agendas essa conta enxerga:
@@ -137,6 +137,7 @@ Os dois últimos campos, só na **varredura diária** (seção 3B), sempre junto
 | `fim` | `end.dateTime` (ou `end.date`) | opcional. |
 | `dia_inteiro` | existe `start.date` (sem hora)? | `true` quando o Google manda só a data. |
 | `local` | `location` | opcional. |
+| `tarefa_id` | `extendedProperties.private.tarefa_id` | **só** se vier. É a marca dos eventos que o próprio Tarefas criou (volta, seção 13): o banco IGNORA esses, senão a tarefa apareceria 2 vezes no Calendário. Evento apagado (`cancelled`) vem sem isso: mande como está, não faz mal. |
 
 Regras do formato:
 - `inicio` e `fim` com horário: **sempre com o fuso na ponta** (`-03:00`), exatamente como o Google manda. Sem fuso o banco entende errado.
@@ -157,9 +158,9 @@ Regras do formato:
 - **Quem pode chamar:** só quem tem a chave de serviço. Sem a chave (ou com a chave pública do site) o banco responde `permission denied`. É de propósito.
 - **Resposta de sucesso** (200), exemplo:
   ```json
-  { "gravados": 12, "removidos": 1, "varridos": 0, "varredura_ignorada": false }
+  { "gravados": 12, "removidos": 1, "varridos": 0, "varredura_ignorada": false, "ignorados": 0 }
   ```
-  `gravados` = compromissos entregues; `removidos` = apagados pelo aviso de cancelamento; `varridos` = apagados pela varredura; `varredura_ignorada: true` = a varredura veio com lista vazia e o banco, por segurança, não apagou nada.
+  `ignorados` = eventos que vieram com `tarefa_id` (criados pelo Tarefas) e foram deixados de lado de propósito; `gravados` = compromissos entregues; `removidos` = apagados pelo aviso de cancelamento; `varridos` = apagados pela varredura; `varredura_ignorada: true` = a varredura veio com lista vazia e o banco, por segurança, não apagou nada.
 - **Erros:** `400` com texto (`fonte invalida`, `evento sem id`, `evento X sem inicio`): corrija o lote. `401/403` ou `permission denied`: credencial errada. `404` com `PGRST202`: o Natham ainda não aplicou o 008. Em qualquer erro, **o lote inteiro é desfeito** (nada entra pela metade): pode reenviar o mesmo lote depois de corrigir.
 
 ## 7. Repetição e duplicidade
@@ -198,8 +199,108 @@ Tudo em **America/Sao_Paulo** (Brasília, -03:00). Peça `timeZone=America/Sao_P
 5. **Leitura real, só da `contato`:** rode a janela inteira (seção 4) e envie. Peça ao Natham para conferir 3 compromissos que ele conhece.
 6. **A "Reunião - Caderno":** ela está na contato@ e na do Natham. Rode a `contato` e depois a `natham`. Esperado: no banco, **uma linha só**, com `fontes = {contato, natham}`.
 7. **Apagar de verdade:** o Natham apaga um compromisso de teste no Google. Em até alguns minutos (ou na varredura) ele deve sumir do banco.
-8. Só então ligue `matheus`. Depois `adrian`, quando o Natham avisar que compartilhou. `lucas` só se o Natham decidir.
+8. Só então ligue `matheus`. Depois `adrian`, quando o Natham avisar que compartilhou. `lucas` não entra (decisão do Natham, 21/10).
 
 ## 12. Entrega
 
 Deixe o fluxo **salvo, sem publicar** e responda ao Natham com: o nome do fluxo, a tabela `p_fonte -> calendarId` que você achou (sem nenhuma chave), qual gatilho usou (aviso do Google ou a cada 15 min) e o resultado de cada teste da seção 11. **O Natham publica pelo painel do n8n.**
+
+
+## 13. A VOLTA: do Tarefas para o Google (fluxo novo, separado da IDA)
+
+Pré-requisito: o Natham aplica `supabase/010_agenda_saida_tarefas_para_o_google.sql` (depois do 008). Sem ele, as duas funções abaixo respondem `404` com `PGRST202`: avise o Natham.
+
+### 13.1 O que queremos
+Quando alguém cria, muda a data/hora/título/responsável ou apaga uma **tarefa com data** no Tarefas, o evento correspondente aparece, muda ou some **na agenda do Google do RESPONSÁVEL** da tarefa. Tarefa do Matheus vai para a agenda do Matheus, não para a do Adrian nem para a contato@. Tarefa sem data não vai. Quem não tem agenda mapeada (Adrian, por ora) não manda nada.
+
+Analogia: o banco tem uma **fila de saída** (as encomendas a entregar). Seu fluxo é o motoboy: a cada 1 ou 2 minutos pergunta "o que tem pra entregar?", entrega no Google e avisa o banco "entregue".
+
+### 13.2 Credencial (não reaproveite a da IDA)
+- Crie uma **segunda** credencial Google no n8n, também da conta `contato@assessoriabeec.com.br`, chamada `Google Agenda - escrita`, com o escopo `https://www.googleapis.com/auth/calendar.events`. A credencial da IDA continua só de leitura (`calendar.readonly`).
+- A conta contato@ **só consegue escrever na agenda de alguém que deu a ela a permissão "Fazer alterações nos eventos"** (passo do Natham, 13.8). Sem isso o Google responde `403` ou `404`.
+- Chave do banco: a mesma credencial Header Auth da IDA (`Supabase Tarefas - chave de serviço`), mesmas regras da seção 6. Nenhuma chave em nó, nota ou exportação.
+
+### 13.3 O desenho do fluxo (nome sugerido: `Tarefas - Agenda - volta`)
+1. **Gatilho:** Schedule, a cada 2 minutos.
+2. **HTTP Request** `POST https://uruhjlurcxpjhhgvuzwt.supabase.co/rest/v1/rpc/agenda_saida_pendentes`, corpo `{"p_limite": 20}`. A resposta é uma **lista**; faça uma saída por item (Split Out). Lista vazia = o fluxo termina ali.
+3. **Switch** em `acao`: `criar`, `editar`, `apagar` (13.5).
+4. Em cada ramo, a chamada ao Google. **Uma de cada vez** (não em paralelo) e **com erro tratado por item**: um item que falha não pode parar os outros (ative "continuar em caso de erro" no nó do Google).
+5. **HTTP Request** `POST .../rest/v1/rpc/agenda_saida_confirmar` com o resultado (13.6), **sempre**, deu certo ou errado.
+
+Se o fluxo cair no meio, nada se perde: o banco devolve o item de novo depois de 5 minutos sem confirmação. `editar` e `apagar` repetidos não duplicam nada; só `criar` repetido duplicaria (se o Google criou mas a confirmação não chegou). Por isso **confirme logo depois de cada chamada ao Google**, antes de passar ao próximo item.
+
+### 13.4 O que o banco entrega (cada item da lista)
+| Campo | Quando vem | Significado |
+|---|---|---|
+| `id` | sempre | número do item da fila. Volta em `p_id` |
+| `acao` | sempre | `criar`, `editar` ou `apagar` (o banco decide) |
+| `tarefa_id` | sempre | vai no evento como `extendedProperties.private.tarefa_id` |
+| `calendar_id` | sempre | agenda do Google onde agir (a URL leva este valor, com `@` codificado) |
+| `google_event_id` | `editar` e `apagar` | id do evento no Google. Em `criar` vem `null` |
+| `titulo` | `criar`, `editar` | vira `summary` |
+| `inicio`, `fim` | `criar`, `editar` | prontos para o Google (abaixo) |
+| `dia_inteiro` | `criar`, `editar` | `true` = usa `date`; `false` = usa `dateTime` |
+| `fuso` | `criar`, `editar` | sempre `America/Sao_Paulo` |
+
+Com hora: `inicio` e `fim` vêm como `2026-10-22T14:00:00` (hora de Brasília, **sem** fuso na ponta; o fuso é o campo `fuso`). Dia inteiro: vêm como `2026-10-22` e `2026-10-23`, e o `fim` **já é o dia seguinte**, como o Google exige. **Não ajuste nada.**
+
+### 13.5 O que mandar ao Google (API `https://www.googleapis.com/calendar/v3`, sempre com `sendUpdates=none`, para ninguém receber e-mail)
+- **criar** `POST /calendars/{calendar_id}/events?sendUpdates=none`
+  ```json
+  { "summary": "<titulo>",
+    "start": { "dateTime": "<inicio>", "timeZone": "America/Sao_Paulo" },
+    "end":   { "dateTime": "<fim>",    "timeZone": "America/Sao_Paulo" },
+    "description": "Criado pelo Tarefas - Grupo You",
+    "extendedProperties": { "private": { "tarefa_id": "<tarefa_id>" } } }
+  ```
+  Em dia inteiro: `"start": { "date": "<inicio>" }` e `"end": { "date": "<fim>" }`. **A marca `extendedProperties.private.tarefa_id` é obrigatória**: é ela que impede o loop e a duplicata (a IDA a repassa como `tarefa_id`, seção 5).
+- **editar** `PATCH /calendars/{calendar_id}/events/{google_event_id}?sendUpdates=none` com `summary`, `start` e `end`. A tarefa pode ter passado de "com hora" para "dia inteiro" (ou ao contrário), então zere o outro campo: com hora, `start`/`end` levam `"date": null`; dia inteiro, levam `"dateTime": null` e `"timeZone": null`.
+- **apagar** `DELETE /calendars/{calendar_id}/events/{google_event_id}?sendUpdates=none`. Resposta `404` ou `410` (já não existe) conta como **sucesso**.
+
+### 13.6 Avisar o banco (as TRÊS PONTAS batendo)
+`POST .../rest/v1/rpc/agenda_saida_confirmar`, uma vez por item, corpo:
+```json
+{ "p_id": 41, "p_google_event_id": "abc123xyz", "p_erro": null }
+```
+| Coluna no banco (`agenda_saida`) | Parâmetro da função | Campo no n8n |
+|---|---|---|
+| `id` | `p_id` | `id` do item que veio da lista |
+| `google_event_id` (e `agenda_saida_vinculo.google_event_id`) | `p_google_event_id` | `id` da resposta do Google em `criar`; o próprio `google_event_id` do item em `editar`; em `apagar` mande `null` |
+| `ultimo_erro` | `p_erro` | texto curto do erro do Google (código e mensagem). `null` quando deu certo |
+
+Resposta: `{"estado": "feito"}`, ou `{"estado": "pendente"}` (vai tentar de novo em 5 minutos), ou `{"estado": "falhou"}` (5 erros seguidos: o item sai da fila; avise o Natham). Erro `400` com `salvar precisa de p_google_event_id` = faltou o `id` do Google em `criar` ou `editar`.
+
+Os outros campos da lista (`titulo`, `inicio`, `fim`, `dia_inteiro`, `fuso`, `calendar_id`, `tarefa_id`) **não** voltam na confirmação: o banco já os guardou ao entregar o item.
+
+### 13.7 As agendas (quem recebe a tarefa de quem)
+A tabela `agenda_pessoa` do banco liga cada pessoa à agenda dela. Hoje só o Natham tem linha (`nathamsud@gmail.com`; confirme na `calendarList` que é esse mesmo o `id`). Quando o Natham liberar a agenda do Matheus (13.8), **você descobre o `calendarId` exato** pela `calendarList` (seção 2, mesmo método) e o Natham grava uma linha:
+```sql
+insert into public.agenda_pessoa (pessoa_id, calendar_id)
+select id, '<calendarId do Matheus>' from public.pessoas where slug = 'matheus'
+on conflict (pessoa_id) do update set calendar_id = excluded.calendar_id;
+```
+O Adrian entra do mesmo jeito, só depois. **O que já existia antes do 010 não é enviado**: só tarefa criada ou mudada depois da linha entrar no mapa. Marcar a tarefa como feita não muda o evento no Google.
+
+### 13.8 Passos do Natham (antes de ligar a volta)
+1. **Natham, na agenda pessoal dele** (`nathamsud@gmail.com`): Configurações da agenda > "Compartilhar com pessoas específicas" > `contato@assessoriabeec.com.br` > permissão **"Fazer alterações nos eventos"** (hoje está "Ver todos os detalhes do evento").
+2. **Matheus, na agenda dele:** o mesmo, para a contato@.
+3. **Adrian (depois):** o mesmo, para a contato@. **Ninguém compartilha nada com o Adrian:** ele não vê as agendas do Natham nem do Matheus, para não poluir a dele. O Natham e o Matheus passam a ver a do Adrian (isso já está no banco).
+4. Natham aplica o 010 quando o Maestro avisar que está pronto.
+5. Natham publica o fluxo da volta no painel do n8n (como na IDA).
+
+A permissão "Fazer alterações nos eventos" também deixa a IDA continuar lendo: ela inclui ver tudo.
+
+### 13.9 Testes da volta (nesta ordem; avise o Natham onde depender dele)
+1. **Recusa:** chame `agenda_saida_pendentes` sem a chave. Tem de dar `permission denied`. Se aceitar, **pare e avise**.
+2. **Fila vazia:** com a chave, `{"p_limite": 20}` devolve `[]`.
+3. **Criar:** o Natham cria no Tarefas uma tarefa de teste com data e hora, responsável Natham, título `TESTE volta (apagar)`. Em até 2 minutos o evento aparece na agenda pessoal dele. Confira `extendedProperties.private.tarefa_id` no evento.
+4. **Sem duplicar:** rode a IDA da `natham`. Esperado: `ignorados: 1` e a tarefa continua **uma vez só** no Calendário do Tarefas (como tarefa, não como compromisso).
+5. **Editar:** o Natham muda hora e título. O MESMO evento muda no Google (não nasce outro).
+6. **Trocar de responsável** para o Matheus (depois de 13.7): o evento some da agenda do Natham e nasce na do Matheus.
+7. **Dia inteiro:** tarefa de dia inteiro com início e fim em dias diferentes. No Google, o último dia aparece incluído.
+8. **Apagar:** o Natham apaga a tarefa. O evento some do Google.
+9. **Erro (opcional):** tire a permissão de escrita de uma agenda e crie uma tarefa para ela: o item deve voltar `pendente` e, após 5 tentativas, `falhou`, sem travar os outros.
+10. Só então o fluxo fica ligado. O Adrian entra por último, quando o Natham avisar que a agenda dele está liberada para a contato@.
+
+### 13.10 Entrega da volta
+Fluxo **salvo, sem publicar**. Responda ao Natham com: o nome do fluxo, o `calendarId` de cada pessoa que você achou (sem nenhuma chave) e o resultado de cada teste de 13.9.
