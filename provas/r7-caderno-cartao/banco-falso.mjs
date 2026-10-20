@@ -25,6 +25,9 @@ const tarefas = [
   t("Reels: bastidores do escritório", "natham", "2026-10-20T11:00", { tipo: "postagem", empresa_id: "you", rede: "instagram", etapa: "gravacao" }),
   t("Carrossel: prazo do MEI", "matheus", "2026-10-20T16:00", { tipo: "postagem", empresa_id: "beec", rede: "tiktok", etapa: "edicao" }),
   t("Gravar stories da semana", "matheus", "2026-10-20T14:00", { dono_id: P.matheus, criado_por: P.matheus }),
+  // Item 177: tarefas enviadas (dono = quem recebe, enviada_por = quem mandou)
+  t("Conferir o roteiro do Reels", "natham", "2026-10-20T13:00", { dono_id: P.natham, criado_por: P.matheus, enviada_por: P.matheus }),
+  t("Mandar a logo da Beec ao contador", "matheus", "2026-10-20T09:30", { dono_id: P.matheus, criado_por: P.natham, enviada_por: P.natham }),
   t("Roteiro: 5 erros no MEI", "matheus", "2026-10-24T10:00", { tipo: "roteiro", empresa_id: "you", rede: "tiktok", etapa: "roteiro", objetivo: "Educar quem está abrindo MEI" }),
   t("Carrossel de impostos", "natham", "2026-10-18T09:00", { tipo: "edicao", empresa_id: "beec", rede: "instagram", etapa: "edicao" }),
   t("Vídeo institucional", "adrian", null, { tipo: "gravacao", empresa_id: "beec", rede: "youtube", etapa: "gravacao" }),
@@ -55,7 +58,8 @@ createServer((req, res) => {
   const tabela = url.pathname.match(/^\/rest\/v1\/(\w+)/)?.[1];
   // Mesma regra de leitura do banco de verdade (supabase/002_travas.sql, tarefas_le)
   const eu = pessoas.find((p) => p.user_id === sub(req))?.id;
-  const le = (x) => x.dono_id === eu || x.enviada_por === eu || (x.etapa && x.empresa_id);
+  // 006: o Natham lê tudo do caderno do Matheus (só leitura)
+  const le = (x) => x.dono_id === eu || x.enviada_por === eu || (x.etapa && x.empresa_id) || (eu === P.natham && x.dono_id === P.matheus);
   if (req.method === "GET" && tabela) return res.end(JSON.stringify(tabela === "tarefas" ? tarefas.filter(le) : tabelas[tabela] ?? []));
   if (tabela === "fazendo_agora" && req.method === "DELETE") {
     const quem = url.searchParams.get("pessoa_id")?.replace(/^eq\./, "");

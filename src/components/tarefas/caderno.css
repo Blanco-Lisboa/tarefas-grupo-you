@@ -101,6 +101,8 @@
 .linha-texto .abrir { display: block; flex: 0 1 auto; min-width: 3ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .linha-empresa { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 20px; line-height: 1; } /* reservado também sem empresa; empresa sem logo mostra o nome e alarga */
 .linha .detalhe { flex: none; font-size: calc(16px * var(--escala)); line-height: 1; margin-left: var(--s-4); white-space: nowrap; }
+/* selo "enviada por X" (item 177): retângulo de cantos suaves, não pílula */
+.linha-selo { flex: none; padding: 2px 8px; border-radius: 8px; background: color-mix(in srgb, var(--azul) 12%, transparent); color: var(--azul); font: 600 var(--t-12) / 1.2 var(--fonte); white-space: nowrap; }
 .linha-etq { flex: none; margin-left: auto; padding: 3px 8px; border-radius: var(--raio-b); background: var(--e); color: var(--et); font: 600 var(--t-12) / 1 var(--fonte); }
 
 /* risco de caneta: cresce da esquerda para a direita, sem quique */

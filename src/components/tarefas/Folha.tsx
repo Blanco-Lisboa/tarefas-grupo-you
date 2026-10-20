@@ -8,7 +8,9 @@ import { horaDoSlot, SLOTS } from "./grade";
 import { ETIQUETAS, MenuTarefa, type Acoes } from "./MenuTarefa";
 import "./caderno.css";
 
-export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao };
+export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao;
+  /** Nome de quem mandou a tarefa (selo "enviada por"). Vazio = não foi enviada. */ enviadaPor?: string;
+  /** false = só leitura para quem está olhando (trava do banco). Vazio = pode. */ podeAlterar?: boolean; podeApagar?: boolean };
 export type Opcao = { id: string; nome: string };
 const NENHUMA = "nenhuma"; // valor do seletor; a tarefa sem empresa guarda empresaId ""
 const HORAS = Array.from({ length: SLOTS }, (_, k) => horaDoSlot(k));
@@ -126,7 +128,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
         >
           <span className="linha-hora">
             <span className="linha-hora-txt">{rotulos?.[k]}</span>
-            {l && aoMover && (
+            {l && aoMover && l.podeAlterar !== false && (
               <button
                 type="button" className="alca" data-alca={l.id} title="Arrastar para mudar o horário"
                 aria-label={`Mudar o horário de ${l.titulo}: setas para cima e para baixo movem meia hora`}
@@ -140,7 +142,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
           {l ? (
             <div className="linha-miolo" style={{ transform: `rotate(${giro(l.id)}deg)` }}>
               <button
-                type="button" className={`caixa${estourando === l.id ? " estourando" : ""}`} disabled={!aoMarcar} aria-pressed={l.feita}
+                type="button" className={`caixa${estourando === l.id ? " estourando" : ""}`} disabled={!aoMarcar || l.podeAlterar === false} aria-pressed={l.feita}
                 aria-label={`${l.feita ? "Desmarcar" : "Marcar como feita"}: ${l.titulo}`}
                 onClick={() => marcar(l)}
               >
@@ -161,19 +163,20 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
                   <span className="folha-tinta risco">{l.titulo}</span>
                 </button>
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
+                {l.enviadaPor && <span className="linha-selo">enviada por {l.enviadaPor}</span>}
                 {(() => { const e = ETIQUETAS.find((x) => x.cor && x.valor === l.cor); return e && (
                   <span className="linha-etq" style={{ "--e": `var(--${e.valor})`, "--et": `var(--${e.valor}-texto)` } as CSSProperties}>{e.rotulo}</span>
                 ); })()}
               </span>
-              {aoApagar && (confirmando === l.id ? (
+              {aoApagar && l.podeAlterar !== false && (confirmando === l.id ? (
                 <span className="confirmar folha-lapis">
                   Some do calendário também.
                   <button type="button" className="confirmar-sim folha-tinta" onClick={() => { aoApagar(l.id); setConfirmando(null); }}>Apagar</button>
                   <button type="button" className="confirmar-nao" autoFocus onClick={() => setConfirmando(null)}>Manter</button>
                 </span>
               ) : acoes ? (
-                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} acoes={acoes} aoExcluir={() => aoApagar(l.id)} />
-              ) : (
+                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} acoes={acoes} aoExcluir={() => aoApagar(l.id)} semExcluir={l.podeApagar === false} />
+              ) : l.podeApagar === false ? null : (
                 <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => setConfirmando(l.id)}>
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>
                 </button>

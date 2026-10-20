@@ -23,6 +23,8 @@ const foto = async (p, nome) => {
   await p.waitForTimeout(400);
   await p.screenshot({ path: join(PASTA, `${nome}.png`) });
 };
+// Item 177: por linha, título, selo "enviada por" e se marcar/⋮ estão ligados
+const linhas = (p) => p.evaluate(() => [...document.querySelectorAll(".folha .linha")].filter((li) => li.querySelector(".risco")).map((li) => `${li.querySelector(".risco").textContent.trim()} | selo=${li.querySelector(".linha-selo")?.textContent ?? "-"} | marcar=${!li.querySelector("button.caixa").disabled} | menu=${!!li.querySelector(".mt-pontos")}`));
 const titulos = (p) => p.evaluate(() => [...document.querySelectorAll(".folha .risco")].filter((e) => e.offsetHeight).map((e) => e.textContent.trim()).filter(Boolean));
 
 for (const [quem, uid] of [["natham", "u-natham"], ["matheus", "u-matheus"]]) {
@@ -39,6 +41,7 @@ for (const [quem, uid] of [["natham", "u-natham"], ["matheus", "u-matheus"]]) {
     const seletor = p.getByRole("button", { name: /Caderno de/ });
     console.log(quem, w, "caderno:", JSON.stringify(await titulos(p)), "| seletor 'Caderno de':", await seletor.count(),
       "| sai da tela:", (await seletor.count()) ? await seletor.evaluate((b) => b.getBoundingClientRect().right > innerWidth) : "-");
+    if (w === 1440) console.log(quem, "linhas:", await linhas(p));
     await foto(p, `caderno-${quem}-${w}`);
     if (quem === "natham" && (await seletor.count())) {
       await seletor.click();
@@ -46,6 +49,7 @@ for (const [quem, uid] of [["natham", "u-natham"], ["matheus", "u-matheus"]]) {
       await p.waitForTimeout(500);
       const escrever = await p.locator(".folha input.campo").count();
       console.log(quem, w, "vendo Matheus:", JSON.stringify(await titulos(p)), "| campos de escrever:", escrever, "| caixas habilitadas:", await p.locator(".folha button.caixa:not([disabled])").count());
+      if (w === 1440) console.log("natham vendo Matheus, linhas:", await linhas(p));
       await foto(p, `caderno-natham-vendo-matheus-${w}`);
     }
     await p.goto(BASE + "/conteudos", { waitUntil: "networkidle" });

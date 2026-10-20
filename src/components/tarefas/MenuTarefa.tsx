@@ -41,9 +41,11 @@ type Props = {
   horas: string[];
   acoes: Acoes;
   aoExcluir: () => void;
+  /** Quem só pode editar (enviou a tarefa, não é dono) não apaga. */
+  semExcluir?: boolean;
 };
 
-export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, acoes, aoExcluir }: Props) {
+export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, acoes, aoExcluir, semExcluir }: Props) {
   const uid = useId();
   const pop = useRef<HTMLDivElement>(null);
   const [vista, setVista] = useState<"menu" | "hora" | "criar" | "pessoa" | "empresa" | "excluir">("menu");
@@ -107,11 +109,15 @@ export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, 
                   >{e.rotulo}</button>
                 ))}
               </div>
-              <hr className="mt-sep" />
-              <button type="button" className="selecao-opcao mt-perigo" onClick={() => setVista("excluir")}>
-                <Icone><path d="M4 6h12M8 6V4h4v2M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4" /></Icone>
-                <span className="selecao-opcao-rotulo">Excluir</span>
-              </button>
+              {!semExcluir && (
+                <>
+                  <hr className="mt-sep" />
+                  <button type="button" className="selecao-opcao mt-perigo" onClick={() => setVista("excluir")}>
+                    <Icone><path d="M4 6h12M8 6V4h4v2M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4" /></Icone>
+                    <span className="selecao-opcao-rotulo">Excluir</span>
+                  </button>
+                </>
+              )}
             </>
           )}
           {vista === "hora" && (

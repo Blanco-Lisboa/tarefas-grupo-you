@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { PointerEvent as EventoPonteiro } from "react";
 import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
-import { RESPONSAVEIS, removerTarefa, salvarTarefa, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
+import { RESPONSAVEIS, podeAlterar, podeApagar, removerTarefa, salvarTarefa, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
@@ -73,7 +73,9 @@ export function TelaTarefas() {
   // Só pela data/hora: a ordenação é estável, então quem não tem horário (mesmo início) fica na ordem em que foi criado, igual à Fila do Mapa.
   const porHora = (a: Tarefa, b: Tarefa) => (a.inicio ?? "").localeCompare(b.inicio ?? "");
   // Tarefa sem empresa aparece sempre: o filtro de empresa não a esconde. De quem é = o responsável.
-  const visiveis = tarefas.filter((t) => (!de || t.responsavel === de) && (!t.empresaId || aplicar([t]).length));
+  // O caderno de `de` = o que é dele (dono) ou conteúdo com empresa: depois do 006 o Natham também recebe as tarefas privadas do Matheus.
+  const doCaderno = (t: Tarefa) => (t.dono ?? t.responsavel) === de || (!!t.etapa && !!t.empresaId);
+  const visiveis = tarefas.filter((t) => (!de || t.responsavel === de) && doCaderno(t) && (!t.empresaId || aplicar([t]).length));
   const doDia = visiveis.filter((t) => t.inicio?.slice(0, 10) === dia).sort(porHora);
   const doDiaSeguinte = visiveis.filter((t) => t.inicio?.slice(0, 10) === somarDias(dia, 1)).sort(porHora);
   const mostradas = aba === "dia" ? doDia : visiveis.filter((t) => !t.inicio);
@@ -87,6 +89,9 @@ export function TelaTarefas() {
     feita: !!t.concluida,
     cor: t.cor,
     responsavel: t.responsavel,
+    enviadaPor: t.enviadaPor ? NOMES[t.enviadaPor] : undefined,
+    podeAlterar: podeAlterar(t, eu),
+    podeApagar: podeApagar(t, eu),
   });
   const rotulos = aba === "dia" ? grade.map((_, k) => rotuloSlot(k)) : undefined;
 
@@ -189,7 +194,7 @@ export function TelaTarefas() {
     duplicar: comTarefa((t) => void salvarTarefa({ ...noDiaSeguinte(t), id: undefined, concluida: false })),
     mover: comTarefa((t) => void salvarTarefa(noDiaSeguinte(t))),
     marcarHora: moverPara,
-    criarPara: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, id: undefined, responsavel: quem, concluida: false }))(id),
+    criarPara: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, id: undefined, responsavel: quem, enviarPara: quem, concluida: false }))(id),
     marcarPessoa: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, responsavel: quem }))(id),
     etiqueta: (id: string, cor: Etiqueta) => comTarefa((t) => void salvarTarefa({ ...t, cor }))(id),
     empresa: (id: string, empresaId: string) => comTarefa((t) => void salvarTarefa({ ...t, empresaId }))(id),
@@ -249,16 +254,16 @@ export function TelaTarefas() {
             empresas={empresasEscolha}
             empresasMenu={empresas}
             empresaPadrao={empresasEscolha[0]?.id ?? ""}
-            /* caderno de outra pessoa: só olhar (a ficha abre travada, sem Salvar nem Excluir; não escreve, marca, move nem apaga) */
+            /* caderno de outra pessoa: não escreve; cada linha só liga marcar/mover/⋮ se podeAlterar (a privada dele fica só leitura, a que o Natham enviou edita) */
             aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
-            aoMarcar={alheio ? undefined : (id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
-            aoApagar={alheio ? undefined : (id) => void removerTarefa(id)}
+            aoMarcar={(id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
+            aoApagar={(id) => void removerTarefa(id)}
             continua={aba === "semdata"}
-            aoMover={aba === "dia" && !alheio ? moverPara : undefined}
-            acoes={alheio ? undefined : acoes}
+            aoMover={aba === "dia" ? moverPara : undefined}
+            acoes={acoes}
             responsavelPadrao={eu ?? undefined}
             aoEscrever={alheio ? undefined : (t, empresaId, responsavel, linha) => {
-              const base = { titulo: t, tipo: "outro" as const, empresaId, responsavel, cor: "etiqueta-5" as const, links: [], arquivos: [] };
+              const base = { titulo: t, tipo: "outro" as const, empresaId, responsavel, enviarPara: responsavel, cor: "etiqueta-5" as const, links: [], arquivos: [] };
               if (aba === "semdata") return void salvarTarefa({ ...base, diaInteiro: false });
               // Escrever numa linha de horário marca esse horário (30 min); depois das 22:00, dia inteiro.
               if (linha >= SLOTS) return void salvarTarefa({ ...base, inicio: dia, diaInteiro: true });
@@ -275,7 +280,7 @@ export function TelaTarefas() {
           />}
         </div>
       </div>
-      {aberta && <Ficha tarefa={aberta} aoFechar={() => setAberta(null)} soLer={alheio} />}
+      {aberta && <Ficha tarefa={aberta} aoFechar={() => setAberta(null)} soLer={!podeAlterar(aberta, eu)} />}
     </section>
   );
 }
