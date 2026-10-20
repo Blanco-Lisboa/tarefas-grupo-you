@@ -47,6 +47,8 @@ const marca = (pagina) => pagina.evaluate(() => {
 const foto = async (pagina, nome) => { await marca(pagina); await pagina.screenshot({ path: join(pasta, `${nome}.png`) }); };
 const cartao = (pagina, titulo) => pagina.locator(".conteudos-cartao").filter({ hasText: titulo });
 const texto = async (loc) => (await loc.count()) ? loc.first().innerText() : "";
+// Conserto 1 do Maestro: nome e data do rodapé nunca se encostam (caixas sem sobreposição).
+const separados = async (a, b) => { const x = await a.boundingBox(), y = await b.boundingBox(); return !!x && !!y && (x.x + x.width <= y.x || y.x + y.width <= x.x || x.y + x.height <= y.y || y.y + y.height <= x.y); };
 
 for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   const banco = await subirBanco();
@@ -71,6 +73,8 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   confere((await texto(cartao(pg, "Story: último dia do DAS").locator(".aprovacao-situacao"))) === "Postando…", `${largura}: Postando…`);
   confere((await texto(cartao(pg, "Reels da Beec").locator(".aprovacao-aviso"))).includes("A Beec ainda não está ligada"), `${largura}: Beec sem botões, com aviso`);
   await carrossel.scrollIntoViewIfNeeded();
+  confere(await separados(carrossel.locator(".conteudos-quem-faz"), carrossel.locator(".conteudos-cartao-rodape time")), `${largura}: nome e data do rodapé não se encostam`);
+  confere(await carrossel.locator(".conteudos-contagem-dias").count() === 0 && await cartao(pg, "Story: último dia do DAS").locator(".conteudos-contagem-dias").count() === 0, `${largura}: com erro ou postando, sem "posta em X" / "hoje"`);
   await foto(pg, `erro-${largura}`);
   await carrossel.getByRole("button", { name: "Tentar de novo só no Facebook" }).click();
   await pg.waitForTimeout(400);
@@ -99,6 +103,7 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   await dialogo.getByRole("button", { name: "Postar" }).click();
   await pg.waitForTimeout(600);
   confere(n.pedidos.some((p) => p.url.includes("/rpc/postar_agora") && p.corpo?.p_tarefa) && (await texto(dica.locator(".aprovacao-situacao"))) === "Postando…", `${largura}: Postar agora chama postar_agora e mostra Postando…`);
+  confere(await dica.locator(".conteudos-contagem-dias").count() === 0, `${largura}: Postando… sem "posta em 5 dias" junto`);
 
   // Aprovar o Reels e abrir o Programar: formato, Instagram/Facebook; carrossel com vídeo apaga o Facebook
   const reels = cartao(pg, "Reels: bastidores do escritório");
@@ -113,6 +118,8 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   confere(await aprovado.getByRole("button", { name: "Facebook" }).isDisabled() && (await texto(aprovado.locator(".aprovacao-nota"))).includes("só vai para o Instagram"), `${largura}: carrossel com vídeo apaga o Facebook`);
   await aprovado.scrollIntoViewIfNeeded();
   await pg.waitForTimeout(300);
+  const botaoData = aprovado.locator(".campo-data-botao");
+  confere(await botaoData.evaluate((b) => { const s = b.querySelector("span"); return s.scrollWidth <= s.clientWidth + 1 && b.scrollWidth <= b.clientWidth + 1; }) && (await botaoData.innerText()).includes("Quando?"), `${largura}: botão de data inteiro, sem corte`);
   await foto(pg, `programar-${largura}`);
   await aprovado.getByRole("button", { name: "Cancelar" }).click();
 
@@ -126,7 +133,10 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   await barra.fill("3000");
   await pg.waitForTimeout(500);
   confere((await texto(ficha.locator(".ficha-capa-texto").first())).includes("Capa: quadro em 0:03,0"), `${largura}: barrinha escolhe o quadro da capa`);
+  confere(await ficha.locator("textarea.ficha-legenda-texto").evaluate((t) => t.clientHeight >= 5 * parseFloat(getComputedStyle(t).lineHeight)), `${largura}: legenda com caixa de 5 linhas ou mais`);
   confere((await texto(ficha.locator(".ficha-legenda-post"))).includes("/2200") && await ficha.locator(".ficha-lixeira").count() === 1, `${largura}: legenda com contador e lixeira do Natham no card do Matheus`);
+  await ficha.locator(".ficha-legenda-post").scrollIntoViewIfNeeded();
+  await foto(pg, `ficha-legenda-${largura}`);
   await ficha.locator(".ficha-capa").scrollIntoViewIfNeeded();
   await foto(pg, `ficha-capa-${largura}`);
   await ficha.getByRole("button", { name: "Salvar" }).click();

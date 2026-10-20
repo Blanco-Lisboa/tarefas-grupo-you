@@ -6,15 +6,20 @@ OK 1903: link do post que saiu
 OK 1903: estado incerto manda olhar o perfil
 OK 1903: Postando…
 OK 1903: Beec sem botões, com aviso
+OK 1903: nome e data do rodapé não se encostam
+OK 1903: com erro ou postando, sem "posta em X" / "hoje"
 OK 1903: Tentar de novo chama tentar_de_novo
 OK 1903: Postado com os dois links
 OK 1903: Conserto com ícone
 OK 1903: sem legenda não posta e diz o que falta
 OK 1903: confirmação do Postar agora
 OK 1903: Postar agora chama postar_agora e mostra Postando…
+OK 1903: Postando… sem "posta em 5 dias" junto
 OK 1903: Programar abre com Instagram e Facebook acesos
 OK 1903: carrossel com vídeo apaga o Facebook
+OK 1903: botão de data inteiro, sem corte
 OK 1903: barrinha escolhe o quadro da capa
+OK 1903: legenda com caixa de 5 linhas ou mais
 OK 1903: legenda com contador e lixeira do Natham no card do Matheus
 OK 1903: Salvar grava capa_quadro_ms 3000 e a legenda
 OK 1903: Concluir apaga o card
@@ -30,15 +35,20 @@ OK 1440: link do post que saiu
 OK 1440: estado incerto manda olhar o perfil
 OK 1440: Postando…
 OK 1440: Beec sem botões, com aviso
+OK 1440: nome e data do rodapé não se encostam
+OK 1440: com erro ou postando, sem "posta em X" / "hoje"
 OK 1440: Tentar de novo chama tentar_de_novo
 OK 1440: Postado com os dois links
 OK 1440: Conserto com ícone
 OK 1440: sem legenda não posta e diz o que falta
 OK 1440: confirmação do Postar agora
 OK 1440: Postar agora chama postar_agora e mostra Postando…
+OK 1440: Postando… sem "posta em 5 dias" junto
 OK 1440: Programar abre com Instagram e Facebook acesos
 OK 1440: carrossel com vídeo apaga o Facebook
+OK 1440: botão de data inteiro, sem corte
 OK 1440: barrinha escolhe o quadro da capa
+OK 1440: legenda com caixa de 5 linhas ou mais
 OK 1440: legenda com contador e lixeira do Natham no card do Matheus
 OK 1440: Salvar grava capa_quadro_ms 3000 e a legenda
 OK 1440: Concluir apaga o card
@@ -54,15 +64,20 @@ OK 390: link do post que saiu
 OK 390: estado incerto manda olhar o perfil
 OK 390: Postando…
 OK 390: Beec sem botões, com aviso
+OK 390: nome e data do rodapé não se encostam
+OK 390: com erro ou postando, sem "posta em X" / "hoje"
 OK 390: Tentar de novo chama tentar_de_novo
 OK 390: Postado com os dois links
 OK 390: Conserto com ícone
 OK 390: sem legenda não posta e diz o que falta
 OK 390: confirmação do Postar agora
 OK 390: Postar agora chama postar_agora e mostra Postando…
+OK 390: Postando… sem "posta em 5 dias" junto
 OK 390: Programar abre com Instagram e Facebook acesos
 OK 390: carrossel com vídeo apaga o Facebook
+OK 390: botão de data inteiro, sem corte
 OK 390: barrinha escolhe o quadro da capa
+OK 390: legenda com caixa de 5 linhas ou mais
 OK 390: legenda com contador e lixeira do Natham no card do Matheus
 OK 390: Salvar grava capa_quadro_ms 3000 e a legenda
 OK 390: Concluir apaga o card
