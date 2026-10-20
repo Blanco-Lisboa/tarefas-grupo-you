@@ -155,10 +155,11 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
                 </span>
               </button>
               <span className="linha-texto">
+                {/* O espaço da logo é reservado mesmo sem empresa: os títulos ficam todos alinhados na mesma coluna (item 164). */}
+                <span className="linha-empresa">{l.empresa && <SeloEmpresa empresaId={l.empresa.id} nome={l.empresa.nome} tamanho={20} />}</span>
                 <button type="button" className="abrir" disabled={!aoAbrir} title="Abrir a ficha" onClick={() => aoAbrir?.(l.id)}>
                   <span className="folha-tinta risco">{l.titulo}</span>
                 </button>
-                {l.empresa && <span className="linha-empresa"><SeloEmpresa empresaId={l.empresa.id} nome={l.empresa.nome} tamanho={20} /></span>}
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
                 {(() => { const e = ETIQUETAS.find((x) => x.cor && x.valor === l.cor); return e && (
                   <span className="linha-etq" style={{ "--e": `var(--${e.valor})`, "--et": `var(--${e.valor}-texto)` } as CSSProperties}>{e.rotulo}</span>
