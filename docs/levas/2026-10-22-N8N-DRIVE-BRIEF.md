@@ -65,9 +65,9 @@ Sucesso exige `p_file_id`, `p_link` e `p_tamanho` igual ao `tamanho` do item (o 
 
 **5.1** `drive_limpar_pendentes` com `{"p_limite": 50}`. Devolve `[{ "id": "...", "caminho": "tarefas/..." }]`: só anexos que têm recibo do Drive e cujo card está em Postado há 3 dias ou mais.
 
-**5.2** Para cada um, chame **imediatamente antes de apagar** `drive_limpeza_autorizar` com `{"p_id": "..."}`: devolve `true` ou `false`. `false` = o card mudou (voltou de Postado, por exemplo): **não apague**, siga para o próximo. Com `true`, apague pela API do Storage: `DELETE /storage/v1/object/arquivos/<caminho>` com a chave de serviço. **404 (já não existe) conta como sucesso.** Qualquer outro erro: não confirme, siga para o próximo (volta amanhã).
+**5.2** Para cada um, chame **imediatamente antes de apagar** `drive_limpeza_autorizar` com `{"p_id": "..."}`: devolve `true` ou `false`. `false` = o card mudou (voltou de Postado, por exemplo): **não apague**, siga para o próximo. `true` = o banco anotou a autorização (vale 2 horas): apague pela API do Storage: `DELETE /storage/v1/object/arquivos/<caminho>` com a chave de serviço. **404 (já não existe) conta como sucesso.** Qualquer outro erro: não confirme, siga para o próximo.
 
-**5.3** Confirme: `drive_limpeza_confirmar` com `{"p_id": "..."}`. O banco confere de novo o recibo, o Postado e os 3 dias; se recusar, devolve erro (não tente contornar; avise o Natham se acontecer logo depois de você ter apagado).
+**5.3** Confirme: `drive_limpeza_confirmar` com `{"p_id": "..."}`. O banco aceita porque o anexo foi autorizado há pouco, mesmo que o card tenha mudado no meio; sem autorização recente e sem estar elegível ele recusa (erro: não tente contornar e avise o Natham). Se a confirmação falhar por erro de rede, repita: confirmar duas vezes é inofensivo.
 
 A linha do anexo continua no banco com o `drive_link`: o card passa a mostrar o link do Drive no lugar do arquivo.
 
