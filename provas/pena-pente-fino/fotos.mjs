@@ -73,8 +73,9 @@ for (const [w, h] of [[1903, 900], [1440, 760], [390, 844]]) {
   await p.waitForTimeout(500);
   await p.locator(".folha .abrir", { hasText: "Post - Reels" }).first().click({ force: true }).catch(() => {});
   await p.waitForTimeout(300);
-  console.log(w, "alheio: ficha abriu:", await p.locator("dialog[open]").count(), "| campos de escrever:", await p.locator(".folha input.campo").count(), "| caixas habilitadas:", await p.locator(".folha button.caixa:not([disabled])").count(), "| menus ⋮:", await p.locator(".mt-pontos").count());
+  console.log(w, "alheio: ficha abriu:", await p.locator("dialog[open]").count(), "| Salvar:", await p.locator("dialog[open] button[type=submit]").count(), "| Excluir:", await p.locator("dialog[open] .ficha-excluir").count(), "| campos livres:", await p.locator("dialog[open] fieldset:not([disabled]) input, dialog[open] textarea:not([readonly])").count(), "| campos de escrever:", await p.locator(".folha input.campo").count(), "| caixas habilitadas:", await p.locator(".folha button.caixa:not([disabled])").count(), "| menus ⋮:", await p.locator(".mt-pontos").count());
   await foto(p, `alheio-caderno-${w}`);
+  await p.keyboard.press("Escape"); await p.waitForTimeout(300);
   if (w < 768) await p.getByRole("button", { name: "Agenda", exact: true }).click();
   await p.waitForTimeout(300);
   console.log(w, "alheio: textareas na Agenda:", await p.locator(".agenda textarea").count(), "| 'Para amanhã' visível:", await p.locator(".ag-bloco-amanha:visible").count());
