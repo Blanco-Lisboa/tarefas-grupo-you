@@ -22,6 +22,8 @@ OK 1903: barrinha escolhe o quadro da capa
 OK 1903: legenda com caixa de 5 linhas ou mais
 OK 1903: legenda com contador e lixeira do Natham no card do Matheus
 OK 1903: Salvar grava capa_quadro_ms 3000 e a legenda
+OK 1903: carrossel com vídeo antigo começa com as duas redes
+OK 1903: salvar grava postar_redes ["instagram"] e o card mostra só o Instagram
 OK 1903: Concluir apaga o card
 OK natham 1903: sem erro na página []
 OK matheus 1903: vê o erro, sem botões
@@ -51,6 +53,8 @@ OK 1440: barrinha escolhe o quadro da capa
 OK 1440: legenda com caixa de 5 linhas ou mais
 OK 1440: legenda com contador e lixeira do Natham no card do Matheus
 OK 1440: Salvar grava capa_quadro_ms 3000 e a legenda
+OK 1440: carrossel com vídeo antigo começa com as duas redes
+OK 1440: salvar grava postar_redes ["instagram"] e o card mostra só o Instagram
 OK 1440: Concluir apaga o card
 OK natham 1440: sem erro na página []
 OK matheus 1440: vê o erro, sem botões
@@ -80,6 +84,8 @@ OK 390: barrinha escolhe o quadro da capa
 OK 390: legenda com caixa de 5 linhas ou mais
 OK 390: legenda com contador e lixeira do Natham no card do Matheus
 OK 390: Salvar grava capa_quadro_ms 3000 e a legenda
+OK 390: carrossel com vídeo antigo começa com as duas redes
+OK 390: salvar grava postar_redes ["instagram"] e o card mostra só o Instagram
 OK 390: Concluir apaga o card
 OK natham 390: sem erro na página []
 OK matheus 390: vê o erro, sem botões

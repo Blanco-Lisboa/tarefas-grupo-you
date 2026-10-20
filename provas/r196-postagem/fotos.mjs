@@ -144,6 +144,18 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   const salvo = n.pedidos.filter((p) => p.url.includes("/rpc/salvar_tarefa")).at(-1)?.corpo?.p;
   confere(salvo?.capa_quadro_ms === 3000 && salvo?.legenda?.startsWith("Um dia na You"), `${largura}: Salvar grava capa_quadro_ms ${salvo?.capa_quadro_ms} e a legenda`);
 
+  // Achado 3 da Lupa no Correio: abrir e salvar a ficha de um carrossel com vídeo gravado com as duas redes grava só o Instagram.
+  const antigo = cartao(pg, "Carrossel com vídeo antigo");
+  confere((await texto(antigo.locator(".aprovacao-situacao"))).endsWith("Instagram + Facebook"), `${largura}: carrossel com vídeo antigo começa com as duas redes`);
+  await antigo.locator(".conteudos-titulo").click();
+  await pg.locator(".ficha-cartao").getByRole("button", { name: "Salvar" }).click();
+  await pg.waitForTimeout(500);
+  const gravado = n.pedidos.filter((p) => p.url.includes("/rpc/salvar_tarefa")).at(-1)?.corpo?.p;
+  confere(JSON.stringify(gravado?.postar_redes) === '["instagram"]' && (await texto(antigo.locator(".aprovacao-situacao"))) === "Programado · 27/10 10:00 · Instagram",
+    `${largura}: salvar grava postar_redes ${JSON.stringify(gravado?.postar_redes)} e o card mostra só o Instagram`);
+  await antigo.scrollIntoViewIfNeeded();
+  await foto(pg, `carrossel-so-instagram-${largura}`);
+
   // Concluir num card que não é post: confirmação e apaga
   const visita = cartao(pg, "Visita ao cliente 2");
   await visita.getByRole("button", { name: "Concluir" }).click();

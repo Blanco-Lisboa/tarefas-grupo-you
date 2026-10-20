@@ -28,6 +28,8 @@ const tarefas = [
   t("Reels da Beec", { empresa_id: "beec", formato: "reels", aprovador: "Matheus", postar_em: "2026-10-27T12:00" }),
   t("Visita ao cliente 2", { tipo: "gravacao", etapa: "edicao", formato: null, legenda: null, postar_redes: ["instagram", "facebook"] }),
   t("Reels: 5 erros no IR", { etapa: "edicao", conserto: true, formato: "reels" }),
+  // Achado 3 da Lupa no Correio: carrossel com vídeo gravado com as duas redes (antes do conserto); salvar a ficha grava só o Instagram.
+  t("Carrossel com vídeo antigo", { formato: "carrossel", postar_em: "2026-10-27T10:00" }),
 ];
 const id = (titulo) => tarefas.find((x) => x.titulo === titulo).id;
 const arq = (titulo, nome, tipo, extra = {}) => ({ id: `a-${nome}`, tarefa_id: id(titulo), caminho: null, drive_id: `drive-${nome}`, nome, tipo, tamanho: 1, ordem: 0, papel: "anexo", ...extra });
@@ -38,6 +40,7 @@ const arquivos = [
   arq("Story: último dia do DAS", "das.jpg", "imagem"),
   arq("Reels: vale a pena abrir MEI?", "mei.mp4", "video"),
   arq("Post sem legenda", "sem.png", "imagem"),
+  arq("Carrossel com vídeo antigo", "antigo-1.jpg", "imagem"), arq("Carrossel com vídeo antigo", "antigo-2.mp4", "video", { ordem: 1 }),
 ];
 const postagens = [
   { tarefa_id: id("Carrossel: prazo do MEI"), rede: "instagram", status: "postado", link: "https://www.instagram.com/p/EXEMPLO1/", erro: null, postado_em: "2026-10-20T12:00:00Z" },
