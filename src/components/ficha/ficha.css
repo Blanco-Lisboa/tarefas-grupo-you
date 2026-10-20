@@ -15,7 +15,7 @@
 .ficha .ficha-titulo { display: block; width: 100%; min-height: 0; padding: var(--s-4) 0 var(--s-8); border: 0; border-bottom: 1px solid var(--borda); border-radius: 0; background: transparent; color: var(--texto); font: var(--titulo-peso) var(--t-31) / 1.1 var(--fonte); letter-spacing: var(--titulo-espaco); field-sizing: content; resize: none; overflow: hidden; }
 .ficha-titulo::placeholder { color: var(--fraco); }
 .ficha .ficha-titulo:focus-visible { border-bottom-color: var(--azul); outline: none; box-shadow: none; } /* título em linha: o foco é o sublinhado azul */
-.ficha-corpo { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: var(--s-12); padding: var(--s-16) var(--s-24) var(--s-12); overflow-y: auto; }
+.ficha-corpo { min-width: 0; margin: 0; border: 0; display: flex; flex-direction: column; flex: 1; min-height: 0; gap: var(--s-12); padding: var(--s-16) var(--s-24) var(--s-12); overflow-y: auto; }
 /* Notas ocupa o que sobra (item 112); só rola quando o texto passa do que cabe. Se o resto não couber, a rolagem é do corpo. */
 .ficha-notas { flex: 1 1 auto; }
 /* Responsável e datas lado a lado, alinhados pelo topo (item 127) */
@@ -75,6 +75,11 @@
 .ficha-excluir { margin-right: auto; color: var(--fraco); }
 .ficha-erro { margin: 0 auto 0 0; color: var(--atrasado); font-size: var(--t-14); font-weight: 600; } /* banco recusou: a ficha fica aberta */
 .ficha-excluir:has(+ .ficha-erro) { margin-right: 0; }
+.ficha-so-ler { margin: 0 auto 0 0; color: var(--fraco); font-size: var(--t-14); }
+/* Só para olhar (soLer): some o que é de editar e nada acende no hover */
+.ficha-corpo:disabled :is(.ficha-texto-botao, .ficha-anexo-solta, .ficha-anexo-tirar, .selecao-seta) { display: none; }
+.ficha-corpo:disabled :is(input, textarea, select, .ficha-notas-ver):hover { border-color: var(--borda); }
+.ficha-corpo:disabled :is(button, input, textarea) { cursor: default; }
 .ficha-pe .btn:disabled { opacity: .45; cursor: not-allowed; }
 .ficha-mais { display: grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--raio-b); background: transparent; color: var(--texto); font: 500 var(--t-20)/1 var(--fonte); cursor: pointer; }
 .ficha-mais:hover { background: var(--sup-2); }

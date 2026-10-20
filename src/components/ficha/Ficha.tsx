@@ -8,6 +8,7 @@
 //
 // - Renderize só quando houver tarefa (o estado interno nasce da tarefa recebida).
 // - A ficha salva sozinha (salvarTarefa / removerTarefa) e chama aoFechar. Esc e clique fora fecham sem salvar.
+// - soLer: só para olhar (Caderno de outra pessoa): campos travados, sem Salvar nem Excluir; links do Drive e das notas seguem abrindo.
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
@@ -46,7 +47,7 @@ const NENHUMA = "nenhuma"; // valor do seletor Empresa; a tarefa sem empresa gua
 const LINK_VALIDO = /^https?:\/\//i;
 const HORA = 60 * 60_000;
 
-export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () => void }) {
+export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFechar: () => void; soLer?: boolean }) {
   const empresas = useEmpresas();
   const tags = useTags();
   const todas = useTarefas();
@@ -106,7 +107,7 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
-    if (!t.titulo.trim() || !empresaOk || salvando) return; // salvando: dois cliques em Salvar criavam a tarefa duas vezes
+    if (soLer || !t.titulo.trim() || !empresaOk || salvando) return; // salvando: dois cliques em Salvar criavam a tarefa duas vezes
     const quando: Pick<NovaTarefa, "inicio" | "fim" | "diaInteiro"> = !data
       ? { inicio: undefined, fim: undefined, diaInteiro: false }
       : t.diaInteiro
@@ -161,11 +162,12 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             placeholder="Título da tarefa"
             aria-label="Título"
             required
-            autoFocus
+            readOnly={soLer}
+            autoFocus={!soLer}
           />
         </header>
 
-        <div className="ficha-corpo">
+        <fieldset className="ficha-corpo" disabled={soLer}>
           <div className="ficha-grade">
             <div className="ficha-campo ficha-escolha">
               <Selecao rotulo="Tipo" opcoes={TIPOS.map((v) => ({ valor: v, rotulo: NOMES.tipo[v] }))} valor={[t.tipo]} multipla={false} aoMudar={([v]) => { if (v) mudar("tipo", v as TipoTarefa); }} />
@@ -278,8 +280,8 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             {/* Link escrito nas notas aparece como "Ver referência" (mesmo componente das Ideias das Pastas); ao clicar no texto volta o texto cru para editar. */}
             {!editandoNotas && /https?:\/\//.test(t.notas ?? "") ? (
               <div className="ficha-notas-ver" tabIndex={0} role="textbox" aria-label="Notas (clique para editar)"
-                onClick={(e) => { if (!(e.target as HTMLElement).closest("a")) setEditandoNotas(true); }}
-                onKeyDown={(e) => { if (e.key === "Enter" && e.target === e.currentTarget) { e.preventDefault(); setEditandoNotas(true); } }}>
+                onClick={(e) => { if (!soLer && !(e.target as HTMLElement).closest("a")) setEditandoNotas(true); }}
+                onKeyDown={(e) => { if (!soLer && e.key === "Enter" && e.target === e.currentTarget) { e.preventDefault(); setEditandoNotas(true); } }}>
                 <TextoComLinks texto={t.notas ?? ""} />
               </div>
             ) : (
@@ -287,13 +289,14 @@ export function Ficha({ tarefa, aoFechar }: { tarefa: NovaTarefa; aoFechar: () =
             )}
           </div>
 
-        </div>
+        </fieldset>
 
         <footer className="ficha-pe">
-          {!nova && <button type="button" className="ficha-texto-botao ficha-excluir" onClick={excluir}>Excluir</button>}
+          {soLer && <p className="ficha-so-ler">Só para olhar: tarefa de outra pessoa.</p>}
+          {!nova && !soLer && <button type="button" className="ficha-texto-botao ficha-excluir" onClick={excluir}>Excluir</button>}
           {enviou && erro && <p className="ficha-erro" role="alert">{erro}</p>}
-          <button type="button" className="btn btn-2" onClick={() => dialogo.current?.close()}>Cancelar</button>
-          <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>
+          <button type="button" className="btn btn-2" onClick={() => dialogo.current?.close()}>{soLer ? "Fechar" : "Cancelar"}</button>
+          {!soLer && <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>}
         </footer>
       </form>
     </dialog>
