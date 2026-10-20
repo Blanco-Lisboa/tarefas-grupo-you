@@ -238,4 +238,8 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
 - **16 · 4 terminais** (Banco, Tela e Lupa em Sonnet; a função que posta em Opus): SIM.
 - **Primeiro post real:** é o ÚLTIMO passo, depois de tudo pronto e testado com a Meta falsa. A trava continua: foto e legenda aprovadas por ele no chat.
 
-**Ainda em aberto depois desta rodada:** quem pode excluir um card pela lixeira; WhatsApp de erro junto com a Alexa ou substituído por ela; capa própria no Reels do Facebook (resposta no teste do rascunho).
+**Fechado em 23/10 (depois desta rodada):**
+- **Lixeira:** o Natham E o Matheus podem excluir um card.
+- **Avisos de erro:** o WhatsApp continua JUNTO com a Alexa (os dois).
+
+**Ainda em aberto:** capa própria no Reels do Facebook (resposta no teste do rascunho).
