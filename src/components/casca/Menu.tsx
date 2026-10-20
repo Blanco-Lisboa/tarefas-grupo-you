@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Pessoa } from "@/components/ui/Pessoa";
+import { useEu } from "@/lib/dados";
 import { BotaoSair } from "./BotaoSair";
 
 // Ícones de traço fino, no desenho da amostra do modelo 1 Névoa (item 60). currentColor: o item ativo pinta de azul.
@@ -47,6 +48,7 @@ function Item({ item, caminho }: { item: ItemMenu; caminho: string }) {
 }
 
 export function Menu({ recolhido, alternar, caminho }: Props) {
+  const eu = useEu();
   const acao = recolhido ? "Expandir menu" : "Recolher menu";
   return (
     <nav className="menu" aria-label="Menu principal">
@@ -63,10 +65,8 @@ export function Menu({ recolhido, alternar, caminho }: Props) {
           <Item item={CONFIGURACOES} caminho={caminho} />
           <li><BotaoSair /></li>
         </ul>
-        <div className="menu-pessoas">
-          <Pessoa quem="natham" tamanho={28} />
-          <Pessoa quem="matheus" tamanho={28} />
-        </div>
+        {/* Só a foto de quem está logado (item 185). Sem pessoa ligada ao login, nada. */}
+        {eu && <div className="menu-pessoas"><Pessoa quem={eu} tamanho={28} /></div>}
         <button type="button" className="menu-item menu-alterna" onClick={alternar} aria-label={acao} aria-expanded={!recolhido} title={acao}>
           <Icone nome="recolher" />
           <span className="menu-rotulo">{acao}</span>
