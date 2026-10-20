@@ -7,6 +7,7 @@ import { useEmpresas, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dad
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { SeloEmpresa, IconeRede } from "@/components/ui/Marca";
+import { BordaAnimada } from "@/components/ui/BordaAnimada";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
 import { conteudos, hoje, diasDoPeriodo, filaPorDia, foiPostado, tituloDe, postadosNoMes, ultimoDia } from "./logica";
@@ -254,7 +255,7 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
           {ts.map((t, i) => {
             const postado = foiPostado(t);
             const empresa = empresas.find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
-            return (
+            const botao = (
               <button key={t.id} type="button" className="mapa-card" aria-label={`${tituloDe(t)}, ${empresa}, ${postado ? "postado" : t.etapa ? NOMES.etapa[t.etapa] : "a postar"}`} data-postado={postado} style={{ "--i": i, "--etapa": `var(--etapa-${t.etapa ?? "roteiro"})` } as CSSProperties} onClick={() => clicar(t)}>
                 <span className="mapa-faixa-titulo" aria-hidden>{tituloDe(t)}</span>
                 {ts.length > 1 && <span className="mapa-folha-contagem" aria-hidden>{i + 1}/{ts.length}</span>}
@@ -266,6 +267,7 @@ function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; co
                 </span>
               </button>
             );
+            return ts.length === 1 ? <BordaAnimada key={t.id}>{botao}</BordaAnimada> : botao;
           })}
         </div>
       </div>

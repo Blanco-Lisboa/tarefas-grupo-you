@@ -1,0 +1,9 @@
+/* A luz é um quadrado 200% maior que o card, girando atrás; o conteúdo cobre o meio e só a fresta da borda deixa a luz aparecer. */
+.borda-animada { position: relative; isolation: isolate; overflow: hidden; border-radius: var(--raio-b); background: var(--borda); }
+.borda-animada-luz {
+  position: absolute; z-index: -1; top: 50%; left: 50%; width: 200%; aspect-ratio: 1; margin: -100% 0 0 -100%; pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0 62%, var(--borda-cor) 82%, transparent 96%);
+  animation: borda-animada-gira var(--borda-volta) linear infinite; animation-play-state: var(--borda-rodando);
+}
+@keyframes borda-animada-gira { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) { .borda-animada-luz { animation: none; } }

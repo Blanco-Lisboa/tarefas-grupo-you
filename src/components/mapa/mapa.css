@@ -90,7 +90,10 @@
   background: var(--sup); border: 1px solid var(--linha); border-radius: var(--raio-b); box-shadow: var(--sombra-cartao);
   transition: margin-top var(--dur) var(--curva), transform var(--dur) var(--curva), box-shadow var(--dur) var(--curva);
 }
-.mapa-pilha[data-n="1"] .mapa-card { background: linear-gradient(110deg, var(--sup) 40%, color-mix(in srgb, var(--azul) 14%, var(--sup)) 50%, var(--sup) 60%) 0 0 / 200% 100%; animation: menu-brilho 2.4s linear infinite; }
+/* Item 180: card solto = borda com luz girando (BordaAnimada) + a sombra padrão do projeto, que fica no invólucro. */
+.mapa-pilha > .borda-animada { margin-top: var(--vao); box-shadow: var(--sombra); transition: transform var(--dur) var(--curva), box-shadow var(--dur) var(--curva); }
+.mapa-pilha > .borda-animada:hover, .mapa-pilha > .borda-animada:focus-within { transform: translateY(-1px); box-shadow: var(--sombra-alta); }
+.mapa-pilha > .borda-animada > .mapa-card { width: 100%; margin: 0; border: 0; border-radius: calc(var(--raio-b) - 1px); background: var(--sup); box-shadow: none; transform: none; }
 .mapa-pilha:not([data-n="1"]) .mapa-card {
   border-color: color-mix(in srgb, var(--etapa) 38%, var(--sup)); border-radius: var(--raio-c);
   background: linear-gradient(180deg, rgb(255 255 255 / .78), rgb(255 255 255 / .56)), var(--etapa);
