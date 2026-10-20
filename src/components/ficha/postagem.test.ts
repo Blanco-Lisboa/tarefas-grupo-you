@@ -28,7 +28,8 @@ describe("situação do card Aprovado", () => {
   it("postando vence erro; saiu numa e falhou na outra só refaz a que falhou", () => {
     expect(situacao({ postagens: [{ rede: "instagram", status: "enviando" }, { rede: "facebook", status: "erro" }] })).toEqual({ tipo: "postando" });
     expect(situacao({ postagens: [{ rede: "instagram", status: "postado", link: "x" }, { rede: "facebook", status: "erro", erro: "imagem grande" }] }))
-      .toMatchObject({ tipo: "erro", texto: "Saiu no Instagram, falhou no Facebook: imagem grande", refazer: ["facebook"] });
+      .toMatchObject({ tipo: "erro", texto: "Saiu no Instagram, falhou no Facebook: imagem grande", refazer: ["facebook"], incerto: false });
+    expect(situacao({ postagens: [{ rede: "facebook", status: "erro", erro: "estado incerto: confira a rede antes de tentar de novo" }] })).toMatchObject({ incerto: true });
   });
   it("programado mostra data e redes; sem data e sem postagem, nada", () => {
     expect(situacao({ postarEm: "2026-10-25T18:00", postarRedes: ["instagram"] })).toEqual({ tipo: "programado", texto: "Programado · 25/10 18:00 · Instagram" });

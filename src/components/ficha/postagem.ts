@@ -34,7 +34,7 @@ const quando = (s: string) => `${s.slice(8, 10)}/${s.slice(5, 7)} ${s.slice(11, 
 
 export type Situacao =
   | { tipo: "postando" }
-  | { tipo: "erro"; texto: string; saiu?: Postagem; refazer: RedePost[] }
+  | { tipo: "erro"; texto: string; saiu?: Postagem; refazer: RedePost[]; incerto: boolean }
   | { tipo: "programado"; texto: string };
 
 /** O que o card Aprovado mostra sobre a postagem. Postando vence erro; erro vence a data programada. */
@@ -46,7 +46,8 @@ export function situacao(t: Pick<Tarefa, "postagens" | "postarEm" | "postarRedes
     const saiu = ps.find((p) => p.status === "postado");
     const motivo = erros[0].erro ?? "a Meta não disse o motivo";
     const texto = saiu ? `Saiu no ${NOME_REDE[saiu.rede]}, falhou no ${erros.map((p) => NOME_REDE[p.rede]).join(" e ")}: ${motivo}` : `Não postou: ${motivo}`;
-    return { tipo: "erro", texto, saiu, refazer: erros.map((p) => p.rede) };
+    // "estado incerto" (019/postar-meta): a função caiu no meio e não dá para saber se saiu; o Natham confere o perfil antes de tentar de novo.
+    return { tipo: "erro", texto, saiu, refazer: erros.map((p) => p.rede), incerto: erros.some((p) => /estado incerto/i.test(p.erro ?? "")) };
   }
   return t.postarEm ? { tipo: "programado", texto: `Programado · ${quando(t.postarEm)} · ${textoRedes(redesDe(t))}` } : null;
 }

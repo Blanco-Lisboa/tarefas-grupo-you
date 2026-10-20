@@ -91,13 +91,15 @@ export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
     {sit?.tipo === "erro" && (
       <div className="aprovacao-erro" role="alert">
         <p>{sit.texto}</p>
+        {sit.incerto && <p className="aprovacao-incerto">Pode ter saído. Olhe o perfil da You no {sit.refazer.map((r) => NOME_REDE[r]).join(" e ")} antes de tentar de novo, senão o post pode sair duas vezes.</p>}
         {sit.saiu?.link && <a className="aprovacao-link" href={sit.saiu.link} target="_blank" rel="noopener noreferrer">Ver no {NOME_REDE[sit.saiu.rede]}</a>}
         {aprova && <button type="button" className="aprovacao-botao" data-acao="tentar" onClick={() => void tentarDeNovo(tarefa.id)}>
-          {sit.saiu && sit.refazer.length === 1 ? `Tentar de novo só no ${NOME_REDE[sit.refazer[0]]}` : "Tentar de novo"}
+          {sit.incerto ? "Já olhei o perfil: tentar de novo" : sit.saiu && sit.refazer.length === 1 ? `Tentar de novo só no ${NOME_REDE[sit.refazer[0]]}` : "Tentar de novo"}
         </button>}
       </div>
     )}
-    {aprova && sit?.tipo !== "postando" && (!ligada ? (
+    {/* Com erro, o caminho é só "Tentar de novo" (019: postar_agora não mexe em rede que deu erro, e reprogramar não a tira do erro) */}
+    {aprova && sit?.tipo !== "postando" && sit?.tipo !== "erro" && (!ligada ? (
       <p className="aprovacao-aviso">{faltaParaPostar(tarefa, formato, redes)[0]}</p>
     ) : escolhendo ? (
       <div className="aprovacao-quando" ref={quando}>

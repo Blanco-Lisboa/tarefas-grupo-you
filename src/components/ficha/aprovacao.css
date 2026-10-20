@@ -61,3 +61,4 @@
 .selo-conserto { display: inline-flex; align-items: center; gap: 4px; }
 .selo-conserto svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
 @media (prefers-reduced-motion: reduce) { .aprovacao-situacao[data-tipo="postando"]::before { animation: none; } }
+.aprovacao-erro .aprovacao-incerto { color: var(--texto); font-weight: 500; }
