@@ -30,7 +30,10 @@ function prazo(tarefa: Tarefa, hoje: string): { texto: string; tom: "atrasado" |
   if (dias === 0) return { texto: "hoje", tom: "perto" };
   return { texto: dias === 1 ? "posta amanhã" : `posta em ${dias} dias`, tom: dias <= 2 ? "perto" : "normal" };
 }
-const linkDrive = (tarefa: Tarefa) => tarefa.links.find((l) => /^(https?:\/\/)?drive\.google\.com\//.test(l.url.trim()));
+const linkDrive = (tarefa: Tarefa) => {
+  const url = tarefa.links.find((l) => /^(https?:\/\/)?drive\.google\.com\//i.test(l.url.trim()))?.url.trim();
+  return url ? (/^https?:\/\//i.test(url) ? url : `https://${url}`) : null;
+};
 
 function dataLegivel(inicio?: string) {
   if (!inicio) return "Sem data";
@@ -187,7 +190,7 @@ export function TelaConteudos() {
                     {(falta || drive) && (
                       <div className="conteudos-prazo">
                         {falta && <span className="conteudos-contagem-dias" data-tom={falta.tom}>{falta.texto}</span>}
-                        {drive && <a className="conteudos-drive" href={drive.url} target="_blank" rel="noopener noreferrer" title="Abrir no Drive">Drive</a>}
+                        {drive && <a className="conteudos-drive" href={drive} target="_blank" rel="noopener noreferrer" title="Abrir no Drive">Drive</a>}
                       </div>
                     )}
                   </article>
