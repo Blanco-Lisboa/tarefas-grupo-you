@@ -190,6 +190,8 @@ export async function salvarTag(nova: Omit<Tag, "id">): Promise<Tag> {
 /** Marca a tarefa em que `eu` está agora (troca a anterior, se houver). Otimista; volta se o banco recusar. */
 export async function comecar(tarefaId: string): Promise<void> {
   if (!eu) return falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham.");
+  const t = tarefas.find((x) => x.id === tarefaId);
+  if (!t || !podeAlterar(t, eu)) return falhou("Você só pode marcar tarefa que pode editar.");
   const antes = fazendo;
   fazendo = trocarFazendo(fazendo, eu, tarefaId);
   avisar();
