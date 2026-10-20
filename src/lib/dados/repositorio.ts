@@ -4,6 +4,7 @@
 import { supabase } from "@/lib/supabase/cliente";
 import { Upload } from "tus-js-client";
 import { apagarTarefaComArquivos } from "./drive";
+import { carregarPostagens, postando } from "./postagens";
 import type { Empresa, Fazendo, NovaTarefa, Postagem, Responsavel, Tag, Tarefa } from "./tipos";
 
 type LinhaTarefa = {
@@ -117,20 +118,6 @@ async function carregar() {
 }
 
 let espiando: ReturnType<typeof setTimeout> | undefined;
-/** Alguma rede na fila, enviando ou processando. */
-export const postando = (t: Tarefa) => !!t.postagens?.some((p) => p.status !== "postado" && p.status !== "erro");
-
-type LinhaPostagem = { tarefa_id: string; rede: Postagem["rede"]; status: Postagem["status"]; link: string | null; erro: string | null; postado_em: string | null };
-/** Resultado da postagem automática por card. Antes do 019 a tabela não existe: segue sem nada (não derruba a carga). */
-async function carregarPostagens(sb: Cliente): Promise<Map<string, Postagem[]>> {
-  const porTarefa = new Map<string, Postagem[]>();
-  const { data, error } = await sb.from("postagens").select("tarefa_id, rede, status, link, erro, postado_em");
-  if (error || !data) return porTarefa;
-  for (const l of data as LinhaPostagem[]) {
-    porTarefa.set(l.tarefa_id, [...(porTarefa.get(l.tarefa_id) ?? []), { rede: l.rede, status: l.status, link: l.link ?? undefined, erro: l.erro ?? undefined, postadoEm: l.postado_em ?? undefined }]);
-  }
-  return porTarefa;
-}
 
 type LinhaArquivo = { tarefa_id: string; caminho: string; nome: string; tipo: NonNullable<Tarefa["arquivos"][number]["tipo"]>; drive_link?: string | null; removido_em?: string | null; aviso?: string | null };
 type Cliente = ReturnType<typeof supabase>;
