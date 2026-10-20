@@ -1,5 +1,7 @@
 # Próxima rodada · pedidos do Natham (21/10, ~13h)
 
+**COMEÇOU em 22/10 (ordem dele): ver `2026-10-22-RODADA-193-198.md`; 196 por último.**
+
 Ordem dele: **NÃO começar** antes de finalizar totalmente a agenda (itens 190–192) → salvar tudo → limpar os terminais → handoff → aí começar por aqui.
 Itens numerados a partir do 193 na leva `2026-10-18-grade-de-conteudo-beec.md` quando começarem.
 

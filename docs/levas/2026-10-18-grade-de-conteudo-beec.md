@@ -281,3 +281,12 @@ Fotos dele em `docs/referencias/2026-10-19-rodada-4/` (01 a 11). Instruções: `
   - acessibilidade: no cartão de perfil do menu, o leitor de tela lê o nome da pessoa duas vezes (foto e texto); deixar a foto decorativa quando o nome escrito estiver ao lado (`Menu.tsx`, `Pessoa.tsx:18`).
 
 - **Código no GitHub (22/10):** repositório PRIVADO `https://github.com/Blanco-Lisboa/tarefas-grupo-you`, branch `main` (lugar certo: a organização Blanco-Lisboa centraliza tudo, ordem do Will via Natham). O antigo `YOU-CONTABILIDADE/tarefas-grupo-you` fica PARADO (remoto local `you-contabilidade-antigo`) até o Natham decidir apagar. Publicar continua pelo comando do Natham; o GitHub NÃO está ligado à Vercel nem ao Supabase. `provas/r5-textura/` ficou fora (sem dono).
+
+## Rodada 193–198 (22/10) · brief `2026-10-22-RODADA-193-198.md`
+Natham: "Vamos fazer tudo isso, chama os terminais pra ajudar." · "vamos deixar o post automático por último."
+- [ ] 193 · Ver tudo do caderno do Matheus (agenda + anotações no banco) · Alvenaria (banco) + Pena (tela) · estado: EM CURSO
+- [ ] 194 · Tipo no "+" da Esteira (sem Ideia/Reunião/Outro; já vem com o tipo da coluna) · Régua · estado: EM CURSO
+- [ ] 195 · Aprovar/Consertar em "Em análise"; Aprovado → Postado sozinho na hora · Alvenaria (banco) + Sextante (tela) · estado: EM CURSO
+- [ ] 196 · Postagem automática IG/FB · estado: PEDIDO — POR ÚLTIMO (ordem dele, 22/10)
+- [ ] 197 · Confirmar arraste para "Postado" · Régua · estado: EM CURSO
+- [ ] 198 · (NOVO) "quando o tipo é postagem, ele não está ficando no mapa também. Conserte isso, tudo que é de postagem, ele deve ficar no mapa!" · Vitral · estado: EM CURSO
