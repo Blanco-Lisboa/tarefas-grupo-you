@@ -132,10 +132,23 @@
 /* Fazendo agora (item 170): verde do selo 5b; cantos de 8px, nada em pílula */
 .ficha-agora { --agora: #2C6B49; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s-8); margin-left: auto; min-width: 0; }
 .ficha-agora-selo { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 3px 10px 3px 4px; border-radius: 8px; background: color-mix(in srgb, var(--agora) 12%, var(--sup)); color: var(--agora); font: 600 var(--t-12) var(--fonte); }
-.ficha-agora-botao { min-height: 32px; padding: 4px 12px; border: 1px solid var(--agora); border-radius: 8px; background: var(--agora); color: #fff; font: 600 var(--t-12) var(--fonte); cursor: pointer; }
-.ficha-agora-botao:hover { background: color-mix(in srgb, #000 14%, var(--agora)); }
-.ficha-agora-botao[aria-pressed="true"] { background: var(--sup); color: var(--agora); }
-.ficha-agora-botao[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--agora) 8%, var(--sup)); }
+/* Começar (item 184): a receita do item ativo do menu (casca.css: faixa que corre com os keyframes menu-brilho, sombra 0 1px 3px), em verde e com fundo transparente */
+.ficha-agora-botao {
+  min-height: 32px; padding: 4px 12px; border: 0; border-radius: 8px; cursor: pointer;
+  background: linear-gradient(110deg, transparent 40%, color-mix(in srgb, var(--agora) 16%, transparent) 50%, transparent 60%) 0 0 / 200% 100%;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 0 0 0 1px color-mix(in srgb, var(--agora) 28%, transparent);
+  color: var(--agora); font: 600 var(--t-12) var(--fonte);
+  animation: menu-brilho 2.4s linear infinite;
+  transition: background-color var(--dur-rapida) var(--curva), box-shadow var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva);
+}
+.ficha-agora-botao:hover { background-color: color-mix(in srgb, var(--agora) 8%, transparent); }
+.ficha-agora-botao:active { background-color: color-mix(in srgb, var(--agora) 14%, transparent); transform: translateY(1px); }
+.ficha-agora-botao:focus-visible { outline-color: var(--agora); box-shadow: 0 0 0 4px color-mix(in srgb, var(--agora) 18%, transparent); }
+/* Parar: mesma forma, neutro e parado (o selo verde ao lado já diz que está fazendo) */
+.ficha-agora-botao[aria-pressed="true"] { animation: none; background: none; color: var(--texto); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 0 0 0 1px var(--borda); }
+.ficha-agora-botao[aria-pressed="true"]:hover { background-color: var(--realce); }
+.ficha-agora-botao[aria-pressed="true"]:active { background-color: rgb(0 0 0 / 0.09); }
+@media (prefers-reduced-motion: reduce) { .ficha-agora-botao { animation: none; transition: none; } }
 @media (max-width: 520px) { /* celular: selo e botão numa linha própria embaixo */
   .ficha-faixa-topo { flex-wrap: wrap; }
   .ficha-agora { order: 3; flex-basis: 100%; flex-wrap: nowrap; }
