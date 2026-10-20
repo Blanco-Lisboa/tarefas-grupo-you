@@ -144,22 +144,6 @@ export async function salvarEmpresa(empresa: Empresa): Promise<Empresa> {
   return empresa;
 }
 
-// ponytail: tirar uma empresa leva as tarefas que você vê dela junto (como antes). Se sobrar tarefa privada de outra pessoa, o banco recusa.
-export async function removerEmpresa(id: string): Promise<void> {
-  const [antesEmpresas, antesTarefas] = [empresas, tarefas];
-  empresas = empresas.filter((e) => e.id !== id);
-  tarefas = tarefas.filter((t) => t.empresaId !== id);
-  avisar();
-  const sb = supabase();
-  const r1 = await sb.from("tarefas").delete().eq("empresa_id", id);
-  const r2 = r1.error ? r1 : await sb.from("empresas").delete().eq("id", id);
-  if (r2.error) {
-    [empresas, tarefas] = [antesEmpresas, antesTarefas];
-    avisar();
-    throw new Error("Não consegui tirar a empresa: ainda há tarefas dela que só outra pessoa vê.");
-  }
-}
-
 export async function salvarTag(nova: Omit<Tag, "id">): Promise<Tag> {
   const tag = { ...nova, id: crypto.randomUUID() };
   tags = [...tags, tag];
