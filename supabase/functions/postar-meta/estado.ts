@@ -1,0 +1,149 @@
+// Função `postar-meta`: o alarme do card (019) chama; ela responde 202 na hora e trabalha em segundo plano.
+// Sem Deno aqui dentro (index.ts liga o servidor): roda igual no Vitest com o banco, o Drive e a Meta falsos.
+// Log: só tarefa, rede, etapa e código. Nunca a chave, nunca o pedido inteiro.
+import { iguais } from "../_shared/google.ts";
+import { criarBanco, type Banco, type Card, type Linha } from "./banco.ts";
+import { criarMeta, ErroLocal, traduzir, VERSAO } from "./meta.ts";
+import { facebook, instagram, type Ctx, type Resultado } from "./redes.ts";
+
+type Busca = typeof fetch;
+export type Deps = {
+  env: (n: string) => string | undefined;
+  fetch: Busca;
+  baixarDrive: (driveId: string) => Promise<Response>;
+  paraJpg: (png: Uint8Array) => Promise<Uint8Array>;
+  waitUntil: (p: Promise<unknown>) => void;
+  agora?: () => number;
+  dormir?: (ms: number) => Promise<void>;
+  log?: (linha: string) => void;
+};
+type Fim = "postado" | "processando" | "fila" | "erro";
+
+/** 1 entrega + até 4 conferências (vídeo processando ou função que caiu); passou disso, para com erro e aviso (combinado com a Alvenaria). */
+export const RODADAS_MAX = 5;
+const PRAZO_MS = 300_000; // a função vive até 400 s; conferências dentro da mesma execução param em 5 min
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const vazio = (status: number) => new Response(null, { status });
+
+export function criarManipulador(d: Deps) {
+  const trabalhar = criarTrabalho(d);
+  return async (req: Request): Promise<Response> => {
+    if (req.method !== "POST") return vazio(405);
+    const certo = await criarBanco(d.env, d.fetch).segredo("tarefas_funcoes_segredo").catch(() => null);
+    if (!certo || !(await iguais(req.headers.get("x-tarefas-segredo") ?? "", certo))) return vazio(401);
+    const corpo = (await req.json().catch(() => null)) as { acao?: string; tarefa_id?: string } | null;
+    if (corpo?.acao !== "postar" || !UUID.test(corpo.tarefa_id ?? "")) return vazio(400);
+    d.waitUntil(trabalhar(corpo.tarefa_id!));
+    return vazio(202);
+  };
+}
+
+export function criarTrabalho(d: Deps) {
+  const agora = d.agora ?? Date.now;
+  const dormir = d.dormir ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const escrever = d.log ?? ((l: string) => console.log(l));
+  const igId = d.env("META_IG_ID") ?? "17841445114922887";
+  const pageId = d.env("META_PAGE_ID") ?? "1156670167523861";
+
+  return async function trabalhar(tarefa: string): Promise<void> {
+    const log = (rede: string | null, etapa: string, codigo?: string | number) =>
+      escrever(JSON.stringify({ tarefa, ...(rede ? { rede } : {}), etapa, ...(codigo !== undefined ? { codigo } : {}) }));
+    try {
+      await rodar(tarefa, log);
+    } catch (e) {
+      // Linhas ficam em "enviando": o sentinela do banco (+12 min) chama de novo e a catraca retoma depois de 10 min.
+      log(null, "caiu", e instanceof Error ? e.name : "desconhecido");
+    }
+  };
+
+  async function rodar(tarefa: string, log: (rede: string | null, etapa: string, codigo?: string | number) => void) {
+    const prazo = agora() + PRAZO_MS;
+    const banco = criarBanco(d.env, d.fetch);
+    const linhas = await banco.pegar(tarefa);
+    if (!linhas.length) return log(null, "nada-a-pegar"); // outra execução já pegou, ou nada venceu
+    const token = d.env("META_PUBLISHER_TOKEN") ?? "";
+    const meta = criarMeta({ base: d.env("META_BASE") ?? `https://graph.facebook.com/${VERSAO}`, rupload: d.env("RUPLOAD_BASE") ?? "https://rupload.facebook.com", token, fetch: d.fetch });
+    const [card, arqs] = await Promise.all([banco.card(tarefa), banco.arquivos(tarefa)]);
+    let tokenPg: Promise<string> | undefined; // chave da página: pedida uma vez, só em memória
+    const tokenPagina = () => (tokenPg ??= meta.get<{ access_token: string }>(pageId, "access_token").then((r) => r.access_token));
+    const copias: string[] = [];
+
+    async function umaRede(l: Linha): Promise<Fim> {
+      const logRede = (etapa: string, codigo?: string | number) => log(l.rede, etapa, codigo);
+      logRede("pegou", l.rodadas);
+      let r: Resultado;
+      try {
+        if (!token) throw new ErroLocal("Falta a chave da Meta no servidor (Secrets).");
+        if (l.rodadas > RODADAS_MAX) throw new ErroLocal("A postagem travou: a Meta não terminou de processar ou a função caiu várias vezes. Confira o perfil antes de tentar de novo.");
+        const c: Ctx = {
+          meta, banco, card, arqs, linha: l, verdade: d.env("POSTAR_DE_VERDADE") === "sim", igId, pageId, prazo, agora, dormir,
+          baixarDrive: d.baixarDrive, paraJpg: d.paraJpg, tokenPagina, copias, log: logRede,
+          salvar: async (conteiner) => {
+            await banco.gravar(l.id, { conteiner_id: conteiner });
+            l.conteiner_id = conteiner;
+          },
+        };
+        r = l.rede === "instagram" ? await instagram(c) : await facebook(c);
+      } catch (e) {
+        const t = traduzir(e, token);
+        logRede("erro", (e as { codigo?: number }).codigo ?? (e instanceof Error ? e.name : "desconhecido"));
+        if (t.repetir && l.tentativas < 2) {
+          await banco.gravar(l.id, { status: "fila", erro: null, conteiner_id: null });
+          return "fila";
+        }
+        await banco.gravar(l.id, { status: "erro", erro: t.erro, conteiner_id: null });
+        await avisar(banco, card, l, t.erro, tarefa, logRede);
+        return "erro";
+      }
+      if (r.fim === "postado") {
+        await banco.gravar(l.id, { status: "postado", post_id: r.post_id, link: r.link, postado_em: new Date(agora()).toISOString(), erro: null });
+        logRede("postado");
+        return "postado";
+      }
+      if (r.fim === "processando") {
+        await banco.gravar(l.id, { status: "processando", conteiner_id: r.conteiner_id });
+        logRede("processando");
+        return "processando";
+      }
+      await banco.gravar(l.id, { status: "erro", erro: "Modo de teste: parou antes de publicar (nada saiu na rede).", conteiner_id: null });
+      logRede("teste");
+      return "erro"; // modo de teste não avisa ninguém
+    }
+
+    const fins = await Promise.all(linhas.map(umaRede));
+
+    if (!fins.includes("processando")) {
+      // Cópias de minutos saem quando ninguém mais precisa delas (inclusive as de rodadas anteriores: o nome é previsível).
+      const todas = arqs.filter((a) => a.tipo === "imagem").flatMap((a) => ["instagram", "facebook"].flatMap((r) => [`${tarefa}/${r}-${a.id}.jpg`, `${tarefa}/${r}-${a.id}.png`]));
+      await banco.apagarCopias([...new Set([...copias, ...todas])]).catch(() => log(null, "copias-ficaram"));
+    }
+    if (fins.includes("postado")) {
+      const redes = await banco.redes(tarefa);
+      if (card.postar_redes.every((r) => redes.some((p) => p.rede === r && p.status === "postado"))) {
+        await banco.moverParaPostado(tarefa); // o banco desarma o alarme e arma a limpeza de 7 dias
+        return log(null, "card-postado");
+      }
+    }
+    if (fins.includes("processando")) await banco.armar(tarefa, 5);
+    else if (fins.includes("fila")) await banco.armar(tarefa, 10);
+    else await banco.desarmar(tarefa);
+  }
+
+  /** WhatsApp do Natham via n8n (brief: docs/levas/N8N-AVISO-POSTAGEM-BRIEF.md). Sem endereço cadastrado: só não avisa. */
+  async function avisar(banco: Banco, card: Card, l: Linha, motivo: string, tarefa: string, log: (etapa: string) => void) {
+    try {
+      const url = await banco.segredo("tarefas_aviso_url");
+      if (!url) return;
+      const segredo = (await banco.segredo("tarefas_aviso_segredo")) ?? "";
+      const links = (await banco.redes(tarefa)).filter((p) => p.status === "postado" && p.link).map((p) => ({ rede: p.rede, link: p.link }));
+      const r = await d.fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-tarefas-segredo": segredo },
+        body: JSON.stringify({ tipo: "erro", tarefa_id: tarefa, titulo: card.titulo, redes: [l.rede], motivo, links }),
+      });
+      log(r.ok ? "avisou" : "aviso-recusado");
+    } catch {
+      log("aviso-falhou");
+    }
+  }
+}
