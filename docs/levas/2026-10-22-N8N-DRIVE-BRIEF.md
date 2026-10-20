@@ -17,7 +17,7 @@ Regras que valem sempre:
 - **Nenhuma chave, senha ou token** escrito no fluxo, em nota, em comentário ou em exportação. Tudo no cofre de credenciais do n8n.
 - **Conta do Drive: `contato@assessoriabeec.com.br`** (a mesma que o n8n já usa para a agenda) até o Natham dizer outra. Esta credencial precisa de escopo de **escrita no Drive** (a da agenda é só leitura do Calendar: crie uma credencial Google Drive própria, com `drive.file`, e peça ao Natham para autorizar).
 
-**Pré-requisito (do Natham):** os arquivos `supabase/015`, `016` e `017` aplicados no banco do Tarefas, e o limite de upload do Storage conferido (ver `016`). Só comece depois de ele avisar.
+**Pré-requisito (do Natham):** os arquivos `supabase/015`, `016`, `017` e `018` aplicados no banco do Tarefas, e o limite de upload do Storage conferido (ver `016`). Só comece depois de ele avisar.
 
 ## 2. O banco do Tarefas: como falar com ele
 
@@ -25,7 +25,7 @@ Mesmo modelo da agenda. Projeto Supabase `uruhjlurcxpjhhgvuzwt`. Todas as chamad
 
 ## 3. Quando rodar
 
-**A) Campainha (envio ao Drive).** O banco avisa seu fluxo por webhook quando entra anexo na fila (e de 5 em 5 minutos, só se tiver algo parado). Crie um nó **Webhook** de produção, com autenticação por cabeçalho `x-crm-secret` (Header Auth). O Natham grava no Vault do Supabase a URL de produção do webhook (`n8n_drive_url`) e a senha (`n8n_drive_secret`, o mesmo valor da sua credencial). O corpo do aviso é `{}`: ele não diz o que enviar, só "tem trabalho". Ao receber, rode a seção 4 em laço até a fila voltar vazia.
+**A) Campainha (envio ao Drive).** O banco avisa seu fluxo por webhook quando entra anexo na fila (e de 5 em 5 minutos, só se tiver algo parado). Crie um nó **Webhook** de produção, com autenticação por cabeçalho `x-crm-secret` (Header Auth). A senha (`n8n_drive_secret`) já é sorteada dentro do banco pelo `supabase/018`: você NÃO a vê nem a inventa; o Natham copia o valor do Vault do Supabase para a sua credencial Header Auth (`x-crm-secret`). Quando o webhook existir, **entregue ao Natham a URL de produção** do nó Webhook: ele a grava no Vault como `n8n_drive_url` (instrução no topo do `018`). Até lá o banco só registra um aviso e a fila espera. O corpo do aviso é `{}`: ele não diz o que enviar, só "tem trabalho". Ao receber, rode a seção 4 em laço até a fila voltar vazia.
 
 **B) Limpeza diária às 03:00 (hora de Brasília):** gatilho de agenda (Schedule). Rode a seção 5. Aproveite a mesma execução para rodar a seção 4 uma vez (rede de segurança se a campainha falhar).
 
