@@ -90,14 +90,10 @@
   background: var(--sup); border: 1px solid var(--linha); border-radius: var(--raio-b); box-shadow: var(--sombra-cartao);
   transition: margin-top var(--dur) var(--curva), transform var(--dur) var(--curva), box-shadow var(--dur) var(--curva);
 }
-/* Item 180: card solto = borda com luz girando (BordaAnimada) + a sombra padrão do projeto, que fica no invólucro. 180b: o trilho da borda é um filete claro translúcido (não o cinza opaco), igual nos 4 lados, e some contra a sombra de baixo. 180c: o filete claro virava uma linha branca de 1px colada na sombra escura da base (medido em 1x, 1,25x e 1,5x); o trilho agora tem a cor do vidro, sem linha clara, e o vidro ficou ~15% mais claro (66,72,87 para 76,81,97). */
-.mapa-pilha > .borda-animada { margin-top: var(--vao); background: rgb(76 81 97); box-shadow: var(--sombra); transition: transform var(--dur) var(--curva), box-shadow var(--dur) var(--curva); }
-.mapa-pilha > .borda-animada:hover, .mapa-pilha > .borda-animada:focus-within { transform: translateY(-1px); box-shadow: var(--sombra-alta); }
-/* Item 180b: o miolo é vidro escuro (translúcido, com desfoque); a luz continua girando na borda. Textos e selo de etapa em versão clara. */
-.mapa-pilha > .borda-animada > .mapa-card { width: 100%; margin: 0; border: 0; border-radius: calc(var(--raio-b) - 1px); background: rgb(76 81 97 / .78); -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); box-shadow: none; transform: none; color: rgb(255 255 255 / .94); }
-.mapa-pilha > .borda-animada > .mapa-card .mapa-tag { color: rgb(255 255 255 / .94); }
-.mapa-pilha > .borda-animada > .mapa-card .mapa-estado { color: color-mix(in srgb, var(--etapa) 40%, white); }
-.mapa-pilha > .borda-animada > .mapa-card[data-postado="true"] :is(.mapa-objetivo, .mapa-estado) { color: rgb(255 255 255 / .6); }
+/* Item 180: card solto = borda com luz girando (BordaAnimada). 180d: miolo de vidro claro e transparente (o Mapa aparece por trás) com relevo azul clarinho: filete azul claro na borda, brilho interno suave em cima e um halo azul difuso em volta, mais a sombra padrão. Sem linha clara colada na sombra da base (180c). */
+.mapa-pilha > .borda-animada { --borda-trilho: rgb(150 196 242 / .75); margin-top: var(--vao); box-shadow: var(--sombra), 0 0 14px -2px rgb(120 175 235 / .38); transition: transform var(--dur) var(--curva), box-shadow var(--dur) var(--curva); }
+.mapa-pilha > .borda-animada:hover, .mapa-pilha > .borda-animada:focus-within { transform: translateY(-1px); box-shadow: var(--sombra-alta), 0 0 18px -2px rgb(120 175 235 / .5); }
+.mapa-pilha > .borda-animada > .mapa-card { width: 100%; margin: 0; border: 0; border-radius: calc(var(--raio-b) - 1px); background: linear-gradient(180deg, rgb(255 255 255 / .6), rgb(255 255 255 / .3)); -webkit-backdrop-filter: blur(10px) saturate(140%); backdrop-filter: blur(10px) saturate(140%); box-shadow: inset 0 1px 0 rgb(255 255 255 / .95), inset 0 0 10px rgb(120 175 235 / .3); transform: none; }
 .mapa-pilha:not([data-n="1"]) .mapa-card {
   border-color: color-mix(in srgb, var(--etapa) 38%, var(--sup)); border-radius: var(--raio-c);
   background: linear-gradient(180deg, rgb(255 255 255 / .78), rgb(255 255 255 / .56)), var(--etapa);

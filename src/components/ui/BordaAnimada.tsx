@@ -24,7 +24,7 @@ export function BordaAnimada({ children, duracao = 6, cor = "var(--azul)", largu
   }, []);
   return (
     <div ref={raiz} className={`borda-animada ${className}`.trim()} style={{ padding: largura, "--borda-cor": cor, "--borda-volta": `${duracao}s`, "--borda-rodando": naTela ? "running" : "paused" } as CSSProperties}>
-      <span className="borda-animada-luz" aria-hidden />
+      <span className="borda-animada-anel" aria-hidden><span className="borda-animada-luz" /></span>
       {children}
     </div>
   );
