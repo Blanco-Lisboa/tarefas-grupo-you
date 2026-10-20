@@ -94,6 +94,18 @@
 }
 .evento-cartao { padding: var(--s-8) 10px; gap: 6px; font-size: var(--t-14); border-radius: var(--raio-b); }
 .evento-cartao .evento-titulo { white-space: normal; }
+/* Reunião (item 188): todas na mesma cor, o âmbar --etiqueta-11 (nenhuma empresa nem etapa usa amarelo), com a receita do
+   item ativo do menu (casca.css: faixa que corre com os keyframes menu-brilho, sombra 0 1px 3px) sobre vidro branco translúcido.
+   Filete âmbar à esquerda para achar a reunião de relance, inclusive no bloco curto. */
+.evento.evento-reuniao {
+  --reuniao: var(--etiqueta-11);
+  background: linear-gradient(110deg, transparent 40%, color-mix(in srgb, var(--reuniao) 34%, transparent) 50%, transparent 60%) 0 0 / 200% 100%,
+    color-mix(in srgb, var(--reuniao) 16%, rgb(255 255 255 / 0.7));
+  -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 3px 0 0 var(--reuniao), inset 0 0 0 1px color-mix(in srgb, var(--reuniao) 45%, transparent);
+  animation: menu-brilho 2.4s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .evento.evento-reuniao { animation: none; } }
 
 /* Criar pelo teclado (Evento.tsx, CriarAqui): escondido e sem ocupar lugar até o Tab chegar nele */
 .cal-criar {

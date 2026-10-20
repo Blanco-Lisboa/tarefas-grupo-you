@@ -81,4 +81,10 @@ describe("fila por dia", () => {
     const pessoal = t("pessoal", "postagem", "2026-10-18", { etapa: "roteiro", empresaId: "" });
     expect(filaPorDia([pessoal], "2026-10-19")).toEqual([]);
   });
+
+  it("reunião com empresa e etapa não entra na fila nem no Mapa (item 188)", () => {
+    const reuniao = t("Reunião de pauta", "postagem", "2026-10-18", { titulo: "Reunião de pauta" });
+    expect(filaPorDia([reuniao], "2026-10-19")).toEqual([]);
+    expect(conteudos([reuniao])).toEqual([]);
+  });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { doCaderno, daMinhaLista, ehConteudo, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, daMinhaLista, ehConteudo, ehReuniao, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS } from "./grade";
 import { notaDaChave } from "./notas";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
@@ -90,6 +90,21 @@ describe("separação entre tarefa do caderno e conteúdo", () => {
     expect(ehConteudo(outroTipo)).toBe(true);
     expect(ehConteudo({ ...base, empresaId: "" })).toBe(false);
     expect(ehConteudo({ ...base, etapa: undefined })).toBe(false);
+  });
+
+  it("reconhece reunião pelo título, sem ligar para maiúscula ou acento", () => {
+    for (const s of ["Reunião", "reuniao", "REUNIÃO", "Reuniões da semana", "Reunião com cliente", "Reun. com a Beec", "Call: reunião"])
+      expect(ehReuniao({ titulo: s }), s).toBe(true);
+    for (const s of ["Reunir material", "Gravar reels", "Desreuniao"]) expect(ehReuniao({ titulo: s }), s).toBe(false);
+    expect(ehReuniao({ titulo: "Pauta da semana", tipo: "reuniao" })).toBe(true);
+  });
+
+  it("reunião com etapa e empresa não é conteúdo, mas segue no caderno e no calendário do dono", () => {
+    const reuniao = { ...base, titulo: "Reunião com a Beec", dono: "natham", responsavel: "natham" } as Tarefa;
+    expect(ehConteudo(reuniao)).toBe(false);
+    expect(doCaderno(reuniao, "natham")).toBe(true);
+    expect(daMinhaLista(reuniao, "natham")).toBe(true);
+    expect(daMinhaLista(reuniao, "matheus")).toBe(false);
   });
 
   it("mantém a tarefa pessoal no caderno e na lista do calendário", () => {

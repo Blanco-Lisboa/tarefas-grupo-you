@@ -5,6 +5,7 @@ import { NOMES } from "@/components/ficha/Ficha";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { Pessoa } from "@/components/ui/Pessoa";
+import { ehReuniao } from "@/components/tarefas/grade";
 import { comMinuto, diaCurto, horaCurta, tituloPeriodo, variosDias, type Destino, type Visao } from "./logica";
 
 export type Acoes = {
@@ -35,7 +36,8 @@ export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "blo
   const pessoa = NOMES.responsavel[t.responsavel];
   const hora = horario(t, modo === "bloco");
   const tipo = NOMES.tipo[t.tipo];
-  const etapa = t.etapa && NOMES.etapa[t.etapa];
+  const reuniao = ehReuniao(t);
+  const etapa = !reuniao && t.etapa && NOMES.etapa[t.etapa]; // reunião não é conteúdo: sem etiqueta de etapa, só a cor das reuniões
   const detalhes = [t.rede && NOMES.rede[t.rede], modo === "cartao" && tipo !== etapa && tipo].filter(Boolean).join(" · ");
   const textoTipo = modo === "cartao" && tipo !== etapa ? tipo : "";
   // Sem empresa: sem selo (o fundo cinza já diz); a etiqueta "Sem empresa" comia o título dos blocos curtos
@@ -45,7 +47,7 @@ export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "blo
     <button
       type="button"
       draggable
-      className={`evento evento-${modo}${curto ? " evento-curto" : ""}`}
+      className={`evento evento-${modo}${curto ? " evento-curto" : ""}${reuniao ? " evento-reuniao" : ""}`}
       style={{ ...cores(t, !!dona), ...style } as CSSProperties}
       title={`${t.titulo}\n${empresa} · ${pessoa}${hora ? ` · ${hora}` : ""}${detalhes ? `\n${detalhes}` : ""}`}
       onDragStart={(e) => { e.dataTransfer.setData("text/plain", t.id); e.dataTransfer.effectAllowed = "move"; }}

@@ -42,8 +42,14 @@ export function montarGrade(tarefas: Tarefa[], porHora: boolean): (Tarefa | null
 export const msAteMeiaNoite = (agora: Date): number =>
   new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1).getTime() - agora.getTime() + 500;
 
-/** Conteúdo de empresa tem etapa e empresa. Postagem sem empresa continua sendo tarefa pessoal do Caderno. */
-export const ehConteudo = (t: Pick<Tarefa, "etapa" | "empresaId">): boolean => !!(t.etapa && t.empresaId);
+/** Reunião (item 188) = tipo Reunião ou título com "reunião", "reuniões" ou a abreviação "reun", sem ligar para maiúscula
+    ou acento. "Reunir material" não conta. Só o título já basta: é o que o evento do Google traz. */
+export const ehReuniao = (t: { titulo: string; tipo?: string }): boolean =>
+  t.tipo === "reuniao" || /\b(reuni(ao|oes)|reun)\b/.test(t.titulo.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase());
+
+/** Conteúdo de empresa tem etapa e empresa. Postagem sem empresa continua sendo tarefa pessoal do Caderno.
+    Reunião nunca é conteúdo (fica no Calendário e no Caderno, fora da Esteira, do Mapa e da Fila). */
+export const ehConteudo = (t: Pick<Tarefa, "etapa" | "empresaId" | "titulo" | "tipo">): boolean => !!(t.etapa && t.empresaId) && !ehReuniao(t);
 
 /** O caderno de `de` = o que é DELE (dono; o banco não transfere dono ao trocar o responsável). Conteúdo com empresa segue o responsável. Sem `de`, tudo. */
 export const doCaderno = (t: Tarefa, de: string | null | undefined) =>
