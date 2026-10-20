@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Tarefa } from "@/lib/dados";
-import { doCaderno, daMinhaLista, ehConteudo, ehReuniao, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS } from "./grade";
+import type { EventoAgenda, Tarefa } from "@/lib/dados";
+import { doCaderno, daMinhaLista, ehConteudo, ehReuniao, eventosDoDia, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 import { notaDaChave } from "./notas";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
@@ -112,5 +112,29 @@ describe("separação entre tarefa do caderno e conteúdo", () => {
     expect(doCaderno(pessoal, "matheus")).toBe(true);
     expect(daMinhaLista(pessoal, "matheus")).toBe(true);
     expect(ehConteudo(pessoal)).toBe(false);
+  });
+});
+
+const ev = (id: string, inicio: string, extra: Partial<EventoAgenda> = {}): EventoAgenda =>
+  ({ id, titulo: id, inicio, diaInteiro: false, particular: false, fontes: ["natham"], ...extra });
+
+describe("agenda do Google no caderno (item 190)", () => {
+  it("só mostra o dia, só a agenda do dono, dia inteiro primeiro e depois por hora", () => {
+    const todos = [
+      ev("tarde", "2026-10-20T15:00"),
+      ev("manha", "2026-10-20T09:00"),
+      ev("outro-dia", "2026-10-21T09:00"),
+      ev("do-matheus", "2026-10-20T08:00", { fontes: ["matheus"] }),
+      ev("viagem", "2026-10-19", { diaInteiro: true, fim: "2026-10-21", fontes: ["natham", "contato"] }),
+    ];
+    expect(eventosDoDia(todos, "2026-10-20", "natham").map((e) => e.id)).toEqual(["viagem", "manha", "tarde"]);
+    expect(eventosDoDia(todos, "2026-10-20", "matheus").map((e) => e.id)).toEqual(["do-matheus"]);
+    expect(eventosDoDia(todos, "2026-10-20", null)).toEqual([]);
+  });
+  it("escreve o horário", () => {
+    expect(quandoEvento(ev("a", "2026-10-20T09:00", { fim: "2026-10-20T10:30" }), "2026-10-20")).toBe("09:00 às 10:30");
+    expect(quandoEvento(ev("b", "2026-10-20T09:00"), "2026-10-20")).toBe("a partir das 09:00");
+    expect(quandoEvento(ev("c", "2026-10-20", { diaInteiro: true }), "2026-10-20")).toBe("dia inteiro");
+    expect(quandoEvento(ev("d", "2026-10-19T22:00", { fim: "2026-10-20T02:00" }), "2026-10-20")).toBe("até as 02:00");
   });
 });

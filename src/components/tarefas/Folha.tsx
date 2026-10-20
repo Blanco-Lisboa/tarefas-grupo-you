@@ -8,7 +8,7 @@ import { horaDoSlot, SLOTS } from "./grade";
 import { ETIQUETAS, MenuTarefa, type Acoes } from "./MenuTarefa";
 import "./caderno.css";
 
-export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao;
+export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; /** Tarefa com nome de reunião (item 188): destaque âmbar. */ reuniao?: boolean; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao;
   /** Nome de quem mandou a tarefa (selo "enviada por"). Vazio = não foi enviada. */ enviadaPor?: string;
   /** false = só leitura para quem está olhando (trava do banco). Vazio = pode. */ podeAlterar?: boolean; podeApagar?: boolean };
 export type Opcao = { id: string; nome: string };
@@ -140,7 +140,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
             )}
           </span>
           {l ? (
-            <div className="linha-miolo" style={{ transform: `rotate(${giro(l.id)}deg)` }}>
+            <div className="linha-miolo" data-reuniao={l.reuniao || undefined} style={{ transform: `rotate(${giro(l.id)}deg)` }}>
               <button
                 type="button" className={`caixa${estourando === l.id ? " estourando" : ""}`} disabled={!aoMarcar || l.podeAlterar === false} aria-pressed={l.feita}
                 aria-label={`${l.feita ? "Desmarcar" : "Marcar como feita"}: ${l.titulo}`}

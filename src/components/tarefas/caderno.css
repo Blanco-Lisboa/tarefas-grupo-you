@@ -182,6 +182,22 @@
 
 /* ===== Página direita: agenda do dia ===== */
 .agenda .pag-miolo { padding: var(--s-16) var(--s-24) var(--s-24); }
+/* Compromissos do Google (item 190): só leitura, na letra de mão. */
+.ag-eventos { list-style: none; margin: 0 0 var(--s-24); padding: 0; display: grid; gap: var(--s-8); }
+.ag-evento { display: grid; grid-template-columns: 9ch minmax(0, 1fr); align-items: baseline; column-gap: var(--s-12); padding: var(--s-8) var(--s-12); background: var(--sup-2); border-radius: var(--raio-b); }
+.ag-evento-hora { font-size: calc(18px * var(--escala)); line-height: 1.1; }
+.ag-evento-texto { display: flex; flex-direction: column; min-width: 0; font-size: calc(22px * var(--escala)); line-height: 1.15; overflow-wrap: anywhere; }
+.ag-evento-texto span { font-size: calc(17px * var(--escala)); }
+/* Reunião (item 188): o mesmo âmbar do Calendário (calendario.css, .evento-reuniao): brilho do item ativo do menu + filete à esquerda. */
+.ag-evento[data-reuniao], .linha-miolo[data-reuniao] {
+  --reuniao: var(--etiqueta-11);
+  background: linear-gradient(110deg, transparent 40%, color-mix(in srgb, var(--reuniao) 34%, transparent) 50%, transparent 60%) 0 0 / 200% 100%,
+    color-mix(in srgb, var(--reuniao) 16%, rgb(255 255 255 / 0.7));
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 3px 0 0 var(--reuniao), inset 0 0 0 1px color-mix(in srgb, var(--reuniao) 45%, transparent);
+  animation: menu-brilho 2.4s linear infinite;
+}
+.linha-miolo[data-reuniao] { border-radius: var(--raio-b); }
+@media (prefers-reduced-motion: reduce) { .ag-evento[data-reuniao], .linha-miolo[data-reuniao] { animation: none; } }
 .ag-bloco-titulo { font: 600 var(--app-t-rotulo) / 1 var(--fonte); letter-spacing: .02em; text-transform: uppercase; color: var(--fraco); }
 .ag-vazio { display: grid; justify-items: center; gap: var(--s-4); padding: var(--s-32) var(--s-16); margin-bottom: var(--s-24); background: var(--sup-2); border-radius: var(--raio-b); text-align: center; }
 .ag-vazio-icone { color: var(--azul); margin-bottom: var(--s-8); }

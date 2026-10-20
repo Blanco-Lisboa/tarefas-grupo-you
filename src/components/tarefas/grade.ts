@@ -1,4 +1,4 @@
-import type { Tarefa } from "@/lib/dados";
+import type { EventoAgenda, Responsavel, Tarefa } from "@/lib/dados";
 
 // Margem de horários do caderno (igual ao CRM): a linha k vale 07:00 + 30 min × k, 31 linhas até 22:00.
 export const PRIMEIRA = 7 * 60;
@@ -58,3 +58,17 @@ export const doCaderno = (t: Tarefa, de: string | null | undefined) =>
 /** Nas listas pessoais, conteúdo com empresa aparece para todos; o restante segue o dono do Caderno. */
 export const daMinhaLista = (t: Tarefa, eu: string | null | undefined) =>
   ehConteudo(t) || (!!eu && doCaderno(t, eu));
+
+/** Compromissos do Google que caem em `dia` (também os de vários dias), dia inteiro primeiro, depois por hora. */
+export const eventosDoDia = (eventos: EventoAgenda[], dia: string, dono: Responsavel | null) =>
+  eventos
+    .filter((e) => !!dono && e.fontes.includes(dono) && e.inicio.slice(0, 10) <= dia && dia <= (e.fim ?? e.inicio).slice(0, 10))
+    .sort((a, b) => Number(b.diaInteiro) - Number(a.diaInteiro) || a.inicio.localeCompare(b.inicio));
+
+/** "09:00 às 10:00", "a partir das 09:00" ou "dia inteiro". Compromisso que vem de outro dia mostra só o que vale hoje. */
+export const quandoEvento = (e: EventoAgenda, dia: string) => {
+  if (e.diaInteiro) return "dia inteiro";
+  const ini = e.inicio.slice(0, 10) === dia ? e.inicio.slice(11, 16) : "";
+  const fim = e.fim && e.fim.slice(0, 10) === dia ? e.fim.slice(11, 16) : "";
+  return ini && fim ? `${ini} às ${fim}` : ini ? `a partir das ${ini}` : fim ? `até as ${fim}` : "dia inteiro";
+};

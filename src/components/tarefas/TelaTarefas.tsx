@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { doCaderno, ehConteudo, horaDe, horaDoSlot, minutos, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { doCaderno, ehConteudo, ehReuniao, horaDe, horaDoSlot, minutos, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -85,6 +85,7 @@ export function TelaTarefas() {
     empresa: t.empresaId ? { id: t.empresaId, nome: nomeEmpresa(t.empresaId) } : undefined,
     detalhe: [NOMES[t.responsavel], aba === "dia" && !horaDe(t) ? "dia inteiro" : ""].filter(Boolean).join(" · "),
     feita: !!t.concluida,
+    reuniao: ehReuniao(t),
     cor: t.cor,
     responsavel: t.responsavel,
     enviadaPor: !ehConteudo(t) && t.enviadaPor ? NOMES[t.enviadaPor] : undefined,
@@ -274,6 +275,7 @@ export function TelaTarefas() {
             dia={dia}
             rotuloDia={tag + extenso(dia)}
             alheio={alheio}
+            dono={de}
             amanha={doDiaSeguinte}
           />}
         </div>
