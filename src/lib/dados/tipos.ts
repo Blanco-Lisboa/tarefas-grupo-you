@@ -17,7 +17,8 @@ export type Etiqueta = (typeof ETIQUETAS)[number]; // usa var(--etiqueta-N) e va
 
 export type Link = { rotulo: string; url: string }; // vídeo = link do Google Drive
 /** Anexo da ficha (imagem ou vídeo). Hoje url = endereço temporário na memória do navegador; guardar de verdade depende do banco (Fase 2). */
-export type Arquivo = { nome: string; url?: string; tipo?: "imagem" | "video" };
+/** `caminho` = onde está no balde "arquivos" do Storage (só existe depois de guardado); `pendente` = o arquivo escolhido que ainda não subiu. */
+export type Arquivo = { nome: string; url?: string; tipo?: "imagem" | "video"; caminho?: string; pendente?: File };
 
 export type Tarefa = {
   id: string;

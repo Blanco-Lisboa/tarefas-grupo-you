@@ -51,7 +51,7 @@ export function trocarFazendo(mapa: Record<string, Fazendo>, quem: Responsavel, 
 const doBanco = (ls: LinhaFazendo[]) =>
   ls.toSorted((a, b) => a.desde.localeCompare(b.desde)).reduce((m, l) => { const q = slugDe(l.pessoa_id); return q ? trocarFazendo(m, q, l.tarefa_id, l.desde) : m; }, {} as Record<string, Fazendo>);
 
-/** Linha do banco -> Tarefa da tela. Os anexos ainda não vão ao banco (Etapa 2): `arquivos` vem do que já está na tela. */
+/** Linha do banco -> Tarefa da tela. `arquivos` vem da tabela arquivos (ver carregarAnexos). */
 export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem: (id: string | null) => Responsavel | undefined = slugDe): Tarefa {
   const ids = l.tarefa_tags?.map((x) => x.tag_id);
   return {
@@ -99,12 +99,51 @@ async function carregar() {
   pessoas = p.data as Pessoa[];
   eu = pessoas.find((x) => x.user_id === sessao.data?.claims.sub)?.slug ?? null;
   if (!eu) falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham.");
-  const anexos = new Map(tarefas.map((x) => [x.id, x.arquivos]));
+  const anexos = await carregarAnexos(sb);
   empresas = e.data as Empresa[];
   tags = (g.data as Tag[]).map((x) => ({ id: x.id, nome: x.nome, cor: x.cor, ...(x.aprovacao && { aprovacao: true as const }) }));
-  tarefas = (t.data as LinhaTarefa[]).map((l) => daLinha(l, anexos.get(l.id)));
+  tarefas = (t.data as LinhaTarefa[]).map((l) => daLinha(l, anexos.get(l.id) ?? tarefas.find((x) => x.id === l.id)?.arquivos.filter((a) => a.pendente)));
   fazendo = doBanco(f.data as LinhaFazendo[]);
   avisar();
+}
+
+type LinhaArquivo = { tarefa_id: string; caminho: string; nome: string; tipo: "imagem" | "video" };
+type Cliente = ReturnType<typeof supabase>;
+const BALDE = "arquivos";
+
+/** Anexos de todas as tarefas, com endereço assinado (o balde é privado; vale 1 hora e é renovado a cada carga). */
+async function carregarAnexos(sb: Cliente): Promise<Map<string, Tarefa["arquivos"]>> {
+  const porTarefa = new Map<string, Tarefa["arquivos"]>();
+  const { data, error } = await sb.from("arquivos").select("tarefa_id, caminho, nome, tipo").not("tarefa_id", "is", null).order("created_at");
+  if (error || !data?.length) return porTarefa;
+  const { data: urls } = await sb.storage.from(BALDE).createSignedUrls(data.map((a) => a.caminho), 3600);
+  const url = new Map(urls?.map((u) => [u.path, u.signedUrl]));
+  for (const a of data as LinhaArquivo[]) porTarefa.set(a.tarefa_id, [...(porTarefa.get(a.tarefa_id) ?? []), { nome: a.nome, tipo: a.tipo, caminho: a.caminho, url: url.get(a.caminho) ?? undefined }]);
+  return porTarefa;
+}
+
+/** Deixa o Storage e a tabela iguais ao que a ficha mostra: apaga o que saiu, sobe o que é novo. Devolve a lista já com caminho e endereço. */
+async function sincronizarAnexos(sb: Cliente, tarefaId: string, antes: Tarefa["arquivos"], agora: Tarefa["arquivos"]): Promise<Tarefa["arquivos"]> {
+  const ficam = new Set(agora.flatMap((a) => (a.caminho ? [a.caminho] : [])));
+  const saiu = antes.flatMap((a) => (a.caminho && !ficam.has(a.caminho) ? [a.caminho] : []));
+  if (saiu.length) {
+    const { error } = await sb.from("arquivos").delete().in("caminho", saiu);
+    if (error) throw error;
+    await sb.storage.from(BALDE).remove(saiu); // se falhar, sobra um arquivo solto no balde, sem linha: não aparece para ninguém
+  }
+  const pessoa = eu && idDe(eu);
+  const guardados: Tarefa["arquivos"] = [];
+  for (const a of agora) {
+    if (!a.pendente) { guardados.push(a); continue; }
+    const caminho = `tarefas/${tarefaId}/${crypto.randomUUID()}-${a.nome.replace(/[^\w.-]+/g, "_")}`;
+    const { error: e1 } = await sb.storage.from(BALDE).upload(caminho, a.pendente, { contentType: a.pendente.type });
+    if (e1) throw e1;
+    const { error: e2 } = await sb.from("arquivos").insert({ tarefa_id: tarefaId, caminho, nome: a.nome, tipo: a.tipo, tamanho: a.pendente.size, criado_por: pessoa });
+    if (e2) { await sb.storage.from(BALDE).remove([caminho]); throw e2; }
+    const { data } = await sb.storage.from(BALDE).createSignedUrl(caminho, 3600);
+    guardados.push({ nome: a.nome, tipo: a.tipo, caminho, url: data?.signedUrl ?? undefined });
+  }
+  return guardados;
 }
 
 const soLeitura = "Essa tarefa é só para olhar: você não pode mexer nela.";
@@ -159,6 +198,16 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   } catch (e) {
     tarefas = antes ? tarefas.map((t) => (t.id === id ? antes : t)) : tarefas.filter((t) => t.id !== id);
     falhou(e instanceof Error && e.message === semAcesso ? e.message : "Não consegui salvar a tarefa. Tente de novo.");
+    return tarefa;
+  }
+  // A tarefa já está no banco (o anexo precisa dela). Se o anexo falhar, a tarefa fica e o aviso diz que o anexo não subiu.
+  try {
+    const arquivos = await sincronizarAnexos(supabase(), id, antes?.arquivos ?? [], tarefa.arquivos);
+    tarefa.arquivos = arquivos;
+    tarefas = tarefas.map((t) => (t.id === id ? { ...t, arquivos } : t));
+    avisar();
+  } catch {
+    falhou("A tarefa foi salva, mas não consegui guardar os anexos. Abra a ficha e anexe de novo.");
   }
   return tarefa;
 }

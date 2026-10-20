@@ -4,8 +4,7 @@ import { useEffect, useRef, useState, type DragEvent } from "react";
 import type { Arquivo } from "@/lib/dados";
 
 // Anexos da tarefa (item 129): imagem ou vídeo, arrastados para cá ou escolhidos no computador.
-// ponytail: ainda não há banco. O arquivo fica só na memória do navegador (URL.createObjectURL) e some ao recarregar a página.
-// Para guardar de verdade (Fase 2) é preciso o banco/armazenamento: aí `url` passa a ser o endereço guardado e este arquivo não muda.
+// O arquivo escolhido espera em `pendente` (com um blob: só para mostrar); quem sobe para o Storage é o salvarTarefa, ao salvar a ficha.
 const ACEITA = (f: File) => f.type.startsWith("image/") || f.type.startsWith("video/");
 const CLIPE = "M21 12.5l-8.5 8.5a5.5 5.5 0 01-7.8-7.8L13.2 4.7a3.7 3.7 0 015.2 5.2l-8.5 8.5a1.9 1.9 0 01-2.6-2.6L14.6 7.5";
 
@@ -20,7 +19,7 @@ export function Anexos({ valor, aoMudar }: { valor: Arquivo[]; aoMudar: (v: Arqu
   }, [aberto]);
 
   function adicionar(lista: FileList | null) {
-    const novos = [...(lista ?? [])].filter(ACEITA).map((f): Arquivo => ({ nome: f.name, url: URL.createObjectURL(f), tipo: f.type.startsWith("video/") ? "video" : "imagem" }));
+    const novos = [...(lista ?? [])].filter(ACEITA).map((f): Arquivo => ({ nome: f.name, url: URL.createObjectURL(f), tipo: f.type.startsWith("video/") ? "video" : "imagem", pendente: f }));
     if (novos.length) aoMudar([...valor, ...novos]);
   }
   const soltar = (e: DragEvent) => {
