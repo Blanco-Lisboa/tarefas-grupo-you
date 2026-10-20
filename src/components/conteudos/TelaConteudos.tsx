@@ -137,7 +137,11 @@ export function TelaConteudos() {
                 <span className="conteudos-numero">{String(indice + 1).padStart(2, "0")}</span>
                 <h2>{nomes[etapa]}</h2>
                 <span className="conteudos-contagem">{itens.length}</span>
-                <button className="conteudos-novo" type="button" aria-label={`Novo conteúdo em ${nomes[etapa]}`} onClick={() => eu ? setAberta(tarefaEmBranco({ etapa, responsavel: eu })) : setErro("Aguarde a identificação da sua conta para criar um conteúdo.")}>+</button>
+                <button className="conteudos-novo" type="button" aria-label={`Novo conteúdo em ${nomes[etapa]}`} onClick={() => {
+                  if (!eu) return setErro("Aguarde a identificação da sua conta para criar um conteúdo.");
+                  setErro("");
+                  setAberta(tarefaEmBranco({ etapa, responsavel: eu }));
+                }}>+</button>
               </div>
               <div className="conteudos-pilha">
                 {itens.length === 0 && <p className="conteudos-vazio">Solte um conteúdo aqui.</p>}
