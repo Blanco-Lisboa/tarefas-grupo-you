@@ -28,6 +28,7 @@ import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { Aprovador, TagChip } from "@/components/ui/Tag";
 import { Agora } from "./Agora";
 import { Anexos } from "./Anexos";
+import { arrumar } from "./arrumar";
 import { TextoComLinks } from "@/components/pastas/links";
 import { CampoData } from "@/components/ui/CampoData";
 import "./ficha.css";
@@ -130,10 +131,11 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
     setSalvando(true);
     // Tarefa nova para outra pessoa vai para o caderno dela (achado 2, igual ao Caderno). Conteúdo com empresa todos já veem: fica de quem criou.
     const enviarPara = nova && t.responsavel !== eu && !ehConteudo(t) ? t.responsavel : undefined;
-    await salvarTarefa({
-      ...t, ...quando, enviarPara, arquivos, vaiProGoogle: nova ? vai : tarefa.vaiProGoogle, // só liga na criação e se pode ir (R5-5) aprovador: pedeAprovador ? t.aprovador : undefined, titulo: t.titulo.trim(), objetivo: t.tipo === "postagem" ? t.objetivo?.trim() || undefined : undefined, notas: t.notas?.trim() || undefined,
+    await salvarTarefa(arrumar(t, pedeAprovador, {
+      ...quando, enviarPara, arquivos,
+      vaiProGoogle: nova ? vai : tarefa.vaiProGoogle, // só liga na criação e se pode ir (R5-5)
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
-    });
+    }));
     setSalvando(false);
     setEnviou(true);
   }
