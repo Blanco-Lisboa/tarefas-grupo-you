@@ -3,6 +3,7 @@
 import { useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from "react";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { Ficha, NOMES, tarefaEmBranco } from "@/components/ficha/Ficha";
+import { Aprovacao, SeloConserto } from "@/components/ficha/Aprovacao";
 import { IconeRede, SeloEmpresa, temLogo } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
@@ -149,12 +150,12 @@ export function TelaConteudos() {
                 {itens.length === 0 && <p className="conteudos-vazio">Solte um conteúdo aqui.</p>}
                 {itens.map((tarefa) => {
                   const levantado = arraste?.id === tarefa.id ? arraste : null;
-                  const falta = prazo(tarefa, hoje);
+                  const falta = prazo({ ...tarefa, inicio: tarefa.postarEm ?? tarefa.inicio }, hoje); // aprovado: conta até a hora do post (item 195)
                   const drive = linkDrive(tarefa);
                   const quemFazAgora = fazendo[tarefa.id]?.quem;
                   const nomeEmpresa = tarefa.empresaId ? nomesEmpresas.get(tarefa.empresaId) : undefined;
                   return (
-                  <div className="conteudos-cartao-sombra" data-vazio={!!levantado} data-fazendo={!!quemFazAgora} style={levantado ? { height: levantado.h } : undefined} key={tarefa.id}>
+                  <div className="conteudos-cartao-sombra" data-vazio={!!levantado} data-fazendo={!!quemFazAgora} data-conserto={!!tarefa.conserto} style={levantado ? { height: levantado.h } : undefined} key={tarefa.id}>
                   <article
                     className="conteudos-cartao"
                     data-arrastando={!!levantado}
@@ -170,6 +171,7 @@ export function TelaConteudos() {
                         <Pessoa quem={quemFazAgora} tamanho={26} />
                       </span>
                     )}
+                    <SeloConserto tarefa={tarefa} />
                     {/* Card do conteúdo (item 156): de quem é e onde sai, o quê, para quê, em que etapa está, quem faz e quando */}
                     <div className="conteudos-cartao-topo">
                       {tarefa.empresaId && (
@@ -205,7 +207,7 @@ export function TelaConteudos() {
                     )}
                     <div className="conteudos-cartao-rodape">
                       <span className="conteudos-quem-faz"><Pessoa quem={tarefa.responsavel} tamanho={24} />{NOMES.responsavel[tarefa.responsavel]}</span>
-                      <time dateTime={tarefa.inicio?.slice(0, 10)}>{dataLegivel(tarefa.inicio)}</time>
+                      <time dateTime={(tarefa.postarEm ?? tarefa.inicio)?.slice(0, 10)}>{dataLegivel(tarefa.postarEm ?? tarefa.inicio)}</time>
                     </div>
                     {(falta || drive) && (
                       <div className="conteudos-prazo">
@@ -213,6 +215,7 @@ export function TelaConteudos() {
                         {drive && <a className="conteudos-drive" href={drive} target="_blank" rel="noopener noreferrer" title="Abrir no Drive">Drive</a>}
                       </div>
                     )}
+                    <Aprovacao tarefa={tarefa} />
                   </article>
                   </div>
                   );

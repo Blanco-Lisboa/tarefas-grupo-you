@@ -1,0 +1,17 @@
+/* Aprovação em "Em análise" (item 195): linha de separação e dois botões no pé do card. Verde do Começar (#2C6B49), vermelho do atrasado. */
+.aprovacao { --aprovar: #2C6B49; display: flex; gap: var(--s-8); margin-top: var(--s-12); padding-top: var(--s-12); border-top: 1px solid var(--linha); }
+.aprovacao-botao { flex: 1; min-height: 32px; padding: 4px var(--s-8); border: 0; border-radius: 8px; cursor: pointer; font: 600 var(--t-12) var(--fonte); transition: background-color var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva); }
+.aprovacao-botao[data-acao="aprovar"] { background: var(--aprovar); color: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / 0.1); }
+.aprovacao-botao[data-acao="aprovar"]:hover { background: color-mix(in srgb, var(--aprovar) 85%, #000); }
+.aprovacao-botao[data-acao="consertar"] { background: transparent; color: var(--atrasado); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 0 0 0 1px color-mix(in srgb, var(--atrasado) 35%, transparent); }
+.aprovacao-botao[data-acao="consertar"]:hover { background: color-mix(in srgb, var(--atrasado) 8%, transparent); }
+.aprovacao-botao:active { transform: translateY(1px); }
+.aprovacao-botao:focus-visible, .aprovacao-cancelar:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.aprovacao-quando { display: flex; align-items: center; gap: var(--s-8); flex: 1; min-width: 0; }
+.aprovacao-quando > :first-child { flex: 1; min-width: 0; }
+.aprovacao-cancelar { flex: none; padding: 4px; border: 0; background: none; color: var(--fraco); font: 600 var(--t-12) var(--fonte); cursor: pointer; }
+.aprovacao-cancelar:hover { color: var(--texto); }
+/* Etiqueta "Conserto": a fita do "fazendo agora" do card (conteudos.css), em vermelho, menor e só com o texto */
+.selo-conserto { position: absolute; z-index: 1; top: -10px; left: 14px; padding: 3px 9px 9px; border-radius: 6px 6px 0 0; background: linear-gradient(110deg, var(--atrasado) 40%, color-mix(in srgb, var(--atrasado) 65%, #fff) 50%, var(--atrasado) 60%) 0 0 / 200% 100%; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); color: #fff; font: 700 10px/1.2 var(--fonte); letter-spacing: .04em; text-transform: uppercase; animation: selo-conserto-brilho 2.4s linear infinite; }
+@keyframes selo-conserto-brilho { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .selo-conserto { animation: none; } .aprovacao-botao { transition: none; } }

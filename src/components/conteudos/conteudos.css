@@ -25,6 +25,8 @@
 .conteudos-cartao:active { cursor: grabbing; }
 .conteudos-cartao[data-editavel="false"], .conteudos-cartao[data-editavel="false"]:active { cursor: default; }
 .conteudos-cartao-sombra[data-vazio="true"] { border: 2px dashed var(--borda); border-radius: var(--raio-c); }
+.conteudos-cartao-sombra[data-conserto="true"] { padding-top: 12px; } /* etiqueta Conserto (item 195); com o fazendo, os 30px abaixo vencem */
+.conteudos-cartao-sombra[data-conserto="true"] .conteudos-cartao { position: relative; }
 .conteudos-cartao-sombra[data-fazendo="true"] { padding-top: 30px; }
 .conteudos-cartao-sombra[data-fazendo="true"] .conteudos-cartao { position: relative; }
 .conteudos-fazendo { position: absolute; z-index: 1; top: -16px; right: 52px; display: flex; justify-content: center; width: 40px; height: 52px; padding-top: 9px; border-radius: 8px 8px 0 0; background: linear-gradient(110deg, #2c6b49 40%, #629577 50%, #2c6b49 60%) 0 0 / 200% 100%; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%); animation: conteudos-fazendo-brilho 2.4s linear infinite; }

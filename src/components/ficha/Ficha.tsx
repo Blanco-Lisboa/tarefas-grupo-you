@@ -11,6 +11,7 @@
 // - soLer: só para olhar (Caderno de outra pessoa): campos travados, sem Salvar nem lixeira; links do Drive e das notas seguem abrindo.
 //   Lixeira no pé (item 179) só para quem podeApagar: clicar troca o pé por Apagar (vermelho) e Cancelar; Esc também cancela.
 // - Fazendo agora (item 170): tarefa já salva mostra Começar/Parar no topo e quem está nela desde quando (todos veem de todos).
+// - tipos: limita o menu Tipo (a Esteira passa só os tipos que são colunas, item 194); sem ele, todos.
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
@@ -52,7 +53,7 @@ const NENHUMA = "nenhuma"; // valor do seletor Empresa; a tarefa sem empresa gua
 const LINK_VALIDO = /^https?:\/\//i;
 const HORA = 60 * 60_000;
 
-export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFechar: () => void; soLer?: boolean }) {
+export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: NovaTarefa; aoFechar: () => void; soLer?: boolean; tipos?: readonly TipoTarefa[] }) {
   const empresas = useEmpresas();
   const tags = useTags();
   const todas = useTarefas();
@@ -194,7 +195,7 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
         <fieldset className="ficha-corpo" disabled={soLer}>
           <div className="ficha-grade">
             <div className="ficha-campo ficha-escolha">
-              <Selecao rotulo="Tipo" opcoes={TIPOS.map((v) => ({ valor: v, rotulo: NOMES.tipo[v] }))} valor={[t.tipo]} multipla={false} aoMudar={([v]) => { if (v) mudar("tipo", v as TipoTarefa); }} />
+              <Selecao rotulo="Tipo" opcoes={tipos.map((v) => ({ valor: v, rotulo: NOMES.tipo[v] }))} valor={[t.tipo]} multipla={false} aoMudar={([v]) => { if (v) mudar("tipo", v as TipoTarefa); }} />
             </div>
             <div className="ficha-campo ficha-escolha">
               {empresas.length ? (
