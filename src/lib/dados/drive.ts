@@ -27,15 +27,21 @@ async function chamar<T>(corpo: Record<string, unknown>): Promise<T> {
 
 export const tipoDe = (f: { type: string }): NonNullable<Arquivo["tipo"]> => (f.type.startsWith("video/") ? "video" : f.type.startsWith("image/") ? "imagem" : "documento");
 
-/** Pergunta ao Drive até onde a sessão já recebeu (depois de uma parte que falhou). */
-async function ondeParou(sessao: string, total: number, buscar: typeof fetch): Promise<number> {
+/** O que o Drive respondeu a uma parte: acabou (com o id), ou até onde já recebeu. */
+type Retorno = { id: string } | { recebido: number };
+async function lerRetorno(r: Response): Promise<Retorno> {
+  if (r.status === 200 || r.status === 201) return { id: ((await r.json()) as { id: string }).id };
+  const faixa = /bytes=0-(\d+)/.exec(r.headers.get("range") ?? ""); // sem Range = nada recebido ainda
+  return { recebido: faixa ? Number(faixa[1]) + 1 : 0 };
+}
+/** Pergunta ao Drive até onde a sessão já recebeu (depois de uma parte que falhou). Se o último pedaço já tinha chegado, devolve o id. */
+async function ondeParou(sessao: string, total: number, buscar: typeof fetch): Promise<Retorno> {
   const r = await buscar(sessao, { method: "PUT", headers: { "content-range": `bytes */${total}` } });
-  if (r.status === 200 || r.status === 201) return total;
-  const faixa = /bytes=0-(\d+)/.exec(r.headers.get("range") ?? "");
-  return faixa ? Number(faixa[1]) + 1 : 0;
+  if (r.status !== 200 && r.status !== 201 && r.status !== 308) throw new Error(`Drive ${r.status}`);
+  return lerRetorno(r);
 }
 
-/** Manda o arquivo em partes de 8 MB para o endereço da sessão; refaz a parte que falhou (até 3 vezes). Devolve o id do arquivo no Drive. */
+/** Manda o arquivo em partes de 8 MB para o endereço da sessão; refaz a parte que falhou (até 3 vezes) e segue o Range que o Drive devolve. Devolve o id do arquivo no Drive. */
 export async function enviarEmPartes(sessao: string, arquivo: Blob, aoProgredir?: (fracao: number) => void, buscar: typeof fetch = (...a) => fetch(...a), parte = PARTE): Promise<string> {
   const total = arquivo.size;
   let inicio = 0, falhas = 0;
@@ -43,17 +49,19 @@ export async function enviarEmPartes(sessao: string, arquivo: Blob, aoProgredir?
     const fim = Math.min(inicio + parte, total);
     try {
       const r = await buscar(sessao, { method: "PUT", headers: { "content-range": `bytes ${inicio}-${fim - 1}/${total}` }, body: arquivo.slice(inicio, fim) });
-      if (r.status === 200 || r.status === 201) {
-        aoProgredir?.(1);
-        return ((await r.json()) as { id: string }).id;
-      }
-      if (r.status !== 308) throw new Error(`Drive ${r.status}`);
-      inicio = fim;
+      if (r.status !== 200 && r.status !== 201 && r.status !== 308) throw new Error(`Drive ${r.status}`);
+      const ret = await lerRetorno(r);
+      if ("id" in ret) { aoProgredir?.(1); return ret.id; }
+      inicio = ret.recebido; // o que o Drive diz que tem, não o que achamos que mandamos
       falhas = 0;
       aoProgredir?.(inicio / total);
     } catch (e) {
       if (++falhas >= TENTATIVAS) throw new Error("O envio para o Drive falhou. Tente de novo.", { cause: e });
-      inicio = await ondeParou(sessao, total, buscar).catch(() => inicio);
+      try {
+        const ret = await ondeParou(sessao, total, buscar);
+        if ("id" in ret) { aoProgredir?.(1); return ret.id; }
+        inicio = ret.recebido;
+      } catch { /* sem resposta: tenta a mesma parte de novo */ }
     }
   }
   throw new Error("O Drive não confirmou o envio. Tente de novo.");

@@ -104,6 +104,7 @@ export function criarManipulador(d: Deps) {
     if (!t.empresa_id) throw new Recusa(400, "Escolha a empresa para anexar arquivo.");
     const s = servico();
     let oc = t.ocasiao_id ? (await s.ler("ocasioes", { id: t.ocasiao_id }))[0] : undefined;
+    if (oc && oc.empresa_id !== t.empresa_id) throw new Recusa(409, "A ocasião deste card é de outra empresa. Escolha uma ocasião da empresa do card.");
     if (!oc) {
       oc = await novaOcasiao(t.empresa_id, nomeOk(t.titulo) ?? "Sem título", pessoaId, true);
       await s.atualizar("tarefas", { id: t.id }, { ocasiao_id: oc.id as string });
@@ -120,9 +121,11 @@ export function criarManipulador(d: Deps) {
   async function esvaziar(tarefaId: string) {
     const s = servico();
     const linhas = await s.ler<{ id: string; drive_id: string | null; caminho: string | null }>("arquivos", { tarefa_id: tarefaId }, "id,drive_id,caminho");
-    for (const l of linhas) if (l.drive_id) await d.api.lixeira(l.drive_id); // falhou: para aqui, nada some pela metade
-    await s.removerObjetos("arquivos", linhas.flatMap((l) => (l.caminho ? [l.caminho] : [])));
-    if (linhas.length) await s.apagar("arquivos", { tarefa_id: tarefaId });
+    // cada linha sai logo depois do seu arquivo: se algo falhar no meio, o que sobra no banco é exatamente o que ainda está no Drive (e dá para tentar de novo)
+    for (const l of linhas) if (l.drive_id) { await d.api.lixeira(l.drive_id); await s.apagar("arquivos", { id: l.id }); }
+    const sup = linhas.flatMap((l) => (l.caminho ? [l.caminho] : []));
+    await s.removerObjetos("arquivos", sup);
+    if (sup.length) await s.apagar("arquivos", { tarefa_id: tarefaId });
   }
 
   // ---- ações ----
@@ -147,19 +150,25 @@ export function criarManipulador(d: Deps) {
         if (!tarefaId || !driveId || !nome || !tipo || !TIPOS.includes(tipo) || !(tamanho > 0) || !["anexo", "capa"].includes(papel) || !Number.isInteger(ordem)) throw new Recusa(400, "Confirmação inválida.");
         await podeMexer(tarefaId);
         const s = servico();
-        const [ja] = await s.ler<{ id: string }>("arquivos", { drive_id: driveId }, "id,tarefa_id");
-        if (ja) return { arquivo_id: ja.id }; // repetição do mesmo pedido
+        const [ja] = await s.ler<{ id: string; tarefa_id: string }>("arquivos", { drive_id: driveId }, "id,tarefa_id");
+        if (ja) {
+          if (ja.tarefa_id !== tarefaId) throw new Recusa(409, "Este arquivo já pertence a outro card.");
+          return { arquivo_id: ja.id }; // repetição do mesmo pedido
+        }
         const card = await cardDe(tarefaId);
         const pasta = await pastaDoCard(card, pessoa.id);
         const f = await d.api.ver(driveId);
-        if (!f.parents?.includes(pasta) || Number(f.size) !== tamanho) {
-          await d.api.lixeira(driveId).catch(() => {});
+        // arquivo fora da pasta do card NÃO é nosso: só recusa, nunca mexe nele
+        if (!f.parents?.includes(pasta) || f.mimeType === "application/vnd.google-apps.folder") throw new Recusa(422, "O arquivo não está na pasta deste card.");
+        if (Number(f.size) !== tamanho) {
+          await d.api.lixeira(driveId).catch(() => {}); // nesta pasta é um envio nosso que ficou pela metade
           throw new Recusa(422, "O arquivo não chegou inteiro ao Drive. Tente de novo.");
         }
         try {
           const [l] = await s.inserir<{ id: string }>("arquivos", { tarefa_id: tarefaId, drive_id: driveId, nome, tipo, tamanho, papel, ordem, criado_por: pessoa.id });
           return { arquivo_id: l.id };
         } catch (e) {
+          await d.api.lixeira(driveId).catch(() => {}); // sem linha no banco o arquivo ficaria solto no Drive
           if (e instanceof ErroRest && e.status === 409) throw new Recusa(409, "Este card já tem capa. Tire a atual antes.");
           throw e;
         }
@@ -175,6 +184,7 @@ export function criarManipulador(d: Deps) {
       case "renomear_ocasiao": {
         const id = texto(c.ocasiao_id), nome = nomeOk(c.nome);
         if (!id || !nome) throw new Recusa(400, "Escreva o nome da ocasião.");
+        if (!(await eu.ler("ocasioes", { id }, "id")).length) throw new Recusa(404, "Ocasião não encontrada."); // a trava de leitura do banco decide se a pessoa a enxerga
         const s = servico();
         const [o] = await s.ler<{ id: string; empresa_id: string; drive_pasta_id: string | null }>("ocasioes", { id });
         if (!o) throw new Recusa(404, "Ocasião não encontrada.");

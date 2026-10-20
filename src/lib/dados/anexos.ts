@@ -63,15 +63,18 @@ export async function sincronizarAnexos(sb: Cliente, tarefaId: string, empresaId
   const saiuSupabase = saiu.flatMap((a) => (a.caminho && !a.driveId ? [a.caminho] : []));
   for (const a of saiu) if (a.driveId && a.id) await apagarAnexoDrive(a.id); // lixeira do Google + linha
   if (saiuSupabase.length) {
+    const { error: erroObjeto } = await sb.storage.from(BALDE).remove(saiuSupabase); // objeto primeiro: se falhar, a linha fica e dá para tentar de novo
+    if (erroObjeto) throw erroObjeto;
     const { error } = await sb.from("arquivos").delete().in("caminho", saiuSupabase);
     if (error) throw error;
-    await sb.storage.from(BALDE).remove(saiuSupabase); // se falhar, sobra um arquivo solto no balde, sem linha: não aparece para ninguém
   }
   const guardados: Arquivos = [];
   for (const [i, a] of agora.entries()) {
     if (!a.pendente) { guardados.push(a); continue; }
     if (empresaId) {
-      guardados.push({ ...(await enviarParaDrive(tarefaId, a.pendente, a.papel ?? "anexo", i, (f) => { registrarProgresso(a.url, f); aoProgredir?.(a.nome, f); })), url: a.url }); // url local (blob:) vale até recarregar
+      const novo = { ...(await enviarParaDrive(tarefaId, a.pendente, a.papel ?? "anexo", i, (f) => { registrarProgresso(a.url, f); aoProgredir?.(a.nome, f); })), url: a.url }; // url local (blob:) vale até recarregar
+      Object.assign(a, novo, { pendente: undefined }); // já está no Drive: se um anexo seguinte falhar, salvar de novo não manda este outra vez
+      guardados.push(novo);
       continue;
     }
     if (a.tipo === "video") throw new ErroAnexo("Escolha a empresa para anexar vídeo.");
