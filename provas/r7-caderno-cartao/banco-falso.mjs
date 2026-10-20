@@ -22,6 +22,8 @@ const tarefas = [
   t("Ligar para o contador", "natham", "2026-10-20T09:00"),
   t("Revisar proposta da Beec", "natham", "2026-10-20T10:30", { empresa_id: "beec" }),
   t("Post - Reels", "matheus", "2026-10-20T08:30", { tipo: "postagem", empresa_id: "you", rede: "instagram", etapa: "analise", objetivo: "Mostrar os bastidores do escritório e gerar contato no direct", aprovador: "Natham", tarefa_tags: [{ tag_id: "tag-esperando-aprovacao" }], links: [{ rotulo: "Vídeo", url: "https://drive.google.com/file/d/exemplo" }] }),
+  t("Reels: bastidores do escritório", "natham", "2026-10-20T11:00", { tipo: "gravacao", empresa_id: "you", rede: "instagram", etapa: "gravacao" }),
+  t("Carrossel: prazo do MEI", "matheus", "2026-10-20T16:00", { tipo: "edicao", empresa_id: "beec", rede: "tiktok", etapa: "edicao" }),
   t("Gravar stories da semana", "matheus", "2026-10-20T14:00", { dono_id: P.matheus, criado_por: P.matheus }),
   t("Roteiro: 5 erros no MEI", "matheus", "2026-10-24T10:00", { tipo: "roteiro", empresa_id: "you", rede: "tiktok", etapa: "roteiro", objetivo: "Educar quem está abrindo MEI" }),
   t("Carrossel de impostos", "natham", "2026-10-18T09:00", { tipo: "edicao", empresa_id: "beec", rede: "instagram", etapa: "edicao" }),
