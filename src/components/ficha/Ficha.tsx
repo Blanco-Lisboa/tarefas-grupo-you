@@ -9,11 +9,12 @@
 // - Renderize só quando houver tarefa (o estado interno nasce da tarefa recebida).
 // - A ficha salva sozinha (salvarTarefa / removerTarefa) e chama aoFechar. Esc e clique fora fecham sem salvar.
 // - soLer: só para olhar (Caderno de outra pessoa): campos travados, sem Salvar nem Excluir; links do Drive e das notas seguem abrindo.
+// - Fazendo agora (item 170): tarefa já salva mostra Começar/Parar no topo e quem está nela desde quando (todos veem de todos).
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
-  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, limparErro, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useTags, useTarefas,
+  APROVADORES, ETAPAS, ETIQUETAS, REDES, RESPONSAVEIS, TIPOS, comecar, limparErro, parar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useFazendo, useTags, useTarefas,
   type Etapa, type Etiqueta, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
@@ -51,6 +52,10 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
   const empresas = useEmpresas();
   const tags = useTags();
   const todas = useTarefas();
+  const eu = useEu();
+  const fazendo = useFazendo();
+  const agora = tarefa.id ? fazendo[tarefa.id] : undefined;
+  const souEu = !!agora && agora.quem === eu;
   const [novaTag, setNovaTag] = useState<{ nome: string; cor: Etiqueta } | null>(null);
   const [novoNome, setNovoNome] = useState<string | null>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -146,6 +151,21 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
         <header className="ficha-faixa">
           <div className="ficha-faixa-topo">
             <span className="ficha-rotulo"><span className="ficha-cor-marca" aria-hidden />{nova ? "Nova tarefa" : NOMES.tipo[t.tipo]}</span>
+            {!nova && (
+              <div className="ficha-agora">
+                {agora && (
+                  <span className="ficha-agora-selo" role="status">
+                    <Pessoa quem={agora.quem} tamanho={22} />
+                    {souEu ? "Você está fazendo" : `${NOMES.responsavel[agora.quem]} está fazendo`} desde {desde(agora.desde)}
+                  </span>
+                )}
+                {!soLer && eu && (
+                  <button type="button" className="ficha-agora-botao" aria-pressed={souEu} onClick={() => void (souEu ? parar() : comecar(tarefa.id!))}>
+                    {souEu ? "Parar" : "Começar"}
+                  </button>
+                )}
+              </div>
+            )}
             <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>
           </div>
           <textarea
@@ -305,6 +325,13 @@ export function Ficha({ tarefa, aoFechar, soLer }: { tarefa: NovaTarefa; aoFecha
 
 function Campo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return <label className="ficha-campo"><span className="ficha-legenda">{rotulo}</span>{children}</label>;
+}
+
+// "08:40" se foi hoje; senão "19/10, 08:40".
+function desde(iso: string) {
+  const d = new Date(iso);
+  const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return d.toDateString() === new Date().toDateString() ? hora : `${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}, ${hora}`;
 }
 
 // Fim só vale se vier depois do início; senão a tarefa fica sem fim (vira um ponto no horário).

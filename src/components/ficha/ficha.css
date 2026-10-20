@@ -121,3 +121,15 @@
   .ficha-link { grid-template-columns: minmax(0, 1fr) auto auto; }
   .ficha-link > input:first-child { grid-column: 1 / -1; }
 }
+/* Fazendo agora (item 170): verde do selo 5b; cantos de 8px, nada em pílula */
+.ficha-agora { --agora: #2C6B49; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s-8); margin-left: auto; min-width: 0; }
+.ficha-agora-selo { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 3px 10px 3px 4px; border-radius: 8px; background: color-mix(in srgb, var(--agora) 12%, var(--sup)); color: var(--agora); font: 600 var(--t-12) var(--fonte); }
+.ficha-agora-botao { min-height: 32px; padding: 4px 12px; border: 1px solid var(--agora); border-radius: 8px; background: var(--agora); color: #fff; font: 600 var(--t-12) var(--fonte); cursor: pointer; }
+.ficha-agora-botao:hover { background: color-mix(in srgb, #000 14%, var(--agora)); }
+.ficha-agora-botao[aria-pressed="true"] { background: var(--sup); color: var(--agora); }
+.ficha-agora-botao[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--agora) 8%, var(--sup)); }
+@media (max-width: 520px) { /* celular: selo e botão numa linha própria embaixo */
+  .ficha-faixa-topo { flex-wrap: wrap; }
+  .ficha-agora { order: 3; flex-basis: 100%; flex-wrap: nowrap; }
+  .ficha-agora-botao { margin-left: auto; }
+}
