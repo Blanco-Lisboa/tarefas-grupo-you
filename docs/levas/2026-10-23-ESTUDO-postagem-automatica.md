@@ -265,3 +265,14 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
 **Conferência final da seção (g), 23/10:** nenhuma decisão do Natham ficou aberta. Resta só 1 ponto técnico, que o teste responde e não ele: se o Reels do Facebook aceita capa própria (Passo 6.3). Duas leituras do Sextante, a confirmar no plano:
 - O histórico do Mapa (b) guarda os campos do 204 (título, formato, rede, data) mais o link, sem arquivo.
 - Apagar card (d) apaga também os anexos que estiverem no Supabase (imagem e documento de card sem empresa), e não só os do Drive.
+
+### Seção 9 do BRIEFING do MetaPro (doc oficial conferida em 20/10) · muda 3 pontos
+
+- **API da Meta: v26.0** (no lugar da v23.0 do teste de 19/10).
+- **PNG:** pela API, o Instagram aceita SÓ JPG, em foto, carrossel e capa do Reel ("JPEG is the only image format supported"). A decisão do Natham "mandar o PNG e a Meta converte" **não é possível pela API**. Fica assim: **o sistema converte PNG para JPG sozinho, na qualidade máxima, só para o Instagram**. O Facebook recebe o PNG original. Para ele não muda nada: continua anexando PNG. **O teste do PNG no Passo 6.3 cai** (a doc já respondeu).
+- **Capa do Reel no Instagram:** vai junto no envio (`cover_url`), em JPG, até 8 MB, 9:16. Resolvido.
+- **Capa do Reel no Facebook:** existe, mas é um passo SEPARADO depois de publicar (`POST /{video-id}/thumbnails`, arquivo até 10 MB, `is_preferred=true`). Exige 2 permissões que o robô "You Publicador" NÃO tem (`pages_read_user_content` e `pages_manage_engagement`). Para usar, o Natham gera a chave de novo com essas 2 a mais e libera "Atividade da comunidade" da página para o robô. **DECISÃO DO NATHAM PENDENTE:** gerar a chave de novo (Facebook com a capa deles) ou Facebook sem capa própria (a Meta escolhe o quadro).
+- Com isso, o ponto técnico "capa no Reels do Facebook" deixa de esperar o teste: a resposta é "dá, com as 2 permissões".
+
+### Achado ao montar o plano (23/10)
+- A **lixeira no rodapé da ficha JÁ EXISTE** (item 179, canto inferior esquerdo, com confirmação "Apagar / Cancelar"). Ela só aparece para o DONO do card (`podeApagar`: quem criou ou quem enviou). Por isso o Natham não a vê nos cards criados pelo Matheus. O pedido vira: **mostrar a lixeira também ao Natham e ao Matheus em todo card de conteúdo**, e fazer o apagar levar junto os arquivos do Drive.
