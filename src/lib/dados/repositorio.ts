@@ -4,7 +4,7 @@
 import { supabase } from "@/lib/supabase/cliente";
 import { carregarAnexos, ErroAnexo, sincronizarAnexos } from "./anexos";
 import { apagarTarefaComArquivos } from "./drive";
-import { carregarPostagens, postando } from "./postagens";
+import { carregarPostagens, postando, redesQueValem } from "./postagens";
 import type { Empresa, Fazendo, NovaTarefa, Postagem, Responsavel, Tag, Tarefa } from "./tipos";
 
 type LinhaTarefa = {
@@ -143,7 +143,7 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   void _enviarPara;
   // O gatilho do 015 faz o mesmo no banco: Conserto só em Edição, data do post só em Aprovado/Postado.
   const tarefa: Tarefa = { ...resto, conserto: resto.etapa === "edicao" && resto.conserto ? true : undefined,
-    postarEm: resto.etapa === "aprovado" || resto.etapa === "postado" ? resto.postarEm : undefined, id, dono, criadoPor: antes?.criadoPor ?? eu ?? undefined, enviadaPor: antes ? antes.enviadaPor : dono !== eu ? eu ?? undefined : undefined };
+    postarEm: resto.etapa === "aprovado" || resto.etapa === "postado" ? resto.postarEm : undefined, postarRedes: redesQueValem(resto), id, dono, criadoPor: antes?.criadoPor ?? eu ?? undefined, enviadaPor: antes ? antes.enviadaPor : dono !== eu ? eu ?? undefined : undefined };
   if (!eu || !dono) { falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham."); return tarefa; }
   if (antes && !podeAlterar(antes, eu)) { falhou(soLeitura); return antes; } // trava na origem: nenhuma tela mexe em tarefa só de leitura
   tarefas = antes ? tarefas.map((t) => (t.id === id ? tarefa : t)) : [...tarefas, tarefa];
