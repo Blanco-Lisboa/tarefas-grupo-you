@@ -2,7 +2,7 @@
 
 ## Direção
 
-A identidade do sistema Tarefas é a **Névoa**, escolhida pelo Natham no item 60. A decisão, a base pronta e as regras da Fase 2 estão em [RODADA-3](levas/2026-10-19-RODADA-3-id-nova.md), seção "ID ESCOLHIDA". Fonte visual: `src/components/modelos/Modelo1Nevoa.tsx` e `modelo-1-nevoa.css`, com os blocos de contraste do modelo 5 traduzidos para azul. A identidade não pertence a nenhuma empresa.
+A identidade do sistema Tarefas é a **Névoa**, escolhida pelo Natham no item 60. A decisão, a base pronta e as regras da Fase 2 estão em [RODADA-3](levas/2026-10-19-RODADA-3-id-nova.md), seção "ID ESCOLHIDA". Fonte visual hoje: `src/styles/tarefas-tokens.css` (cores, raios, sombras) e `src/app/globals.css` (botões, bloco de destaque); os modelos de escolha foram apagados no pente fino (74bf4ec) e continuam no histórico do git. A identidade não pertence a nenhuma empresa.
 
 ## Sistema visual
 

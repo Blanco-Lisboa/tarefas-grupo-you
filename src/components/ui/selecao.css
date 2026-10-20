@@ -28,7 +28,7 @@
 .selecao-escolha { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--texto); }
 
 .selecao-contador {
-  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--raio-pilula);
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 6px;
   font: 600 var(--t-12) / 1 var(--fonte); font-variant-numeric: tabular-nums; background: var(--azul); color: var(--no-azul);
 }
 

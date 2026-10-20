@@ -1,5 +1,5 @@
 /* ID do sistema "Tarefas" (item 60, 19/10/2026): modelo 1 Névoa + o contraste do modelo 5 com o bloco em AZUL.
-   Fonte da verdade: src/components/modelos/modelo-1-nevoa.css (pele) + modelo-5-contraste.css (bloco de destaque).
+   Fonte da verdade: este arquivo (a escolha Névoa saiu de modelos que foram apagados em 74bf4ec; ficam no histórico do git).
    Sem preto e sem verde-lima (pedido do Natham). Azul = o #0071E3 do modelo 1, um pouco mais escuro.
    Contraste (fórmula da W3C, mínimo 4,5): branco sobre azul 5,68 · azul sobre fundo 4,68 · texto fraco sobre fundo 4,95 ·
    texto do bloco (fraco) sobre azul 4,58. O #0071E3 dava 4,70 com branco e 4,0 sobre o fundo: escurecer fecha os dois. */
@@ -27,7 +27,7 @@
   --vidro-desfoque: blur(24px) saturate(1.8);
 
   /* Forma: raios do modelo 1 (botão, card, vidro) e o canto bem redondo do bloco do modelo 5 */
-  --raio-b: 10px; --raio-c: 16px; --raio-v: 20px; --raio-bloco: 22px; --raio-pilula: 999px;
+  --raio-b: 10px; --raio-c: 16px; --raio-v: 20px; --raio-bloco: 22px;
 
   /* Sombra macia, sem borda junto (ou borda ou sombra) */
   --sombra: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px -12px rgb(0 0 0 / 0.18);
