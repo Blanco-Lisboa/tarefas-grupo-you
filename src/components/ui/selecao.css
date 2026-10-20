@@ -1,4 +1,4 @@
-/* Botão de seleção, no desenho do modelo 1 Névoa (item 60; src/components/modelos/modelo-1-nevoa.css, .sel-*):
+/* Botão de seleção, no desenho Névoa (item 60), com os tokens atuais de src/styles/tarefas-tokens.css (docs/design.md):
    - botão = vidro branco com borda de luz e sombra macia; passar o mouse ou aberto = branco cheio; com escolha, contador azul.
    - lista = vidro de verdade (o guia da Apple põe vidro nos popovers): branco translúcido, desfoque, canto de 16px;
      escolhido = caixa azul com o visto branco. */

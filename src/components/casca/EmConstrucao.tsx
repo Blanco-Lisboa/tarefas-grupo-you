@@ -1,5 +1,5 @@
 "use client";
-import { useTarefas } from "@/lib/dados";
+import { useEu, useTarefas } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 
 // Provisório: cada tela troca isto pela tela de verdade. A contagem prova que dados + filtro chegam na tela.
@@ -14,7 +14,8 @@ export function EmConstrucao({ titulo, comContagem = true }: { titulo: string; c
 }
 
 function Contagem() {
-  const tarefas = useTarefas();
+  const eu = useEu();
+  const tarefas = useTarefas().filter((t) => (t.dono ?? t.responsavel) === eu || (!!t.etapa && !!t.empresaId));
   const { aplicar } = useFiltroEmpresa();
   const visiveis = aplicar(tarefas).length;
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { salvarEmpresa, useEmpresas, useTarefas } from "@/lib/dados";
+import { salvarEmpresa, useEmpresas, useEu, useTarefas } from "@/lib/dados";
 import { SeloEmpresa, temLogo } from "@/components/ui/Marca";
 import "./configuracoes.css";
 
@@ -11,7 +11,9 @@ function sigla(nome: string) {
 
 export function TelaConfiguracoes() {
   const empresas = useEmpresas();
-  const tarefas = useTarefas();
+  const eu = useEu();
+  // Só o que é meu ou conteúdo com empresa: depois do 006 o Natham também recebe as tarefas privadas do Matheus.
+  const tarefas = useTarefas().filter((t) => (t.dono ?? t.responsavel) === eu || !!t.etapa);
   const [novoNome, setNovoNome] = useState("");
   const [erro, setErro] = useState("");
 
