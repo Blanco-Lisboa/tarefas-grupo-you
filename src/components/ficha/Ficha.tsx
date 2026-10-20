@@ -306,7 +306,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
 
           <LinksDrive links={links} aoMudar={setLinks} />
           <div inert={postTravado}><Anexos valor={arquivos.filter((a) => a.papel !== "capa")} aoMudar={(v) => setArquivos([...v, ...capas])} empresaId={t.empresaId} carrossel={t.formato === "carrossel"} /></div>
-          {postTravado && <p className="ficha-dica">Aprovado: legenda, formato, arquivos e capa só mudam pelo Natham ou por quem aprova.</p>}
+          {postTravado && <p className="ficha-dica ficha-dica-fica">Aprovado: legenda, formato, arquivos e capa só mudam pelo Natham ou por quem aprova.</p>}
 
           <div className="ficha-campo ficha-notas">
             <label className="ficha-legenda" htmlFor="ficha-notas">Notas</label>

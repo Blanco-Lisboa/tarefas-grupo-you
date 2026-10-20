@@ -30,7 +30,7 @@
 .aprovacao-botao[data-acao="postar"]:hover { background: var(--azul-hover); }
 .aprovacao-botao[data-acao="concluir"] { background: transparent; color: var(--aprovar); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 0 0 0 1px color-mix(in srgb, var(--aprovar) 40%, transparent); }
 .aprovacao-botao[data-acao="concluir"]:hover { background: color-mix(in srgb, var(--aprovar) 8%, transparent); }
-.aprovacao-botao[data-acao="tentar"] { flex: none; background: var(--atrasado); color: #fff; }
+.aprovacao-botao[data-acao="tentar"] { flex: 1 1 100%; background: var(--atrasado); color: #fff; }
 .aprovacao-botao[data-acao="tentar"]:hover { background: color-mix(in srgb, #000 14%, var(--atrasado)); }
 .aprovacao-situacao { flex-basis: 100%; margin: 0; color: var(--fraco); font: 600 var(--t-12) var(--fonte); }
 .aprovacao-situacao[data-tipo="postando"] { display: flex; align-items: center; gap: 6px; color: var(--azul); }
