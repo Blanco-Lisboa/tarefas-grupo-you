@@ -61,7 +61,7 @@ html[data-menu="recolhido"] { --menu-w: 64px; --menu-p: var(--s-8); --menu-recuo
 .menu-rotulo { transition: opacity var(--dur-rapida) var(--curva); }
 
 /* Rodapé (item 187): cartão de perfil no mesmo vidro do cabeçalho (cantos de 8px, contorno por sombra interna para não deslocar a coluna dos ícones),
-   foto na coluna dos ícones, e Recolher menu solto embaixo, mais discreto. */
+   foto na coluna dos ícones, e Recolher menu solto ACIMA do cartão, mais discreto. */
 .menu-pe { display: flex; flex-direction: column; gap: var(--s-8); margin-top: auto; }
 .menu-perfil {
   display: flex; flex-direction: column; gap: 2px; padding-block: var(--s-4); overflow: hidden; border-radius: 8px;

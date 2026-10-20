@@ -61,6 +61,10 @@ export function Menu({ recolhido, alternar, caminho }: Props) {
         {ITENS.map((i) => <Item key={i.href} item={i} caminho={caminho} />)}
       </ul>
       <div className="menu-pe">
+        <button type="button" className="menu-item menu-alterna" onClick={alternar} aria-label={acao} aria-expanded={!recolhido} title={acao}>
+          <Icone nome="recolher" />
+          <span className="menu-rotulo">{acao}</span>
+        </button>
         {/* Cartão de perfil (item 187): foto + nome de quem está logado, com Configurações e Sair no mesmo vidro do cabeçalho. Sem pessoa ligada ao login, só os dois itens. */}
         <div className="menu-perfil">
           {eu && (
@@ -74,10 +78,6 @@ export function Menu({ recolhido, alternar, caminho }: Props) {
             <li><BotaoSair /></li>
           </ul>
         </div>
-        <button type="button" className="menu-item menu-alterna" onClick={alternar} aria-label={acao} aria-expanded={!recolhido} title={acao}>
-          <Icone nome="recolher" />
-          <span className="menu-rotulo">{acao}</span>
-        </button>
       </div>
     </nav>
   );
