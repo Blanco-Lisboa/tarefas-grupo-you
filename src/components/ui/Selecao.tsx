@@ -46,9 +46,11 @@ type Props = {
   soIcone?: boolean;
   /** Última linha da lista, ex.: "Nova tag": fecha a lista e chama aoClicar. */
   acao?: { rotulo: string; aoClicar: () => void };
+  /** Escolha única ainda vazia: o rótulo fica pequeno à esquerda e este texto (cinza) à direita, como nos campos preenchidos. Ex.: "Escolher". */
+  vazio?: string;
 };
 
-export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotuloTodos, soIcone, acao }: Props) {
+export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotuloTodos, soIcone, acao, vazio }: Props) {
   const id = useId();
   const lista = useRef<HTMLDivElement>(null);
   const ancora = `--selecao-${id.replace(/[^\w-]/g, "")}`;
@@ -74,7 +76,8 @@ export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotul
         title={escolhidas.length ? `${rotulo}: ${escolhidas.map((o) => o.rotulo).join(", ")}` : undefined}
         style={{ anchorName: ancora } as CSSProperties}
       >
-        {multipla || !escolhidas.length ? <span>{rotulo}</span> : <span className="selecao-rotulo-p">{rotulo}</span>}
+        {multipla || (!escolhidas.length && !vazio) ? <span>{rotulo}</span> : <span className="selecao-rotulo-p">{rotulo}</span>}
+        {!multipla && !escolhidas.length && vazio && <span className="selecao-escolha selecao-escolha-vazio">{vazio}</span>}
         {escolhidas.length > 0 &&
           (chips ? (
             <Chips itens={escolhidas.map((o) => o.chip)} />

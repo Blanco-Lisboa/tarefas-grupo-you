@@ -1,0 +1,8 @@
+OK ocasião vazia 1440: rótulo pequeno "Ocasião" e "Escolher" à direita
+OK ocasião vazia 1440: rótulo com o mesmo tamanho do Formato (12px)
+OK ocasião vazia 1440: "Escolher" fica à direita do rótulo (no 390 o Tipo também corta "Postagem": o botão é estreito)
+OK ocasião vazia 1440: sem erro na página []
+OK ocasião vazia 390: rótulo pequeno "Ocasião" e "Escolher" à direita
+OK ocasião vazia 390: rótulo com o mesmo tamanho do Formato (12px)
+OK ocasião vazia 390: "Escolher" fica à direita do rótulo (no 390 o Tipo também corta "Postagem": o botão é estreito)
+OK ocasião vazia 390: sem erro na página []

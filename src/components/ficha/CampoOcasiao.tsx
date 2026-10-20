@@ -42,6 +42,7 @@ export function CampoOcasiao({ empresaId, valor, aoMudar }: { tarefaId?: string;
         valor={atual ? [atual.id] : []}
         multipla={false}
         rotuloTodos="Sem ocasião"
+        vazio="Escolher"
         aoMudar={([v]) => aoMudar(v)}
         acao={{ rotulo: "Nova ocasião", aoClicar: () => { setModo("nova"); setNome(""); setErro(""); } }}
       />
