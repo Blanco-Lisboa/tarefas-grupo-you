@@ -7,8 +7,9 @@
 - [x] 5 · Conteúdos, Drive · link salvo sem `https://` abria como caminho dentro do sistema · quebra · CONSERTADO 095529f
 - [x] 6 · Mapa, Fila · botão do dia fechado apontava para uma lista ausente do documento · melhoria · CONSERTADO f1d9073
 - [x] 7 · Conteúdos, botão + · aviso de conta não identificada continuava visível depois de abrir a criação · melhoria · CONSERTADO f0c90d2
-- [ ] 8 · Conteúdos, arrastar entre etapas · a camada de dados absorve falhas de gravação, então a tela não consegue mostrar o erro mesmo com `catch` · quebra · PARA: Vitral (`src/lib/dados/repositorio.ts`, `salvarTarefa`)
-- [ ] 9 · Conteúdos, selo "fazendo agora" do item 170 · depende da API e da tabela de Vitral; integrar quando a etapa 1 estiver commitada · melhoria · NÃO MEXI: API ainda em desenvolvimento
+- [x] 8 · Mapa, folhas fechadas · o título visível ficava oculto do leitor de tela e os outros textos do botão sumiam na pilha · quebra · CONSERTADO 3c15d61
+- [ ] 9 · Conteúdos, arrastar entre etapas · a camada de dados absorve falhas de gravação, então a tela não consegue mostrar o erro mesmo com `catch` · quebra · PARA: Vitral (`src/lib/dados/repositorio.ts`, `salvarTarefa`)
+- [ ] 10 · Conteúdos, selo "fazendo agora" do item 170 · depende da API e da tabela de Vitral; integrar quando a etapa 1 estiver commitada · melhoria · NÃO MEXI: API ainda em desenvolvimento
 
 FOTOS: alguém com acesso ao servidor de prova deve fotografar Conteúdos, Mapa Linha e Mapa Fila em 1903x900, 1440x760 e 390, sempre com `innerWidth` visível. No Mapa, mostrar 20/10 com várias atividades fechadas e abertas, um dia com uma atividade, começo/meio/fim da rolagem e o card perto da borda direita em 390. Em Conteúdos, incluir coluna vazia, vários cards, criação pela conta Matheus e arraste de etapa. Medir `scrollWidth > clientWidth`, clicar filtros, formato, cartões e botões +, e conferir o console com captura de erro provocada antes da medição. Conferir movimento e transparência reduzidos. O terminal da Régua não conseguiu ocupar a trava de fotos, já usada por outra frente.
 
