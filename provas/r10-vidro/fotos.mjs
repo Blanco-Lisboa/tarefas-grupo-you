@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
 const { chromium } = require("playwright");
 const pasta = fileURLToPath(new URL("./", import.meta.url));
+const prefixo = process.argv[2] ?? "conteudos";
 const b64 = (valor) => Buffer.from(JSON.stringify(valor)).toString("base64url");
 const exp = 1893456000;
 const token = [b64({ alg: "HS256", typ: "JWT" }), b64({ sub: "u-natham", exp, role: "authenticated", aud: "authenticated" }), b64("assinatura")].join(".");
@@ -28,7 +29,7 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
     if (!card) throw new Error("Card Post - Reels não encontrado");
     const estilo = getComputedStyle(card);
     const coluna = card.closest(".conteudos-coluna");
-    return { innerWidth, cartoes: cartoes.length, transbordando: cartoes.filter((item) => item.scrollWidth > item.clientWidth + 1).length, cardDireita: Math.round(card.getBoundingClientRect().right), colunaDireita: Math.round(coluna.getBoundingClientRect().right), fundo: estilo.backgroundColor, desfoque: estilo.backdropFilter, borda: estilo.borderTopWidth, titulo: card.querySelector(".conteudos-titulo")?.textContent?.trim() };
+    return { innerWidth, cartoes: cartoes.length, transbordando: cartoes.filter((item) => item.scrollWidth > item.clientWidth + 1).length, cardDireita: Math.round(card.getBoundingClientRect().right), colunaDireita: Math.round(coluna.getBoundingClientRect().right), fundo: estilo.backgroundImage, desfoque: estilo.backdropFilter, borda: estilo.borderTopWidth, titulo: card.querySelector(".conteudos-titulo")?.textContent?.trim() };
   });
   await pagina.evaluate(() => {
     const marca = document.createElement("div");
@@ -37,7 +38,7 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
     document.body.append(marca);
   });
   if (largura === 390) await pagina.locator(".conteudos-cartao", { hasText: "Post - Reels" }).scrollIntoViewIfNeeded();
-  await pagina.screenshot({ path: join(pasta, `conteudos-${largura}.png`) });
+  await pagina.screenshot({ path: join(pasta, `${prefixo}-${largura}.png`) });
   console.log(largura, JSON.stringify(dados));
   await contexto.close();
 }
