@@ -5,6 +5,7 @@ import "./marca.css";
 // Logo da empresa e ícone da rede (item 98). Peça ÚNICA: toda tela que mostra "de qual empresa/rede é" usa estes dois.
 // Os arquivos moram em public/marca/ (origem anotada em public/marca/LEIAME.md). tamanho = altura em px.
 const EMPRESAS_COM_LOGO = new Set(["beec", "you"]); // arquivo public/marca/empresas/<id>.svg
+export const temLogo = (empresaId: string) => EMPRESAS_COM_LOGO.has(empresaId);
 const ESCALA_LOGO: Record<string, number> = { beec: 0.8 }; // símbolo menor dentro da mesma caixa (item 131); a caixa e o alinhamento não mudam
 const NOME_REDE: Record<Rede, string> = { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", kwai: "Kwai" };
 

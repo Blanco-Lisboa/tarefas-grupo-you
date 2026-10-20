@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { salvarEmpresa, useEmpresas, useTarefas } from "@/lib/dados";
+import { SeloEmpresa, temLogo } from "@/components/ui/Marca";
 import "./configuracoes.css";
 
 function sigla(nome: string) {
@@ -43,7 +44,7 @@ export function TelaConfiguracoes() {
             const quantidade = tarefas.filter((t) => t.empresaId === empresa.id).length;
             return (
               <li className="config-empresa-sombra" key={empresa.id}><div className="config-empresa">
-                <span className="config-monograma" aria-hidden="true">{empresa.sigla}</span>
+                {temLogo(empresa.id) ? <SeloEmpresa empresaId={empresa.id} nome={empresa.nome} tamanho={40} /> : <span className="config-monograma" aria-hidden="true">{empresa.sigla}</span>} {/* sem logo cadastrado: continua a sigla no quadradinho */}
                 <div className="config-empresa-corpo">
                   <strong>{empresa.nome}</strong><span>{quantidade} {quantidade === 1 ? "tarefa" : "tarefas"}</span>
                 </div>
