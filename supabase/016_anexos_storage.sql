@@ -44,7 +44,10 @@ grant execute on function private.pode_alterar_arquivo(text) to authenticated;
 
 drop policy if exists arquivos_storage_cria on storage.objects;
 create policy arquivos_storage_cria on storage.objects for insert to authenticated
-  with check (bucket_id = 'arquivos' and (select private.pode_alterar_arquivo(name)));
+  with check (bucket_id = 'arquivos' and (select private.pode_alterar_arquivo(name))
+    -- caminho já registrado numa linha de anexo não se reutiliza (apagar o objeto e subir outro no mesmo endereço deixaria o recibo do Drive velho).
+    -- O envio vem ANTES do registro da linha, então o primeiro envio passa; reenviar o mesmo caminho só depois de apagar a linha também.
+    and not exists (select 1 from public.arquivos a where a.caminho = name));
 -- Sem política de UPDATE no Storage: ninguém SUBSTITUI um arquivo que já está lá (o upload com upsert também precisa dela). Para trocar, anexa-se
 -- um novo (caminho novo) e apaga-se o velho. Assim o recibo do Drive (017) vale para aquele arquivo exato e nunca fica velho. Só a chave de serviço mexe.
 drop policy if exists arquivos_storage_altera on storage.objects;
