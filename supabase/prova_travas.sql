@@ -52,7 +52,10 @@ begin
   update public.tarefas set titulo = 'hackeado' where titulo like 'P%'; get diagnostics v = row_count;
   r := r || jsonb_build_object('matheus_altera_privada_do_natham_linhas', v);
   update public.tarefas set concluida = true where id = t; get diagnostics v = row_count;
-  r := r || jsonb_build_object('matheus_conclui_a_enviada_a_ele_linhas', v);
+  r := r || jsonb_build_object('matheus_conclui_a_enviada_a_ele_linhas', v);  -- 009: esperado 0 (quem recebeu so le)
+  update public.tarefas set titulo = 'hackeado' where id = t; get diagnostics v = row_count;
+  r := r || jsonb_build_object('matheus_edita_a_enviada_a_ele_linhas', v);  -- 009: esperado 0
+  r := r || jsonb_build_object('matheus_pode_apagar_a_enviada_a_ele', private.pode_apagar(pm, pn));  -- 009: esperado false (Natham enviou)
   update public.tarefas set concluida = true where titulo like 'C1%'; get diagnostics v = row_count;
   r := r || jsonb_build_object('matheus_edita_conteudo_COM_empresa_linhas', v);
   begin
