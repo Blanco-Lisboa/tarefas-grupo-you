@@ -70,11 +70,11 @@ export const paraBanco = (t: Tarefa, responsavelId: string | undefined) => ({
   concluida: !!t.concluida, objetivo: t.objetivo ?? null, notas: t.notas ?? null, links: t.links, aprovador: t.aprovador ?? null,
 });
 
-/** Espelha as travas do banco (006): quem pode ALTERAR a tarefa = o dono, quem a enviou, ou qualquer um se for conteúdo com empresa. Natham no caderno do Matheus só lê. */
+/** Espelha as travas do banco (009). Tarefa ENVIADA: só quem enviou altera; quem recebeu só lê. Não enviada: o dono, ou qualquer um se for conteúdo com empresa. */
 export const podeAlterar = (t: Tarefa, eu: Responsavel | null) =>
-  !!eu && (t.dono === eu || t.enviadaPor === eu || (!!t.etapa && !!t.empresaId));
-/** Quem pode APAGAR: só o dono (quem enviou edita, mas não apaga; conteúdo com empresa de outro dono também não). */
-export const podeApagar = (t: Tarefa, eu: Responsavel | null) => !!eu && t.dono === eu;
+  !!eu && (t.enviadaPor ? t.enviadaPor === eu : t.dono === eu || (!!t.etapa && !!t.empresaId));
+/** Quem pode APAGAR: enviada = quem enviou; não enviada = o dono (conteúdo com empresa de outro dono não apaga). */
+export const podeApagar = (t: Tarefa, eu: Responsavel | null) => !!eu && (t.enviadaPor ?? t.dono) === eu;
 
 function iniciar() {
   if (typeof window === "undefined" || iniciado) return;
@@ -106,6 +106,7 @@ async function carregar() {
   avisar();
 }
 
+const soLeitura = "Essa tarefa é só para olhar: você não pode mexer nela.";
 const semAcesso = "O banco não deixou salvar (sem permissão ou o item não existe mais).";
 
 /** A função public.salvar_tarefa só existe depois do 007. PGRST202 = a API não a encontrou (42883 = o Postgres não a achou). */
@@ -120,6 +121,7 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   void _enviarPara;
   const tarefa: Tarefa = { ...resto, id, dono, criadoPor: antes?.criadoPor ?? eu ?? undefined, enviadaPor: antes ? antes.enviadaPor : dono !== eu ? eu ?? undefined : undefined };
   if (!eu || !dono) { falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham."); return tarefa; }
+  if (antes && !podeAlterar(antes, eu)) { falhou(soLeitura); return antes; } // trava na origem: nenhuma tela mexe em tarefa só de leitura
   tarefas = antes ? tarefas.map((t) => (t.id === id ? tarefa : t)) : [...tarefas, tarefa];
   avisar();
   try {
@@ -157,6 +159,8 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
 }
 
 export async function removerTarefa(id: string): Promise<void> {
+  const alvo = tarefas.find((t) => t.id === id);
+  if (alvo && !podeApagar(alvo, eu)) return falhou(soLeitura);
   const antes = tarefas;
   tarefas = tarefas.filter((t) => t.id !== id);
   avisar();

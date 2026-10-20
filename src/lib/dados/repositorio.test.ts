@@ -35,9 +35,16 @@ describe("fazendo agora", () => {
 describe("quem pode mexer na tarefa (espelha o banco)", () => {
   const base = daLinha({ ...linha, etapa: null, enviada_por: "a", dono_id: "b" }, [], quem); // Natham enviou ao Matheus
   const privadaDoMatheus = daLinha({ ...linha, etapa: null, enviada_por: null, dono_id: "b", criado_por: "b" }, [], quem);
-  it("quem enviou edita, mas não apaga; o dono faz os dois", () => {
-    expect([podeAlterar(base, "natham"), podeApagar(base, "natham")]).toEqual([true, false]);
-    expect([podeAlterar(base, "matheus"), podeApagar(base, "matheus")]).toEqual([true, true]);
+  it("enviada: quem enviou edita e apaga; quem recebeu só lê", () => {
+    expect([podeAlterar(base, "natham"), podeApagar(base, "natham")]).toEqual([true, true]);
+    expect([podeAlterar(base, "matheus"), podeApagar(base, "matheus")]).toEqual([false, false]);
+  });
+  it("enviada com empresa: quem recebeu continua só lendo", () => {
+    const c = { ...base, etapa: "roteiro" as const, empresaId: "you" };
+    expect([podeAlterar(c, "matheus"), podeApagar(c, "matheus"), podeAlterar(c, "natham"), podeApagar(c, "natham")]).toEqual([false, false, true, true]);
+  });
+  it("não enviada: o dono faz os dois", () => {
+    expect([podeAlterar(privadaDoMatheus, "matheus"), podeApagar(privadaDoMatheus, "matheus")]).toEqual([true, true]);
   });
   it("Natham só lê a privada do Matheus", () => {
     expect([podeAlterar(privadaDoMatheus, "natham"), podeApagar(privadaDoMatheus, "natham")]).toEqual([false, false]);
