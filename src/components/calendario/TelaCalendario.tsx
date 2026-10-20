@@ -175,8 +175,8 @@ function SemData({ lista, acoes }: { lista: Tarefa[]; acoes: Acoes }) {
       >
         <span>Sem data</span>
         {lista.length > 0 && <span className="selecao-contador">{lista.length}</span>}
-        <svg className="selecao-seta" viewBox="0 0 12 12" aria-hidden>
-          <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.75" />
+        <svg className="selecao-seta" viewBox="0 0 24 24" aria-hidden>
+          <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
       <div

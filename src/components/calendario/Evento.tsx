@@ -38,7 +38,8 @@ export function Evento({ t, modo, abrir, style, curto }: { t: Tarefa; modo: "blo
   const etapa = t.etapa && NOMES.etapa[t.etapa];
   const detalhes = [t.rede && NOMES.rede[t.rede], modo === "cartao" && tipo !== etapa && tipo].filter(Boolean).join(" · ");
   const textoTipo = modo === "cartao" && tipo !== etapa ? tipo : "";
-  const selo = <span className="selo"><SeloEmpresa empresaId={t.empresaId} nome={empresa} tamanho={14} /></span>;
+  // Sem empresa: sem selo (o fundo cinza já diz); a etiqueta "Sem empresa" comia o título dos blocos curtos
+  const selo = dona && <span className="selo"><SeloEmpresa empresaId={t.empresaId} nome={empresa} tamanho={14} /></span>;
   const etiqueta = etapa && <span className={`etapa etapa-${t.etapa}`}>{etapa}</span>;
   return (
     <button
