@@ -7,7 +7,7 @@ import { IconeRede, SeloEmpresa, temLogo } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { ehConteudo } from "@/components/tarefas/grade";
-import { ETAPAS, salvarTarefa, useEmpresas, useEu, useFazendo, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { ETAPAS, podeAlterar, salvarTarefa, useEmpresas, useEu, useFazendo, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { diasDeAtraso } from "@/lib/atraso";
@@ -61,7 +61,7 @@ export function TelaConteudos() {
   const nomesEmpresas = new Map(empresas.map((e) => [e.id, e.nome]));
 
   async function mudarEtapa(tarefa: Tarefa, etapa: Etapa) {
-    if (tarefa.etapa === etapa) return;
+    if (tarefa.etapa === etapa || !podeAlterar(tarefa, eu)) return;
     try {
       setErro("");
       await salvarTarefa({ ...tarefa, etapa });
@@ -81,7 +81,7 @@ export function TelaConteudos() {
   }
 
   function pegar(evento: PointerEvent<HTMLElement>, tarefa: Tarefa) {
-    if (evento.button !== 0 || (evento.target as HTMLElement).closest("a")) return;
+    if (!podeAlterar(tarefa, eu) || evento.button !== 0 || (evento.target as HTMLElement).closest("a")) return;
     pegada.current = { id: tarefa.id, px: evento.clientX, py: evento.clientY, caixa: evento.currentTarget.getBoundingClientRect(), ativo: false };
   }
 
@@ -158,6 +158,7 @@ export function TelaConteudos() {
                   <article
                     className="conteudos-cartao"
                     data-arrastando={!!levantado}
+                    data-editavel={podeAlterar(tarefa, eu)}
                     style={levantado ? { left: levantado.x, top: levantado.y, width: levantado.w } : undefined}
                     onPointerDown={(evento) => pegar(evento, tarefa)}
                     onPointerMove={mover}
@@ -221,7 +222,7 @@ export function TelaConteudos() {
           );
         })}
       </div>
-      {aberta && <Ficha tarefa={aberta} aoFechar={() => setAberta(null)} />}
+      {aberta && <Ficha tarefa={aberta} aoFechar={() => setAberta(null)} soLer={!!aberta.id && !podeAlterar(aberta as Tarefa, eu)} />}
     </section>
   );
 }

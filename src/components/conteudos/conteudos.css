@@ -23,6 +23,7 @@
 .conteudos-cartao { touch-action: pan-y; user-select: none; min-width: 0; padding: var(--s-16) var(--s-12) var(--s-12); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); background: linear-gradient(135deg, color-mix(in srgb, var(--sup) 55%, transparent), transparent 48%), color-mix(in srgb, var(--sup) 44%, transparent); -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque); box-shadow: inset 1px 1px 0 var(--vidro-linha), 0 12px 26px -16px color-mix(in srgb, var(--etapa) 55%, rgb(29 29 31 / .22)), var(--sombra); cursor: grab; transition: box-shadow var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva); }
 .conteudos-cartao:hover { box-shadow: inset 1px 1px 0 var(--vidro-linha), 0 16px 30px -14px color-mix(in srgb, var(--etapa) 55%, rgb(29 29 31 / .28)), var(--sombra-alta); transform: translateY(-2px); }
 .conteudos-cartao:active { cursor: grabbing; }
+.conteudos-cartao[data-editavel="false"], .conteudos-cartao[data-editavel="false"]:active { cursor: default; }
 .conteudos-cartao-sombra[data-vazio="true"] { border: 2px dashed var(--borda); border-radius: var(--raio-c); }
 .conteudos-cartao-sombra[data-fazendo="true"] { padding-top: 30px; }
 .conteudos-cartao-sombra[data-fazendo="true"] .conteudos-cartao { position: relative; }
