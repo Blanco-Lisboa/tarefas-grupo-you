@@ -211,3 +211,31 @@ Fora do escopo (igual ao briefing): Beec, TikTok, Kwai e YouTube.
 **Observações do Sextante para o desenho (não são decisão):**
 - O pg_cron instalado (1.6.4) não tem "rodar uma vez numa data". O alarme único se faz com a expressão do minuto, hora, dia e mês exatos, e o próprio trabalho se desagenda ao rodar. Reprogramar = trocar o alarme pelo mesmo nome; desaprovar ou arrastar o card = apagar o alarme. As 2 ou 3 conferências do vídeo podem ser alarmes únicos encadeados do mesmo jeito.
 - Converter PNG para JPG dentro da função do servidor exige uma biblioteca em JavaScript puro (as nativas, como sharp, não rodam lá) e cabe no limite de 2 s de processamento só para imagens de tamanho normal. Provar com o maior PNG real antes de fechar.
+
+### Respostas do Natham às 16 decisões abertas (23/10)
+
+- **1 · Alarme de uso único:** SIM. O relógio de todo minuto (`tarefas_postar_vencidos`) sai.
+- **2 · Saiu numa rede e falhou na outra:** SIM, como recomendado. O card fica em Aprovado com a faixa vermelha "Saiu no Instagram, falhou no Facebook", o link do que saiu e o botão "Tentar de novo só no Facebook". Só vai para Postado quando as duas saírem; nunca repete a rede que já saiu.
+- **3 · Cancelar um programado = arrastar** para fora de Aprovado: SIM.
+  - **PEDIDO NOVO:** botão de LIXEIRA no canto inferior ESQUERDO da ficha de edição (rodapé, do lado oposto de Cancelar e Salvar), que abre uma confirmação de exclusão do card.
+  - Em aberto: quem pode excluir; card programado perde o alarme junto; card Postado: o post continua na rede (excluir o card não apaga o post).
+- **4 · WhatsApp de erro:** só para ele por enquanto (Matheus depois).
+- **5 · Avisos na ALEXA:** "post feito" e "post com erro" vão para a Alexa, como no CRM, cada um com o seu som. Fica para o FIM.
+  - Em aberto: o WhatsApp de erro continua junto ou a Alexa substitui.
+- **6 · "Postar agora":** só ele e o aprovador: SIM.
+- **7 · Só a You** (Beec depois): SIM.
+- **8 · Uma legenda para as duas redes:** SIM.
+- **9 · Reels no Facebook sai como Reels:** SIM.
+- **10 · Carrossel com vídeo:** só no Instagram, a tela avisa e apaga o botão do Facebook: SIM.
+- **11 · CAPA:** ele quer mandar a capa que eles fazem junto com o Reels → **campo Capa na ficha**.
+  - Instagram: a API aceita capa própria (`cover_url`).
+  - Facebook Reels: conferido em 23/10, o guia oficial da Reels Publishing API (developers.facebook.com/docs/video-api/guides/reels-publishing) **não documenta campo de capa**. Fontes de terceiros se contradizem: Ayrshare diz que aceita e Later diz que não. A conferir no teste do rascunho (Passo 6.3). Se não der, o Reels do Facebook sai com o quadro que a Meta escolher e o do Instagram com a capa deles.
+  - Do mesmo guia: o Facebook limita a **30 Reels por API a cada 24 h** por página. Longe do uso deles.
+- **12 · O que a API não faz** (música da biblioteca, filtros, figurinhas, link no Story, Story sem legenda): ciente. Marcar pessoas, localização e colaborador fica FORA agora: SIM.
+- **13 · Google em modo "Produção"** (requisito do 203), com o clique em "app não verificado" > Avançado > Continuar: SIM.
+- **14 · Teste do PNG no rascunho** (Passo 6.3, sem publicar): SIM.
+- **15 · Ordem:** publicar a rodada 193-207 primeiro e construir TUDO. Ele só vai postar quando tudo estiver pronto.
+- **16 · 4 terminais** (Banco, Tela e Lupa em Sonnet; a função que posta em Opus): SIM.
+- **Primeiro post real:** é o ÚLTIMO passo, depois de tudo pronto e testado com a Meta falsa. A trava continua: foto e legenda aprovadas por ele no chat.
+
+**Ainda em aberto depois desta rodada:** quem pode excluir um card pela lixeira; WhatsApp de erro junto com a Alexa ou substituído por ela; capa própria no Reels do Facebook (resposta no teste do rascunho).
