@@ -3,7 +3,7 @@
 -- Rodar no projeto Tarefas (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Nao le nenhum segredo do Vault.
 do $$
 declare
-  n uuid; m uuid; pn uuid; pm uuid; r jsonb := '{}'; v int; t uuid; t2 uuid; t3 uuid;
+  n uuid; m uuid; pn uuid; pm uuid; r jsonb := '{}'; v int; t uuid; t2 uuid; t3 uuid; t4 uuid;
   quando timestamp; esperado text; tem text;
 begin
   insert into auth.users (id, instance_id, aud, role, email) values
@@ -40,6 +40,10 @@ begin
     r := r || jsonb_build_object('matheus_muda_quadro_da_capa_de_aprovado', 'PASSOU (ERRO)');
   exception when others then r := r || jsonb_build_object('matheus_muda_quadro_da_capa_de_aprovado', 'barrado: ' || sqlerrm); end;
   r := r || jsonb_build_object('matheus_pode_mexer_anexos_de_aprovado_false_esperado', public.pode_mexer_anexos(t));
+  -- editor que nao aprova nao tira o card de Aprovado (nem para Edicao, nem sem conserto): senao a trava de legenda/redes/capa deixa de valer
+  begin update public.tarefas set etapa = 'edicao' where id = t; get diagnostics v = row_count;
+    if v = 0 then raise exception 'sem_linha'; end if; raise exception 'passou_sem_trava';
+  exception when others then r := r || jsonb_build_object('matheus_tira_card_de_aprovado', case sqlerrm when 'passou_sem_trava' then 'PASSOU (ERRO)' else 'barrado: ' || sqlerrm end); end;
   begin perform public.postar_agora(t); r := r || jsonb_build_object('matheus_postar_agora', 'PASSOU (ERRO)');
   exception when others then r := r || jsonb_build_object('matheus_postar_agora', 'barrado: ' || sqlerrm); end;
   begin perform public.tentar_de_novo(t); r := r || jsonb_build_object('matheus_tentar_de_novo', 'PASSOU (ERRO)');
@@ -143,6 +147,18 @@ begin
   begin perform public.desarmar_alarme_servico('postar', t); r := r || jsonb_build_object('usuario_desarma_alarme', 'PASSOU (ERRO)');
   exception when others then r := r || jsonb_build_object('usuario_desarma_alarme', 'barrado: ' || sqlerrm); end;
   reset role;
+
+  -- Todas as redes postadas e card ainda em Aprovado (falhou mover): o toque do alarme move o card para Postado no proprio banco
+  perform set_config('request.jwt.claims', json_build_object('sub', n, 'role', 'authenticated')::text, true);
+  t4 := gen_random_uuid();
+  insert into public.tarefas (id, titulo, tipo, empresa_id, etapa, dono_id, criado_por, responsavel_id, formato, postar_em)
+    values (t4, 'PROVA tudo postado', 'postagem', 'you', 'aprovado', pn, pn, pn, 'post', to_char(now() at time zone 'America/Sao_Paulo' - interval '1 minute', 'YYYY-MM-DD"T"HH24:MI'));
+  insert into public.postagens (tarefa_id, rede, status, post_id, postado_em) values (t4, 'instagram', 'postado', 'x', now()), (t4, 'facebook', 'postado', 'y', now())
+    on conflict (tarefa_id, rede) do update set status = 'postado';
+  perform private.alarme_tocou('postar', t4, 0);
+  select count(*) into v from public.tarefas where id = t4 and etapa = 'postado'; r := r || jsonb_build_object('tudo_postado_move_card_para_postado_1_esperado', v);
+  select count(*) into v from cron.job where jobname = 'tarefas_limpar_' || t4; r := r || jsonb_build_object('e_arma_a_limpeza_1_esperado', v);
+  select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t4; r := r || jsonb_build_object('e_nao_sobra_alarme_de_postar_0_esperado', v);
 
   -- Achados da Lupa: editor nao "posta" no papel; rede tirada do card nao volta pela retomada; alarme a mais de 300 dias e recusado
   perform set_config('request.jwt.claims', json_build_object('sub', m, 'role', 'authenticated')::text, true);

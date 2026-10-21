@@ -150,9 +150,10 @@ begin
   v_entra_aprovado := new.etapa = 'aprovado' and (tg_op = 'INSERT' or old.etapa is distinct from 'aprovado');
   v_entra_postado := new.etapa = 'postado' and (tg_op = 'INSERT' or coalesce(old.etapa, '') not in ('aprovado', 'postado'));
   if tg_op = 'UPDATE' then
-    -- Aprovado -> Postado a mão (sem a função ter postado) também é do Natham/aprovador: senão um editor "posta" no papel e o arquivo some em 7 dias.
+    -- Sair de Aprovado (para Postado a mão, Edição ou qualquer etapa) também é do Natham/aprovador: senão um editor "posta" no papel, ou volta o card para Edição
+    -- e escapa da trava de legenda/redes/capa/anexos, e o alarme se cancela.
     if (new.conserto and not old.conserto) or v_entra_aprovado or v_entra_postado
-       or (old.etapa = 'aprovado' and new.etapa = 'postado')
+       or (old.etapa = 'aprovado' and new.etapa is distinct from 'aprovado')
        or new.aprovador is distinct from old.aprovador
        or (old.etapa in ('aprovado', 'postado') and new.etapa in ('aprovado', 'postado') and (
             new.postar_em is distinct from old.postar_em or new.legenda is distinct from old.legenda
@@ -295,7 +296,14 @@ begin
   if p_tipo = 'postar' then
     select coalesce(max(rodadas) filter (where status not in ('postado', 'erro')), 0), coalesce(bool_or(status not in ('postado', 'erro')), false), count(*) > 0
       into v_rodadas, v_aberto, v_tem from public.postagens where tarefa_id = p_tarefa;
-    if v_tem and not v_aberto then return; end if;  -- nada a fazer: todas as redes já terminaram
+    if v_tem and not v_aberto then
+      -- Todas as redes do card postadas e o card ainda em Aprovado (a função não conseguiu movê-lo): o banco move (o gatilho arma a limpeza).
+      if not exists (select 1 from public.tarefas t, unnest(t.postar_redes) r where t.id = p_tarefa
+           and not exists (select 1 from public.postagens p where p.tarefa_id = t.id and p.rede = r and p.status = 'postado')) then
+        update public.tarefas set etapa = 'postado' where id = p_tarefa and etapa = 'aprovado' and cardinality(postar_redes) > 0;
+      end if;
+      return;  -- senão: nada a fazer, as redes já terminaram (alguma em erro: a tela mostra a faixa)
+    end if;
   else
     v_rodadas := 0;
   end if;

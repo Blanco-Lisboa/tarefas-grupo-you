@@ -1,4 +1,4 @@
-Saida da prova (banco local de teste, Postgres 17 com stubs de auth/vault/cron/net; 019 aplicado 3x sem erro = idempotente). Em producao so depois do 019 colado, com OK do Natham.
+Saida da prova (banco local de teste, Postgres 17 com stubs de auth/vault/cron/net; 019 aplicado varias vezes sem erro = idempotente). Em producao so depois do 019 colado, com OK do Natham.
 RESULTADO: {
     "duas_capas": "barrado (23505)",
     "capa_em_video": "barrado (23514)",
@@ -14,12 +14,14 @@ RESULTADO: {
     "arquivo_em_dois_lugares": "barrado (23514)",
     "alarme_armado_1_esperado": 1,
     "linhas_enviando_2_esperado": 2,
+    "e_arma_a_limpeza_1_esperado": 1,
     "reprogramar_mantem_1_alarme": 1,
     "sentinela_rodada_1_esperado": 1,
     "usuario_apaga_card_com_drive": "barrado: card com anexo se apaga pela lixeira ou pelo Concluir (a funcao drive tira os arquivos antes)",
     "catraca_1a_chamada_2_esperado": 2,
     "catraca_2a_chamada_0_esperado": 0,
     "instagram_intocado_1_esperado": 1,
+    "matheus_tira_card_de_aprovado": "barrado: so o Natham ou o aprovador do card aprova, programa, muda o que vai para a rede ou manda consertar",
     "armar_alarme_servico_1_esperado": 1,
     "usuario_cria_linha_com_drive_id": "barrado: new row violates row-level security policy for table \"arquivos\"",
     "matheus_muda_legenda_de_aprovado": "barrado: so o Natham ou o aprovador do card aprova, programa, muda o que vai para a rede ou manda consertar",
@@ -31,6 +33,7 @@ RESULTADO: {
     "depois_do_teto_sem_alarme_0_esperado": 0,
     "alarme_na_hora_certa_GMT_true_esperado": true,
     "apagar_card_leva_os_alarmes_0_esperado": 0,
+    "e_nao_sobra_alarme_de_postar_0_esperado": 0,
     "matheus_muda_quadro_da_capa_de_aprovado": "barrado: so o Natham ou o aprovador do card aprova, programa, muda o que vai para a rede ou manda consertar",
     "rede_tirada_do_card_nao_volta_0_esperado": 0,
     "postar_some_ao_ir_para_postado_0_esperado": 0,
@@ -38,6 +41,7 @@ RESULTADO: {
     "natham_volta_para_edicao_linhas_1_esperado": 1,
     "limpeza_sem_arquivo_para_de_tocar_0_esperado": 0,
     "toque_velho_nao_apaga_alarme_novo_1_esperado": 1,
+    "tudo_postado_move_card_para_postado_1_esperado": 1,
     "funcao_fora_do_ar_5_toques_vira_erro_2_esperado": 2,
     "todas_as_redes_terminadas_nao_rearma_0_esperado": 0,
     "matheus_apaga_card_de_conteudo_linhas_1_esperado": 1,
