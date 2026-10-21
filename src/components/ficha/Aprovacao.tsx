@@ -9,6 +9,7 @@
 // - Postagem em "Aprovado": UMA linha de estado (Programado · data · redes / Postando… / Erro ao postar: abra o card / Sem programação).
 //   Programar, Postar agora, Tentar de novo e as redes ficam na ficha, no bloco Publicação (pedido do Natham: o card fica baixo).
 // - Postagem em "Postado": nada no pé; os links do post ficam na ficha e no Mapa.
+import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import { podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEu, type Responsavel, type Tarefa } from "@/lib/dados";
 import { ehQuemAprova } from "./arrumar";
@@ -18,9 +19,14 @@ import "./aprovacao.css";
 
 export const podeAprovar = (t: Tarefa, eu: Responsavel | null) => podeAlterar(t, eu) && ehQuemAprova(t.aprovador, eu);
 
-const CHAVE = "M14.7 6.3a4 4 0 00-5.4 5.2L4 16.8 7.2 20l5.3-5.3a4 4 0 005.2-5.4l-2.4 2.4-2.6-.6-.6-2.6z";
+// Fita vermelha só com o ícone do Natham (engrenagem + chave inglesa, PNG dele em public/icones; nunca redesenhar em SVG).
 export function SeloConserto({ tarefa }: { tarefa: Tarefa }) {
-  return tarefa.conserto ? <span className="selo-conserto" role="status"><svg viewBox="0 0 24 24" aria-hidden><path d={CHAVE} /></svg>Conserto</span> : null;
+  return tarefa.conserto ? (
+    <span className="selo-conserto" role="img" aria-label="Conserto" title="Conserto">
+      {/* unoptimized: chega o original de 1080 px, e o recorte do CSS (object-view-box) conta nesses pixels */}
+      <Image src="/icones/conserto-engrenagem-chave.png" alt="" width={20} height={20} unoptimized />
+    </span>
+  ) : null;
 }
 
 export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
