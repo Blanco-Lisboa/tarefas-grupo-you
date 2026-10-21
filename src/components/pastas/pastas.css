@@ -260,3 +260,32 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 
 /* Nova folha e Ver todas: lado a lado, no vão embaixo da pasta (não ocupam linha) */
 .gf-barra { display: flex; justify-content: center; gap: var(--s-8); margin: var(--s-8) 0 calc(-1 * var(--app-controle)); position: relative; z-index: 2; }
+
+/* =================== tela Pastas no formato do Drive (item 229): Formato, Tema, conteúdos =================== */
+.pastas-ideias { all: unset; box-sizing: border-box; display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-12); margin: var(--s-12) 0 var(--s-8); padding: var(--s-12) var(--s-16); max-width: 420px; cursor: pointer; background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra); transition: background var(--dur-rapida) var(--curva); position: relative; z-index: 2; }
+.pastas-ideias:hover { background: var(--sup); }
+.pastas-ideias:focus-visible { outline: 1px solid var(--azul); outline-offset: 2px; }
+.pastas-ideias strong { font-size: var(--app-t-texto); font-weight: 600; color: var(--texto); }
+.pastas-ideias span { font-size: var(--app-t-rotulo); font-weight: 600; color: var(--azul); }
+.pastas-temas { display: grid; gap: 0; padding-top: var(--s-8); border-top: 1px solid var(--linha); }
+.pastas-temas h3 { margin: 0 0 var(--s-8); font-size: var(--app-t-texto); font-weight: 600; color: var(--texto); }
+.pastas-temas h3 small { font-weight: 500; color: var(--fraco); }
+.pastas-temas .pastas-grade { margin-top: 0; }
+.pastas-cel[data-escolhida] .gf-title { color: var(--azul); }
+.pasta-cadeado { flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.18em; margin-right: .3em; }
+.pasta-interruptor { display: grid !important; grid-template-columns: auto 1fr; align-items: center; gap: var(--s-12) !important; cursor: pointer; }
+.pasta-interruptor input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.pasta-trilho { width: 40px; height: 24px; border-radius: 12px; background: var(--borda); position: relative; transition: background var(--dur-rapida) var(--curva); }
+.pasta-trilho::after { content: ""; position: absolute; left: 2px; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: var(--sombra); transition: transform var(--dur-rapida) var(--curva); }
+.pasta-interruptor input:checked + .pasta-trilho { background: var(--azul); }
+.pasta-interruptor input:checked + .pasta-trilho::after { transform: translateX(16px); }
+.pasta-interruptor input:focus-visible + .pasta-trilho { outline: 1px solid var(--azul); outline-offset: 2px; }
+.pasta-interruptor strong { display: block; color: var(--texto); font-size: var(--app-t-texto); }
+.pasta-interruptor small { display: block; font-weight: 400; color: var(--fraco); }
+.pasta-escolher { position: relative; justify-self: start; cursor: pointer; }
+.pasta-escolher input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.pasta-escolher[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.pasta-progresso { display: grid; grid-template-columns: 1fr auto; gap: var(--s-4) var(--s-12); align-items: center; font-size: var(--app-t-texto); }
+.pasta-progresso progress { grid-column: 1; width: 100%; height: 8px; accent-color: var(--azul); }
+.pasta-progresso small { color: var(--fraco); }
+.gf-title .pasta-cadeado { display: inline-block; width: 1em; height: 1em; } /* em, para acompanhar a escala da pasta */

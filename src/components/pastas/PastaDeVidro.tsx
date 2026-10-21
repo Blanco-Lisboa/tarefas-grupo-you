@@ -37,6 +37,8 @@ type Props = {
   acoes?: ReactNode;
   /** Com a pasta aberta (ou a lista "Ver todas"), mostra "+ Nova folha". */
   aoNovaFolha?: () => void;
+  /** Texto do botão da barra de baixo (padrão "+ Nova folha"). */
+  rotuloNova?: string;
   /** Mapa (213): folhas brancas com texto preto, sem a arte colorida. */
   folhasBrancas?: boolean;
   /** Mapa (213): pasta pequena de linha do tempo, com letras maiores para ler em tamanho reduzido. */
@@ -58,7 +60,7 @@ const FRENTE = `M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 
 
 const leque = (i: number, n: number) => (n <= 1 ? 0 : (i / (n - 1)) * 2 - 1);
 
-export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes, aoNovaFolha, folhasBrancas, miniatura, selo, aoClicar, aoMudar }: Props) {
+export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes, aoNovaFolha, rotuloNova = "+ Nova folha", folhasBrancas, miniatura, selo, aoClicar, aoMudar }: Props) {
   const uid = useId().replace(/:/g, "");
   const raiz = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
@@ -245,7 +247,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
     </div>
     {((aoNovaFolha && (aberta || lista)) || n > VISIVEIS) && (
       <div className="gf-barra">
-        {aoNovaFolha && (aberta || lista) && <button type="button" className="gf-todas gf-nova" onClick={aoNovaFolha}>+ Nova folha</button>}
+        {aoNovaFolha && (aberta || lista) && <button type="button" className="gf-todas gf-nova" onClick={aoNovaFolha}>{rotuloNova}</button>}
         {n > VISIVEIS && (
           <button type="button" className="gf-todas" aria-expanded={lista} onClick={() => setLista(!lista)}>
             {lista ? "Esconder lista" : `Ver todas (${n})`}

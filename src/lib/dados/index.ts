@@ -25,9 +25,7 @@ export const useEu = () => useSyncExternalStore(assinar, lerEu, nulo);
 export const useFazendo = () => useSyncExternalStore(assinar, lerFazendo, ninguem);
 /** Último aviso de falha ao falar com o banco ("" = nenhum). */
 export const useErroDados = () => useSyncExternalStore(assinar, lerErro, vazio);
-export * from "./pecas";
 export * from "./ideias";
-export * from "./pastas";
 export * from "./agenda";
 export * from "./anotacoes";
 export * from "./agenda-feitos";
