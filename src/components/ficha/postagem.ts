@@ -12,8 +12,14 @@ const midias = (t: Pick<Tarefa, "arquivos">) => t.arquivos.filter((a) => a.papel
 
 /** Carrossel com vídeo só vai para o Instagram: o Facebook não mistura foto e vídeo num post. */
 export const carrosselComVideo = (t: Pick<Tarefa, "arquivos">, formato?: Formato) => formato === "carrossel" && midias(t).some((a) => a.tipo === "video");
+/** Nunca troca a rede sozinho (decisão do Maestro, re-revisão da Lupa): com Instagram + Facebook tira só o Facebook (o card avisa);
+    só Facebook fica só Facebook, e a checagem barra (SO_FACEBOOK). */
 export const redesValidas = (t: Pick<Tarefa, "arquivos">, formato: Formato | undefined, redes: readonly RedePost[]) =>
-  carrosselComVideo(t, formato) ? redes.filter((r) => r === "instagram") : [...redes];
+  carrosselComVideo(t, formato) && redes.includes("instagram") ? ["instagram" as const] : [...redes];
+export const SO_FACEBOOK = "Carrossel com vídeo não vai para o Facebook: acenda o Instagram ou tire o vídeo.";
+/** Carrossel com vídeo marcado só para o Facebook: não posta até alguém acender o Instagram ou tirar o vídeo. */
+export const carrosselSoFacebook = (t: Pick<Tarefa, "arquivos">, formato: Formato | undefined, redes: readonly RedePost[]) =>
+  carrosselComVideo(t, formato) && redes.length > 0 && !redes.includes("instagram");
 
 /** O que falta para programar ou postar agora. Vazio = pode seguir. */
 export function faltaParaPostar(t: Base, formato: Formato | undefined, redes: readonly RedePost[]): string[] {
@@ -21,6 +27,7 @@ export function faltaParaPostar(t: Base, formato: Formato | undefined, redes: re
   const falta: string[] = [];
   if (!formato) falta.push("Escolha o formato.");
   if (!redes.length) falta.push("Escolha pelo menos uma rede.");
+  if (carrosselSoFacebook(t, formato, redes)) falta.push(SO_FACEBOOK);
   if (formato && formato !== "story" && !t.legenda?.trim()) falta.push("Falta a legenda: escreva na ficha do card.");
   const m = midias(t), videos = m.filter((a) => a.tipo === "video").length;
   if (formato === "post" && (m.length !== 1 || videos)) falta.push("Post leva 1 imagem.");

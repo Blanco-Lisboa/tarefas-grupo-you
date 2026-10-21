@@ -15,8 +15,8 @@ describe("postar_redes gravado (achado 3 da Lupa no Correio)", () => {
     expect(redesQueValem({ formato: "reels", arquivos: [vid] })).toBeUndefined();
     expect(redesQueValem({ formato: "carrossel", arquivos: [img, { ...vid, removido: true }], postarRedes: ["facebook"] })).toEqual(["facebook"]);
   });
-  it("programado só para o Facebook e depois ganha vídeo: vira Instagram, nunca fica numa rede que recusa (achado 6 da Lupa)", () => {
-    expect(redesQueValem({ formato: "carrossel", arquivos: [img, vid], postarRedes: ["facebook"] })).toEqual(["instagram"]);
-    expect(redesQueValem({ formato: "carrossel", arquivos: [img, { ...vid, pendente: {} as File }], postarRedes: ["facebook"] })).toEqual(["instagram"]);
+  it("programado só para o Facebook e depois ganha vídeo: NUNCA troca a rede sozinho (decisão do Maestro); o card pede ajuste", () => {
+    expect(redesQueValem({ formato: "carrossel", arquivos: [img, vid], postarRedes: ["facebook"] })).toEqual(["facebook"]);
+    expect(redesQueValem({ formato: "carrossel", arquivos: [img, { ...vid, pendente: {} as File }], postarRedes: ["facebook"] })).toEqual(["facebook"]);
   });
 });

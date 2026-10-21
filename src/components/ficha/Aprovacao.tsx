@@ -17,7 +17,7 @@ import { CampoData } from "@/components/ui/CampoData";
 import { NOMES } from "./Ficha";
 import { ehQuemAprova } from "./arrumar";
 import { Confirmar } from "./Confirmar";
-import { NOME_REDE, carrosselComVideo, faltaParaPostar, redesDe, redesValidas, situacao, textoRedes } from "./postagem";
+import { NOME_REDE, SO_FACEBOOK, carrosselComVideo, carrosselSoFacebook, faltaParaPostar, redesDe, redesValidas, situacao, textoRedes } from "./postagem";
 import "./aprovacao.css";
 
 export const podeAprovar = (t: Tarefa, eu: Responsavel | null) => podeAlterar(t, eu) && ehQuemAprova(t.aprovador, eu);
@@ -87,9 +87,12 @@ export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
 
   return pe(<>
     {sit?.tipo === "postando" && <p className="aprovacao-situacao" data-tipo="postando" role="status">Postando…</p>}
-    {sit?.tipo === "programado" && <p className="aprovacao-situacao">{sit.texto}</p>}
+    {/* Programado só para o Facebook e o carrossel ganhou vídeo: a função recusa; a tela pede o ajuste em vez de trocar a rede sozinha */}
+    {sit?.tipo === "programado" && (carrosselSoFacebook(tarefa, tarefa.formato, redesDe(tarefa))
+      ? <div className="aprovacao-erro" role="alert"><p>Precisa de ajuste: {SO_FACEBOOK}</p></div>
+      : <p className="aprovacao-situacao">{sit.texto}</p>)}
     {/* O salvar troca as redes para só Instagram (redesQueValem, achado 6 da Lupa); aqui o aviso de que o Facebook ficou de fora */}
-    {sit?.tipo === "programado" && carrosselComVideo(tarefa, tarefa.formato) && <p className="aprovacao-nota">Carrossel com vídeo vai só para o Instagram: o Facebook não aceita foto e vídeo no mesmo post.</p>}
+    {sit?.tipo === "programado" && carrosselComVideo(tarefa, tarefa.formato) && !carrosselSoFacebook(tarefa, tarefa.formato, redesDe(tarefa)) && <p className="aprovacao-nota">Carrossel com vídeo vai só para o Instagram: o Facebook não aceita foto e vídeo no mesmo post.</p>}
     {sit?.tipo === "erro" && (
       <div className="aprovacao-erro" role="alert">
         <p>{sit.texto}</p>

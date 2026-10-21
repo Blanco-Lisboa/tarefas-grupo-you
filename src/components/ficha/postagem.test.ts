@@ -23,6 +23,11 @@ describe("o que falta para postar (196)", () => {
     expect(redesValidas({ arquivos: [img, vid] }, "carrossel", ["instagram", "facebook"])).toEqual(["instagram"]);
     expect(redesValidas({ arquivos: [img, img] }, "carrossel", ["instagram", "facebook"])).toEqual(["instagram", "facebook"]);
   });
+  it("só Facebook nunca vira Instagram sozinho: a checagem barra e pede para acender o Instagram ou tirar o vídeo", () => {
+    expect(redesValidas({ arquivos: [img, vid] }, "carrossel", ["facebook"])).toEqual(["facebook"]);
+    expect(faltaParaPostar(card([img, vid]), "carrossel", ["facebook"])).toEqual(["Carrossel com vídeo não vai para o Facebook: acenda o Instagram ou tire o vídeo."]);
+    expect(faltaParaPostar(card([img, vid]), "carrossel", ["instagram"])).toEqual([]);
+  });
 });
 
 describe("situação do card Aprovado", () => {
