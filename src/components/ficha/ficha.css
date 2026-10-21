@@ -6,8 +6,8 @@
 .ficha[open] { display: flex; flex-direction: column; }
 /* Item 212: com a ficha aberta, a roda do mouse não passa para a tela de trás (nem no fim da ficha, nem no fundo escurecido) */
 .ficha, .ficha-corpo { overscroll-behavior: contain; }
-/* No fundo escurecido a roda vai direto para a página: ela fica parada enquanto a ficha está aberta (o espaço da barra de rolagem fica, nada pula) */
-html:has(.ficha[open]) { overflow: hidden; scrollbar-gutter: stable; }
+/* (item 252: o mural de ideias usa esta mesma trava) No fundo escurecido a roda vai direto para a página: ela fica parada enquanto a ficha está aberta (o espaço da barra de rolagem fica, nada pula) */
+html:has(.ficha[open], .card-flut.mural[open]) { overflow: hidden; scrollbar-gutter: stable; }
 .ficha::backdrop { background: rgb(29 29 31 / .42); backdrop-filter: blur(6px); }
 .ficha-cartao { display: flex; flex-direction: column; flex: 1; min-height: 0; background: var(--sup); }
 .ficha-faixa { padding: var(--s-16) var(--s-24) var(--s-12); background: var(--sup-2); border-bottom: 1px solid var(--linha); }

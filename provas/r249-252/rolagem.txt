@@ -1,0 +1,2 @@
+antes 1440x760: scrollHeight 823 innerHeight 760 | scrollY antes 0 | depois de rolar sobre o mural 63 | depois de rolar no fundo 63
+depois 1440x760: scrollHeight 817 innerHeight 760 | scrollY antes 0 | depois de rolar sobre o mural 0 | depois de rolar no fundo 0

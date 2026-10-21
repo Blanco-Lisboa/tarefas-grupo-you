@@ -279,30 +279,34 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .mural-barra { display: flex; align-items: center; gap: var(--s-16); }
 .mural-busca { font: 400 var(--app-t-texto) var(--fonte); color: var(--texto); height: var(--app-controle); width: min(380px, 100%); padding: 0 var(--s-12); background: var(--sup); border: 1px solid var(--borda); border-radius: var(--raio-b); }
 .mural-conta { font-size: var(--app-t-rotulo); color: var(--fraco); }
-.mural-quadro { display: flex; gap: var(--s-12); align-items: flex-start; overflow: auto; min-height: 0; padding-bottom: var(--s-8); scrollbar-color: var(--borda) transparent; }
-.mural-col { flex: none; width: 272px; max-height: 100%; display: flex; flex-direction: column; gap: var(--s-8); padding: var(--s-12); background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra); transition: background var(--dur-rapida) var(--curva), box-shadow var(--dur-rapida) var(--curva); }
-.mural-col[data-alvo] { background: var(--azul-claro); box-shadow: 0 0 0 2px var(--azul); }
+.mural-quadro { overscroll-behavior: contain; display: flex; gap: var(--s-12); align-items: flex-start; overflow: auto; min-height: 0; padding-bottom: var(--s-8); scrollbar-color: var(--borda) transparent; }
+.mural-col { flex: none; width: 272px; max-height: 100%; display: flex; flex-direction: column; gap: var(--s-8); padding: var(--s-12); background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra); }
 .mural-col h3 { margin: 0; padding: 0 var(--s-4); font-size: var(--app-t-texto); font-weight: 600; display: flex; justify-content: space-between; gap: var(--s-8); }
 .mural-col h3 small { font-size: var(--app-t-rotulo); font-weight: 600; color: var(--azul); }
-.mural-folhas { display: grid; gap: var(--s-8); overflow-y: auto; min-height: 0; padding: 2px; scrollbar-width: thin; scrollbar-color: var(--borda) transparent; }
-.mural-folha { position: relative; display: grid; gap: var(--s-4); padding: var(--s-8) var(--s-12) var(--s-12); background: linear-gradient(180deg, #fff, var(--sup-2)); border: 1px solid var(--vidro-linha); border-top: 3px solid color-mix(in srgb, var(--mural-tom, var(--azul)) 70%, #fff); border-radius: var(--raio-b); box-shadow: var(--sombra); transition: box-shadow var(--dur-rapida) var(--curva), opacity var(--dur-rapida) var(--curva); }
-.mural-folha:hover, .mural-folha:focus-within { box-shadow: var(--sombra-alta); }
-.mural-folha[data-arrastando] { opacity: .4; }
-.mural-folha-topo { display: flex; justify-content: space-between; align-items: center; height: 18px; }
-.mural-cabo { width: 36px; height: 14px; cursor: grab; border-radius: 7px; background: radial-gradient(circle, var(--borda) 1.4px, transparent 1.6px) 0 0 / 8px 7px; opacity: .8; }
-.mural-cabo:hover { opacity: 1; }
-.mural-apagar { all: unset; box-sizing: border-box; width: 22px; height: 22px; display: grid; place-items: center; border-radius: var(--raio-b); cursor: pointer; opacity: 0; transition: opacity var(--dur-rapida) var(--curva); }
+.mural-folhas { overscroll-behavior: contain; display: grid; gap: var(--s-8); overflow-y: auto; min-height: 0; padding: 2px; scrollbar-width: thin; scrollbar-color: var(--borda) transparent; }
+.mural-folha { position: relative; display: grid; gap: var(--s-4); padding: var(--s-12) var(--s-12) var(--s-8); background: linear-gradient(180deg, #fff, var(--sup-2)); border: 1px solid var(--vidro-linha); border-left: 3px solid color-mix(in srgb, var(--mural-tom, var(--azul)) 70%, #fff); border-radius: var(--raio-b); box-shadow: var(--sombra); transition: box-shadow var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva); }
+.mural-folha:hover, .mural-folha:focus-within { box-shadow: var(--sombra-alta); transform: translateY(-1px); }
+.mural-apagar { all: unset; box-sizing: border-box; position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: var(--raio-b); cursor: pointer; opacity: 0; transition: opacity var(--dur-rapida) var(--curva), background var(--dur-rapida) var(--curva); }
 .mural-folha:hover .mural-apagar, .mural-apagar:focus-visible { opacity: 1; }
 .mural-apagar:hover { background: var(--azul-claro); }
+.mural-apagar:focus-visible, .mural-trocar:focus-visible { outline: 1px solid var(--azul); outline-offset: 1px; }
 .mural-apagar svg { width: 14px; height: 14px; fill: none; stroke: var(--fraco); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.mural-folha input, .mural-folha textarea { font: 400 var(--app-t-texto) var(--fonte); color: var(--texto); width: 100%; min-width: 0; padding: 4px 6px; margin: 0 -6px; background: transparent; border: 1px solid transparent; border-radius: 6px; resize: none; }
+.mural-folha input, .mural-folha textarea { font: 400 var(--app-t-texto) var(--fonte); color: var(--texto); width: 100%; min-width: 0; padding: 4px 6px; margin: 0 -6px; background: transparent; border: 1px solid transparent; border-radius: 6px; resize: none; transition: background var(--dur-rapida) var(--curva), border-color var(--dur-rapida) var(--curva); }
 .mural-folha input:hover, .mural-folha textarea:hover { background: rgb(0 0 0 / .03); }
 .mural-folha input:focus, .mural-folha textarea:focus { outline: none; background: var(--sup); border-color: var(--azul); }
-.mural-titulo { font-weight: 600 !important; field-sizing: content; min-height: 1.5em; line-height: 1.35; overflow-wrap: anywhere; }
-.mural-detalhe { field-sizing: content; min-height: 2.6em; max-height: 14em; line-height: var(--texto-entrelinha); }
-.mural-link { display: flex; align-items: center; gap: var(--s-8); }
-.mural-link input { font-size: var(--app-t-rotulo) !important; color: var(--fraco) !important; }
-.mural-link a { flex: none; font-size: var(--app-t-rotulo); }
+.mural-titulo { font-weight: 600 !important; field-sizing: content; min-height: 1.5em; line-height: 1.3; padding-right: 26px !important; overflow-wrap: anywhere; letter-spacing: var(--titulo-espaco); }
+.mural-detalhe { field-sizing: content; min-height: 2.6em; max-height: 14em; line-height: var(--texto-entrelinha); color: var(--fraco) !important; }
+.mural-detalhe:focus { color: var(--texto) !important; }
+.mural-rodape { display: flex; align-items: center; justify-content: space-between; gap: var(--s-8); min-height: 28px; margin-top: var(--s-4); padding-top: var(--s-8); border-top: 1px solid var(--linha); }
+.mural-rodape[data-vazio] { border-top-color: transparent; }
+.mural-ver { display: inline-flex; align-items: center; gap: 6px; font-size: var(--app-t-rotulo); font-weight: 500; }
+.mural-ver img { flex: none; }
+.mural-link-campo { font-size: var(--app-t-rotulo) !important; margin: 0 !important; }
+.mural-rodape[data-vazio] .mural-link-campo:not(:focus) { opacity: .75; }
+.mural-trocar { all: unset; box-sizing: border-box; flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: var(--raio-b); cursor: pointer; opacity: 0; transition: opacity var(--dur-rapida) var(--curva), background var(--dur-rapida) var(--curva); }
+.mural-folha:hover .mural-trocar, .mural-trocar:focus-visible { opacity: 1; }
+.mural-trocar:hover { background: var(--azul-claro); }
+.mural-trocar svg { width: 14px; height: 14px; fill: none; stroke: var(--fraco); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .mural-nova { padding: 0; border-top-width: 1px; border-style: dashed; border-color: var(--borda); background: transparent; box-shadow: none; }
 .mural-nova input { margin: 0; padding: 10px var(--s-12); width: 100%; color: var(--azul); font-weight: 500; }
 .mural-nova input::placeholder { color: var(--azul); opacity: .8; }
@@ -312,4 +316,4 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .mural-confirma { position: absolute; inset: 0; display: grid; align-content: center; gap: var(--s-8); padding: var(--s-12); background: rgb(255 255 255 / .94); border-radius: inherit; }
 .mural-confirma p { margin: 0; font-weight: 600; font-size: var(--app-t-texto); }
 .mural-vazio { margin: var(--s-16); color: var(--fraco); }
-@media (prefers-reduced-motion: reduce) { .mural-col, .mural-folha, .mural-apagar { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .mural-folha, .mural-apagar, .mural-trocar { transition: none; transform: none; } }

@@ -1,13 +1,23 @@
 "use client";
-import { useRef, useState, type CSSProperties, type DragEvent, type KeyboardEvent } from "react";
+import { useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useIdeias, type Ideia } from "@/lib/dados";
+import { IconeRede } from "@/components/ui/Marca";
 import { CardFlutuante } from "./CardFlutuante";
 
 // Pasta "Ideias de conteúdo" aberta como Mural de folhas (item 247): todas as ideias da empresa, uma coluna por categoria.
-// Escrever na folha salva ao sair do campo; arrastar pelo cabo muda a categoria. Tudo passa por useIdeias (mesmo caminho de antes).
+// Escrever na folha salva ao sair do campo. A ideia nasce numa coluna e fica nela até ser apagada (item 249). Tudo passa por useIdeias.
 const nIdeias = (n: number) => (n === 1 ? "1 ideia" : `${n} ideias`);
 const sem = (t: string) => t.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 const linkValido = (l?: string) => !!l && /^https?:\/\//i.test(l);
+// Rede do link, só para mostrar o ícone: Instagram, TikTok ou YouTube. Outro endereço fica sem ícone.
+const redeDoLink = (l: string) => {
+  try {
+    const h = new URL(l).hostname.replace(/^(www|m|vm)\./, "");
+    return h.endsWith("instagram.com") ? "instagram" : h.endsWith("tiktok.com") ? "tiktok" : h.endsWith("youtube.com") || h === "youtu.be" ? "youtube" : null;
+  } catch {
+    return null;
+  }
+};
 
 type Dados = Omit<Ideia, "empresaId" | "id"> & { id?: string };
 
@@ -16,8 +26,6 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
   const [busca, setBusca] = useState("");
   const [extras, setExtras] = useState<string[]>([]); // categorias novas, ainda sem ideia
   const [foco, setFoco] = useState<string | null>(null);
-  const [arrastando, setArrastando] = useState<string | null>(null);
-  const [alvo, setAlvo] = useState<string | null>(null);
 
   const q = sem(busca.trim());
   const acha = (i: Ideia) => !q || sem(`${i.titulo} ${i.texto} ${i.link ?? ""} ${i.categoria}`).includes(q);
@@ -25,12 +33,6 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
   const colunas = todas.map((cat) => ({ cat, itens: ideias.filter((i) => i.categoria === cat && acha(i)) })).filter((c) => !q || c.itens.length);
   const achadas = colunas.reduce((s, c) => s + c.itens.length, 0);
 
-  const soltar = (cat: string) => {
-    const i = ideias.find((x) => x.id === arrastando);
-    setArrastando(null);
-    setAlvo(null);
-    if (i && i.categoria !== cat) salvar({ ...i, categoria: cat });
-  };
 
   return (
     <CardFlutuante titulo={`Ideias de conteúdo · ${nome}`} aoFechar={aoFechar} classe="mural">
@@ -44,15 +46,11 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
             key={cat}
             className="mural-col"
             aria-label={cat}
-            data-alvo={alvo === cat || undefined}
-            onDragOver={(e) => { if (arrastando) { e.preventDefault(); setAlvo(cat); } }}
-            onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setAlvo(null); }}
-            onDrop={(e) => { e.preventDefault(); soltar(cat); }}
           >
             <h3>{cat} <small>{itens.length}</small></h3>
             <div className="mural-folhas">
               {itens.map((i) => (
-                <Folha key={i.id} ideia={i} arrastando={arrastando === i.id} aoSalvar={salvar} aoApagar={() => apagar(i.id)} aoArrastar={setArrastando} aoSoltarFora={() => { setArrastando(null); setAlvo(null); }} />
+                <Folha key={i.id} ideia={i} aoSalvar={salvar} aoApagar={() => apagar(i.id)} />
               ))}
               <Nova categoria={cat} autoFocar={foco === cat} aoCriar={(titulo) => salvar({ categoria: cat, titulo, texto: "" })} />
             </div>
@@ -65,35 +63,45 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
   );
 }
 
-function Folha({ ideia, arrastando, aoSalvar, aoApagar, aoArrastar, aoSoltarFora }: {
-  ideia: Ideia; arrastando: boolean; aoSalvar: (d: Dados) => void; aoApagar: () => void; aoArrastar: (id: string) => void; aoSoltarFora: () => void;
-}) {
+function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dados) => void; aoApagar: () => void }) {
   const [confirmando, setConfirmando] = useState(false);
-  const folha = useRef<HTMLElement>(null);
+  const [editandoLink, setEditandoLink] = useState(false);
   const sair = (campo: "titulo" | "texto" | "link") => (e: { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
     const v = e.currentTarget.value.trim();
     if (campo === "titulo" && !v) { e.currentTarget.value = ideia.titulo; return; } // ideia sem título não existe: volta o que estava
     if (v !== (ideia[campo] ?? "")) aoSalvar({ ...ideia, [campo]: campo === "link" ? v || undefined : v });
   };
-  const levantar = (e: DragEvent) => {
-    e.dataTransfer.setData("text/plain", ideia.id);
-    e.dataTransfer.effectAllowed = "move";
-    if (folha.current) e.dataTransfer.setDragImage(folha.current, 24, 16);
-    aoArrastar(ideia.id);
-  };
+  const temLink = linkValido(ideia.link);
+  const rede = temLink ? redeDoLink(ideia.link!) : null;
   return (
-    <article ref={folha} className="mural-folha" data-arrastando={arrastando || undefined}>
-      <div className="mural-folha-topo">
-        <span className="mural-cabo" draggable onDragStart={levantar} onDragEnd={aoSoltarFora} title="Arraste para outra categoria" aria-label="Arrastar para outra categoria" />
-        <button type="button" className="mural-apagar" aria-label={`Apagar ideia ${ideia.titulo}`} onClick={() => setConfirmando(true)}>
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8h5.8l.6-8" /></svg>
-        </button>
-      </div>
+    <article className="mural-folha">
+      <button type="button" className="mural-apagar" aria-label={`Apagar ideia ${ideia.titulo}`} onClick={() => setConfirmando(true)}>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8h5.8l.6-8" /></svg>
+      </button>
       <textarea className="mural-titulo" aria-label="Título" rows={1} maxLength={120} defaultValue={ideia.titulo} onBlur={sair("titulo")} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())} />
       <textarea className="mural-detalhe" aria-label="Detalhe" rows={2} placeholder="Detalhe" defaultValue={ideia.texto} onBlur={sair("texto")} />
-      <div className="mural-link">
-        <input type="url" aria-label="Link de referência" placeholder="Link de referência" defaultValue={ideia.link} onBlur={sair("link")} />
-        {linkValido(ideia.link) && <a className="lnk" href={ideia.link} target="_blank" rel="noopener noreferrer">Abrir</a>}
+      <div className="mural-rodape" data-vazio={!temLink && !editandoLink ? true : undefined}>
+        {temLink && !editandoLink && (
+          <a className="lnk mural-ver" href={ideia.link} target="_blank" rel="noopener noreferrer">
+            {rede && <IconeRede rede={rede} tamanho={14} />}Ver referência
+          </a>
+        )}
+        {!temLink || editandoLink ? (
+          <input
+            type="url"
+            className="mural-link-campo"
+            aria-label="Link de referência"
+            placeholder="Colar link de referência"
+            defaultValue={ideia.link}
+            autoFocus={editandoLink}
+            onBlur={(e) => { sair("link")(e); setEditandoLink(false); }}
+            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())}
+          />
+        ) : (
+          <button type="button" className="mural-trocar" aria-label="Trocar o link de referência" title="Trocar o link" onClick={() => setEditandoLink(true)}>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 13.5l.7-3L10.8 3a1.4 1.4 0 012 2l-7.6 7.6-2.7.9zM9.5 4.3l2.2 2.2" /></svg>
+          </button>
+        )}
       </div>
       {confirmando && (
         <div className="mural-confirma" role="alertdialog" aria-label="Apagar ideia">
