@@ -88,6 +88,8 @@ export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
   return pe(<>
     {sit?.tipo === "postando" && <p className="aprovacao-situacao" data-tipo="postando" role="status">Postando…</p>}
     {sit?.tipo === "programado" && <p className="aprovacao-situacao">{sit.texto}</p>}
+    {/* O salvar troca as redes para só Instagram (redesQueValem, achado 6 da Lupa); aqui o aviso de que o Facebook ficou de fora */}
+    {sit?.tipo === "programado" && carrosselComVideo(tarefa, tarefa.formato) && <p className="aprovacao-nota">Carrossel com vídeo vai só para o Instagram: o Facebook não aceita foto e vídeo no mesmo post.</p>}
     {sit?.tipo === "erro" && (
       <div className="aprovacao-erro" role="alert">
         <p>{sit.texto}</p>

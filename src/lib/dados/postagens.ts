@@ -4,12 +4,13 @@ import type { Postagem, Tarefa } from "./tipos";
 
 /** O que se grava em postar_redes: carrossel com vídeo só vai para o Instagram (o Facebook não mistura foto e vídeo num post;
     gravado com o Facebook, ele vira erro definitivo e o card fica preso em Aprovado: achado 3 da Lupa no Correio). Conta também o
-    vídeo que está subindo neste salvar. Sem o Instagram na lista, fica como está: a checagem do card pede uma rede. */
-export function redesQueValem(t: Pick<Tarefa, "formato" | "arquivos" | "postarRedes">): Tarefa["postarRedes"] {
-  if (t.formato !== "carrossel" || !t.arquivos.some((a) => a.papel !== "capa" && !a.removido && a.tipo === "video")) return t.postarRedes;
-  const so = (t.postarRedes ?? ["instagram", "facebook"]).filter((r) => r === "instagram");
-  return so.length ? so : t.postarRedes;
-}
+    vídeo que está subindo neste salvar. Programado só para o Facebook também vira Instagram (achado 6 da Lupa, revisão final):
+    o card nunca fica programado numa rede que vai recusar; o card avisa que o Facebook ficou de fora. */
+export const redesQueValem = (t: Pick<Tarefa, "formato" | "arquivos" | "postarRedes">): Tarefa["postarRedes"] =>
+  carrosselComVideoGuardado(t) ? ["instagram"] : t.postarRedes;
+/** Carrossel com vídeo (o que já subiu e o que está subindo; capa e arquivo já limpo não contam). */
+export const carrosselComVideoGuardado = (t: Pick<Tarefa, "formato" | "arquivos">) =>
+  t.formato === "carrossel" && t.arquivos.some((a) => a.papel !== "capa" && !a.removido && a.tipo === "video");
 
 /** Alguma rede na fila, enviando ou processando. */
 export const postando = (t: Tarefa) => !!t.postagens?.some((p) => p.status !== "postado" && p.status !== "erro");
