@@ -52,7 +52,11 @@ export function criarBancoFalso() {
       const args = (await req.json().catch(() => ({}))) as Linha;
       estado.chamadasRpc.push({ nome: mRpc[1], args });
       const f = estado.rpcs[mRpc[1]];
-      return f ? json(f(args, token) ?? null) : json({ code: "PGRST202" }, 404);
+      if (!f) return json({ code: "PGRST202" }, 404);
+      try { return json(f(args, token) ?? null); } catch (e) { // a regra do banco recusando: o teste lança { status, codigo }
+        const x = e as { status?: number; codigo?: string };
+        return json({ code: x.codigo }, x.status ?? 400);
+      }
     }
     const mTab = /^\/rest\/v1\/(\w+)$/.exec(u.pathname);
     if (!mTab || !tabelas[mTab[1]]) return json({}, 404);

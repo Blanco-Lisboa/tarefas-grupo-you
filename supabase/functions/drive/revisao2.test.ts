@@ -167,18 +167,21 @@ describe("3a volta da Lupa: a ocasião do card muda durante o envio", () => {
     const r = await m.tratar(new Request("https://f", { method: "POST", headers: { authorization: "Bearer tok-n", origin: "https://app" }, body: JSON.stringify({ acao: "criar_ocasiao", empresa_id: "you", nome: "Outra ocasião" }) }));
     const nova = ((await r.json()) as { ocasiao: { id: string } }).ocasiao.id;
     m.b.estado.tabelas.tarefas[0].ocasiao_id = nova;
-    return m.b.estado.tabelas.ocasioes.find((o) => o.id === nova)!.drive_pasta_id as string;
+    return nova;
   };
+  /** A pasta do conteúdo (card:t1) e onde ela está agora: o arquivo fica DENTRO dela; é ela que muda de tema. */
+  const pastaDoCard = (m: ReturnType<typeof montar>) => String(m.b.estado.tabelas.drive_pastas.find((x) => x.chave === "card:t1")!.drive_id);
 
   it("o servidor MOVE o arquivo para a pasta atual do card e registra (não recusa nem deixa na pasta antiga)", async () => {
     const m = montar();
     const chamar = (corpo: object) => m.tratar(new Request("https://f", { method: "POST", headers: { authorization: "Bearer tok-n", origin: "https://app" }, body: JSON.stringify(corpo) }));
     const s = (await (await chamar({ acao: "sessao_envio", tarefa_id: "t1", nome: "a.mp4", tipo: "video", mime: "video/mp4", tamanho: 4, papel: "anexo" })).json()) as { sessao_url: string };
     const id = ((await (await m.g.fetch(s.sessao_url, { method: "PUT", headers: { "content-range": "bytes 0-3/4" }, body: new Uint8Array(4) })).json()) as { id: string }).id;
-    const pastaNova = await trocarOcasiao(m);
+    const nova = await trocarOcasiao(m);
     const r = await chamar({ acao: "confirmar_envio", tarefa_id: "t1", drive_id: id, nome: "a.mp4", tipo: "video", tamanho: 4, papel: "anexo", ordem: 0 });
     expect(r.status).toBe(200);
-    expect(m.g.estado.arquivos.get(id)!.parents).toEqual([pastaNova]);
+    expect(m.g.estado.arquivos.get(id)!.parents).toEqual([pastaDoCard(m)]);
+    expect(m.g.estado.arquivos.get(pastaDoCard(m))!.parents).toEqual([String(m.b.estado.tabelas.drive_pastas.find((x) => x.chave === `tema:${nova}:you:sem`)!.drive_id)]);
     expect(m.g.estado.arquivos.get(id)!.trashed).toBe(false);
     expect(m.b.estado.tabelas.arquivos).toHaveLength(1);
   });
@@ -189,7 +192,7 @@ describe("3a volta da Lupa: a ocasião do card muda durante o envio", () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = URL_FALSA;
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "chave-anon-falsa";
     const m = montar();
-    let n = 0, pastaNova = "";
+    let n = 0, nova = "";
     vi.stubGlobal("fetch", (async (e: RequestInfo | URL, i?: RequestInit) => {
       const url = new Request(e).url;
       if (url === `${URL_FALSA}/functions/v1/drive`) {
@@ -200,11 +203,12 @@ describe("3a volta da Lupa: a ocasião do card muda durante o envio", () => {
     }) as typeof fetch);
     const arquivo = new File([new Uint8Array(10)], "reels.mp4", { type: "video/mp4", lastModified: 9 });
     await expect(enviarParaDrive("t1", arquivo, "anexo", 0)).rejects.toThrow();
-    pastaNova = await trocarOcasiao(m);
+    nova = await trocarOcasiao(m);
     const feito = await enviarParaDrive("t1", arquivo, "anexo", 0);
     const noDrive = [...m.g.estado.arquivos.values()].filter((a) => !a.folder);
     expect(noDrive).toHaveLength(1);
-    expect(noDrive[0].parents).toEqual([pastaNova]);
+    expect(noDrive[0].parents).toEqual([pastaDoCard(m)]);
+    expect(m.g.estado.arquivos.get(pastaDoCard(m))!.parents).toEqual([String(m.b.estado.tabelas.drive_pastas.find((x) => x.chave === `tema:${nova}:you:sem`)!.drive_id)]);
     expect(feito.driveId).toBe(noDrive[0].id);
     expect(m.b.estado.tabelas.arquivos).toHaveLength(1);
   });

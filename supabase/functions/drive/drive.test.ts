@@ -79,7 +79,7 @@ describe("google.ts", () => {
 });
 
 describe("drive: envio e confirmação", () => {
-  it("cria raiz, empresa e ocasião; compartilha a raiz; o navegador sobe em partes; confirma e grava a linha", async () => {
+  it("cria raiz, empresa, formato, tema e pasta do conteúdo; compartilha a raiz; o navegador sobe em partes; confirma e grava a linha", async () => {
     const m = montar();
     const bytes = new Uint8Array(10).map((_, i) => i + 1);
     const r = await anexar(m, bytes);
@@ -90,16 +90,16 @@ describe("drive: envio e confirmação", () => {
     const no = m.g.estado.arquivos.get(String(linha.drive_id))!;
     expect([...no.bytes]).toEqual([...bytes]); // vai o original, byte a byte
     const nomes = [...m.g.estado.arquivos.values()].filter((a) => a.folder).map((a) => a.name);
-    expect(nomes).toEqual(["Tarefas · Conteúdos", "You", "Dia das Mães"]);
+    expect(nomes).toEqual(["Tarefas · Conteúdos", "You", "Sem formato", "Sem tema", "Dia das Mães"]);
     expect(m.g.estado.permissoes).toEqual([{ id: expect.any(String), email: "matheus@exemplo.com", role: "writer" }]);
-    expect(m.b.estado.tabelas.tarefas[0].ocasiao_id).toBe(m.b.estado.tabelas.ocasioes[0].id); // card ganhou a ocasião
+    expect(m.b.estado.tabelas.ocasioes).toHaveLength(0); // card sem tema NÃO inventa tema com o título dele (229)
     expect([...m.g.estado.sessoes.values()][0].origem).toBe("https://app.exemplo"); // S1: Origin enviado na abertura da sessão
   });
   it("segundo anexo reaproveita as pastas (não cria de novo)", async () => {
     const m = montar();
     await anexar(m, new Uint8Array(5));
     await anexar(m, new Uint8Array(6), "foto.png", "imagem", "image/png");
-    expect([...m.g.estado.arquivos.values()].filter((a) => a.folder)).toHaveLength(3);
+    expect([...m.g.estado.arquivos.values()].filter((a) => a.folder)).toHaveLength(5);
     expect(m.b.estado.tabelas.arquivos).toHaveLength(2);
   });
   it("repetir a confirmação não duplica a linha", async () => {
@@ -173,17 +173,19 @@ describe("enviarEmPartes (S1 sem CORS real)", () => {
 });
 
 describe("drive: ocasiões", () => {
-  it("cria, recusa nome repetido (sem sobrar pasta) e renomeia pelo id", async () => {
+  it("cria só a linha (sem pasta), recusa nome repetido e renomeia as pastas do tema e do conteúdo pelo id", async () => {
     const m = montar();
     const a = await lerJson(await m.chamar({ acao: "criar_ocasiao", empresa_id: "you", nome: "Natal" }));
-    expect(a.ocasiao.nome).toBe("Natal");
+    expect(a.ocasiao).toMatchObject({ nome: "Natal", permanente: false });
     const pastas = () => [...m.g.estado.arquivos.values()].filter((x) => x.folder).length;
-    const antes = pastas();
+    expect(pastas()).toBe(0); // as pastas nascem no 1º arquivo
     expect((await m.chamar({ acao: "criar_ocasiao", empresa_id: "you", nome: " natal " })).status).toBe(409);
-    expect(pastas()).toBe(antes);
-    await m.chamar({ acao: "renomear_ocasiao", ocasiao_id: a.ocasiao.id, nome: "Natal 2026" });
-    const pasta = m.g.estado.arquivos.get(String(m.b.estado.tabelas.ocasioes[0].drive_pasta_id))!;
-    expect(pasta.name).toBe("Natal 2026");
+    Object.assign(m.b.estado.tabelas.tarefas[0], { ocasiao_id: a.ocasiao.id, formato: "reels" });
+    await anexar(m, new Uint8Array(4));
+    const nomes = () => [...m.g.estado.arquivos.values()].filter((x) => x.folder).map((x) => x.name);
+    expect(nomes()).toEqual(["Tarefas · Conteúdos", "You", "Reels", "Natal", "Reels Natal - Dia das Mães"]);
+    expect((await lerJson(await m.chamar({ acao: "renomear_ocasiao", ocasiao_id: a.ocasiao.id, nome: "Natal 2026" }))).restantes).toBe(0);
+    expect(nomes()).toEqual(["Tarefas · Conteúdos", "You", "Reels", "Natal 2026", "Reels Natal 2026 - Dia das Mães"]);
     expect(m.b.estado.tabelas.ocasioes[0].nome).toBe("Natal 2026");
   });
   it("renomear para nome que outra ocasião já tem é recusado", async () => {

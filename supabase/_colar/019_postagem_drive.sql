@@ -11,7 +11,9 @@ begin
     raise exception '019 NAO APLICADO: % video(s) guardado(s) no Supabase, e o 019 so aceita video no Drive. Cards: %. Baixe/anexe de novo cada video (ja com o Drive ligado) e apague o antigo, depois cole o 019 outra vez.', v_n, v_lista using errcode = 'P0001';
   end if;
 end $$;
--- 019 · contrato do 196 (postagem IG/FB) + 203 (arquivo no Drive) + Concluir/lixeira/trava depois de Aprovado.
+-- 019 v2 (item 229) · contrato do 196 (postagem IG/FB) + 203 (arquivo no Drive) + Concluir/lixeira/trava depois de Aprovado.
+-- v2 = o 019 que a Lupa liberou + 3 mudanças do 229, todas marcadas com "229": (a) ocasioes ganha permanente/desligado_em e perde drive_pasta_id,
+--   (b) arquivos aceita documento SOLTO de pasta (empresa/formato/tema, sem card), (c) funções definir_permanente e pode_mexer_pastas. O resto não mudou.
 -- Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Idempotente. Depende do 002, 006, 009, 015, 016.
 
 -- 1. Card: legenda, redes e ocasião
@@ -27,15 +29,20 @@ alter table public.tarefas add constraint tarefas_legenda_ok check (char_length(
 alter table public.tarefas drop constraint if exists tarefas_postar_redes_ok;
 alter table public.tarefas add constraint tarefas_postar_redes_ok check (postar_redes <@ array['instagram', 'facebook'] and cardinality(postar_redes) >= 1);
 
--- 2. Ocasião = pasta do Drive dentro da empresa (Tarefas · Conteúdos → Empresa → Ocasião). Só a função drive escreve.
+-- 2. Ocasião (na tela: TEMA) = agrupador dos conteúdos da empresa. 229: as pastas do Drive de um Tema são uma por Formato e moram em drive_pastas
+--    (Tarefas · Conteúdos → Empresa → Formato → Tema → pasta do conteúdo), não aqui. Só a função drive escreve.
 create table if not exists public.ocasioes (
   id uuid primary key default gen_random_uuid(),
   empresa_id text not null references public.empresas(id),
   nome text not null check (btrim(nome) <> ''),
-  drive_pasta_id text unique,
+  permanente boolean not null default false,  -- 229: tema permanente = a limpeza dos 7 dias não apaga nada dele (cadeado na tela)
+  desligado_em timestamptz,                   -- 229: quando o Natham desligou o Permanente (a tela conta os 7 dias de novo a partir daqui)
   criado_por uuid references public.pessoas(id),
   created_at timestamptz not null default now()
 );
+alter table public.ocasioes add column if not exists permanente boolean not null default false;
+alter table public.ocasioes add column if not exists desligado_em timestamptz;
+alter table public.ocasioes drop column if exists drive_pasta_id;
 create unique index if not exists ocasioes_nome_unico on public.ocasioes (empresa_id, lower(btrim(nome)));
 alter table public.ocasioes enable row level security;
 drop policy if exists ocasioes_le on public.ocasioes;
@@ -45,6 +52,37 @@ alter table public.tarefas add constraint tarefas_ocasiao_fk foreign key (ocasia
 
 create table if not exists public.drive_pastas (chave text primary key, drive_id text not null);
 alter table public.drive_pastas enable row level security;  -- sem política: só a chave de serviço
+-- 229: chaves = empresa:<e> | formato:<e>:<formato|sem> | tema:<tema|sem>:<e>:<formato|sem> | card:<tarefa> (ver supabase/functions/_shared/pastas.ts)
+
+-- 2b. 229 · Permanente: QUEM pode é do banco, não da tela. Natham e Matheus ligam; só o Natham desliga. Desligar anota a hora (recomeça os 7 dias).
+create or replace function private.definir_permanente(p_ocasiao uuid, p_ligado boolean) returns void
+language plpgsql security definer set search_path = ''
+as $$
+declare v_slug text; v_atual boolean;
+begin
+  select slug into v_slug from public.pessoas where id = (select private.minha_pessoa());
+  if v_slug is null or v_slug not in ('natham', 'matheus') then raise exception 'sem permissao' using errcode = '42501'; end if;
+  select permanente into v_atual from public.ocasioes where id = p_ocasiao for update;
+  if not found then raise exception 'tema nao existe' using errcode = 'P0002'; end if;
+  if v_atual and not p_ligado and v_slug <> 'natham' then raise exception 'so o Natham desliga o Permanente' using errcode = '42501'; end if;
+  update public.ocasioes set permanente = p_ligado, desligado_em = case when p_ligado then null when v_atual then now() else desligado_em end where id = p_ocasiao;
+end $$;
+revoke all on function private.definir_permanente(uuid, boolean) from public, anon;
+grant execute on function private.definir_permanente(uuid, boolean) to authenticated;
+create or replace function public.definir_permanente(p_ocasiao uuid, p_ligado boolean) returns void
+language sql security invoker set search_path = '' as $$ select private.definir_permanente(p_ocasiao, p_ligado) $$;
+revoke all on function public.definir_permanente(uuid, boolean) from public, anon;
+grant execute on function public.definir_permanente(uuid, boolean) to authenticated;
+
+-- 229 · Quem pode pôr e tirar documento solto nas pastas da tela Pastas: qualquer pessoa com login (hoje Natham e Matheus).
+create or replace function private.pode_mexer_pastas() returns boolean
+language sql stable security definer set search_path = '' as $$ select (select private.minha_pessoa()) is not null $$;
+revoke all on function private.pode_mexer_pastas() from public, anon;
+grant execute on function private.pode_mexer_pastas() to authenticated;
+create or replace function public.pode_mexer_pastas() returns boolean
+language sql stable security invoker set search_path = '' as $$ select private.pode_mexer_pastas() $$;
+revoke all on function public.pode_mexer_pastas() from public, anon;
+grant execute on function public.pode_mexer_pastas() to authenticated;
 
 -- 3. Arquivos: Drive, ordem do carrossel e capa
 alter table public.arquivos
@@ -59,6 +97,32 @@ alter table public.arquivos add constraint arquivos_video_no_drive check (tipo <
 alter table public.arquivos drop constraint if exists arquivos_papel_ok;
 alter table public.arquivos add constraint arquivos_papel_ok check (papel in ('anexo', 'capa') and (papel <> 'capa' or tipo = 'imagem'));
 create unique index if not exists arquivos_uma_capa on public.arquivos (tarefa_id) where papel = 'capa';
+
+-- 3b. 229 · Documento SOLTO de pasta: arquivo posto direto numa pasta de Tema pela tela Pastas (sem card). Mora no Drive, em Empresa → Formato → Tema.
+--     Não vence em 7 dias (não há "Postado" que o arme); só sai quando alguém o apaga. Só a função drive grava (a política de inserir exige drive_id nulo).
+alter table public.arquivos
+  add column if not exists empresa_id text references public.empresas(id),
+  add column if not exists formato text,
+  add column if not exists ocasiao_id uuid references public.ocasioes(id) on delete restrict;
+do $$ declare r record; begin  -- o check do 001 (exatamente um entre tarefa e peça) não vale mais para documento solto
+  for r in select conname from pg_constraint where conrelid = 'public.arquivos'::regclass and contype = 'c' and conname <> 'arquivos_solto_ok'
+      and pg_get_constraintdef(oid) like '%tarefa_id%' and pg_get_constraintdef(oid) like '%peca_id%' and pg_get_constraintdef(oid) not like '%caminho%' loop
+    execute format('alter table public.arquivos drop constraint %I', r.conname);
+  end loop;
+end $$;
+alter table public.arquivos drop constraint if exists arquivos_solto_ok;
+alter table public.arquivos add constraint arquivos_solto_ok check (
+  (tarefa_id is not null or peca_id is not null or (empresa_id is not null and drive_id is not null))  -- solto precisa de empresa e vive no Drive
+  and (empresa_id is null or (tarefa_id is null and peca_id is null))                                  -- solto não é de card nem de peça
+  and (formato is null or formato in ('reels', 'post', 'carrossel', 'story'))
+  and (ocasiao_id is null or empresa_id is not null)
+);
+drop policy if exists arquivos_le on public.arquivos;
+create policy arquivos_le on public.arquivos for select to authenticated using (
+  (tarefa_id is not null and exists (select 1 from public.tarefas t where t.id = tarefa_id))
+  or (peca_id is not null and (select private.minha_pessoa()) is not null)
+  or (empresa_id is not null and tarefa_id is null and peca_id is null and (select private.minha_pessoa()) is not null)
+);
 update storage.buckets set allowed_mime_types = array_remove(allowed_mime_types, 'video/*') where id = 'arquivos';
 
 -- 4. Quem mexe em anexo: quem pode alterar o card E, depois de Aprovado, só o Natham ou o aprovador (decisão de 23/10).

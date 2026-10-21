@@ -31,7 +31,16 @@ const em = (dia, hora = "") => {
   return hora ? `${data}T${hora}` : data;
 };
 const diaHoje = hoje.getDay();
+/** "há n dias" a partir de agora, no formato das tarefas (para os Postados contarem 7 dias de verdade). */
+const haDias = (n, hora) => { const d = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - n); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${hora}`; };
 
+// Temas (item 229): "Reunião de outubro" é PERMANENTE (cadeado); "Natal" está vazio (nenhum conteúdo em lugar nenhum).
+const ocasioes = [
+  { id: "tema-reuniao", empresa_id: "you", nome: "Reunião de outubro", permanente: true, desligado_em: null, criado_por: P.natham },
+  { id: "tema-mei", empresa_id: "you", nome: "Dia do MEI", permanente: false, desligado_em: null, criado_por: P.natham },
+  { id: "tema-natal", empresa_id: "you", nome: "Natal", permanente: false, desligado_em: null, criado_por: P.matheus },
+  { id: "tema-beec", empresa_id: "beec", nome: "Lançamento da Beec", permanente: false, desligado_em: null, criado_por: P.natham },
+];
 let n = 0;
 const tarefa = (titulo, extra = {}) => ({
   id: `t${++n}`, titulo, tipo: "outro", empresa_id: null, rede: null, etapa: null, responsavel_id: P.natham, inicio: null, fim: null,
@@ -91,6 +100,20 @@ const tarefas = [
   tarefa("Pensar em ideias para dezembro", { cor: "etiqueta-5" }),
 ];
 const idDe = (titulo) => tarefas.find((t) => t.titulo === titulo).id;
+// Conteúdos Postados: uns há menos de 7 dias (aparecem nas Pastas e dizem quando vencem), outros há 8 (os arquivos já foram limpos, só o card fica no Mapa)
+// e um há 8 dias no tema PERMANENTE (continua nas Pastas).
+tarefas.push(card("Reels: MEI em 1 minuto", "you", "instagram", "reels", "postado", "matheus", 0, "18:00", { cor: "etiqueta-9", concluida: true }));
+const colocar = (titulo, extra) => Object.assign(tarefas.find((t) => t.titulo === titulo), extra);
+const postadoHa = (titulo, dias, hora, tema) => colocar(titulo, { inicio: haDias(dias, hora), postar_em: haDias(dias, hora), postar_redes: IG_FB, ...(tema && { ocasiao_id: tema }) });
+postadoHa("Reels: depoimento da Maria", 3, "18:00", "tema-mei");
+postadoHa("Carrossel: 5 dicas de MEI", 2, "10:00", "tema-mei");
+postadoHa("TikTok: o que é pró-labore", 1, "19:00");
+postadoHa("Post: aviso de feriado", 8, "09:00", "tema-beec");
+postadoHa("Reels: MEI em 1 minuto", 8, "18:00", "tema-mei");
+postadoHa("Reels: cliente da You conta como foi", 8, "18:00", "tema-reuniao");
+colocar("Reels: bastidores da You", { ocasiao_id: "tema-reuniao" });
+colocar("Reels: contabilidade sem mistério", { ocasiao_id: "tema-reuniao" });
+colocar("Post: bem-vindo à Beec", { ocasiao_id: "tema-beec" });
 
 const fazendoAgora = [{ pessoa_id: P.matheus, tarefa_id: idDe("Reels: bastidores do escritório"), desde: new Date(Date.now() - 25 * 60_000).toISOString() }];
 
@@ -116,14 +139,35 @@ const arquivos = [
   anexo("Carrossel: 5 dicas de MEI", "capa.png", "capa"),
   anexo("Carrossel: 5 dicas de MEI", "slide-2.png", "anexo", 1),
 ];
-const postagens = ["Reels: cliente da You conta como foi", "Reels: depoimento da Maria", "Carrossel: 5 dicas de MEI", "Post: aviso de feriado", "TikTok: o que é pró-labore"].flatMap((titulo, i) =>
-  IG_FB.map((rede) => ({ tarefa_id: idDe(titulo), rede, status: "postado", link: `https://www.${rede}.com/exemplo/${i}`, erro: null, postado_em: new Date().toISOString() })));
+// Arquivos que moram no Drive (drive_id): são eles que põem o conteúdo na árvore da tela Pastas. Os anexos antigos (Storage, acima) ficam só na ficha.
+const noDrive = (titulo, nome, tipo = "documento", ordem = 0) => ({ id: `a${++n}`, tarefa_id: idDe(titulo), caminho: null, drive_id: `drive-${n}`, ordem, papel: "anexo", nome, tipo, tamanho: 1_200_000, created_at: "2026-10-18T10:00:00Z" });
+arquivos.push(
+  noDrive("Reels: bastidores da You", "bastidores-final.mp4", "video"), noDrive("Reels: bastidores da You", "roteiro.pdf", "documento", 1),
+  noDrive("Reels: contabilidade sem mistério", "contabilidade.mp4", "video"),
+  noDrive("Reels: cliente da You conta como foi", "depoimento.mp4", "video"), noDrive("Reels: cliente da You conta como foi", "autorizacao-de-imagem.pdf", "documento", 1),
+  noDrive("Reels: depoimento da Maria", "maria.mp4", "video"),
+  noDrive("Carrossel: 5 dicas de MEI", "slide-1.png", "imagem"), noDrive("Carrossel: 5 dicas de MEI", "slide-2.png", "imagem", 1), noDrive("Carrossel: 5 dicas de MEI", "slide-3.png", "imagem", 2),
+  noDrive("Carrossel: guia do pró-labore", "guia.pdf", "documento"),
+  noDrive("TikTok: o que é pró-labore", "prolabore.mp4", "video"),
+  noDrive("Reels: dica rápida de IR", "ir.mp4", "video"),
+  noDrive("Post: bem-vindo à Beec", "boas-vindas.png", "imagem"),
+  noDrive("Vídeo institucional da Beec", "institucional-v1.mp4", "video"),
+);
+// Documentos soltos: postos direto numa pasta pela tela Pastas, sem card (não vencem em 7 dias)
+const solto = (nome, tipo, empresa_id, formato, ocasiao_id) => ({ id: `a${++n}`, tarefa_id: null, caminho: null, drive_id: `drive-${n}`, ordem: 0, papel: "anexo", nome, tipo, tamanho: 300_000, empresa_id, formato, ocasiao_id, criado_por: P.matheus, created_at: "2026-10-19T09:00:00Z" });
+arquivos.push(
+  solto("ata-da-reuniao.pdf", "documento", "you", "reels", "tema-reuniao"), solto("referencias.pdf", "documento", "you", "reels", "tema-reuniao"),
+  solto("paleta-de-cores.png", "imagem", "you", "carrossel", "tema-mei"), solto("manual-da-marca.pdf", "documento", "you", null, null),
+  solto("briefing-lancamento.pdf", "documento", "beec", "post", "tema-beec"),
+);
+const postagens = ["Reels: cliente da You conta como foi", "Reels: depoimento da Maria", "Carrossel: 5 dicas de MEI", "Post: aviso de feriado", "TikTok: o que é pró-labore", "Reels: MEI em 1 minuto"].flatMap((titulo, i) =>
+  IG_FB.map((rede) => ({ tarefa_id: idDe(titulo), rede, status: "postado", link: `https://www.${rede}.com/exemplo/${i}`, erro: null, postado_em: new Date(`${tarefas.find((t) => t.id === idDe(titulo)).inicio}:00-03:00`).toISOString() })));
 
 const hojeTexto = em(diaHoje);
 const anotacoesDia = [{ dono_id: P.natham, dia: hojeTexto, texto: "Gravar o Reels das 11h com o Matheus.\nConferir a legenda do carrossel do pró-labore." }];
 const naoEsquecer = [{ dono_id: P.natham, dia: hojeTexto, texto: "Ligar para o contador antes das 10h." }];
 
-const tabelas = { pessoas, empresas, tags, tarefas, fazendo_agora: fazendoAgora, arquivos, postagens, anotacoes_dia: anotacoesDia, nao_esquecer: naoEsquecer };
+const tabelas = { ocasioes, pessoas, empresas, tags, tarefas, fazendo_agora: fazendoAgora, arquivos, postagens, anotacoes_dia: anotacoesDia, nao_esquecer: naoEsquecer };
 
 // ---- imagem de mentira (SVG colorido com o nome do arquivo)
 const imagem = (caminho) => {
@@ -144,6 +188,7 @@ const sub = (req) => {
 };
 const corpoDe = (req) => new Promise((ok) => { let c = ""; req.on("data", (x) => (c += x)).on("end", () => ok(c ? JSON.parse(c) : {})); });
 const igual = (url) => [...url.searchParams].filter(([, v]) => v.startsWith("eq.")).map(([k, v]) => [k, v.slice(3)]);
+const naoNulos = (url) => [...url.searchParams].filter(([, v]) => v === "not.is.null").map(([k]) => k);
 
 createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
@@ -180,6 +225,63 @@ createServer(async (req, res) => {
   }
   res.setHeader("content-type", "application/json");
 
+  // Envio "para o Drive" de mentira: a sessão é este endereço mesmo; aceita as partes e devolve um id (nada sai do PC).
+  const sessao = url.pathname.match(/^\/upload\/sessao\/(\w+)$/)?.[1];
+  if (sessao && req.method === "PUT") { req.resume(); return req.on("end", () => res.writeHead(200).end(JSON.stringify({ id: `drive-up-${sessao}` }))); }
+  // Função `drive` de mentira (item 229): o bastante para a tela Pastas e a ficha funcionarem; guarda só na memória.
+  if (url.pathname === "/functions/v1/drive" && req.method === "POST") {
+    const c = await corpoDe(req), erro = (status, msg) => res.writeHead(status).end(JSON.stringify({ erro: msg }));
+    const linhaTema = (o) => ({ id: o.id, empresa_id: o.empresa_id, nome: o.nome, permanente: o.permanente, desligado_em: o.desligado_em });
+    const duplicado = (empresa, nome, ignorar) => ocasioes.some((o) => o.empresa_id === empresa && o.id !== ignorar && o.nome.trim().toLowerCase() === String(nome).trim().toLowerCase());
+    switch (c.acao) {
+      case "criar_ocasiao": {
+        if (duplicado(c.empresa_id, c.nome)) return erro(409, "Já existe um tema com esse nome.");
+        const o = { id: `tema-${++n}`, empresa_id: c.empresa_id, nome: String(c.nome).trim(), permanente: c.permanente === true, desligado_em: null, criado_por: P.natham };
+        ocasioes.push(o);
+        return res.writeHead(200).end(JSON.stringify({ ocasiao: linhaTema(o) }));
+      }
+      case "renomear_ocasiao": {
+        const o = ocasioes.find((x) => x.id === c.ocasiao_id);
+        if (!o) return erro(404, "Tema não encontrado.");
+        if (duplicado(o.empresa_id, c.nome, o.id)) return erro(409, "Já existe um tema com esse nome.");
+        o.nome = String(c.nome).trim();
+        return res.writeHead(200).end(JSON.stringify({ ok: true, restantes: 0 }));
+      }
+      case "permanente_ocasiao": { // quem entra aqui é sempre o Natham (o banco de verdade também deixa o Matheus ligar mas não desligar)
+        const o = ocasioes.find((x) => x.id === c.ocasiao_id);
+        if (!o) return erro(404, "Tema não encontrado.");
+        o.desligado_em = c.ligado ? null : o.permanente ? new Date().toISOString() : o.desligado_em;
+        o.permanente = c.ligado === true;
+        return res.writeHead(200).end(JSON.stringify({ ok: true, rearmados: 0 }));
+      }
+      case "organizar_card": return res.writeHead(200).end(JSON.stringify({ ok: true, movida: false }));
+      case "link_video": {
+        const a = arquivos.find((x) => x.id === c.arquivo_id);
+        if (!a?.caminho?.endsWith(".mp4")) return erro(404, "Vídeo de exemplo não disponível (só os dois Reels com vídeo tocam).");
+        return res.writeHead(200).end(JSON.stringify({ url: `http://127.0.0.1:${PORTA_BANCO}/storage/v1/object/sign/arquivos/${a.caminho}?token=exemplo` }));
+      }
+      case "apagar_anexo": {
+        const i = arquivos.findIndex((x) => x.id === c.arquivo_id);
+        if (i >= 0) arquivos.splice(i, 1);
+        return res.writeHead(200).end(JSON.stringify({ ok: true }));
+      }
+      case "apagar_tarefa": {
+        const i = tarefas.findIndex((x) => x.id === c.tarefa_id);
+        if (i >= 0) tarefas.splice(i, 1);
+        for (let j = arquivos.length; j--;) if (arquivos[j].tarefa_id === c.tarefa_id) arquivos.splice(j, 1);
+        return res.writeHead(200).end(JSON.stringify({ ok: true }));
+      }
+      case "sessao_envio": case "sessao_envio_pasta":
+        return res.writeHead(200).end(JSON.stringify({ sessao_url: `http://127.0.0.1:${PORTA_BANCO}/upload/sessao/${++n}` }));
+      case "confirmar_envio": case "confirmar_envio_pasta": {
+        const base = { id: `a${++n}`, caminho: null, drive_id: c.drive_id, ordem: Number(c.ordem ?? 0), papel: c.papel ?? "anexo", nome: c.nome, tipo: c.tipo, tamanho: c.tamanho, criado_por: P.natham, created_at: new Date().toISOString() };
+        arquivos.push(c.acao === "confirmar_envio" ? { ...base, tarefa_id: c.tarefa_id } : { ...base, tarefa_id: null, empresa_id: c.empresa_id, formato: c.formato ?? null, ocasiao_id: c.ocasiao_id ?? null });
+        return res.writeHead(200).end(JSON.stringify({ arquivo_id: base.id }));
+      }
+      default: return erro(400, "Esta ação não existe na cópia de exemplo.");
+    }
+  }
+
   const rpc = url.pathname.match(/^\/rest\/v1\/rpc\/(\w+)/)?.[1];
   if (rpc === "salvar_tarefa" && req.method === "POST") {
     const { p, p_tags = [] } = await corpoDe(req);
@@ -194,7 +296,8 @@ createServer(async (req, res) => {
   if (!tabela) return res.writeHead(404).end("{}");
   if (req.method === "GET") {
     const filtros = igual(url);
-    return res.writeHead(200).end(JSON.stringify((tabelas[tabela] ?? []).filter((l) => filtros.every(([k, v]) => String(l[k]) === v))));
+    const nn = naoNulos(url);
+    return res.writeHead(200).end(JSON.stringify((tabelas[tabela] ?? []).filter((l) => filtros.every(([k, v]) => String(l[k]) === v) && nn.every((k) => l[k] != null))));
   }
   const id = url.searchParams.get("id")?.replace(/^eq\./, "");
   if (tabela === "tarefas" && req.method === "DELETE") {

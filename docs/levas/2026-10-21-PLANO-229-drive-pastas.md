@@ -1,6 +1,7 @@
 # Plano do item 229 · Drive e tela Pastas no formato do Natham
 
-Só plano. Nada aplicado, nada codado. Autora: Alvenaria (24/10, via /arquitetar, nível Construção). Supabase do Tarefas = `uruhjlurcxpjhhgvuzwt` (nunca o do CRM).
+**Estado (atualizado na Etapa 1): respostas do Natham incorporadas; Etapa 1 da Alvenaria FEITA (banco 019 v2, função drive, camada de dados, banco falso da 3101). Nada aplicado em produção, função drive não implantada. Faltam Vitral (tela Pastas) e Sextante (ficha): ver seção 10.**
+Autora: Alvenaria (24/10, via /arquitetar, nível Construção). Supabase do Tarefas = `uruhjlurcxpjhhgvuzwt` (nunca o do CRM).
 Fontes lidas: item 229, 203, 204 da leva; RETOMADAs 23 e 24/10; `supabase/_colar/019_postagem_drive.sql`; `supabase/functions/drive/acoes.ts`; `src/lib/dados/{drive,pastas,pecas,ideias}.ts`; `src/components/pastas/TelaPastas.tsx`.
 
 ## 1. O que o Natham decidiu (resumo)
@@ -74,10 +75,12 @@ Por isso o `ocasioes.drive_pasta_id` deixa de servir: um Tema não é mais uma p
 
 ## 6. SQL: qual arquivo se cola
 
-**Cola-se só o 019, revisado (v2), no mesmo nome `supabase/_colar/019_postagem_drive.sql`.** O arquivo antigo é substituído e não se cola. Como o 019 nunca foi aplicado, um segundo arquivo teria de criar a tabela e logo alterar, e a Lupa já liberou o resto. A diferença da v2 para a que ela liberou é pequena e listada, para ela revisar só isso:
-1. `ocasioes`: `+ permanente boolean not null default false`, `- drive_pasta_id`.
-2. Nenhuma outra linha muda (gatilho, alarme, sentinela, alarmes de serviço, travas e permissões ficam).
-O SQL não é escrito agora; entra na etapa 1.
+**Cola-se só o 019, revisado (v2), no mesmo nome `supabase/_colar/019_postagem_drive.sql`.** O arquivo antigo é substituído e não se cola. Como o 019 nunca foi aplicado, um segundo arquivo teria de criar a tabela e logo alterar, e a Lupa já liberou o resto. A diferença da v2 para a que ela liberou é pequena e listada, para ela revisar só isso (todas as linhas novas têm "229" no comentário):
+1. `ocasioes`: `+ permanente boolean not null default false`, `+ desligado_em timestamptz`, `- drive_pasta_id`.
+2. `arquivos`: `+ empresa_id`, `+ formato`, `+ ocasiao_id`; remove o check do 001 (um entre tarefa e peça); constraint `arquivos_solto_ok`; política `arquivos_le` refeita com o ramo do documento solto.
+3. Funções novas: `definir_permanente(uuid, boolean)` (Natham e Matheus ligam; só o Natham desliga; erro 42501; anota `desligado_em`) e `pode_mexer_pastas()`.
+Nenhuma outra linha muda (gatilho, alarme, sentinela, alarmes de serviço, travas e permissões ficam). O `supabase/019_postagem_drive.sql` e o de `_colar/` são idênticos.
+
 
 ## 7. O que dá para provar e o que não dá
 
@@ -103,8 +106,39 @@ O SQL não é escrito agora; entra na etapa 1.
 - **Cota de Drive e função fora do ar na limpeza:** repete em 1 h (e o sentinela, em 1 dia). Enquanto não limpa, o conteúdo continua na tela (a tela diz a verdade do banco).
 - **Pastas de Formato e de Tema vazias** ficam no Drive. Sem impacto na tela; limpeza futura.
 
-## 9. Perguntas só dele (descrevendo a TELA)
+## 9. Respostas do Natham (item 229 da leva) e o que mudou no plano
 
-1. **O que acontece com o que não é conteúdo de card?** Hoje a tela Pastas tem "+ Nova pasta", peças soltas (subir um arquivo direto numa pasta), "Adrian - Aprovar" e a pasta "Ideias de conteúdo". Pelo seu desenho, a tela passa a mostrar só Empresa → Formato → Tema → conteúdos. Eu proponho: tirar "+ Nova pasta", as peças soltas e "Adrian - Aprovar" (o "+ Nova pasta" vira "+ Novo tema") e deixar **Ideias de conteúdo como um cartão único no alto de cada empresa**, fora do Drive, porque ideia é texto e não arquivo. Pode ser assim?
-2. **Anexos que já estão no Supabase.** Cards de empresa que receberam foto ou documento antes do Drive ficam no balde antigo e não aparecem na tela Pastas. Prefere que eles **fiquem fora das Pastas** (aparecem só na ficha, como hoje) ou que a gente **mande para o Drive** uma vez, para entrarem na árvore?
-3. **Quem mexe no cadeado, e conteúdo sem tema.** No ⋮ do Tema, "Permanente" deve poder ser ligado pelo **Natham e pelo Matheus** ou **só pelo Natham** (o Matheus vê o cadeado, mas o botão fica desligado)? E a pasta "Sem tema" **não terá cadeado** (conteúdo sem tema sempre some em 7 dias): pode ser assim?
+1. **Tela Pastas = só o Drive + Ideias.** Saem "+ Nova pasta", peças soltas e "Adrian - Aprovar". Entra "+ Novo tema" (com o interruptor Permanente). "Ideias de conteúdo" fica como cartão único no alto de cada empresa, fora do Drive.
+2. **Anexos antigos (Supabase) ficam só na ficha.** A árvore só conta arquivo com `drive_id`.
+3. **Permanente:** o Natham liga e desliga; o Matheus pode LIGAR e NÃO desliga, e quem recusa é o **banco** (função `definir_permanente`, erro 42501), não só a tela. "Sem tema" nunca tem cadeado.
+4. **NOVO: Natham e Matheus põem documentos nas pastas direto pela tela Pastas**, além da ficha (seção 11).
+
+## 10. Divisão por território e contrato
+
+**Etapa 1 (Alvenaria, FEITA):** `supabase/_colar/019_postagem_drive.sql` (v2), `supabase/functions/drive/acoes.ts`, `supabase/functions/_shared/pastas.ts`, `src/lib/dados/{drive,arvore}.ts`, testes e `scripts/exemplo-banco.mjs` (3101). Vitral e Sextante só começam sobre isto.
+
+**Contrato (tudo em `@/lib/dados`):**
+- `useOcasioes(): Ocasiao[]` com `Ocasiao = { id, empresaId, nome, permanente, desligadoEm? }`. `useDocumentosSoltos(): DocumentoSolto[]`.
+- `arvoreDePastas({ empresaId, tarefas, ocasioes, documentos }): PastaFormato[]` (a tela só desenha). `PastaFormato { formato?, nome, temas }`; `PastaTema { ocasiao?, nome, permanente, vazio, conteudos, documentos }`; `PastaConteudo { tarefa, nome, arquivos, venceEm? }`. Os 4 formatos vêm sempre (Reels, Carrossel, Post, Stories); "Sem formato" só com conteúdo; "Sem tema" por último; tema `vazio` (sem nada em lugar nenhum) aparece em todos os formatos para dar onde subir o 1º documento.
+- `criarOcasiao(empresaId, nome, permanente = false)`, `renomearOcasiao(id, nome): Promise<number>` (quantas pastas de conteúdo ficaram para nova chamada; 0 = tudo), `ligarPermanente(id, ligado)` (Error "Só o Natham desliga o Permanente." quando o banco recusa; a tela pode esconder o botão para o Matheus, mas não é ela que decide).
+- `organizarCard(tarefaId): Promise<boolean>`: a ficha chama DEPOIS de salvar quando título, formato, tema ou empresa mudaram e o card já tem arquivo no Drive.
+- `enviarDocumentoNaPasta({ empresaId, formato?, ocasiaoId? }, file, aoProgredir?)`, `apagarDocumentoSolto(id)`.
+- `venceEm(tarefa, tema)` e `arquivosDoDrive(tarefa)` (para "some em N dias").
+- Todos os erros são `Error` com mensagem pronta para a tela (padrão do `drive.ts`).
+
+**Vitral (tela Pastas, `components/pastas/`):** Empresa → Formato → Tema → conteúdos, com cadeado no Tema permanente, ⋮ do Tema (Renomear, Permanente), "+ Novo tema" (nome + Permanente), subir e apagar documento solto dentro da pasta do Tema, "Ideias de conteúdo" como cartão único. Aviso ao desligar o Permanente: "Os conteúdos já postados deste tema serão apagados do Drive 7 dias depois de agora." Remove o que sobrou: `pastas.ts`, `pecas.ts` e a UI de peça solta e de pasta avulsa (a Alvenaria não apagou para não quebrar a tela atual antes de a nova existir).
+**Sextante (ficha, `components/ficha/`):** campo Tema com "Criar tema" e interruptor Permanente (o Natham e o Matheus ligam); chamar `organizarCard` depois de salvar; texto de ajuda do Tema.
+
+## 11. Documento solto numa pasta de Tema (sem card)
+
+- **Onde entra:** direto na pasta do Tema DENTRO do Formato em que a pessoa está: `Tarefas · Conteúdos → Empresa → Formato → Tema` (ou "Sem tema"; "Sem formato" se a pasta é essa). Não cria pasta de conteúdo.
+- **No banco:** linha em `arquivos` com `tarefa_id` nulo, `drive_id`, `empresa_id`, `formato` e `ocasiao_id` (constraint `arquivos_solto_ok` do 019 v2: solto precisa de empresa e Drive, e não é de card nem de peça). O check antigo do 001 (exatamente um entre tarefa e peça) é removido no 019 v2. Leitura: qualquer pessoa com login (política `arquivos_le`). Escrita só pela função `drive` (a política de inserir exige `drive_id` nulo).
+- **Função:** `sessao_envio_pasta` e `confirmar_envio_pasta` (mesmo desenho do envio de card: o navegador sobe direto ao Drive; a etiqueta `destino` vai no arquivo na abertura da sessão e a confirmação só aceita arquivo daquele destino). Quem pode: `pode_mexer_pastas()` (qualquer pessoa com login, hoje Natham e Matheus). Apagar: `apagar_anexo` (vai para a lixeira do Google) com a mesma checagem.
+- **Vida do documento solto:** NÃO vence em 7 dias (não existe "Postado" que arme o relógio); sai só quando alguém apaga. O Permanente do Tema não muda isso. **Esta regra é minha escolha; o Natham não foi perguntado** (ver "Decisão que só ele toma" no fim da Etapa 1).
+- **Tema permanente e conteúdo:** só afeta conteúdos de card Postado.
+
+## 12. O que foi provado na Etapa 1
+
+- **Função `drive` (Google e banco falsos):** cadeia de 4 níveis e nome da pasta; mover e renomear ao mudar título, formato, tema ou empresa (o arquivo continua o mesmo, pelo id); renomear tema renomeia pastas do tema e dos conteúdos; `limpar` em tema comum apaga arquivos e a pasta do conteúdo; `limpar` em tema permanente não apaga e DESARMA o alarme; apagar o card de propósito leva tudo, mesmo em tema permanente; apagar o último anexo tira a pasta vazia; Matheus liga e é recusado ao desligar (a recusa do banco falso repete a regra do SQL); desligar rearma 10080 min só dos Postados com arquivo; mudar o tema de um Postado rearma ou desarma; documento solto (envio, confirmação, repetição, destino trocado, tema de outra empresa, tamanho que não bate, apagar).
+- **Camada de dados:** `arvoreDePastas` e `venceEm` com testes (7 dias, permanente, desligar recomeça, sem tema, vazio, documento solto).
+- **NÃO provado (só depois de aplicado, com Drive e banco reais):** o SQL do 019 v2 (gatilho, cron, `definir_permanente`, `arquivos_solto_ok`) nunca rodou em banco; cotas e tempo do Drive real; compartilhamento com o Matheus. A Lupa precisa revisar a diferença do 019 (seção 6) antes de o Natham colar.
