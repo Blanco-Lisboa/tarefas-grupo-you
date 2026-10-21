@@ -83,4 +83,5 @@
 /* Aprovar e Consertar no topo da ficha (item 208): a forma de Começar/Fechar (32px, cantos de 8px), verde e vermelho do card */
 .ficha-decidir { --aprovar: #2C6B49; display: flex; flex: none; gap: var(--s-8); }
 .ficha-decidir .aprovacao-botao { flex: none; padding: 4px var(--s-12); }
+.ficha-decidir .aprovacao-botao:disabled { opacity: .6; cursor: progress; } /* gravando a decisão (Lupa 215) */
 @media (max-width: 520px) { .ficha-decidir { order: 4; flex-basis: 100%; justify-content: flex-end; } }

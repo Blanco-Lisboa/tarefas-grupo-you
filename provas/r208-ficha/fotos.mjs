@@ -102,7 +102,8 @@ if (fase === "depois") {
   await pg.waitForTimeout(800);
   const salvo = pedidos.filter((p) => p.url.includes("/rpc/salvar_tarefa")).at(-1)?.corpo?.p;
   confere(salvo?.etapa === "aprovado", "208: Aprovar grava etapa = aprovado");
-  confere(await topo.getByRole("button", { name: "Aprovar" }).count() === 0 && await ficha.locator(".publicacao").count() === 1 && (await ficha.innerText()).includes("Aprovado"), "208: ficha aberta mostra Aprovado e o bloco Publicação");
+  // (desde o 205 a ficha não tem o campo Etapa: o novo estado aparece no bloco Publicação, que só existe em Aprovado)
+  confere(await topo.getByRole("button", { name: "Aprovar" }).count() === 0 && await ficha.locator(".publicacao").count() === 1, "208: ficha aberta mostra o bloco Publicação (Aprovado)");
   await foto(pg, "208-ficha-depois-de-aprovar-1440");
   await fechar(pg);
   confere(await cartao(pg, BASTIDORES).locator(".aprovacao-situacao").count() === 1, "208: card foi para Aprovado (linha de estado)");
@@ -117,7 +118,7 @@ if (fase === "depois") {
   await pg.waitForTimeout(800);
   const conserto = pedidos.filter((p) => p.url.includes("/rpc/salvar_tarefa")).at(-1)?.corpo?.p;
   confere(conserto?.etapa === "edicao" && conserto?.conserto === true, "208: Consertar grava etapa = edição com a etiqueta Conserto");
-  confere(await ficha.getByRole("button", { name: "Consertar" }).count() === 0 && (await ficha.innerText()).includes("Edição"), "208: ficha aberta mostra Edição");
+  confere(await ficha.getByRole("button", { name: "Consertar" }).count() === 0 && await ficha.isVisible(), "208: ficha continua aberta, sem os botões de decisão (Edição)");
   await foto(pg, "208-ficha-depois-de-consertar-1440");
   // Salvar depois de agir não desfaz a ação
   await ficha.getByRole("button", { name: "Salvar" }).click();

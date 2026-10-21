@@ -261,3 +261,5 @@
 .cal-semdata-lista { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; overflow-y: auto; padding: 2px; margin: 0 -2px; scrollbar-color: var(--borda) transparent; }
 .cal-semdata-vazio { margin: 0; padding: var(--s-16) 0; font-size: var(--app-t-texto); color: var(--fraco); }
 .cal-semdata-nova { align-self: flex-start; margin: var(--s-12) 0 4px; }
+/* Aviso da tarefa salva sem empresa com o filtro ligado (Lupa 215): a faixa do aviso de falha, em grafite */
+.aviso-info { background: var(--texto); color: var(--sup); }

@@ -48,7 +48,14 @@ function Calendario({ agora }: { agora: string }) {
   // A mesma regra do Caderno, compartilhada com Conteúdos e Mapa.
   const todas = useTarefas();
   const tarefas = useMemo(() => todas.filter((t) => daMinhaLista(t, eu)), [todas, eu]);
-  const { aplicar } = useFiltroEmpresa();
+  const { aplicar, todas: semFiltro } = useFiltroEmpresa();
+  // Lupa 215 (achado 3): com o filtro de empresa ligado, a tarefa salva sem empresa some da tela; o aviso diz onde ela está.
+  const [semEmpresa, setSemEmpresa] = useState(false);
+  useEffect(() => {
+    if (!semEmpresa) return;
+    const id = setTimeout(() => setSemEmpresa(false), 8000);
+    return () => clearTimeout(id);
+  }, [semEmpresa]);
 
   const visiveis = useMemo(() => aplicar(tarefas).filter(passa(filtros)), [aplicar, tarefas, filtros]);
   const mapa = useMemo(() => porDia(visiveis), [visiveis]);
@@ -140,7 +147,14 @@ function Calendario({ agora }: { agora: string }) {
         </div>
       </div>
 
-      {aberta && <Ficha key={aberta.id ?? "nova"} tarefa={aberta} aoFechar={() => setAberta(null)} soLer={!!aberta.id && !podeAlterar(aberta as Tarefa, eu)} />}
+      {aberta && <Ficha key={aberta.id ?? "nova"} tarefa={aberta} aoFechar={() => setAberta(null)} aoSalvar={(s) => setSemEmpresa(!semFiltro && !s.empresaId)} soLer={!!aberta.id && !podeAlterar(aberta as Tarefa, eu)} />}
+      {semEmpresa && (
+        // Mesma faixa do aviso de falha (casca), em tom neutro: é informação, não erro
+        <div className="aviso-erro aviso-info" role="status">
+          <span>Salva sem empresa. Ela aparece com o filtro em Todas.</span>
+          <button type="button" className="aviso-erro-fechar" onClick={() => setSemEmpresa(false)} aria-label="Fechar aviso">×</button>
+        </div>
+      )}
     </section>
   );
 }

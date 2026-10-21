@@ -1,0 +1,13 @@
+OK depois: Aprovar grava título editado + aprovado numa gravação só (1 gravação; Bastidores (título editado) / aprovado)
+OK depois: a ficha continua aberta depois de Aprovar
+OK depois: Salvar depois do Aprovar continua Aprovado (aprovado)
+OK depois: na Esteira o card está em Aprovado com o título novo
+OK depois: Consertar grava notas + edição + Conserto numa gravação só (Trocar a música do começo / edicao / true)
+OK depois: Aprovar + Salvar no mesmo instante: nenhuma gravação volta para Em análise (aprovado)
+OK depois: na Esteira o card ficou em Aprovado
+OK depois: durante a gravação: Aprovando…:desligado | Consertar:desligado | Salvando...:desligado
+OK depois: filtro em Todas: sem aviso
+OK depois: a tarefa foi salva sem empresa
+OK depois: filtro na You: aviso "Salva sem empresa. Ela aparece com o filtro em Todas.
+×"
+TUDO OK

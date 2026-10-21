@@ -11,8 +11,9 @@
 // - soLer: só para olhar (Caderno de outra pessoa): campos travados, sem Salvar nem lixeira; links do Drive e das notas seguem abrindo.
 //   Lixeira no pé (item 179) só para quem podeApagar: clicar troca o pé por Apagar (vermelho) e Cancelar; Esc também cancela.
 // - Fazendo agora (item 170): tarefa já salva mostra Começar/Parar no topo e quem está nela desde quando (todos veem de todos).
-// - Postagem em "Em análise" (item 208): Aprovar e Consertar no topo, ao lado de Começar/Fechar, para quem aprova. Gravam na hora
-//   (como faziam no card) e a ficha continua aberta já no novo estado.
+// - Postagem em "Em análise" (item 208): Aprovar e Consertar no topo, ao lado de Começar/Fechar, para quem aprova. Gravam a ficha
+//   inteira com a etapa nova (Lupa 215, como a Publicação) e a ficha continua aberta já no novo estado.
+// - aoSalvar: chamado com o que foi gravado quando o banco aceita (o Calendário avisa da tarefa salva sem empresa com o filtro ligado).
 // - Sem campo Etapa (item 205): a etapa muda arrastando na Esteira; card novo com empresa entra em Roteiro (etapaAoSalvar).
 // - tipos: limita o menu Tipo (a Esteira passa só os tipos que são colunas, item 194); sem ele, todos.
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
@@ -62,7 +63,9 @@ export const tarefaEmBranco = (parcial: Partial<NovaTarefa> = {}): NovaTarefa =>
 const NENHUMA = "nenhuma"; // valor do seletor Empresa; a tarefa sem empresa guarda empresaId ""
 const HORA = 60 * 60_000;
 
-export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: NovaTarefa; aoFechar: () => void; soLer?: boolean; tipos?: readonly TipoTarefa[] }) {
+export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
+  tarefa: NovaTarefa; aoFechar: () => void; aoSalvar?: (salva: NovaTarefa) => void; soLer?: boolean; tipos?: readonly TipoTarefa[];
+}) {
   const empresas = useEmpresas();
   const tags = useTags();
   const todas = useTarefas();
@@ -83,6 +86,8 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
   // (O aviso geral da casca fica atrás da ficha, então o erro aparece também no pé dela.)
   const erro = useErroDados();
   const [salvando, setSalvando] = useState(false);
+  const gravando = useRef(false); // trava na hora do clique: o `salvando` só desliga os botões no próximo desenho
+  const [decidindo, setDecidindo] = useState<"aprovado" | "edicao" | null>(null);
   const [enviou, setEnviou] = useState(false);
   useEffect(() => { if (enviou && !erro) aoFechar(); }, [enviou, erro, aoFechar]);
   const nova = !tarefa.id;
@@ -102,16 +107,17 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
   const temEmpresa = empresas.some((x) => x.id === t.empresaId);
   const empresaOk = !t.empresaId || temEmpresa; // "" = sem empresa
   const mudar = <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => setT((x) => ({ ...x, [campo]: valor }));
-  const decide = !soLer && viva?.tipo === "postagem" && viva.etapa === "analise" && podeAprovar(viva, eu);
-  // Grava só a etapa no card salvo (o mesmo que o card fazia); a ficha passa a mostrar a nova etapa, e um Salvar depois não a desfaz.
-  async function decidir(mudanca: Pick<NovaTarefa, "etapa" | "conserto">) {
-    if (!viva) return;
-    limparErro();
+  // Enquanto grava a decisão, os botões ficam (desligados, "Aprovando…"): a escrita otimista já tirou o card de Em análise
+  const decide = !soLer && viva?.tipo === "postagem" && (viva.etapa === "analise" || !!decidindo) && podeAprovar(viva, eu);
+  // Lupa 215 (achados 1 e 2): grava a ficha inteira com a etapa nova, numa gravação só, sem fechar; depois o rascunho fica com a
+  // etapa nova, então um Salvar seguinte não desfaz a decisão.
+  async function decidir(mudanca: { etapa: "aprovado" | "edicao"; conserto?: boolean }) {
     setRecusa("");
-    await salvarTarefa({ ...viva, ...mudanca });
-    const e = lerErro();
-    if (e) setRecusa(e);
-    else setT((x) => ({ ...x, ...mudanca }));
+    setDecidindo(mudanca.etapa);
+    const ok = await gravar(mudanca, false);
+    setDecidindo(null);
+    if (ok) setT((x) => ({ ...x, ...mudanca }));
+    else setRecusa(lerErro());
   }
 
   // Mudou o início: o fim anda junto e a duração fica igual (senão o fim fica antes do início e trava o formulário).
@@ -136,9 +142,10 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
     if (d && !d.open) d.showModal();
   }, []);
 
-  /** Salva a ficha inteira (`extra` por cima: a Publicação manda redes e data); true = o banco aceitou. */
-  async function gravar(extra: Partial<NovaTarefa> = {}): Promise<boolean> {
-    if (soLer || !t.titulo.trim() || !empresaOk || salvando) return false; // salvando: dois cliques em Salvar criavam a tarefa duas vezes
+  /** Salva a ficha inteira (`extra` por cima: a Publicação manda redes e data); true = o banco aceitou. `fechar` false: a ficha fica aberta. */
+  async function gravar(extra: Partial<NovaTarefa> = {}, fechar = true): Promise<boolean> {
+    if (soLer || !t.titulo.trim() || !empresaOk || gravando.current) return false; // dois cliques em Salvar criavam a tarefa duas vezes
+    gravando.current = true;
     const quando: Pick<NovaTarefa, "inicio" | "fim" | "diaInteiro"> = !data
       ? { inicio: undefined, fim: undefined, diaInteiro: false }
       : t.diaInteiro
@@ -155,10 +162,14 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
       vaiProGoogle: nova ? vai : tarefa.vaiProGoogle, // só liga na criação e se pode ir (R5-5)
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
-    await salvarTarefa({ ...(aprovadorTravado ? { ...pronta, aprovador: tarefa.aprovador } : pronta), ...extra }); // só quem aprova muda o aprovador (015), mesmo tirando a tag
+    const salva = { ...(aprovadorTravado ? { ...pronta, aprovador: tarefa.aprovador } : pronta), ...extra }; // só quem aprova muda o aprovador (015), mesmo tirando a tag
+    await salvarTarefa(salva);
+    gravando.current = false;
     setSalvando(false);
-    setEnviou(true);
-    return !lerErro();
+    const ok = !lerErro();
+    if (ok) aoSalvar?.(salva);
+    if (fechar) setEnviou(true);
+    return ok;
   }
 
   async function excluir() {
@@ -193,8 +204,8 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
             {!nova && <Agora tarefaId={tarefa.id!} soLer={soLer} nomes={NOMES.responsavel} />}
             {decide && (
               <div className="ficha-decidir">
-                <button type="button" className="aprovacao-botao" data-acao="aprovar" onClick={() => void decidir({ etapa: "aprovado" })}>Aprovar</button>
-                <button type="button" className="aprovacao-botao" data-acao="consertar" onClick={() => void decidir({ etapa: "edicao", conserto: true })}>Consertar</button>
+                <button type="button" className="aprovacao-botao" data-acao="aprovar" disabled={salvando} onClick={() => void decidir({ etapa: "aprovado" })}>{decidindo === "aprovado" ? "Aprovando…" : "Aprovar"}</button>
+                <button type="button" className="aprovacao-botao" data-acao="consertar" disabled={salvando} onClick={() => void decidir({ etapa: "edicao", conserto: true })}>{decidindo === "edicao" ? "Consertando…" : "Consertar"}</button>
               </div>
             )}
             <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>

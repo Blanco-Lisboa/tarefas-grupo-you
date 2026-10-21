@@ -1,0 +1,12 @@
+FALHA antes: Aprovar grava título editado + aprovado numa gravação só (1 gravação; Reels: bastidores do escritório / aprovado)
+OK antes: a ficha continua aberta depois de Aprovar
+OK antes: Salvar depois do Aprovar continua Aprovado (aprovado)
+OK antes: na Esteira o card está em Aprovado com o título novo
+FALHA antes: Consertar grava notas + edição + Conserto numa gravação só (null / edicao / true)
+FALHA antes: Aprovar + Salvar no mesmo instante: nenhuma gravação volta para Em análise (aprovado, analise)
+FALHA antes: na Esteira o card ficou em Aprovado
+FALHA antes: durante a gravação: Salvar:ligado
+OK antes: filtro em Todas: sem aviso
+OK antes: a tarefa foi salva sem empresa
+FALHA antes: filtro na You: aviso "nenhum"
+6 FALHA(S)
