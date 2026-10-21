@@ -1,0 +1,30 @@
+-- Peças de MENTIRA que o Supabase de verdade já traz (auth, vault, pg_cron, pg_net, storage, papéis), para rodar os SQLs do projeto num Postgres 17 comum
+-- (docker) e provar o que é regra. NÃO é o Supabase: serve só para teste local. Nunca rodar no projeto real.
+create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
+create schema extensions; create extension pgcrypto with schema extensions;
+create schema auth;
+create table auth.users (id uuid primary key default gen_random_uuid(), instance_id uuid, aud text, role text, email text unique, raw_user_meta_data jsonb default '{}'::jsonb);
+create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::json ->> 'sub', '')::uuid $$;
+grant usage on schema auth to anon, authenticated, service_role; grant execute on function auth.uid() to anon, authenticated, service_role;
+create schema vault;
+create table vault.secrets (id uuid primary key default gen_random_uuid(), name text unique, secret text);
+create view vault.decrypted_secrets as select id, name, secret as decrypted_secret from vault.secrets;
+create function vault.create_secret(s text, n text default null, d text default null) returns uuid language sql as $$ insert into vault.secrets (secret, name) values (s, n) returning id $$;
+create function vault.update_secret(i uuid, s text) returns void language sql as $$ update vault.secrets set secret = s where id = i $$;
+create schema cron;
+create table cron.job (jobid serial primary key, jobname text unique, schedule text, command text);
+create function cron.schedule(n text, s text, c text) returns bigint language sql as $$ insert into cron.job (jobname, schedule, command) values (n, s, c) on conflict (jobname) do update set schedule = excluded.schedule, command = excluded.command returning jobid::bigint $$;
+create function cron.unschedule(n text) returns boolean language sql as $$ with d as (delete from cron.job where jobname = n returning 1) select exists (select 1 from d) $$;
+create schema net;
+create table net.chamadas (id serial primary key, url text, headers jsonb, body jsonb, timeout_ms int);
+create function net.http_post(url text, headers jsonb default '{}', body jsonb default '{}', timeout_milliseconds int default 5000, params jsonb default '{}') returns bigint language sql as $$ insert into net.chamadas (url, headers, body, timeout_ms) values (url, headers, body, timeout_milliseconds) returning id::bigint $$;
+create schema storage;
+create table storage.buckets (id text primary key, name text, public boolean default false, file_size_limit bigint, allowed_mime_types text[]);
+create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text, name text, owner uuid);
+alter table storage.objects enable row level security;
+create function storage.foldername(n text) returns text[] language sql immutable as $$ select string_to_array(n, '/') $$;
+grant usage on schema storage to anon, authenticated, service_role;
+create schema if not exists public;
+grant usage on schema public to anon, authenticated, service_role;
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;

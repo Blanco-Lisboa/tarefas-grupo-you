@@ -22,15 +22,19 @@ function montar() {
   const b = criarBancoFalso();
   const roteado = ((e: RequestInfo | URL, i?: RequestInit) => (new Request(e).url.startsWith(BASE_FALSA) ? g.fetch(e, i) : b.fetch(e, i))) as typeof fetch;
   const t = b.estado.tabelas;
-  t.pessoas.push({ id: "p-natham", slug: "natham", user_id: "u-natham" }, { id: "p-matheus", slug: "matheus", user_id: "u-matheus" });
+  t.pessoas.push({ id: "p-natham", slug: "natham", user_id: "u-natham" }, { id: "p-matheus", slug: "matheus", user_id: "u-matheus" }, { id: "p-adrian", slug: "adrian", user_id: "u-adrian" });
   t.empresas.push({ id: "you", nome: "You" }, { id: "beec", nome: "Beec" });
   b.estado.usuarios.set("tok-natham", "u-natham");
   b.estado.usuarios.set("tok-matheus", "u-matheus");
+  b.estado.usuarios.set("tok-adrian", "u-adrian"); // tem login, mas NÃO é Natham nem Matheus
   const alarmes: { tipo: "armar" | "desarmar"; tarefa: string; minutos?: number }[] = [];
   b.estado.rpcs.ler_segredo_servico = ({ p_nome }) => (p_nome === "tarefas_funcoes_segredo" ? SEGREDO : p_nome === "google_drive_refresh_token" ? "refresh-falso" : null);
   b.estado.rpcs.pode_mexer_anexos = () => true;
   b.estado.rpcs.pode_apagar_tarefa = () => true;
-  b.estado.rpcs.pode_mexer_pastas = (_a, token) => b.estado.usuarios.has(token);
+  // 019 v2: só Natham e Matheus mexem nas pastas e LIGAM o Permanente (public.pode_mexer_pastas / pode_ligar_permanente)
+  const natMat = (_a: unknown, token: string) => token === "tok-natham" || token === "tok-matheus";
+  b.estado.rpcs.pode_mexer_pastas = natMat;
+  b.estado.rpcs.pode_ligar_permanente = natMat;
   b.estado.rpcs.armar_alarme_servico = (a) => void alarmes.push({ tipo: "armar", tarefa: String(a.p_tarefa), minutos: Number(a.p_minutos) });
   b.estado.rpcs.desarmar_alarme_servico = (a) => void alarmes.push({ tipo: "desarmar", tarefa: String(a.p_tarefa) });
   // Regra do 019 v2 (private.definir_permanente): só Natham e Matheus; ligado só o Natham desliga.
@@ -305,5 +309,88 @@ describe("229: documento direto na pasta de um Tema (sem card)", () => {
     expect((await m.chamar({ acao: "apagar_anexo", arquivo_id: id }, "tok-matheus")).status).toBe(200);
     expect(m.g.estado.arquivos.get(driveId!)!.trashed).toBe(true);
     expect(m.t.arquivos).toHaveLength(0);
+  });
+});
+
+describe("236: achados da Lupa no 229", () => {
+  const velho = (m: M, tarefa = "t1", nome = "antigo.png") => {
+    m.t.arquivos.push({ id: `antigo-${nome}`, tarefa_id: tarefa, caminho: `tarefas/${tarefa}/_${nome}`, nome, tipo: "imagem", tamanho: 3, papel: "anexo" });
+  };
+  it("3 alto: a limpeza dos 7 dias NUNCA toca anexo antigo do Supabase (sem drive_id); só o do Drive e a pasta do conteúdo", async () => {
+    const m = montar();
+    Object.assign(m.t.tarefas[0], { etapa: "postado" });
+    velho(m);
+    await anexar(m);
+    expect((await m.campainha({ acao: "limpar", tarefa_id: "t1" })).status).toBe(200);
+    expect(m.t.arquivos.map((a) => a.id)).toEqual(["antigo-antigo.png"]); // o antigo ficou
+    expect(m.b.estado.objetosRemovidos).toEqual([]); // nada saiu do balde do Storage
+    expect(m.t.arquivos.some((a) => a.drive_id)).toBe(false);
+  });
+  it("3 alto: card Postado só com anexo antigo: a limpeza não apaga nada (nem se alguém a chamar)", async () => {
+    const m = montar();
+    Object.assign(m.t.tarefas[0], { etapa: "postado" });
+    velho(m);
+    expect((await m.campainha({ acao: "limpar", tarefa_id: "t1" })).status).toBe(200);
+    expect(m.t.arquivos).toHaveLength(1);
+    expect(m.b.estado.objetosRemovidos).toEqual([]);
+  });
+  it("3 alto: apagar o card DE PROPÓSITO continua levando os anexos antigos também (nada órfão)", async () => {
+    const m = montar();
+    velho(m);
+    await anexar(m);
+    expect((await m.chamar({ acao: "apagar_tarefa", tarefa_id: "t1" })).status).toBe(200);
+    expect(m.t.arquivos).toHaveLength(0);
+    expect(m.b.estado.objetosRemovidos).toEqual(["tarefas/t1/_antigo.png"]);
+  });
+  it("5 médio: renomear tema com mais de 40 pastas TERMINA (cursor): 1ª leva 40, a 2ª continua de onde parou", async () => {
+    const m = montar();
+    const tema = await criarTema(m, "Natal");
+    for (let i = 1; i <= 45; i++) {
+      const id = `c${String(i).padStart(2, "0")}`;
+      m.t.tarefas.push({ id, titulo: `Card ${i}`, empresa_id: "you", ocasiao_id: tema.id, etapa: "edicao", formato: "post" });
+      await anexar(m, new Uint8Array(2), id, `a${i}.mp4`);
+    }
+    m.t.tarefas.push({ id: "sem-pasta", titulo: "Sem arquivo", empresa_id: "you", ocasiao_id: tema.id, etapa: "edicao", formato: "post" }); // não tem pasta: não conta
+    const velhos = () => m.arvore().filter((p) => p.includes("Post Natal - ")).length;
+    expect(velhos()).toBe(45);
+    const um = await lerJson(await m.chamar({ acao: "renomear_ocasiao", ocasiao_id: tema.id, nome: "Natal 2026" }));
+    expect(um.restantes).toBe(5);
+    expect(um.cursor).toBe("c40");
+    expect(velhos()).toBe(5); // 40 já com o nome novo
+    const dois = await lerJson(await m.chamar({ acao: "renomear_ocasiao", ocasiao_id: tema.id, nome: "Natal 2026", cursor: um.cursor }));
+    expect(dois.restantes).toBe(0);
+    expect(dois.cursor).toBeUndefined();
+    expect(velhos()).toBe(0);
+    expect(m.arvore().filter((p) => p.includes("Post Natal 2026 - "))).toHaveLength(45);
+  });
+  it("5 médio: com 42 pastas bastam 2 chamadas seguindo o cursor (é o que a camada de dados repete)", async () => {
+    const m = montar();
+    const tema = await criarTema(m, "Natal");
+    for (let i = 1; i <= 42; i++) {
+      const id = `d${String(i).padStart(2, "0")}`;
+      m.t.tarefas.push({ id, titulo: `Card ${i}`, empresa_id: "you", ocasiao_id: tema.id, etapa: "edicao", formato: "post" });
+      await anexar(m, new Uint8Array(2), id, `a${i}.mp4`);
+    }
+    let cursor: string | undefined, voltas = 0;
+    do {
+      const r = await lerJson(await m.chamar({ acao: "renomear_ocasiao", ocasiao_id: tema.id, nome: "Novo", ...(cursor ? { cursor } : {}) }));
+      cursor = r.cursor; voltas++;
+    } while (cursor && voltas < 5);
+    expect(voltas).toBe(2);
+    expect(m.arvore().filter((p) => p.includes("Post Novo - "))).toHaveLength(42);
+  });
+  it("6 médio: criar Tema JÁ Permanente obedece a regra de quem liga: Adrian (login sem ser Natham/Matheus) é recusado, nada é criado", async () => {
+    const m = montar();
+    const r = await m.chamar({ acao: "criar_ocasiao", empresa_id: "you", nome: "Escondido", permanente: true }, "tok-adrian");
+    expect(r.status).toBe(403);
+    expect((await lerJson(r)).erro).toBe("Só o Natham ou o Matheus ligam o Permanente.");
+    expect(m.t.ocasioes).toHaveLength(0);
+    expect((await m.chamar({ acao: "criar_ocasiao", empresa_id: "you", nome: "Comum" }, "tok-adrian")).status).toBe(200); // criar desligado continua valendo
+    expect((await criarTema(m, "Do Matheus", { permanente: true }, "tok-matheus")).permanente).toBe(true);
+  });
+  it("6 médio: documento solto só para Natham e Matheus (Adrian com login é recusado)", async () => {
+    const m = montar();
+    const r = await m.chamar({ acao: "sessao_envio_pasta", empresa_id: "you", nome: "a.pdf", tipo: "documento", mime: "application/pdf", tamanho: 4 }, "tok-adrian");
+    expect(r.status).toBe(403);
   });
 });

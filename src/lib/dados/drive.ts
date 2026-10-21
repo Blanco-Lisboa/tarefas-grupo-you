@@ -175,12 +175,19 @@ export async function criarOcasiao(empresaId: string, nome: string, permanente =
   avisar();
   return nova;
 }
-/** Nome novo do tema: o servidor renomeia as pastas dele no Drive e as pastas dos conteúdos. Devolve quantas pastas de conteúdo ficaram para uma nova chamada (0 = tudo feito). */
+/** Nome novo do tema: o servidor renomeia as pastas dele no Drive e as pastas dos conteúdos, em levas de 40 com cursor; esta função repete até acabar (tema com mais de 40 pastas
+    também termina). Devolve quantas pastas ficaram para trás (0 = tudo feito). */
 export async function renomearOcasiao(id: string, nome: string): Promise<number> {
-  const { restantes } = await chamar<{ restantes?: number }>({ acao: "renomear_ocasiao", ocasiao_id: id, nome });
+  let cursor: string | undefined, restantes = 0;
+  for (let volta = 0; volta < 200; volta++) {
+    const r = await chamar<{ restantes?: number; cursor?: string }>({ acao: "renomear_ocasiao", ocasiao_id: id, nome, ...(cursor ? { cursor } : {}) });
+    restantes = r.restantes ?? 0;
+    if (!restantes || !r.cursor || r.cursor === cursor) break;
+    cursor = r.cursor;
+  }
   ocasioes = ocasioes.map((o) => (o.id === id ? { ...o, nome: nome.trim() } : o));
   avisar();
-  return restantes ?? 0;
+  return restantes;
 }
 /** Liga ou desliga o Permanente. Natham liga e desliga; o Matheus só liga: o BANCO recusa o resto (Error "Só o Natham desliga o Permanente."). Desligar recomeça os 7 dias. */
 export async function ligarPermanente(id: string, ligado: boolean): Promise<void> {

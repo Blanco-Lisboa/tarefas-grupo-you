@@ -1,5 +1,6 @@
 # Plano do item 229 · Drive e tela Pastas no formato do Natham
 
+**Estado (236): os 8 achados da Lupa em `docs/levas/2026-10-21-lupa-229.md` estão consertados (seção 13); a ordem segura de colar, implantar e publicar está na seção 13 e vale no lugar da ordem antiga da RETOMADA de 24/10.**
 **Estado (atualizado na Etapa 1): respostas do Natham incorporadas; Etapa 1 da Alvenaria FEITA (banco 019 v2, função drive, camada de dados, banco falso da 3101). Nada aplicado em produção, função drive não implantada. Faltam Vitral (tela Pastas) e Sextante (ficha): ver seção 10.**
 Autora: Alvenaria (24/10, via /arquitetar, nível Construção). Supabase do Tarefas = `uruhjlurcxpjhhgvuzwt` (nunca o do CRM).
 Fontes lidas: item 229, 203, 204 da leva; RETOMADAs 23 e 24/10; `supabase/_colar/019_postagem_drive.sql`; `supabase/functions/drive/acoes.ts`; `src/lib/dados/{drive,pastas,pecas,ideias}.ts`; `src/components/pastas/TelaPastas.tsx`.
@@ -156,3 +157,24 @@ Nenhuma outra linha muda (gatilho, alarme, sentinela, alarmes de serviço, trava
 - **Função `drive` (Google e banco falsos):** cadeia de 4 níveis e nome da pasta; mover e renomear ao mudar título, formato, tema ou empresa (o arquivo continua o mesmo, pelo id); renomear tema renomeia pastas do tema e dos conteúdos; `limpar` em tema comum apaga arquivos e a pasta do conteúdo; `limpar` em tema permanente não apaga e DESARMA o alarme; apagar o card de propósito leva tudo, mesmo em tema permanente; apagar o último anexo tira a pasta vazia; Matheus liga e é recusado ao desligar (a recusa do banco falso repete a regra do SQL); desligar rearma 10080 min só dos Postados com arquivo; mudar o tema de um Postado rearma ou desarma; documento solto (envio, confirmação, repetição, destino trocado, tema de outra empresa, tamanho que não bate, apagar).
 - **Camada de dados:** `arvoreDePastas` e `venceEm` com testes (7 dias, permanente, desligar recomeça, sem tema, vazio, documento solto).
 - **NÃO provado (só depois de aplicado, com Drive e banco reais):** o SQL do 019 v2 (gatilho, cron, `definir_permanente`, `arquivos_solto_ok`) nunca rodou em banco; cotas e tempo do Drive real; compartilhamento com o Matheus. A Lupa precisa revisar a diferença do 019 (seção 6) antes de o Natham colar.
+
+## 13. 236 · Consertos da Lupa e a ORDEM SEGURA
+
+**Achado → conserto** (todos provados; SQL no Postgres local de `supabase/prova_local/prova_236.sh`, 43 conferências, "FALHAS: 0"; função e dados em Vitest):
+1. **Crítico, o 019 desligava o relógio do 015 antes da `postar-meta` existir:** o 019 v2 NÃO tira mais o relógio de todo minuto. Nasce o interruptor `private.interruptores` (`postagem_automatica`, DESLIGADO): desligado, o relógio do 015 segue movendo Aprovado → Postado e os alarmes por card se apagam sem chamar função; ligado, `postar_vencidos()` não faz nada. A troca é do bloco separado **019b**, colado só com a função no ar. Seguro em qualquer ordem.
+2. **Alto, card vencido ou a ≤ 1 min ficava sem relógio:** com a troca adiada, o relógio antigo cuida deles até o 019b. O 019b então toca já os vencidos e os do minuto atual, e arma os futuros; `armar_alarme` agora manda hora "dentro do minuto que passa" para o próximo minuto cheio (antes só tocaria no ano que vem).
+3. **Alto, a limpeza alcançava anexo antigo do Supabase:** o gatilho, a migração e o alarme só consideram arquivo com `drive_id`; a função `drive` na limpeza (`soDrive`) só apaga o que é do Drive. Apagar o card de propósito segue levando tudo.
+4. **Alto, o 019 recusava o que a versão publicada permite:** removida a trava "só Postagem vai para Aprovado/Postado". Só card de Postagem arma alarme de postar.
+5. **Médio, renomear Tema com mais de 40 pastas não terminava:** `renomear_ocasiao` recebe e devolve `cursor` (e `restantes` só conta pastas que existem); `renomearOcasiao` repete até acabar.
+6. **Médio, Tema/pasta livre já Permanente na criação contornava quem liga:** a criação confere `pode_ligar_permanente()` no banco (só Natham e Matheus); mexer nas pastas também ficou só deles.
+7. **Médio, arquivo podia ter dois donos:** `arquivos_solto_ok` exige EXATAMENTE um entre card, peça e documento solto (pasta livre incluída).
+8. **Médio, a tela estimava o vencimento:** `tarefas.postado_em` (o gatilho grava a entrada em Postado; o 019 grava `now()` nos que já estavam); `venceEm` usa essa data.
+Junto: a camada de dados exporta `NOME_FORMATO`, `SEM_FORMATO`, `SEM_TEMA`, `nomeFormato` e `nomePastaConteudo` (os nomes como o Drive escreve). Contrato novo: `Tarefa.postadoEm?`.
+
+**ORDEM SEGURA (substitui a da RETOMADA de 24/10; a das funções antes do SQL vale):**
+1. **Antes, só leitura:** Lupa revisa o 019 v2 e o 019b; rodar `sh supabase/prova_local/prova_236.sh` (FALHAS: 0); consulta de vídeos antigos no Supabase (a trava do começo do 019 já para se houver).
+2. **Natham, com recrutas:** cadastrar `POSTAR_DE_VERDADE=nao`, o e-mail do Matheus, os segredos Google e conferir a chave da Meta; **implantar as funções** `drive`, `postar-meta` e `google-autorizar`. Ninguém as chama ainda: nada muda para quem usa o site.
+3. **Colar o 019 v2** (seguro agora: interruptor desligado, relógio do 015 segue, anexo antigo protegido, arrastar qualquer card até Postado continua valendo). Conferir: `tarefas_postar_vencidos` ainda existe; `select ligado from private.interruptores` = false.
+4. **Publicar a interface nova** (compatível com o banco novo) e autorizar o Drive em Configurações.
+5. **Colar o 019b** (liga a postagem automática, toca os vencidos, tira o relógio de todo minuto), com `POSTAR_DE_VERDADE=nao`: testar rascunho na Meta e um Drive real. Aviso de erro no WhatsApp (n8n) ligado antes do passo 6.
+6. **Natham aprova o primeiro post** e muda para `POSTAR_DE_VERDADE=sim`; acompanhar as duas redes e os links. Para voltar atrás a qualquer hora: `update private.interruptores set ligado = false where nome = 'postagem_automatica';` e reagendar `tarefas_postar_vencidos` (comando no topo do 019b).

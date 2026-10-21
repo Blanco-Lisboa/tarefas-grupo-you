@@ -110,7 +110,7 @@ const idDe = (titulo) => tarefas.find((t) => t.titulo === titulo).id;
 // e um há 8 dias no tema PERMANENTE (continua nas Pastas).
 tarefas.push(card("Reels: MEI em 1 minuto", "you", "instagram", "reels", "postado", "matheus", 0, "18:00", { cor: "etiqueta-9", concluida: true }));
 const colocar = (titulo, extra) => Object.assign(tarefas.find((t) => t.titulo === titulo), extra);
-const postadoHa = (titulo, dias, hora, tema) => colocar(titulo, { inicio: haDias(dias, hora), postar_em: haDias(dias, hora), postar_redes: IG_FB, ...(tema && { ocasiao_id: tema }) });
+const postadoHa = (titulo, dias, hora, tema) => colocar(titulo, { inicio: haDias(dias, hora), postar_em: haDias(dias, hora), postado_em: new Date(`${haDias(dias, hora)}:00-03:00`).toISOString(), postar_redes: IG_FB, ...(tema && { ocasiao_id: tema }) });
 postadoHa("Reels: depoimento da Maria", 3, "18:00", "tema-mei");
 postadoHa("Carrossel: 5 dicas de MEI", 2, "10:00", "tema-mei");
 postadoHa("TikTok: o que é pró-labore", 1, "19:00");

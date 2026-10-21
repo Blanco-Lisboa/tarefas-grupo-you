@@ -26,7 +26,6 @@ const CORS = {
 };
 const json = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status, headers: { ...CORS, "content-type": "application/json" } });
 const FORMATOS_E_SEM = [...FORMATOS, null];
-const LIMITE_RENOMEAR = 40; // pastas de conteúdo renomeadas por chamada (uma ida ao Drive cada)
 
 export function criarManipulador(d: Deps) {
   const agora = d.agora ?? Date.now;
@@ -51,16 +50,18 @@ export function criarManipulador(d: Deps) {
   }
   const exigir = (ok: unknown, status: number, msg: string) => { if (ok !== true) throw new Recusa(status, msg); };
 
-  const { pastaEmpresa, temaDe, novoTema, pastaDeTema, cardDe, pastaDoConteudo, rearmarLimpeza, tirarPastaDoConteudo } = criarPastas(d, servico);
+  const { pastaEmpresa, renomearConteudos, temaDe, novoTema, pastaDeTema, cardDe, pastaDoConteudo, rearmarLimpeza, tirarPastaDoConteudo } = criarPastas(d, servico);
   const livres = criarPastaLivre(d, servico, pastaEmpresa);
 
   // ---- apagar arquivos de um card (Drive + Supabase + linhas) ----
-  async function esvaziar(tarefaId: string) {
+  /** Apaga os arquivos do card. `soDrive` (a limpeza dos 7 dias): só o que está no DRIVE; anexo antigo do Supabase (sem drive_id) NUNCA é tocado, fica só na ficha.
+      Apagar o card de propósito (soDrive falso) leva também os anexos do Supabase. */
+  async function esvaziar(tarefaId: string, soDrive = false) {
     const s = servico();
     const linhas = await s.ler<{ id: string; drive_id: string | null; caminho: string | null }>("arquivos", { tarefa_id: tarefaId }, "id,drive_id,caminho");
     // cada linha sai logo depois do seu arquivo: se algo falhar no meio, o que sobra no banco é exatamente o que ainda está no Drive (e dá para tentar de novo)
     for (const l of linhas) if (l.drive_id) { await d.api.lixeira(l.drive_id); await s.apagar("arquivos", { id: l.id }); }
-    const sup = linhas.flatMap((l) => (l.caminho ? [l.caminho] : []));
+    const sup = soDrive ? [] : linhas.flatMap((l) => (l.caminho ? [l.caminho] : []));
     await s.removerObjetos("arquivos", sup);
     if (sup.length) await s.apagar("arquivos", { tarefa_id: tarefaId });
     await tirarPastaDoConteudo(tarefaId);
@@ -141,7 +142,9 @@ export function criarManipulador(d: Deps) {
         if (!empresa || !nome) throw new Recusa(400, "Escreva o nome do tema.");
         const visivel = await eu.ler("empresas", { id: empresa }, "id");
         if (!visivel.length) throw new Recusa(403, "Empresa não encontrada.");
-        const o = await novoTema(empresa, nome, pessoa.id, c.permanente === true); // Natham e Matheus podem LIGAR já na criação
+        // Já Permanente na criação = LIGAR: mesma regra de quem liga (Natham e Matheus; o banco responde). Adrian ou Lucas com login não ligam.
+        if (c.permanente === true) exigir(await eu.rpc("pode_ligar_permanente"), 403, "Só o Natham ou o Matheus ligam o Permanente.");
+        const o = await novoTema(empresa, nome, pessoa.id, c.permanente === true);
         return { ocasiao: { id: o.id, empresa_id: o.empresa_id, nome: o.nome, permanente: o.permanente === true } };
       }
       case "renomear_ocasiao": {
@@ -158,15 +161,7 @@ export function criarManipulador(d: Deps) {
           if (x) await d.api.renomear(x.drive_id, nome); // acha pelo id, não pelo nome
         }
         await s.atualizar("ocasioes", { id }, { nome });
-        const cards = await s.ler<Card>("tarefas", { ocasiao_id: id }, COLUNAS_CARD);
-        let feitos = 0;
-        for (const card of cards) {
-          if (!(await s.ler("drive_pastas", { chave: chaves.conteudo(card.id) }, "chave")).length) continue;
-          if (feitos >= LIMITE_RENOMEAR) return { ok: true, restantes: cards.length - feitos }; // a tela pede de novo
-          await pastaDoConteudo(card);
-          feitos++;
-        }
-        return { ok: true, restantes: 0 };
+        return { ok: true, ...(await renomearConteudos(id, texto(c.cursor))) }; // em levas, com cursor (236)
       }
       case "permanente_ocasiao": {
         const id = texto(c.ocasiao_id);
@@ -318,7 +313,7 @@ export function criarManipulador(d: Deps) {
           await rearmarLimpeza(id, true);
           return json(200, { ok: true, permanente: true });
         }
-        try { await esvaziar(id); } catch (e) {
+        try { await esvaziar(id, true); } catch (e) {
           await servico().rpc("armar_alarme_servico", { p_tipo: "limpar", p_tarefa: id, p_minutos: 60 }); // tenta de novo daqui a 1 h
           throw e;
         }

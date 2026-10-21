@@ -44,6 +44,8 @@ export function criarPastaLivre(d: { api: DriveApi }, servico: () => Rest, pasta
         const empresa = texto(c.empresa_id), nomeNovo = nomeOk(c.nome);
         if (!empresa || !nomeNovo) throw new Recusa(400, "Escreva o nome da pasta.");
         await exigirPessoa(eu);
+        // Já com cadeado na criação = LIGAR: mesma regra de quem liga (só Natham e Matheus; o banco responde)
+        if (c.permanente === true && (await eu.rpc("pode_ligar_permanente")) !== true) throw new Recusa(403, "Só o Natham ou o Matheus ligam o Permanente.");
         if (!(await eu.ler("empresas", { id: empresa }, "id")).length) throw new Recusa(403, "Empresa não encontrada.");
         await nomeLivre(empresa, nomeNovo);
         const pastaDrive = await d.api.criarPasta(nomeNovo, await pastaEmpresa(empresa)); // a pasta já aparece no Drive, ao lado das de formato

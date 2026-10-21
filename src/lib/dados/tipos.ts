@@ -59,6 +59,8 @@ export type Tarefa = {
   aprovador?: string;
   /** Data e hora do post (item 195), "AAAA-MM-DDTHH:mm" em Brasília. Só em Aprovado/Postado; o banco passa para Postado quando ela chega. */
   postarEm?: string;
+  /** Quando o card ENTROU em Postado (o banco grava; é daqui que se contam os 7 dias da limpeza). ISO. */
+  postadoEm?: string;
   /** Formato do post (item 200). Obrigatório na tela para programar; o banco aceita sem. */
   formato?: Formato;
   /** Etiqueta "Conserto" (item 195): quem aprova mandou voltar para Edição. Some quando o card sai de Edição. */

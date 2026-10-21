@@ -14,20 +14,36 @@ end $$;
 -- 019 v2 (item 229) · contrato do 196 (postagem IG/FB) + 203 (arquivo no Drive) + Concluir/lixeira/trava depois de Aprovado.
 -- v2 = o 019 que a Lupa liberou + 3 mudanças do 229 + a PASTA LIVRE do 234 (marcada com "234"), todas marcadas com "229": (a) ocasioes ganha permanente/desligado_em e perde drive_pasta_id,
 --   (b) arquivos aceita documento SOLTO de pasta (empresa/formato/tema, sem card), (c) funções definir_permanente e pode_mexer_pastas. O resto não mudou.
+--   236 (marcado com "236"): o relógio de todo minuto do 015 NÃO sai aqui (fica até o 019b), a limpeza dos 7 dias só olha arquivo do Drive, o banco não recusa mais o que a
+--   versão publicada permite (arrastar qualquer card até Postado), e a data real de entrada em Postado é gravada (tarefas.postado_em).
 -- Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Idempotente. Depende do 002, 006, 009, 015, 016.
+-- ORDEM: este arquivo é SEGURO EM QUALQUER ORDEM (a postagem automática nasce DESLIGADA e o relógio do 015 segue valendo). Quem LIGA a postagem automática é o 019b,
+-- só DEPOIS de a função postar-meta estar no ar (ver "ORDEM SEGURA" no plano do 229).
 
 -- 1. Card: legenda, redes e ocasião
 alter table public.tarefas
   add column if not exists legenda text,
   add column if not exists postar_redes text[] not null default '{instagram,facebook}',
   add column if not exists ocasiao_id uuid,
-  add column if not exists capa_quadro_ms int;  -- quadro da capa do Reels no Instagram (thumb_offset); nulo = primeiro quadro
+  add column if not exists capa_quadro_ms int,  -- quadro da capa do Reels no Instagram (thumb_offset); nulo = primeiro quadro
+  add column if not exists postado_em timestamptz;  -- 236: quando o card ENTROU em Postado (o gatilho grava); é daqui que a tela conta os 7 dias
 alter table public.tarefas drop constraint if exists tarefas_capa_quadro_ok;
 alter table public.tarefas add constraint tarefas_capa_quadro_ok check (capa_quadro_ms >= 0);
 alter table public.tarefas drop constraint if exists tarefas_legenda_ok;
 alter table public.tarefas add constraint tarefas_legenda_ok check (char_length(legenda) <= 2200);
 alter table public.tarefas drop constraint if exists tarefas_postar_redes_ok;
 alter table public.tarefas add constraint tarefas_postar_redes_ok check (postar_redes <@ array['instagram', 'facebook'] and cardinality(postar_redes) >= 1);
+
+-- 1b. 236 · Interruptor da postagem automática. DESLIGADO enquanto a função postar-meta não está no ar: aí o relógio de todo minuto do 015 continua mudando
+--     Aprovado → Postado na hora, como a versão publicada do site espera, e os alarmes por card não chamam função nenhuma (tocam e se apagam).
+--     O 019b liga (e tira o relógio de todo minuto). Ligar e desligar: update private.interruptores set ligado = ... where nome = 'postagem_automatica'.
+create table if not exists private.interruptores (nome text primary key, ligado boolean not null default false);
+insert into private.interruptores (nome, ligado) values ('postagem_automatica', false) on conflict (nome) do nothing;
+revoke all on private.interruptores from public, anon, authenticated;
+create or replace function private.postagem_automatica() returns boolean
+language sql stable security definer set search_path = ''
+as $$ select coalesce((select ligado from private.interruptores where nome = 'postagem_automatica'), false) $$;
+revoke all on function private.postagem_automatica() from public, anon, authenticated;
 
 -- 2. Ocasião (na tela: TEMA) = agrupador dos conteúdos da empresa. 229: as pastas do Drive de um Tema são uma por Formato e moram em drive_pastas
 --    (Tarefas · Conteúdos → Empresa → Formato → Tema → pasta do conteúdo), não aqui. Só a função drive escreve.
@@ -133,13 +149,19 @@ grant execute on function public.pode_apagar_pasta_livre(uuid) to authenticated;
 
 -- 229 · Quem pode pôr e tirar documento solto nas pastas da tela Pastas: qualquer pessoa com login (hoje Natham e Matheus).
 create or replace function private.pode_mexer_pastas() returns boolean
-language sql stable security definer set search_path = '' as $$ select (select private.minha_pessoa()) is not null $$;
+language sql stable security definer set search_path = ''
+as $$ select exists (select 1 from public.pessoas p where p.user_id = (select auth.uid()) and p.slug in ('natham', 'matheus')) $$;  -- 236: só Natham e Matheus (não qualquer login)
 revoke all on function private.pode_mexer_pastas() from public, anon;
 grant execute on function private.pode_mexer_pastas() to authenticated;
 create or replace function public.pode_mexer_pastas() returns boolean
 language sql stable security invoker set search_path = '' as $$ select private.pode_mexer_pastas() $$;
 revoke all on function public.pode_mexer_pastas() from public, anon;
 grant execute on function public.pode_mexer_pastas() to authenticated;
+-- 236 · Quem pode LIGAR o Permanente (inclusive já na criação do tema/pasta livre): Natham e Matheus. Desligar continua só do Natham (definir_permanente*).
+create or replace function public.pode_ligar_permanente() returns boolean
+language sql stable security invoker set search_path = '' as $$ select private.pode_mexer_pastas() $$;
+revoke all on function public.pode_ligar_permanente() from public, anon;
+grant execute on function public.pode_ligar_permanente() to authenticated;
 
 -- 3. Arquivos: Drive, ordem do carrossel e capa
 alter table public.arquivos
@@ -170,10 +192,10 @@ do $$ declare r record; begin  -- o check do 001 (exatamente um entre tarefa e p
 end $$;
 alter table public.arquivos drop constraint if exists arquivos_solto_ok;
 alter table public.arquivos add constraint arquivos_solto_ok check (
-  (tarefa_id is not null or peca_id is not null or (empresa_id is not null and drive_id is not null))  -- solto precisa de empresa e vive no Drive
-  and (empresa_id is null or (tarefa_id is null and peca_id is null))                                  -- solto não é de card nem de peça
+  num_nonnulls(tarefa_id, peca_id, empresa_id) = 1                                                      -- 236: EXATAMENTE um dono: card, peça OU documento solto (inclui pasta livre)
+  and (empresa_id is null or drive_id is not null)                                                      -- solto vive no Drive
   and (formato is null or formato in ('reels', 'post', 'carrossel', 'story'))
-  and (ocasiao_id is null or empresa_id is not null)
+  and ((formato is null and ocasiao_id is null) or empresa_id is not null)
   and (pasta_livre_id is null or (empresa_id is not null and formato is null and ocasiao_id is null))                  -- 234: pasta livre não tem formato nem tema
 );
 drop policy if exists arquivos_le on public.arquivos;
@@ -279,9 +301,7 @@ begin
     begin perform new.postar_em::timestamp;
     exception when others then raise exception 'postar_em invalido: %', new.postar_em using errcode = '22007'; end;
   end if;
-  if new.etapa in ('aprovado', 'postado') and new.tipo is distinct from 'postagem' then
-    raise exception 'so card do tipo Postagem vai para Aprovado ou Postado; os outros terminam em Concluir' using errcode = '23514';
-  end if;
+  -- 236: a versão publicada (c5bb34b) deixa arrastar QUALQUER card até Postado; o banco não recusa mais isso. (Só Postagem programa e posta nas redes: ver os alarmes e pegar_postagens.)
   v_entra_aprovado := new.etapa = 'aprovado' and (tg_op = 'INSERT' or old.etapa is distinct from 'aprovado');
   v_entra_postado := new.etapa = 'postado' and (tg_op = 'INSERT' or coalesce(old.etapa, '') not in ('aprovado', 'postado'));
   if tg_op = 'UPDATE' then
@@ -308,6 +328,10 @@ begin
   end if;
   if new.etapa is distinct from 'edicao' then new.conserto := false; end if;
   if new.etapa is null or new.etapa not in ('aprovado', 'postado') then new.postar_em := null; end if;
+  -- 236: a data real de entrada em Postado (a tela conta os 7 dias dela). Só o gatilho escreve: quem já estava Postado mantém a data.
+  if new.etapa = 'postado' and (tg_op = 'INSERT' or old.etapa is distinct from 'postado') then new.postado_em := now();
+  elsif new.etapa = 'postado' and tg_op = 'UPDATE' then new.postado_em := coalesce(old.postado_em, new.postado_em);  -- (card antigo sem data: a colagem do 019 grava uma)
+  else new.postado_em := null; end if;
   return new;
 end $$;
 
@@ -423,13 +447,19 @@ declare
   v_nome text := private.alarme_nome(p_tipo, p_tarefa); v_segredo text; v_rodadas int; v_aberto boolean; v_tem boolean;
   c_teto constant int := 5;  -- combinado com o Correio
 begin
+  -- 236: postagem automática DESLIGADA (função postar-meta ainda não está no ar): o alarme se apaga e não chama nada; o relógio de todo minuto do 015 cuida.
+  if p_tipo = 'postar' and not private.postagem_automatica() then
+    if exists (select 1 from cron.job where jobname = v_nome) then perform cron.unschedule(v_nome); end if;
+    return;
+  end if;
   -- Toque velho (sentinela que já estava rodando quando o card foi reprogramado, ou card que saiu de Aprovado): não mexe em nada, o gatilho cuida dos jobs.
   if p_tipo = 'postar' and not exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'aprovado' and t.postar_em is not null
        and t.postar_em <= to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD"T"HH24:MI')) then return; end if;
   if p_tipo = 'limpar' and not exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'postado') then return; end if;
   if exists (select 1 from cron.job where jobname = v_nome) then perform cron.unschedule(v_nome); end if;
   -- Limpeza sem arquivo restante = serviço feito: o sentinela acaba aqui, sem depender de a função desarmar.
-  if p_tipo = 'limpar' and not exists (select 1 from public.arquivos a where a.tarefa_id = p_tarefa) then return; end if;
+  -- 236: só conta arquivo do DRIVE; anexo antigo do Supabase (sem drive_id) nunca é limpo, fica só na ficha.
+  if p_tipo = 'limpar' and not exists (select 1 from public.arquivos a where a.tarefa_id = p_tarefa and a.drive_id is not null) then return; end if;
   if p_tipo = 'postar' then
     select coalesce(max(p.rodadas) filter (where p.status not in ('postado', 'erro')), 0), coalesce(bool_or(p.status not in ('postado', 'erro')), false), count(*) > 0
       into v_rodadas, v_aberto, v_tem from public.postagens p join public.tarefas t on t.id = p.tarefa_id
@@ -479,7 +509,8 @@ begin
   -- a expressão do cron não tem ano: alarme a mais de ~1 ano tocaria cedo demais e se apagaria sem postar
   if p_quando > now() + interval '300 days' then raise exception 'alarme a mais de 300 dias nao e aceito' using errcode = '22023'; end if;
   if p_quando <= now() then perform private.alarme_tocou(p_tipo, p_tarefa, 0); return; end if;
-  perform private.cron_alarme(p_tipo, p_tarefa, p_quando, 0);
+  -- 236: o cron só olha minuto cheio. Hora dentro do minuto que está passando (daqui a menos de 1 min) vai para o PRÓXIMO minuto cheio, senão só tocaria no ano que vem.
+  perform private.cron_alarme(p_tipo, p_tarefa, greatest(p_quando, date_trunc('minute', now()) + interval '1 minute'), 0);
 end $$;
 revoke all on function private.armar_alarme(text, uuid, timestamptz) from public, anon, authenticated;
 
@@ -502,7 +533,7 @@ begin
     perform private.desarmar_alarme('limpar', old.id);
     return old;
   end if;
-  if new.etapa = 'aprovado' and new.postar_em is not null then
+  if new.etapa = 'aprovado' and new.postar_em is not null and new.tipo = 'postagem' then  -- 236: só Postagem programa nas redes
     if tg_op = 'INSERT' or old.etapa is distinct from 'aprovado' or old.postar_em is distinct from new.postar_em then
       perform private.armar_alarme('postar', new.id, new.postar_em::timestamp at time zone 'America/Sao_Paulo');
     end if;
@@ -510,7 +541,10 @@ begin
     perform private.desarmar_alarme('postar', new.id);
   end if;
   if new.etapa = 'postado' and (tg_op = 'INSERT' or old.etapa is distinct from 'postado') then
-    perform private.armar_alarme('limpar', new.id, now() + interval '7 days');
+    -- 236: só arma a limpeza se o card tem arquivo no DRIVE (anexo antigo do Supabase não é limpo)
+    if exists (select 1 from public.arquivos a where a.tarefa_id = new.id and a.drive_id is not null) then
+      perform private.armar_alarme('limpar', new.id, now() + interval '7 days');
+    end if;
   elsif new.etapa is distinct from 'postado' then
     perform private.desarmar_alarme('limpar', new.id);
   end if;
@@ -520,11 +554,21 @@ drop trigger if exists tarefas_alarmes on public.tarefas;
 create trigger tarefas_alarmes after insert or update of etapa, postar_em or delete on public.tarefas
   for each row execute function private.tarefas_alarmes();
 
--- O relógio de todo minuto (015) sai: o Natham não quer execução à toa (23/10).
-do $$ begin
-  if exists (select 1 from cron.job where jobname = 'tarefas_postar_vencidos') then perform cron.unschedule('tarefas_postar_vencidos'); end if;
+-- 236 · O relógio de todo minuto (015) FICA até o 019b. Antes ele só mudava Aprovado → Postado na hora; agora, com a postagem automática ligada, ele não faz nada
+-- (os alarmes por card cuidam), e desligada ele faz o que sempre fez. Assim este arquivo é seguro mesmo colado antes da função postar-meta.
+create or replace function private.postar_vencidos() returns integer
+language plpgsql security definer set search_path = ''
+as $$
+declare n integer;
+begin
+  if private.postagem_automatica() then return 0; end if;
+  update public.tarefas set etapa = 'postado'
+  where etapa = 'aprovado' and postar_em is not null
+    and postar_em <= to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD"T"HH24:MI');
+  get diagnostics n = row_count;
+  return n;
 end $$;
-drop function if exists private.postar_vencidos();
+revoke all on function private.postar_vencidos() from public, anon, authenticated;
 
 -- Tirar uma rede do card apaga a linha dela que ainda não saiu (fila/erro): rede fora do card não segura o Postado nem o sentinela.
 create or replace function private.tarefas_redes_limpa() returns trigger
@@ -608,13 +652,17 @@ as $$ select private.desarmar_alarme(p_tipo, p_tarefa) $$;
 revoke all on function public.desarmar_alarme_servico(text, uuid) from public, anon, authenticated;
 grant execute on function public.desarmar_alarme_servico(text, uuid) to service_role;
 
--- Cards que já estavam Aprovado (programados) ou Postado quando o 019 entra ganham o alarme (hora no passado fica de fora: a função ainda pode não estar no ar).
+-- Cards que já estavam Aprovado (programados) ou Postado quando o 019 entra. 236:
+--  · Aprovado de Postagem com hora FUTURA ganha o alarme (ele só toca de verdade depois do 019b; antes disso se apaga sem fazer nada). Hora já vencida ou a ≤ 1 min NÃO fica sem
+--    relógio: o de todo minuto do 015 continua rodando até o 019b, que então toca ou reprograma todos eles.
+--  · Postado ganha a data real de entrada (agora, como a contagem de 7 dias que começa agora) e a limpeza SÓ se tiver arquivo do Drive (hoje nenhum: anexo antigo não é limpo).
+update public.tarefas set postado_em = now() where etapa = 'postado' and postado_em is null;
 do $$ declare r record; begin
-  for r in select id, postar_em, etapa from public.tarefas where etapa in ('aprovado', 'postado') loop
+  for r in select id, postar_em, etapa, tipo from public.tarefas where etapa in ('aprovado', 'postado') loop
     if exists (select 1 from cron.job where jobname = private.alarme_nome(case r.etapa when 'postado' then 'limpar' else 'postar' end, r.id)) then continue; end if;
-    if r.etapa = 'aprovado' and r.postar_em is not null and (r.postar_em::timestamp at time zone 'America/Sao_Paulo') > now() + interval '1 minute' then
+    if r.etapa = 'aprovado' and r.tipo = 'postagem' and r.postar_em is not null and (r.postar_em::timestamp at time zone 'America/Sao_Paulo') > now() then
       perform private.armar_alarme('postar', r.id, r.postar_em::timestamp at time zone 'America/Sao_Paulo');
-    elsif r.etapa = 'postado' then
+    elsif r.etapa = 'postado' and exists (select 1 from public.arquivos a where a.tarefa_id = r.id and a.drive_id is not null) then
       perform private.armar_alarme('limpar', r.id, now() + interval '7 days');
     end if;
   end loop;

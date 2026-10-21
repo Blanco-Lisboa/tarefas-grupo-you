@@ -23,13 +23,17 @@ function montar() {
   const b = criarBancoFalso();
   const roteado = ((e: RequestInfo | URL, i?: RequestInit) => (new Request(e).url.startsWith(BASE_FALSA) ? g.fetch(e, i) : b.fetch(e, i))) as typeof fetch;
   const t = b.estado.tabelas;
-  t.pessoas.push({ id: "p-natham", slug: "natham", user_id: "u-natham" }, { id: "p-matheus", slug: "matheus", user_id: "u-matheus" });
+  t.pessoas.push({ id: "p-natham", slug: "natham", user_id: "u-natham" }, { id: "p-matheus", slug: "matheus", user_id: "u-matheus" }, { id: "p-adrian", slug: "adrian", user_id: "u-adrian" });
   t.empresas.push({ id: "you", nome: "You" }, { id: "beec", nome: "Beec" });
   b.estado.usuarios.set("tok-natham", "u-natham");
   b.estado.usuarios.set("tok-matheus", "u-matheus");
+  b.estado.usuarios.set("tok-adrian", "u-adrian"); // tem login, mas NÃO é Natham nem Matheus
   const alarmes: string[] = [];
   b.estado.rpcs.ler_segredo_servico = ({ p_nome }) => (p_nome === "tarefas_funcoes_segredo" ? SEGREDO : p_nome === "google_drive_refresh_token" ? "refresh-falso" : null);
-  b.estado.rpcs.pode_mexer_pastas = (_a, token) => b.estado.usuarios.has(token);
+  // 019 v2: só Natham e Matheus mexem nas pastas e LIGAM o Permanente (public.pode_mexer_pastas / pode_ligar_permanente)
+  const natMat = (_a: unknown, token: string) => token === "tok-natham" || token === "tok-matheus";
+  b.estado.rpcs.pode_mexer_pastas = natMat;
+  b.estado.rpcs.pode_ligar_permanente = natMat;
   b.estado.rpcs.armar_alarme_servico = (a) => void alarmes.push(`armar ${a.p_tarefa}`);
   b.estado.rpcs.desarmar_alarme_servico = (a) => void alarmes.push(`desarmar ${a.p_tarefa}`);
   // Regras do 019 v2 (private.definir_permanente_livre e private.pode_apagar_pasta_livre)
@@ -227,5 +231,17 @@ describe("234: arquivos dentro da pasta livre", () => {
     expect(m.g.estado.arquivos.get(driveId!)!.trashed).toBe(true);
     expect(m.t.arquivos).toHaveLength(0);
     expect(m.t.pastas_livres).toHaveLength(1);
+  });
+});
+
+describe("236: pasta livre e quem liga", () => {
+  it("6 médio: criar pasta JÁ com cadeado obedece a regra de quem liga (Adrian é recusado, nada fica no Drive)", async () => {
+    const m = montar();
+    const r = await m.chamar({ acao: "criar_pasta_livre", empresa_id: "you", nome: "Escondida", permanente: true }, "tok-adrian");
+    expect(r.status).toBe(403);
+    expect(m.t.pastas_livres).toHaveLength(0);
+    expect(m.arvore()).toEqual([]);
+    expect((await m.chamar({ acao: "criar_pasta_livre", empresa_id: "you", nome: "Comum" }, "tok-adrian")).status).toBe(403); // pasta livre é só de Natham e Matheus
+    expect((await criar(m, "Com cadeado", { permanente: true }, "tok-matheus")).pasta.permanente).toBe(true);
   });
 });

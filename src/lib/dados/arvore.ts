@@ -5,6 +5,9 @@ import { DIAS_PARA_LIMPAR, FORMATOS, nomeFormato, nomePastaConteudo, SEM_TEMA } 
 import type { DocumentoSolto, Ocasiao, PastaLivre } from "./drive";
 import type { Arquivo, Formato, Tarefa } from "./tipos";
 
+/** Os nomes das pastas COMO O DRIVE ESCREVE (a tela e a ficha usam estes, nunca os seus próprios): Reels, Carrossel, Post, Stories, "Sem formato", "Sem tema" e o nome da pasta do conteúdo. */
+export { NOME_FORMATO, SEM_FORMATO, SEM_TEMA, nomeFormato, nomePastaConteudo } from "../../../supabase/functions/_shared/pastas";
+
 export type PastaConteudo = {
   tarefa: Tarefa;
   /** Nome da pasta no Drive: "<Formato> <tema> - <título>". */
@@ -35,12 +38,13 @@ const MS_DIA = 86_400_000;
 /** "2026-10-21T14:00" (Brasília, sem fuso) ou "2026-10-21" → instante. */
 const brasilia = (txt: string) => new Date(txt.length > 10 ? `${txt}:00-03:00` : `${txt}T00:00:00-03:00`);
 
-/** Quando o conteúdo vence: 7 dias depois de Postado. Base = a última rede postada (ou a data do post); se o Permanente foi desligado depois, conta de lá. */
+/** Quando o conteúdo vence: 7 dias depois de ENTRAR em Postado. Base = `postadoEm` (a data real, gravada pelo banco); só cards antigos sem ela caem na estimativa
+    (última rede postada, ou a data do post). Se o Permanente foi desligado depois, conta de lá. */
 export function venceEm(t: Tarefa, tema?: Pick<Ocasiao, "permanente" | "desligadoEm">): Date | undefined {
   if (t.etapa !== "postado" || tema?.permanente) return undefined;
   const postadas = (t.postagens ?? []).flatMap((p) => (p.postadoEm ? [new Date(p.postadoEm).getTime()] : []));
   const dataDoPost = t.postarEm ?? t.inicio;
-  const base = postadas.length ? Math.max(...postadas) : dataDoPost ? brasilia(dataDoPost).getTime() : undefined;
+  const base = t.postadoEm ? new Date(t.postadoEm).getTime() : postadas.length ? Math.max(...postadas) : dataDoPost ? brasilia(dataDoPost).getTime() : undefined;
   if (base === undefined || Number.isNaN(base)) return undefined;
   const desligado = tema?.desligadoEm ? new Date(tema.desligadoEm).getTime() : 0;
   return new Date(Math.max(base, desligado) + DIAS_PARA_LIMPAR * MS_DIA);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arvoreDePastas, pastasLivresDaEmpresa, venceEm } from "./arvore";
+import { arvoreDePastas, NOME_FORMATO, nomeFormato, nomePastaConteudo, pastasLivresDaEmpresa, SEM_FORMATO, SEM_TEMA, venceEm } from "./arvore";
 import type { DocumentoSolto, Ocasiao, PastaLivre } from "./drive";
 import type { Tarefa } from "./tipos";
 
@@ -106,3 +106,22 @@ describe("pastas livres (234)", () => {
   });
 });
 
+describe("236: data real do vencimento e nomes do Drive", () => {
+  it("8 médio: usa postadoEm (quando ENTROU em Postado), não a data do card nem a das redes", () => {
+    const arrastado = card("1", { etapa: "postado", inicio: "2026-09-20T10:00", postarEm: "2026-09-20T10:00", postadoEm: "2026-10-21T15:00:00Z" }); // início há um mês, arrastado hoje
+    expect(venceEm(arrastado)).toEqual(new Date("2026-10-28T15:00:00Z"));
+    const comRedes = card("2", { etapa: "postado", postadoEm: "2026-10-21T15:00:00Z", postagens: [{ rede: "instagram", status: "postado", postadoEm: "2026-10-01T10:00:00Z" }] });
+    expect(venceEm(comRedes)).toEqual(new Date("2026-10-28T15:00:00Z"));
+    expect(venceEm(card("3", { etapa: "postado", postadoEm: "2026-10-21T15:00:00Z" }), { permanente: false, desligadoEm: "2026-10-23T09:00:00Z" })).toEqual(new Date("2026-10-30T09:00:00Z"));
+    expect(venceEm(card("4", { etapa: "postado", postarEm: "2026-10-18T18:00" }))).toEqual(new Date("2026-10-25T18:00:00-03:00")); // card antigo, sem a data real: estimativa
+  });
+  it("nomes das pastas como o Drive escreve (exportados para a tela e a ficha): formatos, 'Sem formato', 'Sem tema', nome do conteúdo", () => {
+    expect(NOME_FORMATO).toEqual({ reels: "Reels", carrossel: "Carrossel", post: "Post", story: "Stories" });
+    expect(SEM_FORMATO).toBe("Sem formato");
+    expect(SEM_TEMA).toBe("Sem tema");
+    expect(nomeFormato("story")).toBe("Stories");
+    expect(nomeFormato(undefined)).toBe("Sem formato");
+    expect(nomePastaConteudo("reels", "Natal", "Bastidores")).toBe("Reels Natal - Bastidores");
+    expect(arvore([card("1")]).map((f) => f.nome)).toEqual(["Reels", "Carrossel", "Post", "Stories"]); // a árvore usa os mesmos nomes
+  });
+});

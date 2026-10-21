@@ -7,6 +7,7 @@ import { ErroRest, type Linha, type Rest } from "./rest.ts";
 export type Tema = { id: string; empresa_id: string; nome: string; permanente: boolean };
 export type Card = { id: string; titulo: string; empresa_id: string | null; ocasiao_id: string | null; etapa: string | null; formato: string | null };
 export const COLUNAS_CARD = "id,titulo,empresa_id,ocasiao_id,etapa,formato";
+const LIMITE_RENOMEAR = 40; // pastas de conteúdo renomeadas por chamada (uma ida ao Drive cada)
 
 export function criarPastas(d: { api: DriveApi; env: (n: string) => string | undefined }, servico: () => Rest) {
   // ---- pastas no Drive ----
@@ -99,5 +100,25 @@ export function criarPastas(d: { api: DriveApi; env: (n: string) => string | und
     await d.api.lixeira(x.drive_id);
     await s.apagar("drive_pastas", { chave });
   }
-  return { pastaEmpresa, temaDe, novoTema, pastaDeFormato, pastaDeTema, cardDe, pastaDoConteudo, rearmarLimpeza, tirarPastaDoConteudo };
+  /** Renomeia as pastas dos conteúdos de um tema (o nome delas leva o tema), até LIMITE_RENOMEAR por chamada, a partir do `cursor` (id do último card visto).
+      Devolve `cursor` (para a próxima chamada) e `restantes` (só pastas que existem) quando ainda falta; sem cursor = terminou. */
+  async function renomearConteudos(temaId: string, depois = ""): Promise<{ restantes: number; cursor?: string }> {
+    const s = servico();
+    const cards = (await s.ler<Card>("tarefas", { ocasiao_id: temaId }, COLUNAS_CARD)).sort((x, y) => x.id.localeCompare(y.id));
+    const temPasta = async (card: Card) => (await s.ler("drive_pastas", { chave: chaves.conteudo(card.id) }, "chave")).length > 0;
+    let feitos = 0, ultimo = depois;
+    for (const card of cards.filter((x) => x.id > depois)) {
+      if (!(await temPasta(card))) { ultimo = card.id; continue; }
+      if (feitos >= LIMITE_RENOMEAR) {
+        let restantes = 0;
+        for (const r of cards.filter((x) => x.id > ultimo)) if (await temPasta(r)) restantes++;
+        return { restantes, cursor: ultimo };
+      }
+      await pastaDoConteudo(card);
+      ultimo = card.id;
+      feitos++;
+    }
+    return { restantes: 0 };
+  }
+  return { pastaEmpresa, renomearConteudos, temaDe, novoTema, pastaDeFormato, pastaDeTema, cardDe, pastaDoConteudo, rearmarLimpeza, tirarPastaDoConteudo };
 }
