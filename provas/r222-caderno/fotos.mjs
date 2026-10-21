@@ -1,0 +1,25 @@
+// Item 222: Caderno com 2 reuniões (09:00 e 11:00) com a linha inteira em âmbar. Banco-falso em 3299 + app em 3592. Uso: node provas/r222-caderno/fotos.mjs
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const PASTA = fileURLToPath(new URL("./", import.meta.url));
+const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+const exp = 1893456000;
+const jwt = [b64({ alg: "HS256", typ: "JWT" }), b64({ sub: "u-natham", exp, role: "authenticated", aud: "authenticated" }), b64("assinatura")].join(".");
+const sessao = { access_token: jwt, refresh_token: "x", expires_in: 3600, expires_at: exp, token_type: "bearer", user: { id: "u-natham", aud: "authenticated", role: "authenticated", email: "foto@exemplo.invalid", app_metadata: {}, user_metadata: {}, created_at: "2026-10-19T00:00:00Z" } };
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const ctx = await nav.newContext({ viewport: { width: 1440, height: 760 } });
+await ctx.addCookies([{ name: "sb-127-auth-token", value: "base64-" + b64(sessao), domain: "127.0.0.1", path: "/" }]);
+const p = await ctx.newPage();
+const erros = [];
+p.on("pageerror", (e) => erros.push(e.message));
+await p.clock.setFixedTime(new Date(2026, 9, 21, 8, 0));
+await p.goto("http://127.0.0.1:3592/tarefas", { waitUntil: "networkidle" });
+await p.waitForTimeout(2500);
+const m = await p.evaluate(() => [...document.querySelectorAll(".folha .linha")].filter((li) => li.querySelector("[data-reuniao]")).map((li) => { const r = li.getBoundingClientRect(), pg = li.closest(".pag").getBoundingClientRect(), h = li.querySelector(".linha-hora").getBoundingClientRect(); return { hora: li.querySelector(".linha-hora-txt").textContent, alt: r.height, esqLinha: r.left, esqPagina: pg.left, dirLinha: r.right, dirPagina: pg.right, horaDentro: h.left >= r.left, raio: getComputedStyle(li).borderRadius }; }));
+console.log(JSON.stringify(m), "erros:", erros.length);
+await p.evaluate(() => { const d = document.createElement("div"); d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;right:8px;bottom:8px;z-index:2147483647;background:#000;color:#fff;font:700 12px monospace;padding:3px 8px"; document.body.append(d); });
+await p.screenshot({ path: join(PASTA, "caderno-1440.png") });
+await nav.close();
