@@ -20,6 +20,16 @@ const redeDoLink = (l: string) => {
   }
 };
 
+const NOME_REDE = { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube" } as const;
+// Um só link: "Ver referência". Vários: nome da rede, com número quando a mesma rede aparece mais de uma vez.
+const rotuloLink = (links: string[], l: string) => {
+  if (links.length < 2) return "Ver referência";
+  const rede = redeDoLink(l);
+  const nome = rede ? NOME_REDE[rede] : "Link";
+  const mesmas = links.filter((x) => (redeDoLink(x) ?? "") === (rede ?? ""));
+  return mesmas.length > 1 ? `${nome} ${mesmas.indexOf(l) + 1}` : nome;
+};
+
 type Dados = Omit<Ideia, "empresaId" | "id"> & { id?: string };
 
 export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: string; nome: string; tom: string; aoFechar: () => void }) {
@@ -64,6 +74,7 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
 
 function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dados) => void; aoApagar: () => void }) {
   const [confirmando, setConfirmando] = useState(false);
+  const [tirando, setTirando] = useState<string | null>(null); // link esperando confirmação para sair
   const [acrescentando, setAcrescentando] = useState(false);
   const sair = (campo: "titulo" | "texto") => (e: { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
     const v = e.currentTarget.value.trim();
@@ -89,16 +100,17 @@ function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dado
       <div className="mural-rodape" data-vazio={!links.length && !acrescentando ? true : undefined}>
         {links.map((l) => {
           const rede = redeDoLink(l);
+          const rotulo = rotuloLink(links, l);
           return (
             <div key={l} className="mural-ref">
               {linkValido(l) ? (
-                <a className="lnk mural-ver" href={l} target="_blank" rel="noopener noreferrer">
-                  {rede && <IconeRede rede={rede} tamanho={14} />}Ver referência
+                <a className="mural-ver" href={l} target="_blank" rel="noopener noreferrer" title={l}>
+                  {rede && <IconeRede rede={rede} tamanho={14} />}{rotulo}
                 </a>
               ) : (
                 <span className="mural-ver">{l}</span>
               )}
-              <button type="button" className="mural-trocar" aria-label={`Tirar o link ${l}`} title="Tirar este link" onClick={() => aoSalvar({ ...ideia, links: links.filter((x) => x !== l) })}>
+              <button type="button" className="mural-trocar" aria-label={`Tirar o link ${l}`} title="Tirar este link" onClick={() => setTirando(l)}>
                 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>
               </button>
             </div>
@@ -119,12 +131,12 @@ function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dado
           />
         )}
       </div>
-      {confirmando && (
-        <div className="mural-confirma" role="alertdialog" aria-label="Apagar ideia">
-          <p>Apagar esta ideia?</p>
+      {(confirmando || tirando) && (
+        <div className="mural-confirma" role="alertdialog" aria-label={tirando ? "Tirar link" : "Apagar ideia"}>
+          <p>{tirando ? "Tirar este link?" : "Apagar esta ideia?"}</p>
           <div className="ideia-acoes">
-            <button type="button" className="btn pasta-perigo" onClick={aoApagar}>Apagar</button>
-            <button type="button" className="btn btn-2" autoFocus onClick={() => setConfirmando(false)}>Manter</button>
+            <button type="button" className="btn pasta-perigo" onClick={() => { if (tirando) aoSalvar({ ...ideia, links: links.filter((x) => x !== tirando) }); else aoApagar(); setTirando(null); }}>{tirando ? "Tirar" : "Apagar"}</button>
+            <button type="button" className="btn btn-2" autoFocus onClick={() => { setConfirmando(false); setTirando(null); }}>Manter</button>
           </div>
         </div>
       )}
