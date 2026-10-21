@@ -14,7 +14,7 @@ const SEM_FILTRO = ["/configuracoes", "/tarefas", "/calendario", "/mapa", "/cont
 export function Casca({ children }: { children: ReactNode }) {
   const recolhido = useSyncExternalStore(assinar, lerRecolhido, () => false);
   const caminho = usePathname();
-  if (caminho.startsWith("/entrar")) return <>{children}</>; // entrada: sem menu, sem dados
+  if (caminho.startsWith("/entrar") || caminho === "/privacidade") return <>{children}</>; // entrada e Política de Privacidade (públicas): sem menu, sem dados
   return (
     <div className="casca">
       <Menu recolhido={recolhido} alternar={() => definirRecolhido(!recolhido)} caminho={caminho} />

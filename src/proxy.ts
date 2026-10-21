@@ -1,5 +1,5 @@
 // Porteiro (Next 16: "proxy" substitui o antigo middleware). Renova a sessão e manda para /entrar quem não está logado.
-// Só a entrada é pública. A trava de verdade dos dados é do banco; este porteiro só evita mostrar tela vazia para quem não entrou.
+// Só a entrada e a Política de Privacidade são públicas. A trava de verdade dos dados é do banco; este porteiro só evita mostrar tela vazia para quem não entrou.
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -17,7 +17,7 @@ export async function proxy(request: NextRequest) {
   });
   const { data } = await sb.auth.getClaims();
   const caminho = request.nextUrl.pathname;
-  const naEntrada = caminho === "/entrar" || caminho.startsWith("/entrar/");
+  const naEntrada = caminho === "/entrar" || caminho.startsWith("/entrar/") || caminho === "/privacidade"; // páginas públicas: entrada e Política de Privacidade (item 241)
   if (!data?.claims && !naEntrada) {
     const para = request.nextUrl.clone();
     para.pathname = "/entrar";
