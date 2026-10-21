@@ -1,5 +1,6 @@
 "use client";
 
+import { CabecalhoColuna } from "@/components/ui/CabecalhoColuna";
 import { useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from "react";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { Ficha, NOMES, tarefaEmBranco } from "@/components/ficha/Ficha";
@@ -146,16 +147,11 @@ export function TelaConteudos() {
               key={etapa}
               style={{ "--etapa": `var(--etapa-${etapa})` } as CSSProperties}
             >
-              <div className="conteudos-coluna-topo">
-                <span className="conteudos-numero">{String(indice + 1).padStart(2, "0")}</span>
-                <h2>{nomes[etapa]}</h2>
-                <span className="conteudos-contagem">{itens.length}</span>
-                <button className="conteudos-novo" type="button" aria-label={`Novo conteúdo em ${nomes[etapa]}`} onClick={() => {
-                  if (!eu) return setErro("Aguarde a identificação da sua conta para criar um conteúdo.");
-                  setErro("");
-                  setAberta(tarefaEmBranco({ etapa, tipo: tipoDaColuna(etapa), responsavel: eu }));
-                }}>+</button>
-              </div>
+              <CabecalhoColuna numero={indice + 1} titulo={nomes[etapa]} total={itens.length} rotuloNovo={`Novo conteúdo em ${nomes[etapa]}`} aoNovo={() => {
+                if (!eu) return setErro("Aguarde a identificação da sua conta para criar um conteúdo.");
+                setErro("");
+                setAberta(tarefaEmBranco({ etapa, tipo: tipoDaColuna(etapa), responsavel: eu }));
+              }} />
               <div className="conteudos-pilha">
                 {itens.length === 0 && <p className="conteudos-vazio">Solte um conteúdo aqui.</p>}
                 {itens.map((tarefa) => {

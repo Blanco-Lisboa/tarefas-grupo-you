@@ -1,6 +1,7 @@
 "use client";
 import { useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useIdeias, type Ideia } from "@/lib/dados";
+import { CabecalhoColuna } from "@/components/ui/CabecalhoColuna";
 import { IconeRede } from "@/components/ui/Marca";
 import { CardFlutuante } from "./CardFlutuante";
 
@@ -41,13 +42,13 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
         <span className="mural-conta">{q ? `${nIdeias(achadas)} achadas` : nIdeias(ideias.length)}</span>
       </div>
       <div className="mural-quadro" style={{ "--mural-tom": tom } as CSSProperties}>
-        {colunas.map(({ cat, itens }) => (
+        {colunas.map(({ cat, itens }, n) => (
           <section
             key={cat}
             className="mural-col"
             aria-label={cat}
           >
-            <h3>{cat} <small>{itens.length}</small></h3>
+            <CabecalhoColuna numero={n + 1} titulo={cat} total={itens.length} rotuloNovo={`Nova ideia em ${cat}`} aoNovo={() => document.querySelector<HTMLInputElement>(`input[aria-label="${CSS.escape("Nova ideia em " + cat)}"]`)?.focus()} />
             <div className="mural-folhas">
               {itens.map((i) => (
                 <Folha key={i.id} ideia={i} aoSalvar={salvar} aoApagar={() => apagar(i.id)} />

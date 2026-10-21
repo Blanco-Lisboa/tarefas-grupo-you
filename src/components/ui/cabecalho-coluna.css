@@ -1,0 +1,12 @@
+.cab-coluna { display: flex; align-items: center; gap: var(--s-8); min-height: 48px; padding: var(--s-8) var(--s-12); border-bottom: 1px solid var(--linha); border-left: 5px solid var(--etapa); border-radius: var(--raio-c) var(--raio-c) 0 0; background: var(--sup); --topo-texto: var(--texto); } /* item 168d: opção 2, faixa da etapa à esquerda */
+.cab-coluna-numero { color: var(--fraco); font: 500 var(--t-14) var(--fonte); }
+.cab-coluna h2 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; color: var(--topo-texto); font-size: var(--app-t-secao); font-weight: 800; }
+.cab-coluna-contagem { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 var(--s-4); border-radius: var(--raio-b); background: var(--sup-2); color: var(--texto); font-size: var(--app-t-rotulo); font-weight: 600; }
+.cab-coluna-novo { display: grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--raio-b); background: transparent; color: var(--topo-texto); font: 500 var(--t-20)/1 var(--fonte); cursor: pointer; transition: background var(--dur-rapida) var(--curva); }
+.cab-coluna-novo:hover { background: var(--sup-2); }
+.cab-coluna-novo:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+/* Coluna estreita (1440 com o menu aberto): aperta um degrau da escala */
+@container (max-width: 215px) {
+  .cab-coluna { gap: var(--s-4); padding-inline: var(--s-8); }
+  .cab-coluna h2 { font-size: var(--t-16); }
+}
