@@ -25,7 +25,7 @@
 .conteudos-cartao:active { cursor: grabbing; }
 .conteudos-cartao[data-editavel="false"], .conteudos-cartao[data-editavel="false"]:active { cursor: default; }
 .conteudos-cartao-sombra[data-vazio="true"] { border: 2px dashed var(--borda); border-radius: var(--raio-c); }
-.conteudos-cartao-sombra[data-conserto="true"] { padding-top: 12px; } /* etiqueta Conserto (item 195); com o fazendo, os 30px abaixo vencem */
+.conteudos-cartao-sombra[data-conserto="true"] { padding-top: 26px; } /* etiqueta Conserto (item 195; só o ícone, mais alta: sobe e não encosta no logo); com o fazendo, os 30px abaixo vencem */
 .conteudos-cartao-sombra[data-conserto="true"] .conteudos-cartao { position: relative; }
 .conteudos-cartao-sombra[data-fazendo="true"] { padding-top: 30px; }
 .conteudos-cartao-sombra[data-fazendo="true"] .conteudos-cartao { position: relative; }

@@ -59,7 +59,7 @@
 .confirmar .btn[data-perigo="true"] { background: var(--atrasado); border-color: var(--atrasado); color: #fff; }
 .confirmar .btn[data-perigo="true"]:hover { background: color-mix(in srgb, #000 14%, var(--atrasado)); }
 /* Só o ícone (pedido do Natham): a arte ocupa 163,212-822,867 do PNG de 1080; object-view-box recorta essa área para o ícone encher os 20px */
-.selo-conserto { display: inline-flex; align-items: center; justify-content: center; padding: 4px 7px 10px; }
+.selo-conserto { display: inline-flex; align-items: center; justify-content: center; top: -24px; padding: 4px 7px 10px; } /* sobe: a fita com o ícone é mais alta e não pode encostar no logo da empresa */
 .selo-conserto img { display: block; width: 20px; height: 20px; object-fit: contain; object-view-box: inset(212px 258px 213px 163px); }
 @media (prefers-reduced-motion: reduce) { .aprovacao-situacao[data-tipo="postando"]::before { animation: none; } }
 .aprovacao-erro .aprovacao-incerto { color: var(--texto); font-weight: 500; }
