@@ -21,15 +21,18 @@ export function diasDoPeriodo(inicio: string, ate = "") {
 export const tituloDe = (t: Tarefa) => t.titulo.trim() || t.objetivo?.trim() || "Sem título";
 
 export const foiPostado = (t: Tarefa) => t.etapa === "postado" || !!t.concluida;
-const diaDe = (t: Tarefa) => t.inicio!.slice(0, 10);
+/** Quando o card entra no Mapa: card de Postagem usa a data e hora de POSTAR quando existe (programado pode nem ter início); senão, o início. */
+export const quandoDe = (t: Tarefa) => (t.tipo === "postagem" && t.postarEm) || t.inicio;
+/** Só vale para card que já tem data (quandoDe). */
+export const diaDe = (t: Tarefa) => quandoDe(t)!.slice(0, 10);
 
 export const ultimoDia = (lista: readonly Tarefa[]) => lista.reduce((m, t) => (diaDe(t) > m ? diaDe(t) : m), "");
 
 export const conteudos = (tarefas: readonly Tarefa[]) =>
-  tarefas.filter((t) => ehConteudo(t) && t.tipo === "postagem" && t.inicio).sort((a, b) => a.inicio!.localeCompare(b.inicio!));
+  tarefas.filter((t) => ehConteudo(t) && t.tipo === "postagem" && quandoDe(t)).sort((a, b) => quandoDe(a)!.localeCompare(quandoDe(b)!));
 
 /** Postagem ainda sem data: não tem dia na linha, então o Mapa a mostra numa faixa à parte (item 198). */
-export const semData = (tarefas: readonly Tarefa[]) => tarefas.filter((t) => ehConteudo(t) && t.tipo === "postagem" && !t.inicio && !foiPostado(t));
+export const semData = (tarefas: readonly Tarefa[]) => tarefas.filter((t) => ehConteudo(t) && t.tipo === "postagem" && !quandoDe(t) && !foiPostado(t));
 
 /** Quantos conteúdos já foram postados no mês do início, mesmo antes do período (a linha só mostra o que vem pela frente). */
 export const postadosNoMes = (lista: readonly Tarefa[], inicio: string) =>
@@ -62,7 +65,7 @@ export function filaPorDia(lista: readonly Tarefa[], de: string): DiaFila[] {
   for (const t of lista) {
     if (!ehConteudo(t)) continue;
     // entra o que vem pela frente (postagem a postar) e todo atrasado, mesmo de antes do período do Mapa (mesma regra do Conteúdos)
-    if (!t.inicio || (!diasDeAtraso(t, de) && (t.tipo !== "postagem" || foiPostado(t)))) continue;
+    if (!quandoDe(t) || (!diasDeAtraso(t, de) && (t.tipo !== "postagem" || foiPostado(t)))) continue;
     const etapa = Math.max(0, ETAPAS_ATE_POSTAR.indexOf((t.etapa ?? "roteiro") as (typeof ETAPAS_ATE_POSTAR)[number]));
     itens.set(t.id, { t, dias: diasAte(diaDe(t), de), passo: PASSO[ETAPAS_ATE_POSTAR[etapa]] });
     const dia = diaDe(t) < de ? de : diaDe(t); // atrasado cai em hoje
@@ -70,7 +73,7 @@ export function filaPorDia(lista: readonly Tarefa[], de: string): DiaFila[] {
   }
   if (!porDia.size) return [];
   // atrasados primeiro: ordenados pelo dia de origem (o mais antigo no topo), cada dia na ordem da folha
-  const doDia = (ts: Tarefa[]) => montarGrade([...ts].sort((a, b) => a.inicio!.localeCompare(b.inicio!)), true).filter((t): t is Tarefa => !!t);
+  const doDia = (ts: Tarefa[]) => montarGrade([...ts].sort((a, b) => quandoDe(a)!.localeCompare(quandoDe(b)!)), true).filter((t): t is Tarefa => !!t);
   const atrasadas = (porDia.get(de) ?? []).filter((t) => diaDe(t) < de);
   const dehoje = (porDia.get(de) ?? []).filter((t) => diaDe(t) >= de);
   const pilhaAtraso = [...new Set(atrasadas.map(diaDe))].sort().flatMap((d) => doDia(atrasadas.filter((t) => diaDe(t) === d)));

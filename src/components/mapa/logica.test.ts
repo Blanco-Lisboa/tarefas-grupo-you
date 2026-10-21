@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { ETAPAS_ATE_POSTAR, PASSO, conteudos, diasDoPeriodo, filaPorDia, foiPostado, semData, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { ETAPAS_ATE_POSTAR, PASSO, conteudos, diaDe, quandoDe, diasDoPeriodo, filaPorDia, foiPostado, semData, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 
 const t = (id: string, tipo: Tarefa["tipo"], inicio?: string, extra: Partial<Tarefa> = {}): Tarefa => ({
   id, titulo: id, tipo, empresaId: "beec", etapa: "roteiro", responsavel: "natham", inicio, diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra,
@@ -93,5 +93,31 @@ describe("semData (item 198)", () => {
   it("postagem de empresa sem data entra; com data, postada, pessoal e reunião ficam fora", () => {
     const lista = [t("a", "postagem"), t("b", "postagem", "2026-10-20T09:00"), t("c", "postagem", undefined, { etapa: "postado" }), t("d", "postagem", undefined, { empresaId: "" }), t("e", "roteiro"), t("Reunião de pauta", "postagem")];
     expect(semData(lista).map((x) => x.id)).toEqual(["a"]);
+  });
+
+  // Bug visto pelo Sextante: o Mapa desenhava só pelo início; card programado sem início caía em "Sem data".
+  it("card de Postagem usa a data de POSTAR quando existe; senão o início", () => {
+    const programado = t("prog", "postagem", undefined, { etapa: "aprovado", postarEm: "2026-10-25T18:00" });
+    const comAmbos = t("ambos", "postagem", "2026-10-22T12:00", { etapa: "aprovado", postarEm: "2026-10-27T09:30" });
+    const soInicio = t("inicio", "postagem", "2026-10-23T08:00");
+    expect(quandoDe(programado)).toBe("2026-10-25T18:00");
+    expect(diaDe(comAmbos)).toBe("2026-10-27");
+    expect(diaDe(soInicio)).toBe("2026-10-23");
+    expect(quandoDe(t("reuniao", "reuniao", "2026-10-22T12:00", { postarEm: "2026-10-27T09:30" }))).toBe("2026-10-22T12:00"); // postar_em só vale para Postagem
+  });
+
+  it("programado SEM início entra na linha (não cai em Sem data) e na fila, no dia de postar", () => {
+    const programado = t("prog", "postagem", undefined, { etapa: "aprovado", postarEm: "2026-10-25T18:00" });
+    const sem = t("sem", "postagem", undefined, { etapa: "edicao" });
+    const lista = [programado, sem];
+    expect(conteudos(lista).map((x) => x.id)).toEqual(["prog"]);
+    expect(semData(lista).map((x) => x.id)).toEqual(["sem"]);
+    expect(filaPorDia(lista, "2026-10-20").map((g) => [g.dia, g.itens.map((i) => i.t.id)])).toEqual([["2026-10-20", []], ["2026-10-25", ["prog"]]]);
+  });
+
+  it("a ordem na linha segue a data de postar", () => {
+    const a = t("a", "postagem", "2026-10-22T12:00", { etapa: "aprovado", postarEm: "2026-10-28T10:00" });
+    const b = t("b", "postagem", undefined, { etapa: "aprovado", postarEm: "2026-10-26T10:00" });
+    expect(conteudos([a, b]).map((x) => x.id)).toEqual(["b", "a"]);
   });
 });

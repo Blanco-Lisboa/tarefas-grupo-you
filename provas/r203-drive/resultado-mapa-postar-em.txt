@@ -1,0 +1,4 @@
+OK mapa 1440: o card programado sem início está na linha, no dia 24 (data de postar)
+OK mapa 1440: e não está em "Sem data"
+OK mapa 1440: nem no dia do início (não tem)
+OK mapa 1440: sem erro na página []

@@ -10,7 +10,7 @@ import { SeloEmpresa, IconeRede } from "@/components/ui/Marca";
 import { BordaAnimada } from "@/components/ui/BordaAnimada";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
-import { conteudos, hoje, diasDoPeriodo, filaPorDia, foiPostado, semData, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { conteudos, diaDe, hoje, diasDoPeriodo, filaPorDia, foiPostado, semData, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 import { EmOrdem, type Formato } from "./EmOrdem";
 import "./mapa.css";
 
@@ -48,14 +48,14 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
   const [formato, setFormato] = useState<Formato>(formatoSalvo);
 
   const todos = useMemo(() => conteudos(aplicar(tarefas)), [aplicar, tarefas]);
-  const marcos = useMemo(() => todos.filter((t) => t.inicio!.slice(0, 10) >= INICIO), [todos, INICIO]);
+  const marcos = useMemo(() => todos.filter((t) => diaDe(t) >= INICIO), [todos, INICIO]);
   const dias = useMemo(() => diasDoPeriodo(INICIO, ultimoDia(marcos)), [marcos, INICIO]);
   const aPostar = marcos.filter((t) => !foiPostado(t));
   const [m1, m2] = [nomeMes(INICIO), nomeMes(dias.at(-1)!)].map((m) => m.toLowerCase());
   const meses = m1 === m2 ? m1 : `${m1} e ${m2}`;
   const semDia = useMemo(() => semData(aplicar(tarefas)), [aplicar, tarefas]);
   const fila = useMemo(() => filaPorDia(aplicar(tarefas), INICIO), [aplicar, tarefas, INICIO]);
-  const proximo = aPostar[0]?.inicio?.slice(0, 10);
+  const proximo = aPostar[0] && diaDe(aPostar[0]);
 
   const topo = (
     <div className="mapa-topo">
@@ -112,7 +112,7 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
   // um marco por dia: os conteúdos do mesmo dia ficam empilhados na mesma haste, então nunca se sobrepõem
   const porDia = useMemo(() => {
     const m = new Map<string, Tarefa[]>();
-    for (const t of marcos) m.set(t.inicio!.slice(0, 10), [...(m.get(t.inicio!.slice(0, 10)) ?? []), t]);
+    for (const t of marcos) m.set(diaDe(t), [...(m.get(diaDe(t)) ?? []), t]);
     return [...m];
   }, [marcos]);
 

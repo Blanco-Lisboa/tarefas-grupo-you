@@ -24,6 +24,7 @@ const tarefas = [
   t("Carrossel do MEI", { formato: "carrossel", ocasiao_id: "o-maes" }),
   t("Depoimento de cliente", { etapa: "postado", concluida: true, formato: "reels", ocasiao_id: "o-natal", inicio: "2026-10-20T18:00", postar_em: "2026-10-20T18:00" }),
   t("Sem ocasião ainda", { formato: "post" }),
+  t("Programado sem início", { etapa: "aprovado", inicio: null, postar_em: "2026-10-24T18:00", formato: "post" }), // só tem a data de postar: o Mapa tem de desenhá-lo no dia 24
 ];
 const arquivos = [
   { id: "a1", tarefa_id: "t1", caminho: null, drive_id: "drive-video-1", ordem: 0, papel: "anexo", nome: "reels-ir.mp4", tipo: "video", created_at: "2026-10-20T10:00:00Z" },
