@@ -142,11 +142,19 @@ describe("compromissos do Google nas linhas (item 221)", () => {
     ({ id, titulo: id, inicio, fim, diaInteiro: false, particular: false, fontes: ["natham"], ...extra }) as EventoAgenda;
   const onde = (g: ReturnType<typeof encaixarCompromissos>) => g.map((l, k) => (l && "evento" in l ? `${k}:${l.evento.id}${l.primeira ? "" : "+"}` : l ? `${k}:t` : "")).filter(Boolean);
 
-  it("30 min cai na linha da hora; 11:15 cai na linha das 11:00; 2h pinta 4 linhas", () => {
+  it("30 min cai na linha da hora; 11:15 às 11:45 pinta 11:00 e 11:30; 2h pinta 4 linhas", () => {
     const g = encaixarCompromissos(montarGrade([], true), [ev("a", `${dia}T09:00`, `${dia}T09:30`), ev("b", `${dia}T11:15`, `${dia}T11:45`), ev("c", `${dia}T14:00`, `${dia}T16:00`)], dia);
-    expect(onde(g)).toEqual(["4:a", "8:b", "14:c", "15:c+", "16:c+", "17:c+"]);
+    expect(onde(g)).toEqual(["4:a", "8:b", "9:b+", "14:c", "15:c+", "16:c+", "17:c+"]);
     const b = g[8];
     expect(b && "evento" in b && b.inicio).toBe("11:15");
+  });
+  it("qualquer meia hora tocada é pintada: 10:15 às 10:45, 10:00 às 10:30, 09:50 às 10:10, e o que passa das 22:00", () => {
+    const linhas = (ini: string, fim: string) => onde(encaixarCompromissos(montarGrade([], true), [ev("e", `${dia}T${ini}`, `${dia}T${fim}`)], dia));
+    expect(linhas("10:15", "10:45")).toEqual(["6:e", "7:e+"]);
+    expect(linhas("10:00", "10:30")).toEqual(["6:e"]);
+    expect(linhas("09:50", "10:10")).toEqual(["5:e", "6:e+"]);
+    expect(linhas("21:45", "22:45")).toEqual(["29:e", "30:e+"]); // 22:30 em diante não tem linha
+    expect(linhas("22:15", "23:30")).toEqual(["30:e"]);
   });
   it("na mesma hora de uma tarefa: o compromisso fica na linha de baixo", () => {
     const g = encaixarCompromissos(montarGrade([t("x", `${dia}T11:00`)], true), [ev("a", `${dia}T11:00`, `${dia}T11:30`)], dia);

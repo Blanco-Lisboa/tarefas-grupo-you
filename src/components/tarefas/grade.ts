@@ -129,7 +129,7 @@ export function encaixarCompromissos(grade: (Tarefa | null)[], horas: EventoAgen
   for (const e of horas) {
     const { de, ate } = trecho(e, dia);
     const k0 = clamp(Math.floor((de - PRIMEIRA) / PASSO));
-    const n = Math.max(1, Math.ceil((Math.min(ate, FIM_GRADE) - Math.max(de, PRIMEIRA)) / PASSO)); // linhas pela duração: 11:15 às 11:45 é uma linha só
+    const n = clamp(Math.floor((Math.min(ate, FIM_GRADE) - 1 - PRIMEIRA) / PASSO)) - k0 + 1; // toda meia hora tocada: 11:15 às 11:45 pinta 11:00 e 11:30
     const dados = { evento: e, inicio: hhmm(de), fim: hhmm(Math.min(ate, 1439)) };
     let k = k0;
     while (linhas[k]) k++;
