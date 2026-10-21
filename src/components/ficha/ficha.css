@@ -196,3 +196,13 @@ html:has(.ficha[open]) { overflow: hidden; scrollbar-gutter: stable; }
 .ficha-capa-texto .ficha-texto-botao { padding: 0; font-size: var(--t-12); }
 /* Descrição do post (até 2200 caracteres): caixa de várias linhas que cresce com o texto, ao contrário dos outros campos de texto da ficha (48px) */
 .ficha .ficha-campo textarea.ficha-legenda-texto { flex: none; height: auto; min-height: calc(2lh + 2 * var(--s-8) + 2px); /* Régua 215 (achado 5): nasce com 2 linhas */ max-height: calc(14lh + 2 * var(--s-8) + 2px); field-sizing: content; resize: vertical; }
+
+/* Tags (242): lápis e lixeira na ponta de cada tag da lista, aparecem ao passar o mouse (sem mouse, sempre); cadeado discreto na tag do sistema */
+.ficha-tag-acao { display: grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--fraco); cursor: pointer; opacity: 0; transition: opacity var(--dur-rapida) var(--curva), background-color var(--dur-rapida) var(--curva); }
+.ficha-tag-acao svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.selecao-linha:hover .ficha-tag-acao, .ficha-tag-acao:focus-visible { opacity: 1; }
+.ficha-tag-acao:hover { background: var(--realce); color: var(--texto); }
+.ficha-tag-acao[data-perigo]:hover { color: var(--atrasado); }
+.ficha-tag-sistema { display: grid; place-items: center; flex: none; width: 28px; color: var(--fraco); opacity: .7; }
+@media (hover: none) { .ficha-tag-acao { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ficha-tag-acao { transition: none; } }

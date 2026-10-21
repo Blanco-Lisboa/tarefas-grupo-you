@@ -278,6 +278,17 @@ createServer(async (req, res) => {
     if (alvo) Object.assign(alvo, campos);
     return res.writeHead(200).end(JSON.stringify(alvo ? [{ id }] : []));
   }
+  // 242: editar e excluir tag pela ficha (excluir tira a tag dos cards, como o on delete cascade do banco)
+  if (tabela === "tags" && req.method === "PATCH") {
+    const alvo = tags.find((x) => x.id === id);
+    if (alvo && !alvo.aprovacao) Object.assign(alvo, await corpoDe(req));
+    return res.writeHead(200).end(JSON.stringify(alvo ? [{ id }] : []));
+  }
+  if (tabela === "tags" && req.method === "DELETE") {
+    const i = tags.findIndex((x) => x.id === id && !x.aprovacao);
+    if (i >= 0) { tags.splice(i, 1); for (const t of tarefas) t.tarefa_tags = t.tarefa_tags.filter((x) => x.tag_id !== id); }
+    return res.writeHead(204).end();
+  }
   if (tabela === "fazendo_agora" && req.method === "DELETE") {
     const quem = url.searchParams.get("pessoa_id")?.replace(/^eq\./, "");
     for (let i = fazendoAgora.length; i--;) if (fazendoAgora[i].pessoa_id === quem) fazendoAgora.splice(i, 1);

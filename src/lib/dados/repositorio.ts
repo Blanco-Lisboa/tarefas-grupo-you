@@ -276,6 +276,32 @@ export async function salvarTag(nova: Omit<Tag, "id">): Promise<Tag> {
   return tag;
 }
 
+/** 242 · Nome e cor de uma tag (pela lista de Tags da ficha). Otimista; volta se o banco recusar. A tag do sistema (aprovacao) não muda. */
+export async function editarTag(id: string, mudou: Pick<Tag, "nome" | "cor">): Promise<void> {
+  const antes = tags.find((t) => t.id === id);
+  if (!antes || antes.aprovacao) return;
+  tags = tags.map((t) => (t.id === id ? { ...t, ...mudou } : t));
+  avisar();
+  const { error } = await supabase().from("tags").update({ nome: mudou.nome, cor: mudou.cor }).eq("id", id);
+  if (error) { tags = tags.map((t) => (t.id === id ? antes : t)); falhou("Não consegui mudar a tag. Tente de novo."); }
+}
+
+/** 242 · Apaga a tag; o banco a tira de todos os cards sozinho (tarefa_tags com on delete cascade). Otimista; volta se o banco recusar. */
+export async function excluirTag(id: string): Promise<void> {
+  const antes = tags.find((t) => t.id === id);
+  if (!antes || antes.aprovacao) return;
+  const tagsAntes = tags, tarefasAntes = tarefas;
+  tags = tags.filter((t) => t.id !== id);
+  tarefas = tarefas.map((t) => {
+    if (!t.tags?.includes(id)) return t;
+    const resto = t.tags.filter((x) => x !== id);
+    return { ...t, tags: resto.length ? resto : undefined };
+  });
+  avisar();
+  const { error } = await supabase().from("tags").delete().eq("id", id);
+  if (error) { tags = tagsAntes; tarefas = tarefasAntes; falhou("Não consegui excluir a tag. Tente de novo."); }
+}
+
 /** Marca a tarefa em que `eu` está agora (troca a anterior, se houver). Otimista; volta se o banco recusar. */
 export async function comecar(tarefaId: string): Promise<void> {
   if (!eu) return falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham.");

@@ -7,7 +7,11 @@ import "./selecao.css";
 // Desenho do modelo 1 Névoa (item 60): botão em vidro branco; a lista é um painel de vidro que flutua.
 // A lista abre por cima de tudo (popover do navegador: fecha com Esc ou clique fora) e se prende ao botão (anchor).
 /** chip = como a escolha aparece no botão fechado (pelo nome, em vez de bolinhas e contador). */
-export type Opcao = { valor: string; rotulo: string; antes?: ReactNode; chip?: ReactNode; /** Linha fina acima desta opção (ex.: "Nenhuma", no fim da lista). */ separar?: boolean };
+export type Opcao = {
+  valor: string; rotulo: string; antes?: ReactNode; chip?: ReactNode; /** Linha fina acima desta opção (ex.: "Nenhuma", no fim da lista). */ separar?: boolean;
+  /** Botões ao lado da opção, fora dela (ex.: editar e excluir a tag, item 242). Clicar neles não escolhe a opção. */
+  depois?: ReactNode;
+};
 
 /** Chips lado a lado; os que não cabem somem e viram "+N". */
 function Chips({ itens }: { itens: ReactNode[] }) {
@@ -114,13 +118,16 @@ export function Selecao({ rotulo, opcoes, valor, aoMudar, multipla = true, rotul
               {rotuloTodos}
             </button>
           )}
-          {opcoes.map((o) => (
-            <button key={o.valor} type="button" className="selecao-opcao" data-separar={o.separar || undefined} aria-pressed={valor.includes(o.valor)} onClick={() => escolher(o.valor)}>
-              <span className="selecao-marca" aria-hidden />
-              {o.antes}
-              <span className="selecao-opcao-rotulo">{o.rotulo}</span>
-            </button>
-          ))}
+          {opcoes.map((o) => {
+            const botao = (
+              <button key={o.valor} type="button" className="selecao-opcao" data-separar={o.separar || undefined} aria-pressed={valor.includes(o.valor)} onClick={() => escolher(o.valor)}>
+                <span className="selecao-marca" aria-hidden />
+                {o.antes}
+                <span className="selecao-opcao-rotulo">{o.rotulo}</span>
+              </button>
+            );
+            return o.depois ? <div key={o.valor} className="selecao-linha">{botao}{o.depois}</div> : botao;
+          })}
           {acao && (
             <button type="button" className="selecao-opcao selecao-acao" onClick={() => { lista.current?.hidePopover(); acao.aoClicar(); }}>
               <span className="selecao-mais-icone" aria-hidden>+</span>

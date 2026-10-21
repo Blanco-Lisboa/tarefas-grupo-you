@@ -79,3 +79,7 @@
   content: ""; width: 9px; height: 4.5px; margin-top: -2px;
   border: solid var(--no-azul); border-width: 0 0 2px 2px; transform: rotate(-45deg);
 }
+
+/* Opção com botões ao lado (item 242: editar e excluir a tag): a opção ocupa a linha, os botões ficam na ponta */
+.selecao-linha { display: flex; align-items: center; gap: 2px; }
+.selecao-linha > .selecao-opcao { flex: 1; min-width: 0; }
