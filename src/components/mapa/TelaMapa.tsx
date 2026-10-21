@@ -214,6 +214,7 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
         <div className="mapa-fixo">
           {topo}
           <div ref={fixo} className="mapa-cartao">
+            <div className="mapa-corte">
             <div ref={faixa} className="mapa-faixa">
               {/* Brilho azul discreto, repetido a cada 7 dias e andando com a faixa. */}
               {Array.from({ length: Math.ceil((dias.length + 1) / 7) }, (_, b) => BRILHOS.map(([x, y, d], k) => (
@@ -224,6 +225,7 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
                 <span key={d} className="mapa-dia" data-dia={d} style={{ left: `calc((${i} + 0.5) * var(--dia-w))` }} aria-hidden>{rotuloDia(d, inicio)}</span>
               ))}
               {porDia.map(([dia, ts], i) => <Marco key={dia} dia={dia} ts={ts} coluna={dias.indexOf(dia)} lado={i % 2 ? "baixo" : "cima"} abrir={abrir} />)}
+            </div>
             </div>
             <p className="mapa-dica">Role para baixo, a linha anda para o lado.</p>
             <span className="mapa-progresso" aria-hidden />

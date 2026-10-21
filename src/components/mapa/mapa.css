@@ -47,9 +47,11 @@
 }
 .mapa-fixo { position: sticky; top: var(--app-respiro); height: calc(var(--alto) + var(--ganho) * var(--cresce, 0)); display: flex; flex-direction: column; gap: var(--app-respiro); }
 .mapa-cartao {
-  position: relative; flex: 1; min-height: 0; container-type: size; overflow: hidden; border-radius: var(--raio-bloco);
+  position: relative; flex: 1; min-height: 0; container-type: size; border-radius: var(--raio-bloco);
   background: var(--sup); color: var(--texto); box-shadow: var(--sombra);
 }
+/* O corte da faixa é reto: um corte com cantos redondos (overflow + border-radius) estraga o vidro das pastas lá dentro (cantos e borda sem arredondar, item 228). */
+.mapa-corte { position: absolute; inset: 0; overflow: hidden; }
 /* hastes altas: a bolinha fica perto da borda do card e os marcos usam a altura toda */
 .mapa-faixa { position: absolute; inset: 0 auto 0 0; width: calc((var(--dias) + var(--folga)) * var(--dia-w)); will-change: transform; --haste: calc(50cqh - 30px); }
 
@@ -104,7 +106,7 @@ html:has(.mapa-pasta-fundo) { overflow: hidden; scrollbar-gutter: stable; }
 .mapa-data { display: block; font-size: 12px; font-weight: 600; color: var(--texto); }
 
 .mapa-dica { position: absolute; left: 20px; bottom: 6px; margin: 0; font-size: 12px; color: var(--fraco); }
-.mapa-progresso { position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: var(--azul); transform-origin: left; }
+.mapa-progresso { position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: var(--azul); transform-origin: left; border-bottom-left-radius: var(--raio-bloco); }
 
 @media (max-width: 767px) {
   .mapa-bloco { left: calc(6px - var(--ex)); }
@@ -116,7 +118,7 @@ html:has(.mapa-pasta-fundo) { overflow: hidden; scrollbar-gutter: stable; }
 @media (prefers-reduced-motion: reduce) {
   .mapa-palco { height: auto; }
   .mapa-fixo { position: relative; top: auto; }
-  .mapa-cartao { overflow-x: auto; }
+  .mapa-corte { overflow-x: auto; }
   .mapa-faixa { position: relative; height: 100%; }
   .mapa-dica, .mapa-progresso { display: none; }
 }
