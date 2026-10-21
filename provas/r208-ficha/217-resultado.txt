@@ -1,0 +1,10 @@
+OK ficha nova do Calendário vem sem empresa (Empresa
+Nenhuma)
+OK salva sem empresa e sem etapa (sem empresa, null)
+OK com o filtro de empresa ligado, também vem sem empresa (Empresa
+Nenhuma)
+OK escolhendo a You: grava empresa e etapa = roteiro (you, roteiro)
+OK Esteira: a com empresa aparece em Roteiro
+OK Esteira: a sem empresa NÃO aparece
+OK + da coluna Roteiro continua com empresa (Empresa: Beec)
+TUDO OK

@@ -52,7 +52,8 @@ export const NOMES = {
   tipo: Record<TipoTarefa, string>; formato: Record<Formato, string>; rede: Record<Rede, string>; etapa: Record<Etapa, string>; responsavel: Record<Responsavel, string>;
 };
 
-/** Tarefa nova com valores padrão. empresaId vazio = a ficha escolhe a primeira empresa cadastrada. */
+/** Tarefa nova com valores padrão. empresaId vazio: com etapa (o + de uma coluna da Esteira), a ficha escolhe a primeira empresa
+    cadastrada; sem etapa (Calendário), fica sem empresa e só vira card se a pessoa escolher uma (item 217). */
 export const tarefaEmBranco = (parcial: Partial<NovaTarefa> = {}): NovaTarefa => ({
   titulo: "", tipo: "outro", empresaId: "", responsavel: "natham", diaInteiro: false,
   cor: "etiqueta-1", links: [], arquivos: [], ...parcial,
@@ -67,7 +68,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
   const todas = useTarefas();
   const eu = useEu();
   const dialogo = useRef<HTMLDialogElement>(null);
-  const [t, setT] = useState<NovaTarefa>(() => ({ ...tarefa, empresaId: tarefa.id ? tarefa.empresaId : tarefa.empresaId || empresas[0]?.id || "" })); // tarefa já existente sem empresa continua sem empresa (item 125)
+  const [t, setT] = useState<NovaTarefa>(() => ({ ...tarefa, empresaId: tarefa.id || !tarefa.etapa ? tarefa.empresaId : tarefa.empresaId || empresas[0]?.id || "" })); // tarefa já existente sem empresa continua sem empresa (item 125)
   const [data, setData] = useState(tarefa.inicio?.slice(0, 10) ?? "");
   const [horaIni, setHoraIni] = useState(tarefa.inicio?.slice(11, 16) || "09:00");
   // Sem campo Termina (item 159): tarefa nova nasce sem fim; a antiga guarda o fim que tinha e ele anda junto com o Começa.

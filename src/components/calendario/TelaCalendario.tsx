@@ -48,7 +48,7 @@ function Calendario({ agora }: { agora: string }) {
   // A mesma regra do Caderno, compartilhada com Conteúdos e Mapa.
   const todas = useTarefas();
   const tarefas = useMemo(() => todas.filter((t) => daMinhaLista(t, eu)), [todas, eu]);
-  const { aplicar, selecionadas } = useFiltroEmpresa();
+  const { aplicar } = useFiltroEmpresa();
 
   const visiveis = useMemo(() => aplicar(tarefas).filter(passa(filtros)), [aplicar, tarefas, filtros]);
   const mapa = useMemo(() => porDia(visiveis), [visiveis]);
@@ -60,7 +60,7 @@ function Calendario({ agora }: { agora: string }) {
   const acoes: Acoes = {
     abrir: setAberta,
     criar: (d) => setAberta(tarefaEmBranco({
-      empresaId: selecionadas[0] ?? "",
+      empresaId: "", // item 217: nasce sem empresa, nem com o filtro ligado; só vira card da Esteira se a pessoa escolher a empresa
       responsavel: filtros.responsavel.length === 1 ? (filtros.responsavel[0] as Tarefa["responsavel"]) : eu ?? "natham", // quem está logado, como no Caderno (item 155)
       ...quando(d),
       vaiProGoogle: true, // item 192: nasceu no Calendário; ao salvar, a Ficha só mantém se tiver data e a regra do R5-3 deixar (vaiProGoogle da logica)
