@@ -31,6 +31,7 @@ RESULTADO: {
     "limpeza_de_7_dias_armada_1_esperado": 1,
     "matheus_aprovado_para_postado_a_mao": "barrado: so o Natham ou o aprovador do card aprova, programa, muda o que vai para a rede ou manda consertar",
     "depois_do_teto_sem_alarme_0_esperado": 0,
+    "linha_da_rede_tirada_some_0_esperado": 0,
     "alarme_na_hora_certa_GMT_true_esperado": true,
     "apagar_card_leva_os_alarmes_0_esperado": 0,
     "e_nao_sobra_alarme_de_postar_0_esperado": 0,
@@ -50,5 +51,6 @@ RESULTADO: {
     "matheus_pode_apagar_card_de_conteudo_true_esperado": true,
     "tentar_de_novo_volta_so_a_rede_com_erro_1_esperado": 1,
     "matheus_pode_mexer_anexos_de_aprovado_false_esperado": false,
+    "card_com_so_instagram_postado_vai_para_postado_1_esperado": 1,
     "hora_no_passado_toca_na_hora_e_deixa_so_o_sentinela_1_esperado": 1
 }

@@ -3,7 +3,7 @@
 -- Rodar no projeto Tarefas (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Nao le nenhum segredo do Vault.
 do $$
 declare
-  n uuid; m uuid; pn uuid; pm uuid; r jsonb := '{}'; v int; t uuid; t2 uuid; t3 uuid; t4 uuid;
+  n uuid; m uuid; pn uuid; pm uuid; r jsonb := '{}'; v int; t uuid; t2 uuid; t3 uuid; t4 uuid; t5 uuid;
   quando timestamp; esperado text; tem text;
 begin
   insert into auth.users (id, instance_id, aud, role, email) values
@@ -159,6 +159,19 @@ begin
   select count(*) into v from public.tarefas where id = t4 and etapa = 'postado'; r := r || jsonb_build_object('tudo_postado_move_card_para_postado_1_esperado', v);
   select count(*) into v from cron.job where jobname = 'tarefas_limpar_' || t4; r := r || jsonb_build_object('e_arma_a_limpeza_1_esperado', v);
   select count(*) into v from cron.job where jobname = 'tarefas_postar_' || t4; r := r || jsonb_build_object('e_nao_sobra_alarme_de_postar_0_esperado', v);
+
+  -- Rede tirada do card depois do erro: nao volta para a fila no "Tentar de novo" e nao segura o card fora de Postado
+  t5 := gen_random_uuid();
+  insert into public.tarefas (id, titulo, tipo, empresa_id, etapa, dono_id, criado_por, responsavel_id, formato, postar_em)
+    values (t5, 'PROVA rede tirada', 'postagem', 'you', 'aprovado', pn, pn, pn, 'post', to_char(now() at time zone 'America/Sao_Paulo' - interval '1 minute', 'YYYY-MM-DD"T"HH24:MI'));
+  insert into public.postagens (tarefa_id, rede, status, post_id, postado_em, erro) values (t5, 'instagram', 'postado', 'x', now(), null), (t5, 'facebook', 'erro', null, null, 'x')
+    on conflict (tarefa_id, rede) do update set status = excluded.status, erro = excluded.erro, post_id = excluded.post_id;
+  update public.tarefas set postar_redes = '{instagram}' where id = t5;
+  set local role authenticated;
+  perform public.tentar_de_novo(t5);
+  reset role;
+  select count(*) into v from public.postagens where tarefa_id = t5 and rede = 'facebook'; r := r || jsonb_build_object('linha_da_rede_tirada_some_0_esperado', v);
+  select count(*) into v from public.tarefas where id = t5 and etapa = 'postado'; r := r || jsonb_build_object('card_com_so_instagram_postado_vai_para_postado_1_esperado', v);
 
   -- Achados da Lupa: editor nao "posta" no papel; rede tirada do card nao volta pela retomada; alarme a mais de 300 dias e recusado
   perform set_config('request.jwt.claims', json_build_object('sub', m, 'role', 'authenticated')::text, true);

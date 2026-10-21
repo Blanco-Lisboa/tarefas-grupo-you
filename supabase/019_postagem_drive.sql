@@ -294,8 +294,9 @@ begin
   -- Limpeza sem arquivo restante = serviço feito: o sentinela acaba aqui, sem depender de a função desarmar.
   if p_tipo = 'limpar' and not exists (select 1 from public.arquivos a where a.tarefa_id = p_tarefa) then return; end if;
   if p_tipo = 'postar' then
-    select coalesce(max(rodadas) filter (where status not in ('postado', 'erro')), 0), coalesce(bool_or(status not in ('postado', 'erro')), false), count(*) > 0
-      into v_rodadas, v_aberto, v_tem from public.postagens where tarefa_id = p_tarefa;
+    select coalesce(max(p.rodadas) filter (where p.status not in ('postado', 'erro')), 0), coalesce(bool_or(p.status not in ('postado', 'erro')), false), count(*) > 0
+      into v_rodadas, v_aberto, v_tem from public.postagens p join public.tarefas t on t.id = p.tarefa_id
+      where p.tarefa_id = p_tarefa and p.rede = any (t.postar_redes);  -- rede fora do card não conta
     if v_tem and not v_aberto then
       -- Todas as redes do card postadas e o card ainda em Aprovado (a função não conseguiu movê-lo): o banco move (o gatilho arma a limpeza).
       if not exists (select 1 from public.tarefas t, unnest(t.postar_redes) r where t.id = p_tarefa
@@ -388,6 +389,18 @@ do $$ begin
 end $$;
 drop function if exists private.postar_vencidos();
 
+-- Tirar uma rede do card apaga a linha dela que ainda não saiu (fila/erro): rede fora do card não segura o Postado nem o sentinela.
+create or replace function private.tarefas_redes_limpa() returns trigger
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  delete from public.postagens p where p.tarefa_id = new.id and p.status in ('fila', 'erro') and not p.rede = any (new.postar_redes);
+  return new;
+end $$;
+drop trigger if exists tarefas_redes_limpa on public.tarefas;
+create trigger tarefas_redes_limpa after update of postar_redes on public.tarefas
+  for each row when (new.postar_redes is distinct from old.postar_redes) execute function private.tarefas_redes_limpa();
+
 -- 11. RPCs da tela
 create or replace function public.postar_agora(p_tarefa uuid) returns void
 language plpgsql security definer set search_path = ''
@@ -410,7 +423,10 @@ begin
   if not exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'aprovado' and (select private.pode_aprovar(t.aprovador))) then
     raise exception 'so o Natham ou o aprovador tenta de novo' using errcode = '42501';
   end if;
-  update public.postagens set status = 'fila', erro = null where tarefa_id = p_tarefa and status = 'erro';
+  -- rede tirada do card depois do erro: a linha é apagada (sem status novo); só as redes escolhidas voltam para a fila
+  delete from public.postagens p using public.tarefas t where t.id = p_tarefa and p.tarefa_id = t.id and p.status in ('fila', 'erro') and not p.rede = any (t.postar_redes);
+  update public.postagens p set status = 'fila', erro = null from public.tarefas t
+    where p.tarefa_id = p_tarefa and t.id = p.tarefa_id and p.status = 'erro' and p.rede = any (t.postar_redes);
   perform private.alarme_tocou('postar', p_tarefa, 0);
 end $$;
 revoke all on function public.tentar_de_novo(uuid) from public, anon;
