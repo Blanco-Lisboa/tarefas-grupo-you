@@ -3,7 +3,7 @@
 ## 1. Estado
 - NO AR: rodada 245–257 (dpl_3ZiBvSJyWQ9Ypai9nNAtc9Aub2bv, 5012764). Pastas maiores em /pastas (Mapa igual); pasta repetida da Beec apagada (023); pasta "Ideias de conteúdo" = Mural de folhas (colunas por categoria, edita na folha, sem arrastar entre colunas, cabeçalho igual Esteira, leque no hover).
 - Ideias SAÍRAM do localStorage para o BANCO (024: ideias.seq + ideias_categorias; 025: ideias.links text[]). Colados pelo Natham e conferidos. Compartilhadas Natham/Matheus. Exemplos foram junto (escolha dele: "levar e eu apago o que não quiser"); as 2 da You voltaram para Ganchos.
-- PRONTO PARA IR AO AR (item 262): a653cc5 = 259–260 (confirmação ao tirar link + links em chips lado a lado) + 261 (consertos da Lupa 1, 4, 6, 7, 8, 9) + 261-r1. Cópia limpa em `Desktop/Sistemas-Grupo-You/.publicar-262`, build ok; comando em `2026-10-21-PUBLICAR-262.md` (o Natham roda com `!`). Se já publicado, o item 262 da leva diz.
+- NO AR desde 21/10 ~19h45 (dpl_7kM3kfaw…) — item 262: a653cc5 = 259–260 (confirmação ao tirar link + links em chips lado a lado) + 261 (consertos da Lupa 1, 4, 6, 7, 8, 9) + 261-r1. Cópia limpa em `Desktop/Sistemas-Grupo-You/.publicar-262`, build ok; comando em `2026-10-21-PUBLICAR-262.md` (o Natham roda com `!`). Se já publicado, o item 262 da leva diz.
 - Revisão: `2026-10-21-lupa-245-257.md` (revisão + Re-revisão 1). O médio da Re-revisão 1 foi consertado em a653cc5 (regex exato + teste); o Maestro leu o diff, sem Re-revisão 2.
 
 ## 2. Pendências (de propósito, não feitas)
