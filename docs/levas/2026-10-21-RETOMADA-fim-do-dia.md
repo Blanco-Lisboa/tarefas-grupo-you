@@ -29,5 +29,9 @@
 - O Natham mandou print com a chave temporária do Supabase visível → foi revogada no fim do Bloco C (nunca usar chave de print).
 - Codex (Lupa #2) para em pedidos de permissão (Docker/commit); o Maestro aprova com `maestri ask "Lupa #2" --raw "2"` e vigia com um laço de `maestri check`.
 
-## 6. Terminais
-Alvenaria, Sextante, Pena, Vitral (Claude) e Lupa #2 (Codex) ficaram com contexto da rodada; limpar antes da próxima.
+## 6. Arrumação feita no fim (21/10 ~15h)
+- Terminais Alvenaria, Sextante, Pena, Vitral e Lupa #2 LIMPOS (/clear).
+- Cópias limpas temporárias removidas (.publicar-privacidade, .publicar-drive, .publicar-193-207); `git worktree list` só tem o repo. Sobrou a pasta vazia `Sistemas-Grupo-You/.publicar-drive/supabase/_colar` presa por uma janela aberta (Bloco de Notas/Explorador): pode apagar pelo Explorador.
+- Servidores locais seguem ligados: 3100 (banco real) e 3101 (cópia de exemplo, `npm run exemplo`).
+- GitHub (Blanco-Lisboa/tarefas-grupo-you) igual ao PC até a4674a7; este ajuste da RETOMADA é 1 commit a mais (sobe no próximo push).
+- Próxima sessão: começar por aqui; o próximo grande passo é a postagem automática (§2).
