@@ -161,3 +161,64 @@ describe("2a volta da Lupa: nunca apagar nem abandonar um arquivo que existe", (
     expect([...m.g.estado.arquivos.values()].filter((a) => !a.folder && !a.trashed)).toHaveLength(1);
   });
 });
+
+describe("3a volta da Lupa: a ocasião do card muda durante o envio", () => {
+  const trocarOcasiao = async (m: ReturnType<typeof montar>) => {
+    const r = await m.tratar(new Request("https://f", { method: "POST", headers: { authorization: "Bearer tok-n", origin: "https://app" }, body: JSON.stringify({ acao: "criar_ocasiao", empresa_id: "you", nome: "Outra ocasião" }) }));
+    const nova = ((await r.json()) as { ocasiao: { id: string } }).ocasiao.id;
+    m.b.estado.tabelas.tarefas[0].ocasiao_id = nova;
+    return m.b.estado.tabelas.ocasioes.find((o) => o.id === nova)!.drive_pasta_id as string;
+  };
+
+  it("o servidor MOVE o arquivo para a pasta atual do card e registra (não recusa nem deixa na pasta antiga)", async () => {
+    const m = montar();
+    const chamar = (corpo: object) => m.tratar(new Request("https://f", { method: "POST", headers: { authorization: "Bearer tok-n", origin: "https://app" }, body: JSON.stringify(corpo) }));
+    const s = (await (await chamar({ acao: "sessao_envio", tarefa_id: "t1", nome: "a.mp4", tipo: "video", mime: "video/mp4", tamanho: 4, papel: "anexo" })).json()) as { sessao_url: string };
+    const id = ((await (await m.g.fetch(s.sessao_url, { method: "PUT", headers: { "content-range": "bytes 0-3/4" }, body: new Uint8Array(4) })).json()) as { id: string }).id;
+    const pastaNova = await trocarOcasiao(m);
+    const r = await chamar({ acao: "confirmar_envio", tarefa_id: "t1", drive_id: id, nome: "a.mp4", tipo: "video", tamanho: 4, papel: "anexo", ordem: 0 });
+    expect(r.status).toBe(200);
+    expect(m.g.estado.arquivos.get(id)!.parents).toEqual([pastaNova]);
+    expect(m.g.estado.arquivos.get(id)!.trashed).toBe(false);
+    expect(m.b.estado.tabelas.arquivos).toHaveLength(1);
+  });
+
+  it("no navegador: cai a rede, a ocasião muda, a nova tentativa confirma o MESMO arquivo (1 no Drive, na pasta nova, 1 linha)", async () => {
+    const memoria = new Map<string, string>();
+    vi.stubGlobal("localStorage", { getItem: (k: string) => memoria.get(k) ?? null, setItem: (k: string, v: string) => void memoria.set(k, v), removeItem: (k: string) => void memoria.delete(k) });
+    process.env.NEXT_PUBLIC_SUPABASE_URL = URL_FALSA;
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "chave-anon-falsa";
+    const m = montar();
+    let n = 0, pastaNova = "";
+    vi.stubGlobal("fetch", (async (e: RequestInfo | URL, i?: RequestInit) => {
+      const url = new Request(e).url;
+      if (url === `${URL_FALSA}/functions/v1/drive`) {
+        if (String(i?.body).includes("confirmar_envio") && ++n === 1) throw new TypeError("rede caiu");
+        return m.tratar(new Request(url, { method: "POST", headers: i?.headers as HeadersInit, body: i?.body as string }));
+      }
+      return m.base(e, i);
+    }) as typeof fetch);
+    const arquivo = new File([new Uint8Array(10)], "reels.mp4", { type: "video/mp4", lastModified: 9 });
+    await expect(enviarParaDrive("t1", arquivo, "anexo", 0)).rejects.toThrow();
+    pastaNova = await trocarOcasiao(m);
+    const feito = await enviarParaDrive("t1", arquivo, "anexo", 0);
+    const noDrive = [...m.g.estado.arquivos.values()].filter((a) => !a.folder);
+    expect(noDrive).toHaveLength(1);
+    expect(noDrive[0].parents).toEqual([pastaNova]);
+    expect(feito.driveId).toBe(noDrive[0].id);
+    expect(m.b.estado.tabelas.arquivos).toHaveLength(1);
+  });
+
+  it("arquivo incompleto vai para a lixeira (não fica órfão) e a anotação pode cair; arquivo fora das pastas do sistema só é recusado", async () => {
+    const m = montar();
+    const chamar = (corpo: object) => m.tratar(new Request("https://f", { method: "POST", headers: { authorization: "Bearer tok-n", origin: "https://app" }, body: JSON.stringify(corpo) }));
+    const s = (await (await chamar({ acao: "sessao_envio", tarefa_id: "t1", nome: "a.mp4", tipo: "video", mime: "video/mp4", tamanho: 8, papel: "anexo" })).json()) as { sessao_url: string };
+    const parcial = ((await (await m.g.fetch(s.sessao_url, { method: "PUT", headers: { "content-range": "bytes 0-7/8" }, body: new Uint8Array(8) })).json()) as { id: string }).id;
+    const r1 = await chamar({ acao: "confirmar_envio", tarefa_id: "t1", drive_id: parcial, nome: "a.mp4", tipo: "video", tamanho: 999, papel: "anexo", ordem: 0 });
+    expect(r1.status).toBe(422);
+    expect(m.g.estado.arquivos.get(parcial)!.trashed).toBe(true);
+    const alheio = m.g.estado.semear("alheio.mp4", new Uint8Array(4), "video/mp4", ["pasta-que-nao-e-nossa"]);
+    expect((await chamar({ acao: "confirmar_envio", tarefa_id: "t1", drive_id: alheio.id, nome: "a.mp4", tipo: "video", tamanho: 4, papel: "anexo", ordem: 0 })).status).toBe(422);
+    expect(m.g.estado.arquivos.get(alheio.id)!.trashed).toBe(false);
+  });
+});

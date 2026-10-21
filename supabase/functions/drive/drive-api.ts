@@ -43,6 +43,10 @@ export function criarDriveApi(c: Contexto) {
     async ver(id: string): Promise<ArquivoDrive> {
       return (await (await chamar(`${arq(id)}?fields=id,parents,size,mimeType,trashed`)).json()) as ArquivoDrive;
     },
+    /** Muda o arquivo de pasta (addParents/removeParents), sem copiar nada. */
+    async mover(id: string, para: string, de: string[]) {
+      await chamar(`${arq(id)}?fields=id&addParents=${encodeURIComponent(para)}${de.length ? `&removeParents=${encodeURIComponent(de.join(","))}` : ""}`, { method: "PATCH", body: "{}" });
+    },
     /** Manda para a lixeira do Google (volta por 30 dias). Arquivo que já não existe conta como feito. */
     async lixeira(id: string) {
       try {

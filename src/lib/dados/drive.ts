@@ -107,8 +107,9 @@ export async function enviarParaDrive(tarefaId: string, arquivo: File, papel: "a
   try {
     ({ arquivo_id } = await chamar<{ arquivo_id: string }>({ acao: "confirmar_envio", tarefa_id: tarefaId, drive_id: driveId, nome: arquivo.name, tipo, tamanho: arquivo.size, papel, ordem }));
   } catch (e) {
-    // O arquivo continua no Drive: a anotação fica e a próxima tentativa só confirma. Só se descarta quando o servidor diz que o arquivo não serve mais
-    // (não existe, lixeira, pasta errada ou tamanho errado: 410/422); aí o próximo envio é novo e não deixa o antigo solto.
+    // O arquivo continua no Drive: a anotação fica e a próxima tentativa só confirma. Só se descarta quando o servidor diz que o arquivo não serve:
+    // 410 (não existe ou está na lixeira) ou 422 (incompleto, e o servidor já o mandou para a lixeira, ou fora das pastas do sistema).
+    // Ocasião que mudou durante o envio NÃO é motivo: o servidor move o arquivo para a pasta atual do card.
     if (e instanceof ErroServidor && (e.status === 410 || e.status === 422)) { anotacao(chave, null); throw e; }
     throw new Error("Não deu para confirmar o envio, tente de novo.", { cause: e });
   }

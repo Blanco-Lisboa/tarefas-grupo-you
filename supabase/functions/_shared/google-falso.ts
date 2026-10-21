@@ -95,6 +95,8 @@ export function criarGoogleFalso(opcoes: { clientId?: string; clientSecret?: str
       }
       if (req.method === "PATCH") {
         const c = (await req.json()) as { name?: string; trashed?: boolean };
+        const novos = u.searchParams.get("addParents"), velhos = u.searchParams.get("removeParents")?.split(",") ?? [];
+        if (novos || velhos.length) a.parents = [...a.parents.filter((p) => !velhos.includes(p)), ...(novos ? [novos] : [])];
         if (c.name !== undefined) a.name = c.name;
         if (c.trashed !== undefined) a.trashed = c.trashed;
         return json({ id: a.id });

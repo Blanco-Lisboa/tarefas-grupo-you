@@ -162,12 +162,15 @@ export function criarManipulador(d: Deps) {
           throw e;
         });
         if (f.trashed) throw new Recusa(410, "O arquivo foi para a lixeira do Drive.");
-        // arquivo fora da pasta do card NÃO é nosso: só recusa, nunca mexe nele
-        if (!f.parents?.includes(pasta) || f.mimeType === "application/vnd.google-apps.folder") throw new Recusa(422, "O arquivo não está na pasta deste card.");
+        // Só é envio nosso se está numa pasta de ocasião que o app criou (a sessão de envio sempre abre o arquivo lá). Fora disso não é nosso: só recusa, nunca mexe nele.
+        const pastasNossas = new Set((await s.ler<{ drive_pasta_id: string | null }>("ocasioes", {}, "drive_pasta_id")).flatMap((o) => (o.drive_pasta_id ? [o.drive_pasta_id] : [])));
+        if (f.mimeType === "application/vnd.google-apps.folder" || !f.parents?.some((p) => pastasNossas.has(p))) throw new Recusa(422, "O arquivo não está numa pasta deste sistema.");
         if (Number(f.size) !== tamanho) {
-          await d.api.lixeira(driveId).catch(() => {}); // nesta pasta é um envio nosso que ficou pela metade
+          await d.api.lixeira(driveId).catch(() => {}); // é um envio nosso que ficou pela metade: não serve, vai para a lixeira em vez de ficar solto
           throw new Recusa(422, "O arquivo não chegou inteiro ao Drive. Tente de novo.");
         }
+        // A ocasião do card pode ter mudado durante o envio: o arquivo é bom, então SEGUE para a pasta atual do card (não se descarta nem se deixa na antiga sem registro)
+        if (!f.parents?.includes(pasta)) await d.api.mover(driveId, pasta, f.parents ?? []);
         try {
           const [l] = await s.inserir<{ id: string }>("arquivos", { tarefa_id: tarefaId, drive_id: driveId, nome, tipo, tamanho, papel, ordem, criado_por: pessoa.id });
           return { arquivo_id: l.id };
