@@ -12,7 +12,7 @@ import { paraDia, paraHora } from "@/components/calendario/logica";
 import { CampoData } from "@/components/ui/CampoData";
 import { podeAprovar } from "./Aprovacao";
 import { Confirmar } from "./Confirmar";
-import { CANCELADA, NOME_REDE, carrosselComVideo, faltaParaPostar, programacaoCancelada, redesDe, redesValidas, situacao, textoRedes } from "./postagem";
+import { CANCELADA, NOME_REDE, SO_FACEBOOK, carrosselComVideo, carrosselSoFacebook, faltaParaPostar, programacaoCancelada, redesDe, redesValidas, situacao, textoRedes } from "./postagem";
 
 type Props = {
   salvo: Tarefa; rascunho: NovaTarefa;
@@ -40,6 +40,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const aprova = podeAprovar(salvo, eu);
   const sit = situacao(salvo);
   const cancelada = programacaoCancelada(salvo);
+  const ajuste = !cancelada && carrosselSoFacebook(salvo, salvo.formato, redesDe(salvo)); // programado assim antes do conserto: o próximo salvar cancela
   const redes = redesDe(rascunho);
   const soInstagram = carrosselComVideo(rascunho, rascunho.formato);
   const valem = redesValidas(rascunho, rascunho.formato, redes);
@@ -59,7 +60,8 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
     <fieldset className="ficha-campo publicacao"><legend>Publicação</legend>
       {salvo.empresaId !== "you" ? <p className="ficha-dica ficha-dica-fica">Postagem automática só para a You (por enquanto).</p> : <>
         {sit?.tipo === "postando" && <p className="aprovacao-situacao" data-tipo="postando" role="status">Postando…</p>}
-        {sit?.tipo === "programado" && <p className="aprovacao-situacao">{sit.texto}</p>}
+        {sit?.tipo === "programado" && !ajuste && <p className="aprovacao-situacao">{sit.texto}</p>}
+        {ajuste && <div className="aprovacao-erro" role="alert"><p>Precisa de ajuste: {SO_FACEBOOK} Ao salvar, a programação é cancelada.</p></div>}
         {!sit && !cancelada && <p className="aprovacao-situacao">Sem programação.</p>}
         {cancelada && <div className="aprovacao-erro" role="alert"><p>{CANCELADA}</p></div>}
         {sit?.tipo === "erro" && (

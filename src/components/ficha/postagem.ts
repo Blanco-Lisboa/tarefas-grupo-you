@@ -74,5 +74,7 @@ export function estadoDoCard(t: Pick<Tarefa, "empresaId" | "postagens" | "postar
   if (sit?.tipo === "postando") return { texto: "Postando…", tom: "postando" };
   if (sit?.tipo === "erro") return { texto: "Erro ao postar: abra o card", tom: "erro" };
   if (programacaoCancelada(t)) return { texto: "Programação cancelada: abra o card", tom: "erro" };
+  // Programado assim antes do conserto (dado antigo): a função recusaria; o próximo salvar cancela a programação.
+  if (carrosselSoFacebook(t, t.formato, redesDe(t))) return { texto: "Precisa de ajuste: abra o card", tom: "erro" };
   return sit ? { texto: sit.texto, tom: "normal" } : { texto: "Sem programação", tom: "normal" };
 }

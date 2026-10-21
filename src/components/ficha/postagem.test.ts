@@ -55,5 +55,7 @@ describe("linha única do card Aprovado (botões na ficha)", () => {
   });
   it("carrossel com vídeo só para o Facebook e sem data = programação cancelada (achado 6, 3ª volta)", () => {
     expect(estadoDoCard({ empresaId: "you", formato: "carrossel", arquivos: [img, vid], postarRedes: ["facebook"] })).toEqual({ texto: "Programação cancelada: abra o card", tom: "erro" });
+    // ainda programado assim (dado de antes do conserto): não diz "Programado"
+    expect(estadoDoCard({ empresaId: "you", formato: "carrossel", arquivos: [img, vid], postarRedes: ["facebook"], postarEm: "2026-10-28T11:00" })).toEqual({ texto: "Precisa de ajuste: abra o card", tom: "erro" });
   });
 });
