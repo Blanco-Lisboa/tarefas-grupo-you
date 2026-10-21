@@ -5,7 +5,7 @@
 // e posta sozinho o card Aprovado quando a hora marcada chega. Nada sai do PC. Sem PREVIA, é o banco da prova (fotos.mjs).
 // Regras copiadas do 019 que a prova precisa ver: só Natham/aprovador leva Aprovado -> Postado (42501); Aprovado/Postado só para Postagem (23514).
 import { createServer } from "node:http";
-import { readFileSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 
 const PREVIA = process.env.PREVIA === "1";
 const PORTA = Number(process.env.PORTA ?? 3397);
@@ -37,6 +37,8 @@ const tarefas = [
   t("Reels: 5 erros no IR", { etapa: "edicao", conserto: true, formato: "reels" }),
   // Achado 3 da Lupa no Correio: carrossel com vídeo gravado com as duas redes (antes do conserto); salvar a ficha grava só o Instagram.
   t("Carrossel com vídeo antigo", { formato: "carrossel", postar_em: "2026-10-27T10:00" }),
+  // Achado 6 (3ª volta da Lupa): programado só para o Facebook e o carrossel ganhou vídeo; salvar a ficha cancela a programação.
+  t("Carrossel só Facebook", { formato: "carrossel", postar_em: "2026-10-28T11:00", postar_redes: ["facebook"] }),
 ];
 const id = (titulo) => tarefas.find((x) => x.titulo === titulo).id;
 const arq = (titulo, nome, tipo, extra = {}) => ({ id: `a-${nome}`, tarefa_id: id(titulo), caminho: null, drive_id: `drive-${nome}`, nome, tipo, tamanho: 1, ordem: 0, papel: "anexo", ...extra });
@@ -48,6 +50,7 @@ const arquivos = [
   arq("Reels: vale a pena abrir MEI?", "mei.mp4", "video"),
   arq("Post sem legenda", "sem.png", "imagem"),
   arq("Carrossel com vídeo antigo", "antigo-1.jpg", "imagem"), arq("Carrossel com vídeo antigo", "antigo-2.mp4", "video", { ordem: 1 }),
+  arq("Carrossel só Facebook", "sofb-1.jpg", "imagem"), arq("Carrossel só Facebook", "sofb-2.mp4", "video", { ordem: 1 }),
 ];
 const postagens = [
   { tarefa_id: id("Carrossel: prazo do MEI"), rede: "instagram", status: "postado", link: "https://www.instagram.com/p/EXEMPLO1/", erro: null, postado_em: "2026-10-20T12:00:00Z" },
@@ -65,6 +68,15 @@ if (PREVIA) {
   const hoje = new Date(), dia = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
   Object.assign(tarefas.find((x) => x.titulo === "Depoimento de cliente"), { postar_em: `${dia}T09:00`, inicio: `${dia}T09:00` });
   for (const x of tarefas) if (x.postar_em && !x.inicio) x.inicio = x.postar_em;
+}
+// Prévia: vídeo REAL do Adrian, pedido do Natham. Lido direto do lugar original, em pedaços (nunca copiado, movido nem enviado).
+const NO_DISCO = new Map();
+const ADRIAN = "C:\\Users\\Natham Monteiro\\Desktop\\Adrian Reels - Calculo do Simples Nacional-corrigido.mp4";
+if (PREVIA && existsSync(ADRIAN)) {
+  tarefas.push(t("Adrian Reels - Calculo do Simples Nacional", { formato: "reels", postar_redes: ["instagram", "facebook"],
+    legenda: "Como calcular o Simples Nacional sem erro: o Adrian mostra o passo a passo. Salve para consultar depois! #SimplesNacional #Contabilidade" }));
+  arquivos.push(arq("Adrian Reels - Calculo do Simples Nacional", "adrian.mp4", "video", { tamanho: statSync(ADRIAN).size }));
+  NO_DISCO.set("drive-adrian.mp4", ADRIAN);
 }
 // Prévia: Drive de mentira (bytes na memória) e a função de postar simulada.
 const driveBytes = new Map();
@@ -131,6 +143,15 @@ createServer(async (req, res) => {
     return;
   }
   if (PREVIA && url.pathname.startsWith("/drive-video/")) {
+    const caminho = NO_DISCO.get(arquivos.find((a) => a.id === url.pathname.split("/")[2])?.drive_id);
+    if (caminho) {
+      // Arquivo grande: responde no máximo 4 MB por pedido (Range), como o link do Vitral; o <video> pede o resto quando precisa.
+      const total = statSync(caminho).size;
+      const [, a = "0", b] = /bytes=(\d+)-(\d*)/.exec(req.headers.range ?? "") ?? [];
+      const ini = Number(a), fim = Math.min(b ? Number(b) : total - 1, ini + 4 * 1024 * 1024 - 1, total - 1);
+      res.writeHead(206, { "content-type": "video/mp4", "accept-ranges": "bytes", "content-range": `bytes ${ini}-${fim}/${total}`, "content-length": fim - ini + 1 });
+      return createReadStream(caminho, { start: ini, end: fim }).pipe(res);
+    }
     const bytes = driveBytes.get(arquivos.find((a) => a.id === url.pathname.split("/")[2])?.drive_id) ?? VIDEO;
     const [, a, b] = /bytes=(\d+)-(\d*)/.exec(req.headers.range ?? "") ?? [];
     if (a === undefined) return res.writeHead(200, { "content-type": "video/mp4", "accept-ranges": "bytes", "content-length": bytes.length }).end(bytes);
@@ -167,7 +188,8 @@ createServer(async (req, res) => {
       const aprova = eu?.slug === "natham" || eu?.slug === (atual?.aprovador ?? "").toLowerCase();
       if (["aprovado", "postado"].includes(c.p.etapa) && c.p.tipo !== "postagem") return json(res, 400, { code: "23514", message: "so card do tipo Postagem vai para Aprovado ou Postado; os outros terminam em Concluir" });
       if (atual?.etapa === "aprovado" && c.p.etapa === "postado" && !aprova) return json(res, 403, { code: "42501", message: "so o Natham ou o aprovador" });
-      if (atual) Object.assign(atual, c.p); else tarefas.push({ ...c.p, tarefa_tags: [] });
+      // Como o salvar_tarefa do banco: numa edição, dono, criado_por e enviada_por não mudam.
+      if (atual) { const { dono_id: _d, criado_por: _c, enviada_por: _e, ...resto } = c.p; Object.assign(atual, resto); } else tarefas.push({ ...c.p, tarefa_tags: [] });
       return res.writeHead(204).end();
     }
     if (rpc === "postar_agora") {

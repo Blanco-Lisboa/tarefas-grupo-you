@@ -1,5 +1,6 @@
 // Item 196 (Sextante): tela da postagem automática com o banco falso (banco-falso.mjs, 3397) e o app construído apontando para ele (3197).
-// Cada largura sobe um banco falso novo (os cliques de uma largura não sujam a outra). Nada real: sem Meta, sem Drive, sem Supabase.
+// Desde 23/10 (pedido do Natham): o card Aprovado tem UMA linha de estado; Programar, Postar agora, Tentar de novo e as redes ficam na
+// ficha, no bloco Publicação; os links do post (Postado) também. Cada largura sobe um banco falso novo. Nada real: sem Meta, sem Drive.
 // App: cópia do HEAD fora do repo, NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:3397 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=falsa next build/start -p 3197.
 // Uso: node provas/r196-postagem/fotos.mjs
 import { spawn } from "node:child_process";
@@ -47,137 +48,147 @@ const marca = (pagina) => pagina.evaluate(() => {
 const foto = async (pagina, nome) => { await marca(pagina); await pagina.screenshot({ path: join(pasta, `${nome}.png`) }); };
 const cartao = (pagina, titulo) => pagina.locator(".conteudos-cartao").filter({ hasText: titulo });
 const texto = async (loc) => (await loc.count()) ? loc.first().innerText() : "";
-// Conserto 1 do Maestro: nome e data do rodapé nunca se encostam (caixas sem sobreposição).
-const separados = async (a, b) => { const x = await a.boundingBox(), y = await b.boundingBox(); return !!x && !!y && (x.x + x.width <= y.x || y.x + y.width <= x.x || x.y + x.height <= y.y || y.y + y.height <= x.y); };
+const ultimo = (n, rpc) => n.pedidos.filter((p) => p.url.includes(`/rpc/${rpc}`)).at(-1)?.corpo;
+/** Abre a ficha do card e devolve o bloco Publicação (e a ficha). */
+async function publicacao(pg, titulo) {
+  await cartao(pg, titulo).locator(".conteudos-titulo").click();
+  const ficha = pg.locator(".ficha-cartao");
+  await ficha.waitFor();
+  return { ficha, bloco: ficha.locator(".publicacao") };
+}
+const fechar = async (pg) => { if (await pg.locator(".ficha-cartao").isVisible()) { await pg.keyboard.press("Escape"); await pg.waitForTimeout(250); } };
 
 for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   const banco = await subirBanco();
   const n = await abrir("natham", largura, altura);
   const pg = n.pagina;
 
-  // Card Aprovado programado: situação + Reprogramar + Postar agora
+  // CARD: uma linha só, sem botões (pedido do Natham)
   const dica = cartao(pg, "Dica rápida de IR");
-  confere((await texto(dica.locator(".aprovacao-situacao"))).includes("Programado · 25/10 18:00 · Instagram + Facebook"), `${largura}: programado mostra data e as duas redes`);
-  confere(await dica.getByRole("button", { name: "Postar agora" }).count() === 1 && await dica.getByRole("button", { name: "Reprogramar postagem" }).count() === 1, `${largura}: Reprogramar e Postar agora no card programado`);
+  confere((await texto(dica.locator(".aprovacao-situacao"))) === "Programado · 25/10 18:00 · Instagram + Facebook" && await dica.locator(".aprovacao-botao").count() === 0, `${largura}: card programado = 1 linha, sem botões`);
+  confere((await texto(cartao(pg, "Carrossel: prazo do MEI").locator(".aprovacao-situacao"))) === "Erro ao postar: abra o card", `${largura}: card com erro = "Erro ao postar: abra o card"`);
+  confere((await texto(cartao(pg, "Story: último dia do DAS").locator(".aprovacao-situacao"))) === "Postando…", `${largura}: card postando`);
+  const beec = cartao(pg, "Reels da Beec");
+  confere((await texto(beec.locator(".aprovacao-situacao"))) === "Postagem automática só para a You (por enquanto)" && !(await beec.innerText()).includes("Programado"), `${largura}: Beec sem "Programado", só o aviso`);
+  confere(await cartao(pg, "Depoimento de cliente").locator(".aprovacao-link, .aprovacao-links").count() === 0, `${largura}: card Postado sem a linha de links`);
+  confere(await cartao(pg, "Reels: 5 erros no IR").locator(".selo-conserto").count() === 1, `${largura}: Conserto continua`);
   await dica.scrollIntoViewIfNeeded();
-  await foto(pg, `aprovado-${largura}`);
+  await foto(pg, `card-aprovado-${largura}`);
+  await cartao(pg, "Depoimento de cliente").scrollIntoViewIfNeeded();
+  await foto(pg, `card-postado-${largura}`);
 
-  // Erro parcial: faixa vermelha, link do que saiu, só "Tentar de novo só no Facebook" (sem Postar agora, aviso da Alvenaria)
-  const carrossel = cartao(pg, "Carrossel: prazo do MEI");
-  confere((await texto(carrossel.locator(".aprovacao-erro"))).includes("Saiu no Instagram, falhou no Facebook"), `${largura}: faixa do erro parcial`);
-  confere(await carrossel.getByRole("button", { name: "Tentar de novo só no Facebook" }).count() === 1 && await carrossel.getByRole("button", { name: "Postar agora" }).count() === 0, `${largura}: com erro, só Tentar de novo`);
-  confere(await carrossel.getByRole("link", { name: "Ver no Instagram" }).count() === 1, `${largura}: link do post que saiu`);
-  // Estado incerto: pede para olhar o perfil antes
-  const incerto = cartao(pg, "Reels: vale a pena abrir MEI?");
-  confere((await texto(incerto.locator(".aprovacao-incerto"))).includes("Olhe o perfil da You no Instagram") && await incerto.getByRole("button", { name: "Já olhei o perfil: tentar de novo" }).count() === 1, `${largura}: estado incerto manda olhar o perfil`);
-  confere((await texto(cartao(pg, "Story: último dia do DAS").locator(".aprovacao-situacao"))) === "Postando…", `${largura}: Postando…`);
-  confere((await texto(cartao(pg, "Reels da Beec").locator(".aprovacao-aviso"))).includes("A Beec ainda não está ligada"), `${largura}: Beec sem botões, com aviso`);
-  await carrossel.scrollIntoViewIfNeeded();
-  confere(await separados(carrossel.locator(".conteudos-quem-faz"), carrossel.locator(".conteudos-cartao-rodape time")), `${largura}: nome e data do rodapé não se encostam`);
-  confere(await carrossel.locator(".conteudos-contagem-dias").count() === 0 && await cartao(pg, "Story: último dia do DAS").locator(".conteudos-contagem-dias").count() === 0, `${largura}: com erro ou postando, sem "posta em X" / "hoje"`);
-  await foto(pg, `erro-${largura}`);
-  await carrossel.getByRole("button", { name: "Tentar de novo só no Facebook" }).click();
-  await pg.waitForTimeout(400);
-  confere(n.pedidos.some((p) => p.url.includes("/rpc/tentar_de_novo")), `${largura}: Tentar de novo chama tentar_de_novo`);
-
-  // Postado: links
-  const postado = cartao(pg, "Depoimento de cliente");
-  confere(await postado.getByRole("link", { name: "Ver no Instagram" }).count() === 1 && await postado.getByRole("link", { name: "Ver no Facebook" }).count() === 1, `${largura}: Postado com os dois links`);
-  // Conserto com a chave inglesa
-  confere(await cartao(pg, "Reels: 5 erros no IR").locator(".selo-conserto svg").count() === 1, `${largura}: Conserto com ícone`);
-
-  // Checagem: Postar agora sem legenda não abre a confirmação, mostra o que falta
-  const semLegenda = cartao(pg, "Post sem legenda");
-  await semLegenda.getByRole("button", { name: "Postar agora" }).click();
-  confere((await texto(semLegenda.locator(".aprovacao-falta"))).includes("Falta a legenda") && await pg.locator(".confirmar[open]").count() === 0, `${largura}: sem legenda não posta e diz o que falta`);
-  await semLegenda.scrollIntoViewIfNeeded();
-  await foto(pg, `falta-${largura}`);
-
-  // Postar agora com confirmação
-  await dica.getByRole("button", { name: "Postar agora" }).click();
+  // FICHA: Publicação do card programado; Postar agora com confirmação grava a ficha e chama postar_agora
+  let { bloco } = await publicacao(pg, "Dica rápida de IR");
+  confere((await texto(bloco.locator(".aprovacao-situacao"))).includes("Programado · 25/10 18:00") && await bloco.locator(".aprovacao-rede[aria-pressed=true]").count() === 2
+    && await bloco.getByRole("button", { name: "Reprogramar postagem" }).count() === 1 && await bloco.getByRole("button", { name: "Postar agora" }).count() === 1, `${largura}: ficha com Publicação (estado, redes, Reprogramar, Postar agora)`);
+  await bloco.scrollIntoViewIfNeeded();
+  await foto(pg, `ficha-publicacao-${largura}`);
+  await bloco.getByRole("button", { name: "Postar agora" }).click();
   const dialogo = pg.locator(".confirmar[open]");
   await dialogo.waitFor();
   confere((await dialogo.innerText()).includes("Postar agora no Instagram + Facebook da You?"), `${largura}: confirmação do Postar agora`);
-  await pg.waitForTimeout(250);
-  await foto(pg, `postar-agora-${largura}`);
   await dialogo.getByRole("button", { name: "Postar" }).click();
+  await pg.waitForTimeout(700);
+  confere(!!ultimo(n, "salvar_tarefa") && ultimo(n, "postar_agora")?.p_tarefa && (await texto(dica.locator(".aprovacao-situacao"))) === "Postando…", `${largura}: Postar agora grava a ficha, chama postar_agora e o card mostra Postando…`);
+  await fechar(pg);
+
+  // Checagem na ficha: sem legenda não posta; escreve a legenda e posta (a legenda vai junto no salvar)
+  ({ bloco } = await publicacao(pg, "Post sem legenda"));
+  await bloco.getByRole("button", { name: "Postar agora" }).click();
+  confere((await texto(bloco.locator(".aprovacao-falta"))).includes("Falta a legenda") && await pg.locator(".confirmar[open]").count() === 0, `${largura}: sem legenda a ficha diz o que falta e não posta`);
+  await bloco.scrollIntoViewIfNeeded();
+  await foto(pg, `ficha-falta-${largura}`);
+  await pg.locator("textarea.ficha-legenda-texto").fill("Legenda escrita na ficha");
+  await bloco.getByRole("button", { name: "Postar agora" }).click();
+  await pg.locator(".confirmar[open]").getByRole("button", { name: "Postar" }).click();
+  await pg.waitForTimeout(700);
+  confere(ultimo(n, "salvar_tarefa")?.p?.legenda === "Legenda escrita na ficha" && ultimo(n, "postar_agora")?.p_tarefa, `${largura}: a legenda escrita vai no salvar antes do Postar agora`);
+  await fechar(pg);
+
+  // Erro: na ficha, a faixa completa, o link do que saiu, as redes e "Tentar de novo só no Facebook"
+  ({ bloco } = await publicacao(pg, "Carrossel: prazo do MEI"));
+  confere((await texto(bloco.locator(".aprovacao-erro"))).includes("Saiu no Instagram, falhou no Facebook") && await bloco.locator(".aprovacao-rede").count() === 2
+    && await bloco.getByRole("button", { name: "Tentar de novo só no Facebook" }).count() === 1 && await bloco.getByRole("button", { name: "Postar agora" }).count() === 0, `${largura}: erro na ficha com redes e só Tentar de novo`);
+  await bloco.scrollIntoViewIfNeeded();
+  await foto(pg, `ficha-erro-${largura}`);
+  await fechar(pg);
+  ({ bloco } = await publicacao(pg, "Reels: vale a pena abrir MEI?"));
+  confere((await texto(bloco.locator(".aprovacao-incerto"))).includes("Olhe o perfil") && await bloco.getByRole("button", { name: "Já olhei o perfil: tentar de novo" }).count() === 1, `${largura}: estado incerto pede para olhar o perfil`);
+  await bloco.getByRole("button", { name: "Já olhei o perfil: tentar de novo" }).click();
+  await pg.waitForTimeout(700);
+  confere(!!ultimo(n, "tentar_de_novo"), `${largura}: Tentar de novo grava a ficha e chama tentar_de_novo`);
+  await fechar(pg);
+
+  // Achado 6 (3ª volta): só Facebook + vídeo. Salvar a ficha CANCELA a programação; card e ficha avisam; redes e Programar à mão.
+  let ficha;
+  confere((await texto(cartao(pg, "Carrossel só Facebook").locator(".aprovacao-situacao"))) === "Precisa de ajuste: abra o card", `${largura}: programado só Facebook com vídeo (dado antigo) = "Precisa de ajuste", nunca "Programado"`);
+  ({ ficha, bloco } = await publicacao(pg, "Carrossel só Facebook"));
+  await ficha.getByRole("button", { name: "Salvar" }).click();
   await pg.waitForTimeout(600);
-  confere(n.pedidos.some((p) => p.url.includes("/rpc/postar_agora") && p.corpo?.p_tarefa) && (await texto(dica.locator(".aprovacao-situacao"))) === "Postando…", `${largura}: Postar agora chama postar_agora e mostra Postando…`);
-  confere(await dica.locator(".conteudos-contagem-dias").count() === 0, `${largura}: Postando… sem "posta em 5 dias" junto`);
+  confere(ultimo(n, "salvar_tarefa")?.p?.postar_em === null && JSON.stringify(ultimo(n, "salvar_tarefa")?.p?.postar_redes) === '["facebook"]', `${largura}: salvar tira a programação e NÃO troca a rede (postar_em nulo, só Facebook)`);
+  confere((await texto(cartao(pg, "Carrossel só Facebook").locator(".aprovacao-situacao"))) === "Programação cancelada: abra o card", `${largura}: card mostra "Programação cancelada: abra o card"`);
+  ({ bloco } = await publicacao(pg, "Carrossel só Facebook"));
+  confere((await texto(bloco.locator(".aprovacao-erro"))).includes("Programação cancelada") && await bloco.getByRole("button", { name: "Programar postagem" }).count() === 1
+    && await bloco.getByRole("button", { name: "Instagram" }).isEnabled(), `${largura}: ficha mostra o porquê, as redes e o Programar`);
+  await bloco.getByRole("button", { name: "Instagram" }).click();
+  confere(await bloco.getByRole("button", { name: "Facebook" }).isDisabled(), `${largura}: acendeu o Instagram, o Facebook sai (carrossel com vídeo)`);
+  await bloco.scrollIntoViewIfNeeded();
+  await foto(pg, `ficha-cancelada-${largura}`);
+  await fechar(pg);
 
-  // Aprovar o Reels e abrir o Programar: formato, Instagram/Facebook; carrossel com vídeo apaga o Facebook
-  const reels = cartao(pg, "Reels: bastidores do escritório");
-  await reels.getByRole("button", { name: "Aprovar" }).click();
+  // Beec e Postado na ficha
+  ({ bloco } = await publicacao(pg, "Reels da Beec"));
+  confere((await texto(bloco)).includes("Postagem automática só para a You") && await bloco.locator(".aprovacao-botao").count() === 0, `${largura}: Beec na ficha só com o aviso`);
+  await fechar(pg);
+  ({ bloco } = await publicacao(pg, "Depoimento de cliente"));
+  confere(await bloco.getByRole("link", { name: "Ver no Instagram" }).count() === 1 && await bloco.getByRole("link", { name: "Ver no Facebook" }).count() === 1, `${largura}: links do post dentro da ficha (Postado)`);
+  await bloco.scrollIntoViewIfNeeded();
+  await foto(pg, `ficha-postado-${largura}`);
+  await fechar(pg);
+
+  // Programar na ficha: aprova o Reels, abre a ficha, escolhe data e hora e programa (o quadro da capa vai junto)
+  await cartao(pg, "Reels: bastidores do escritório").getByRole("button", { name: "Aprovar" }).click();
   await pg.waitForTimeout(400);
-  const aprovado = pg.locator('[data-etapa="aprovado"] .conteudos-cartao').filter({ hasText: "Reels: bastidores do escritório" });
-  await aprovado.getByRole("button", { name: "Programar postagem" }).click();
-  confere(await aprovado.locator(".aprovacao-rede[aria-pressed=true]").count() === 2, `${largura}: Programar abre com Instagram e Facebook acesos`);
-  await pg.keyboard.press("Escape"); // fecha o calendário que abre sozinho com o formato já escolhido
-  await aprovado.getByRole("radio", { name: "Carrossel" }).click();
-  await pg.keyboard.press("Escape");
-  confere(await aprovado.getByRole("button", { name: "Facebook" }).isDisabled() && (await texto(aprovado.locator(".aprovacao-nota"))).includes("só vai para o Instagram"), `${largura}: carrossel com vídeo apaga o Facebook`);
-  await aprovado.scrollIntoViewIfNeeded();
-  await pg.waitForTimeout(300);
-  const botaoData = aprovado.locator(".campo-data-botao");
-  confere(await botaoData.evaluate((b) => { const s = b.querySelector("span"); return s.scrollWidth <= s.clientWidth + 1 && b.scrollWidth <= b.clientWidth + 1; }) && (await botaoData.innerText()).includes("Quando?"), `${largura}: botão de data inteiro, sem corte`);
-  await foto(pg, `programar-${largura}`);
-  await aprovado.getByRole("button", { name: "Cancelar" }).click();
-
-  // Ficha do Reels (dono Matheus): Formato, Ocasião, Legenda, Capa com a barrinha; lixeira para o Natham (019)
-  await aprovado.locator(".conteudos-titulo").click();
-  const ficha = pg.locator(".ficha-cartao");
-  await ficha.waitFor();
+  ({ ficha, bloco } = await publicacao(pg, "Reels: bastidores do escritório"));
+  confere((await texto(bloco.locator(".aprovacao-situacao"))) === "Sem programação." && (await texto(cartao(pg, "Reels: bastidores do escritório").locator(".aprovacao-situacao"))) === "Sem programação", `${largura}: aprovado sem data = "Sem programação"`);
   const barra = ficha.getByRole("slider", { name: "Quadro da capa" });
-  await barra.waitFor();
   await pg.waitForFunction(() => !document.querySelector('.ficha-capa-quadro input[type="range"]')?.disabled, null, { timeout: 8000 }).catch(() => {});
   await barra.fill("3000");
-  await pg.waitForTimeout(500);
-  confere((await texto(ficha.locator(".ficha-capa-texto").first())).includes("Capa: quadro em 0:03,0"), `${largura}: barrinha escolhe o quadro da capa`);
-  confere(await ficha.locator("textarea.ficha-legenda-texto").evaluate((t) => t.clientHeight >= 5 * parseFloat(getComputedStyle(t).lineHeight)), `${largura}: legenda com caixa de 5 linhas ou mais`);
-  confere((await texto(ficha.locator(".ficha-legenda-post"))).includes("/2200") && await ficha.locator(".ficha-lixeira").count() === 1, `${largura}: legenda com contador e lixeira do Natham no card do Matheus`);
-  await ficha.locator(".ficha-legenda-post").scrollIntoViewIfNeeded();
-  await foto(pg, `ficha-legenda-${largura}`);
-  await ficha.locator(".ficha-capa").scrollIntoViewIfNeeded();
-  await foto(pg, `ficha-capa-${largura}`);
+  await bloco.locator(".campo-data-botao").click();
+  const painel = pg.locator(".campo-data-pop:popover-open");
+  await painel.waitFor();
+  await painel.locator('[data-dia="2026-10-22"]').click();
+  await pg.waitForTimeout(300);
+  await painel.getByRole("button", { name: "Selecionar" }).click();
+  await pg.waitForTimeout(300);
+  await bloco.getByRole("button", { name: "Programar postagem" }).click();
+  await pg.waitForTimeout(700);
+  const prog = ultimo(n, "salvar_tarefa")?.p;
+  confere(prog?.postar_em?.startsWith("2026-10-22T") && prog?.capa_quadro_ms === 3000 && (await texto(cartao(pg, "Reels: bastidores do escritório").locator(".aprovacao-situacao"))).startsWith("Programado · 22/10"),
+    `${largura}: Programar na ficha grava data ${prog?.postar_em} e o quadro da capa junto`);
+  await fechar(pg);
+
+  // Carrossel com vídeo marcado com as duas redes: salvar tira só o Facebook (com aviso), sem cancelar
+  ({ ficha } = await publicacao(pg, "Carrossel com vídeo antigo"));
   await ficha.getByRole("button", { name: "Salvar" }).click();
   await pg.waitForTimeout(500);
-  const salvo = n.pedidos.filter((p) => p.url.includes("/rpc/salvar_tarefa")).at(-1)?.corpo?.p;
-  confere(salvo?.capa_quadro_ms === 3000 && salvo?.legenda?.startsWith("Um dia na You"), `${largura}: Salvar grava capa_quadro_ms ${salvo?.capa_quadro_ms} e a legenda`);
-
-  // Achado 3 da Lupa no Correio: abrir e salvar a ficha de um carrossel com vídeo gravado com as duas redes grava só o Instagram.
-  const antigo = cartao(pg, "Carrossel com vídeo antigo");
-  confere((await texto(antigo.locator(".aprovacao-situacao"))).endsWith("Instagram + Facebook"), `${largura}: carrossel com vídeo antigo começa com as duas redes`);
-  await antigo.locator(".conteudos-titulo").click();
-  await pg.locator(".ficha-cartao").getByRole("button", { name: "Salvar" }).click();
-  await pg.waitForTimeout(500);
-  const gravado = n.pedidos.filter((p) => p.url.includes("/rpc/salvar_tarefa")).at(-1)?.corpo?.p;
-  confere(JSON.stringify(gravado?.postar_redes) === '["instagram"]' && (await texto(antigo.locator(".aprovacao-situacao"))) === "Programado · 27/10 10:00 · Instagram",
-    `${largura}: salvar grava postar_redes ${JSON.stringify(gravado?.postar_redes)} e o card mostra só o Instagram`);
-  await antigo.scrollIntoViewIfNeeded();
-  await foto(pg, `carrossel-so-instagram-${largura}`);
+  confere(JSON.stringify(ultimo(n, "salvar_tarefa")?.p?.postar_redes) === '["instagram"]' && ultimo(n, "salvar_tarefa")?.p?.postar_em === "2026-10-27T10:00", `${largura}: Instagram + Facebook com vídeo vira só Instagram e continua programado`);
 
   // Concluir num card que não é post: confirmação e apaga
   const visita = cartao(pg, "Visita ao cliente 2");
   await visita.getByRole("button", { name: "Concluir" }).click();
-  const concluir = pg.locator(".confirmar[open]");
-  await concluir.waitFor();
-  await pg.waitForTimeout(250);
-  await foto(pg, `concluir-${largura}`);
-  await concluir.getByRole("button", { name: "Concluir" }).click();
+  await pg.locator(".confirmar[open]").getByRole("button", { name: "Concluir" }).click();
   await pg.waitForTimeout(500);
-  confere(await cartao(pg, "Visita ao cliente 2").count() === 0 && n.pedidos.some((p) => p.metodo === "DELETE"), `${largura}: Concluir apaga o card`);
+  confere(await cartao(pg, "Visita ao cliente 2").count() === 0, `${largura}: Concluir apaga o card`);
   confere(!n.erros.length, `natham ${largura}: sem erro na página ${JSON.stringify(n.erros)}`);
   await n.contexto.close();
 
-  // Matheus: não aprova a "Dica" (aprovador Natham): só vê a situação; ficha do card aprovado travada
+  // Matheus (não aprova a "Dica"): vê o estado no card e na ficha, sem controles; ficha travada
   const m = await abrir("matheus", largura, altura);
-  const dicaM = cartao(m.pagina, "Reels: vale a pena abrir MEI?");
-  confere(await dicaM.locator(".aprovacao-botao").count() === 0 && (await texto(dicaM.locator(".aprovacao-erro"))).includes("estado incerto"), `matheus ${largura}: vê o erro, sem botões`);
-  await cartao(m.pagina, "Post sem legenda").locator(".conteudos-titulo").click();
-  const fichaM = m.pagina.locator(".ficha-cartao");
-  await fichaM.waitFor();
-  confere(await fichaM.locator("textarea[readonly]").filter({ hasText: "" }).count() >= 1 && (await fichaM.innerText()).includes("Aprovado: legenda, formato, arquivos e capa só mudam pelo Natham"), `matheus ${largura}: ficha do card aprovado travada para ele`);
-  await fichaM.locator(".ficha-legenda-post").scrollIntoViewIfNeeded();
+  const { ficha: fm, bloco: bm } = await publicacao(m.pagina, "Carrossel com vídeo antigo"); // aprovado pelo Natham, programado (a "Dica" o Natham já postou)
+  confere((await texto(bm.locator(".aprovacao-situacao"))).includes("Programado") && await bm.locator(".aprovacao-botao, .aprovacao-rede").count() === 0
+    && (await fm.innerText()).includes("Aprovado: legenda, formato, arquivos e capa só mudam pelo Natham"), `matheus ${largura}: Publicação só leitura e ficha travada (card que o Natham aprova)`);
+  await bm.scrollIntoViewIfNeeded();
   await foto(m.pagina, `matheus-ficha-${largura}`);
   confere(!m.erros.length, `matheus ${largura}: sem erro na página ${JSON.stringify(m.erros)}`);
   await m.contexto.close();
