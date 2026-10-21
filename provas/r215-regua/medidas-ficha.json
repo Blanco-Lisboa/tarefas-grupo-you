@@ -1,0 +1,630 @@
+[
+  {
+    "width": 1903,
+    "title": "Reels: bastidores do escritório",
+    "data": {
+      ".ficha": {
+        "x": 584,
+        "y": 30,
+        "w": 720,
+        "h": 840,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 838,
+        "clientHeight": 838,
+        "text": "Postagem\nComeçar\nAprovar\nConsertar\nFechar\nTipo\nPostagem\nEmpresa\nRede\nFormato\nReels\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\nSem data\n"
+      },
+      ".ficha-faixa": {
+        "x": 585,
+        "y": 31,
+        "w": 718,
+        "h": 116,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 115,
+        "clientHeight": 115,
+        "text": "Postagem\nComeçar\nAprovar\nConsertar\nFechar"
+      },
+      ".ficha-corpo": {
+        "x": 585,
+        "y": 147,
+        "w": 718,
+        "h": 657,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 1148,
+        "clientHeight": 657,
+        "text": "Tipo\nPostagem\nEmpresa\nRede\nFormato\nReels\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\nSem data\n\nSem data: fica na coluna \"Sem data\" do ca"
+      },
+      ".ficha-capa": {
+        "x": 609,
+        "y": 722,
+        "w": 670,
+        "h": 258,
+        "scrollWidth": 676,
+        "clientWidth": 670,
+        "scrollHeight": 229,
+        "clientHeight": 258,
+        "text": "Capa do Reels\nCapa própria: arraste ou escolha uma imagem 9:16\n\nCapa: primeiro quadro.\n\nNo Facebook sai o quadro que a Meta escolher."
+      },
+      ".ficha-capa-quadro": {
+        "x": 609,
+        "y": 809,
+        "w": 670,
+        "h": 171,
+        "scrollWidth": 670,
+        "clientWidth": 670,
+        "scrollHeight": 171,
+        "clientHeight": 171,
+        "text": "Capa: primeiro quadro.\n\nNo Facebook sai o quadro que a Meta escolher."
+      },
+      ".ficha-capa-quadro video": {
+        "x": 609,
+        "y": 809,
+        "w": 96,
+        "h": 171,
+        "scrollWidth": 96,
+        "clientWidth": 96,
+        "scrollHeight": 171,
+        "clientHeight": 171,
+        "text": ""
+      },
+      ".ficha-capa-controles": {
+        "x": 721,
+        "y": 809,
+        "w": 558,
+        "h": 95,
+        "scrollWidth": 558,
+        "clientWidth": 558,
+        "scrollHeight": 95,
+        "clientHeight": 95,
+        "text": "Capa: primeiro quadro.\n\nNo Facebook sai o quadro que a Meta escolher."
+      },
+      ".ficha-capa-controles input": {
+        "x": 721,
+        "y": 809,
+        "w": 558,
+        "h": 40,
+        "scrollWidth": 556,
+        "clientWidth": 556,
+        "scrollHeight": 38,
+        "clientHeight": 38,
+        "text": ""
+      },
+      ".ficha-anexo-solta": {
+        "x": 609,
+        "y": 757,
+        "w": 670,
+        "h": 44,
+        "scrollWidth": 668,
+        "clientWidth": 668,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "text": "Capa própria: arraste ou escolha uma imagem 9:16"
+      },
+      ".publicacao": null,
+      ".ficha-legenda-texto": {
+        "x": 609,
+        "y": 572,
+        "w": 670,
+        "h": 138,
+        "scrollWidth": 668,
+        "clientWidth": 668,
+        "scrollHeight": 136,
+        "clientHeight": 136,
+        "text": ""
+      },
+      ".ficha-pe": {
+        "x": 585,
+        "y": 804,
+        "w": 718,
+        "h": 65,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 64,
+        "clientHeight": 64,
+        "text": "Cancelar\nSalvar"
+      }
+    }
+  },
+  {
+    "width": 1903,
+    "title": "Dica rápida de IR",
+    "data": {
+      ".ficha": {
+        "x": 584,
+        "y": 30,
+        "w": 720,
+        "h": 840,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 838,
+        "clientHeight": 838,
+        "text": "Postagem\nComeçar\nFechar\nTipo\nPostagem\nEmpresa\nRede\nFormato\nPost\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\n25/10/2026 · 18:00\nObjetivo\n"
+      },
+      ".ficha-faixa": {
+        "x": 585,
+        "y": 31,
+        "w": 718,
+        "h": 116,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 115,
+        "clientHeight": 115,
+        "text": "Postagem\nComeçar\nFechar"
+      },
+      ".ficha-corpo": {
+        "x": 585,
+        "y": 147,
+        "w": 718,
+        "h": 657,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 1018,
+        "clientHeight": 657,
+        "text": "Tipo\nPostagem\nEmpresa\nRede\nFormato\nPost\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\n25/10/2026 · 18:00\nObjetivo\nDescrição do post\n13/220"
+      },
+      ".ficha-capa": null,
+      ".ficha-capa-quadro": null,
+      ".ficha-capa-quadro video": null,
+      ".ficha-capa-controles": null,
+      ".ficha-capa-controles input": null,
+      ".ficha-anexo-solta": {
+        "x": 609,
+        "y": 1020,
+        "w": 618,
+        "h": 44,
+        "scrollWidth": 616,
+        "clientWidth": 616,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "text": "Anexos: arraste ou escolha imagem, vídeo ou documento"
+      },
+      ".publicacao": {
+        "x": 609,
+        "y": 676,
+        "w": 670,
+        "h": 174,
+        "scrollWidth": 670,
+        "clientWidth": 670,
+        "scrollHeight": 145,
+        "clientHeight": 174,
+        "text": "Publicação\n\nProgramado · 25/10 18:00 · Instagram + Facebook\n\n✓\nInstagram\n✓\nFacebook\n25/10/2026 · 18:00\nReprogramar postagem\nPostar agora"
+      },
+      ".ficha-legenda-texto": {
+        "x": 609,
+        "y": 526,
+        "w": 670,
+        "h": 138,
+        "scrollWidth": 668,
+        "clientWidth": 668,
+        "scrollHeight": 136,
+        "clientHeight": 136,
+        "text": ""
+      },
+      ".ficha-pe": {
+        "x": 585,
+        "y": 804,
+        "w": 718,
+        "h": 65,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 64,
+        "clientHeight": 64,
+        "text": "Cancelar\nSalvar"
+      }
+    }
+  },
+  {
+    "width": 1903,
+    "title": "Depoimento de cliente",
+    "data": {
+      ".ficha": {
+        "x": 584,
+        "y": 30,
+        "w": 720,
+        "h": 840,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 838,
+        "clientHeight": 838,
+        "text": "Postagem\nComeçar\nFechar\nTipo\nPostagem\nEmpresa\nRede\nFormato\nReels\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\n20/10/2026 · 09:00\nObjetivo"
+      },
+      ".ficha-faixa": {
+        "x": 585,
+        "y": 31,
+        "w": 718,
+        "h": 116,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 115,
+        "clientHeight": 115,
+        "text": "Postagem\nComeçar\nFechar"
+      },
+      ".ficha-corpo": {
+        "x": 585,
+        "y": 147,
+        "w": 718,
+        "h": 657,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 1045,
+        "clientHeight": 657,
+        "text": "Tipo\nPostagem\nEmpresa\nRede\nFormato\nReels\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\n20/10/2026 · 09:00\nObjetivo\nDescrição do post\n13/22"
+      },
+      ".ficha-capa": {
+        "x": 609,
+        "y": 676,
+        "w": 670,
+        "h": 111,
+        "scrollWidth": 676,
+        "clientWidth": 670,
+        "scrollHeight": 82,
+        "clientHeight": 111,
+        "text": "Capa do Reels\nCapa própria: arraste ou escolha uma imagem 9:16\n\nAnexe o vídeo para escolher o quadro da capa (sem escolha, vai o primeiro quadro)."
+      },
+      ".ficha-capa-quadro": null,
+      ".ficha-capa-quadro video": null,
+      ".ficha-capa-controles": null,
+      ".ficha-capa-controles input": null,
+      ".ficha-anexo-solta": {
+        "x": 609,
+        "y": 711,
+        "w": 670,
+        "h": 44,
+        "scrollWidth": 668,
+        "clientWidth": 668,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "text": "Capa própria: arraste ou escolha uma imagem 9:16"
+      },
+      ".publicacao": {
+        "x": 609,
+        "y": 799,
+        "w": 670,
+        "h": 78,
+        "scrollWidth": 670,
+        "clientWidth": 670,
+        "scrollHeight": 49,
+        "clientHeight": 78,
+        "text": "Publicação\nVer no Instagram\nVer no Facebook"
+      },
+      ".ficha-legenda-texto": {
+        "x": 609,
+        "y": 526,
+        "w": 670,
+        "h": 138,
+        "scrollWidth": 668,
+        "clientWidth": 668,
+        "scrollHeight": 136,
+        "clientHeight": 136,
+        "text": ""
+      },
+      ".ficha-pe": {
+        "x": 585,
+        "y": 804,
+        "w": 718,
+        "h": 65,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 64,
+        "clientHeight": 64,
+        "text": "Cancelar\nSalvar"
+      }
+    }
+  },
+  {
+    "width": 1440,
+    "title": "Reels: bastidores do escritório",
+    "data": {
+      ".ficha": {
+        "x": 353,
+        "y": 19,
+        "w": 720,
+        "h": 722,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 720,
+        "clientHeight": 720,
+        "text": "Postagem\nComeçar\nAprovar\nConsertar\nFechar\nTipo\nPostagem\nEmpresa\nRede\nFormato\nReels\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\nSem data\n"
+      },
+      ".ficha-faixa": {
+        "x": 354,
+        "y": 20,
+        "w": 718,
+        "h": 116,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 115,
+        "clientHeight": 115,
+        "text": "Postagem\nComeçar\nAprovar\nConsertar\nFechar"
+      },
+      ".ficha-corpo": {
+        "x": 354,
+        "y": 136,
+        "w": 718,
+        "h": 539,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 1092,
+        "clientHeight": 539,
+        "text": "Tipo\nPostagem\nEmpresa\nRede\nFormato\nReels\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\nSem data\n\nSem data: fica na coluna \"Sem data\" do ca"
+      },
+      ".ficha-capa": {
+        "x": 378,
+        "y": 691,
+        "w": 670,
+        "h": 258,
+        "scrollWidth": 676,
+        "clientWidth": 670,
+        "scrollHeight": 229,
+        "clientHeight": 258,
+        "text": "Capa do Reels\nCapa própria: arraste ou escolha uma imagem 9:16\n\nCapa: primeiro quadro.\n\nNo Facebook sai o quadro que a Meta escolher."
+      },
+      ".ficha-capa-quadro": {
+        "x": 378,
+        "y": 778,
+        "w": 670,
+        "h": 171,
+        "scrollWidth": 670,
+        "clientWidth": 670,
+        "scrollHeight": 171,
+        "clientHeight": 171,
+        "text": "Capa: primeiro quadro.\n\nNo Facebook sai o quadro que a Meta escolher."
+      },
+      ".ficha-capa-quadro video": {
+        "x": 378,
+        "y": 778,
+        "w": 96,
+        "h": 171,
+        "scrollWidth": 96,
+        "clientWidth": 96,
+        "scrollHeight": 171,
+        "clientHeight": 171,
+        "text": ""
+      },
+      ".ficha-capa-controles": {
+        "x": 490,
+        "y": 778,
+        "w": 558,
+        "h": 95,
+        "scrollWidth": 558,
+        "clientWidth": 558,
+        "scrollHeight": 95,
+        "clientHeight": 95,
+        "text": "Capa: primeiro quadro.\n\nNo Facebook sai o quadro que a Meta escolher."
+      },
+      ".ficha-capa-controles input": {
+        "x": 490,
+        "y": 778,
+        "w": 558,
+        "h": 40,
+        "scrollWidth": 556,
+        "clientWidth": 556,
+        "scrollHeight": 38,
+        "clientHeight": 38,
+        "text": ""
+      },
+      ".ficha-anexo-solta": {
+        "x": 378,
+        "y": 726,
+        "w": 670,
+        "h": 44,
+        "scrollWidth": 668,
+        "clientWidth": 668,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "text": "Capa própria: arraste ou escolha uma imagem 9:16"
+      },
+      ".publicacao": null,
+      ".ficha-legenda-texto": {
+        "x": 378,
+        "y": 545,
+        "w": 670,
+        "h": 138,
+        "scrollWidth": 668,
+        "clientWidth": 668,
+        "scrollHeight": 136,
+        "clientHeight": 136,
+        "text": ""
+      },
+      ".ficha-pe": {
+        "x": 354,
+        "y": 675,
+        "w": 718,
+        "h": 65,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 64,
+        "clientHeight": 64,
+        "text": "Cancelar\nSalvar"
+      }
+    }
+  },
+  {
+    "width": 1440,
+    "title": "Dica rápida de IR",
+    "data": {
+      ".ficha": {
+        "x": 353,
+        "y": 19,
+        "w": 720,
+        "h": 722,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 720,
+        "clientHeight": 720,
+        "text": "Postagem\nComeçar\nFechar\nTipo\nPostagem\nEmpresa\nRede\nFormato\nPost\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\n25/10/2026 · 18:00\nObjetivo\n"
+      },
+      ".ficha-faixa": {
+        "x": 354,
+        "y": 20,
+        "w": 718,
+        "h": 116,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 115,
+        "clientHeight": 115,
+        "text": "Postagem\nComeçar\nFechar"
+      },
+      ".ficha-corpo": {
+        "x": 354,
+        "y": 136,
+        "w": 718,
+        "h": 539,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 962,
+        "clientHeight": 539,
+        "text": "Tipo\nPostagem\nEmpresa\nRede\nFormato\nPost\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\n25/10/2026 · 18:00\nObjetivo\nDescrição do post\n13/220"
+      },
+      ".ficha-capa": null,
+      ".ficha-capa-quadro": null,
+      ".ficha-capa-quadro video": null,
+      ".ficha-capa-controles": null,
+      ".ficha-capa-controles input": null,
+      ".ficha-anexo-solta": {
+        "x": 378,
+        "y": 973,
+        "w": 618,
+        "h": 44,
+        "scrollWidth": 616,
+        "clientWidth": 616,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "text": "Anexos: arraste ou escolha imagem, vídeo ou documento"
+      },
+      ".publicacao": {
+        "x": 378,
+        "y": 645,
+        "w": 670,
+        "h": 174,
+        "scrollWidth": 670,
+        "clientWidth": 670,
+        "scrollHeight": 145,
+        "clientHeight": 174,
+        "text": "Publicação\n\nProgramado · 25/10 18:00 · Instagram + Facebook\n\n✓\nInstagram\n✓\nFacebook\n25/10/2026 · 18:00\nReprogramar postagem\nPostar agora"
+      },
+      ".ficha-legenda-texto": {
+        "x": 378,
+        "y": 499,
+        "w": 670,
+        "h": 138,
+        "scrollWidth": 668,
+        "clientWidth": 668,
+        "scrollHeight": 136,
+        "clientHeight": 136,
+        "text": ""
+      },
+      ".ficha-pe": {
+        "x": 354,
+        "y": 675,
+        "w": 718,
+        "h": 65,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 64,
+        "clientHeight": 64,
+        "text": "Cancelar\nSalvar"
+      }
+    }
+  },
+  {
+    "width": 1440,
+    "title": "Depoimento de cliente",
+    "data": {
+      ".ficha": {
+        "x": 353,
+        "y": 19,
+        "w": 720,
+        "h": 722,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 720,
+        "clientHeight": 720,
+        "text": "Postagem\nComeçar\nFechar\nTipo\nPostagem\nEmpresa\nRede\nFormato\nReels\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\n20/10/2026 · 09:00\nObjetivo"
+      },
+      ".ficha-faixa": {
+        "x": 354,
+        "y": 20,
+        "w": 718,
+        "h": 116,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 115,
+        "clientHeight": 115,
+        "text": "Postagem\nComeçar\nFechar"
+      },
+      ".ficha-corpo": {
+        "x": 354,
+        "y": 136,
+        "w": 718,
+        "h": 539,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 985,
+        "clientHeight": 539,
+        "text": "Tipo\nPostagem\nEmpresa\nRede\nFormato\nReels\nOcasião\nEscolher\nResponsável\nNatham\nMatheus\nA\nAdrian\nL\nLucas\nComeça\n20/10/2026 · 09:00\nObjetivo\nDescrição do post\n13/22"
+      },
+      ".ficha-capa": {
+        "x": 378,
+        "y": 645,
+        "w": 670,
+        "h": 111,
+        "scrollWidth": 676,
+        "clientWidth": 670,
+        "scrollHeight": 82,
+        "clientHeight": 111,
+        "text": "Capa do Reels\nCapa própria: arraste ou escolha uma imagem 9:16\n\nAnexe o vídeo para escolher o quadro da capa (sem escolha, vai o primeiro quadro)."
+      },
+      ".ficha-capa-quadro": null,
+      ".ficha-capa-quadro video": null,
+      ".ficha-capa-controles": null,
+      ".ficha-capa-controles input": null,
+      ".ficha-anexo-solta": {
+        "x": 378,
+        "y": 680,
+        "w": 670,
+        "h": 44,
+        "scrollWidth": 668,
+        "clientWidth": 668,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "text": "Capa própria: arraste ou escolha uma imagem 9:16"
+      },
+      ".publicacao": {
+        "x": 378,
+        "y": 764,
+        "w": 670,
+        "h": 78,
+        "scrollWidth": 670,
+        "clientWidth": 670,
+        "scrollHeight": 49,
+        "clientHeight": 78,
+        "text": "Publicação\nVer no Instagram\nVer no Facebook"
+      },
+      ".ficha-legenda-texto": {
+        "x": 378,
+        "y": 499,
+        "w": 670,
+        "h": 138,
+        "scrollWidth": 668,
+        "clientWidth": 668,
+        "scrollHeight": 136,
+        "clientHeight": 136,
+        "text": ""
+      },
+      ".ficha-pe": {
+        "x": 354,
+        "y": 675,
+        "w": 718,
+        "h": 65,
+        "scrollWidth": 718,
+        "clientWidth": 718,
+        "scrollHeight": 64,
+        "clientHeight": 64,
+        "text": "Cancelar\nSalvar"
+      }
+    }
+  }
+]

@@ -1,0 +1,513 @@
+{
+  "esteira": {
+    ".conteudos-quadro": {
+      "x": 204,
+      "y": 93,
+      "w": 1212,
+      "h": 2873,
+      "scrollWidth": 1336,
+      "clientWidth": 1212,
+      "scrollHeight": 2873,
+      "clientHeight": 2873,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    ".conteudos-coluna:last-child": {
+      "x": 1324,
+      "y": 93,
+      "w": 216,
+      "h": 2857,
+      "scrollWidth": 214,
+      "clientWidth": 214,
+      "scrollHeight": 2855,
+      "clientHeight": 2855,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgb(247, 247, 249)"
+    },
+    ".conteudos-coluna:last-child .conteudos-cartao": {
+      "x": 1333,
+      "y": 150,
+      "w": 198,
+      "h": 239,
+      "scrollWidth": 196,
+      "clientWidth": 196,
+      "scrollHeight": 237,
+      "clientHeight": 237,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "color(srgb 1 1 1 / 0.44)"
+    }
+  },
+  "10-ficha-legenda-1440.png": {
+    "target": {
+      "x": 378,
+      "y": 538,
+      "w": 670,
+      "h": 138,
+      "scrollWidth": 668,
+      "clientWidth": 668,
+      "scrollHeight": 136,
+      "clientHeight": 136,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgb(255, 255, 255)"
+    },
+    "clip": {
+      "x": 368,
+      "y": 528,
+      "width": 690,
+      "height": 158
+    }
+  },
+  "01-ficha-capa-1440.png": {
+    "target": {
+      "x": 378,
+      "y": 277,
+      "w": 670,
+      "h": 258,
+      "scrollWidth": 676,
+      "clientWidth": 670,
+      "scrollHeight": 229,
+      "clientHeight": 258,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "clip": {
+      "x": 360,
+      "y": 259,
+      "width": 706,
+      "height": 294
+    }
+  },
+  "capa": {
+    ".ficha-capa": {
+      "x": 378,
+      "y": 277,
+      "w": 670,
+      "h": 258,
+      "scrollWidth": 676,
+      "clientWidth": 670,
+      "scrollHeight": 229,
+      "clientHeight": 258,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    ".ficha-anexo-solta": {
+      "x": 378,
+      "y": 312,
+      "w": 670,
+      "h": 44,
+      "scrollWidth": 668,
+      "clientWidth": 668,
+      "scrollHeight": 42,
+      "clientHeight": 42,
+      "font": "14px",
+      "color": "rgb(0, 100, 204)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    ".ficha-capa-quadro video": {
+      "x": 378,
+      "y": 364,
+      "w": 96,
+      "h": 171,
+      "scrollWidth": 96,
+      "clientWidth": 96,
+      "scrollHeight": 171,
+      "clientHeight": 171,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgb(0, 0, 0)"
+    },
+    ".ficha-capa-controles": {
+      "x": 490,
+      "y": 364,
+      "w": 558,
+      "h": 95,
+      "scrollWidth": 558,
+      "clientWidth": 558,
+      "scrollHeight": 95,
+      "clientHeight": 95,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    ".ficha-capa-controles input": {
+      "x": 490,
+      "y": 364,
+      "w": 558,
+      "h": 40,
+      "scrollWidth": 556,
+      "clientWidth": 556,
+      "scrollHeight": 38,
+      "clientHeight": 38,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgb(255, 255, 255)"
+    },
+    ".ficha-legenda-texto": {
+      "x": 378,
+      "y": 131,
+      "w": 670,
+      "h": 138,
+      "scrollWidth": 668,
+      "clientWidth": 668,
+      "scrollHeight": 136,
+      "clientHeight": 136,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgb(255, 255, 255)"
+    }
+  },
+  "02-ficha-publicacao-1440.png": {
+    "target": {
+      "x": 378,
+      "y": 501,
+      "w": 670,
+      "h": 174,
+      "scrollWidth": 670,
+      "clientWidth": 670,
+      "scrollHeight": 145,
+      "clientHeight": 174,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "clip": {
+      "x": 360,
+      "y": 483,
+      "width": 706,
+      "height": 210
+    }
+  },
+  "publicacao": {
+    ".publicacao": {
+      "x": 378,
+      "y": 501,
+      "w": 670,
+      "h": 174,
+      "scrollWidth": 670,
+      "clientWidth": 670,
+      "scrollHeight": 145,
+      "clientHeight": 174,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    ".aprovacao-rede": {
+      "x": 395,
+      "y": 574,
+      "w": 316,
+      "h": 36,
+      "scrollWidth": 316,
+      "clientWidth": 316,
+      "scrollHeight": 36,
+      "clientHeight": 36,
+      "font": "14px",
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(193, 53, 132)"
+    },
+    ".aprovacao-botao": {
+      "x": 674,
+      "y": -1576,
+      "w": 172,
+      "h": 32,
+      "scrollWidth": 172,
+      "clientWidth": 172,
+      "scrollHeight": 32,
+      "clientHeight": 32,
+      "font": "12px",
+      "color": "rgb(44, 107, 73)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    ".ficha-legenda-texto": {
+      "x": 378,
+      "y": 355,
+      "w": 670,
+      "h": 138,
+      "scrollWidth": 668,
+      "clientWidth": 668,
+      "scrollHeight": 136,
+      "clientHeight": 136,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgb(255, 255, 255)"
+    }
+  },
+  "03-ficha-postado-1440.png": {
+    "target": {
+      "x": 378,
+      "y": 366,
+      "w": 670,
+      "h": 78,
+      "scrollWidth": 670,
+      "clientWidth": 670,
+      "scrollHeight": 49,
+      "clientHeight": 78,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "clip": {
+      "x": 360,
+      "y": 348,
+      "width": 706,
+      "height": 114
+    }
+  },
+  "03b-ficha-postado-conflito-1440.png": {
+    "target": {
+      "x": 353,
+      "y": 19,
+      "w": 720,
+      "h": 722,
+      "scrollWidth": 718,
+      "clientWidth": 718,
+      "scrollHeight": 720,
+      "clientHeight": 720,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgb(255, 255, 255)"
+    },
+    "clip": {
+      "x": 353,
+      "y": 19,
+      "width": 720,
+      "height": 722
+    }
+  },
+  "05-calendario-9h-1440.png": {
+    "target": {
+      "x": 589,
+      "y": 347,
+      "w": 158,
+      "h": 22,
+      "scrollWidth": 159,
+      "clientWidth": 158,
+      "scrollHeight": 22,
+      "clientHeight": 22,
+      "font": "12px",
+      "color": "rgb(29, 29, 31)",
+      "background": "color(srgb 0.999294 0.871529 0.820706)"
+    },
+    "clip": {
+      "x": 489,
+      "y": 247,
+      "width": 358,
+      "height": 222
+    }
+  },
+  "calendario": [
+    {
+      "text": "08:00Reels: vale a pena abrir MEI?Aprovado",
+      "rect": {
+        "x": 589,
+        "y": 347,
+        "w": 158,
+        "h": 22,
+        "scrollWidth": 159,
+        "clientWidth": 158,
+        "scrollHeight": 22,
+        "clientHeight": 22,
+        "font": "12px",
+        "color": "rgb(29, 29, 31)",
+        "background": "color(srgb 0.999294 0.871529 0.820706)"
+      },
+      "title": {
+        "x": 653,
+        "y": 350,
+        "w": 30,
+        "h": 16,
+        "scrollWidth": 169,
+        "clientWidth": 30,
+        "scrollHeight": 16,
+        "clientHeight": 16,
+        "font": "12px",
+        "color": "rgb(29, 29, 31)",
+        "background": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "text": "09:00Carrossel: prazo do MEIAprovado",
+      "rect": {
+        "x": 589,
+        "y": 395,
+        "w": 77,
+        "h": 22,
+        "scrollWidth": 159,
+        "clientWidth": 77,
+        "scrollHeight": 22,
+        "clientHeight": 22,
+        "font": "12px",
+        "color": "rgb(29, 29, 31)",
+        "background": "color(srgb 0.999294 0.871529 0.820706)"
+      },
+      "title": {
+        "x": 653,
+        "y": 398,
+        "w": 30,
+        "h": 16,
+        "scrollWidth": 139,
+        "clientWidth": 30,
+        "scrollHeight": 16,
+        "clientHeight": 16,
+        "font": "12px",
+        "color": "rgb(29, 29, 31)",
+        "background": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "text": "09:00Depoimento de clientePostado",
+      "rect": {
+        "x": 670,
+        "y": 395,
+        "w": 77,
+        "h": 22,
+        "scrollWidth": 152,
+        "clientWidth": 77,
+        "scrollHeight": 22,
+        "clientHeight": 22,
+        "font": "12px",
+        "color": "rgb(29, 29, 31)",
+        "background": "color(srgb 0.999294 0.871529 0.820706)"
+      },
+      "title": {
+        "x": 734,
+        "y": 398,
+        "w": 30,
+        "h": 16,
+        "scrollWidth": 128,
+        "clientWidth": 30,
+        "scrollHeight": 16,
+        "clientHeight": 16,
+        "font": "12px",
+        "color": "rgb(29, 29, 31)",
+        "background": "rgba(0, 0, 0, 0)"
+      }
+    }
+  ],
+  "06-caderno-anotacoes-1440.png": {
+    "target": {
+      "x": 835,
+      "y": 381,
+      "w": 557,
+      "h": 272,
+      "scrollWidth": 557,
+      "clientWidth": 557,
+      "scrollHeight": 272,
+      "clientHeight": 272,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "clip": {
+      "x": 825,
+      "y": 371,
+      "width": 577,
+      "height": 292
+    }
+  },
+  "caderno": {
+    "notas": {
+      "x": 841,
+      "y": 413,
+      "w": 545,
+      "h": 84,
+      "scrollWidth": 545,
+      "clientWidth": 545,
+      "scrollHeight": 84,
+      "clientHeight": 84,
+      "font": "20px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "placeholder": "rgb(99, 99, 102)",
+    "opacity": "0.7"
+  },
+  "07-config-drive-1440.png": {
+    "target": {
+      "x": 180,
+      "y": 0,
+      "w": 1260,
+      "h": 760,
+      "scrollWidth": 1260,
+      "clientWidth": 1260,
+      "scrollHeight": 760,
+      "clientHeight": 760,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "clip": {
+      "x": 180,
+      "y": 0,
+      "width": 1260,
+      "height": 760
+    }
+  },
+  "09-pastas-mini-1440.png": {
+    "target": {
+      "x": 204,
+      "y": 66,
+      "w": 1212,
+      "h": 451,
+      "scrollWidth": 1212,
+      "clientWidth": 1212,
+      "scrollHeight": 450,
+      "clientHeight": 450,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "clip": {
+      "x": 199,
+      "y": 61,
+      "width": 1222,
+      "height": 461
+    }
+  },
+  "pastas": {
+    "folder": {
+      "x": 204,
+      "y": 91,
+      "w": 189,
+      "h": 181,
+      "scrollWidth": 189,
+      "clientWidth": 189,
+      "scrollHeight": 210,
+      "clientHeight": 181,
+      "font": "16px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "title": {
+      "x": 220,
+      "y": 229,
+      "w": 28,
+      "h": 13,
+      "scrollWidth": 51,
+      "clientWidth": 51,
+      "scrollHeight": 23,
+      "clientHeight": 23,
+      "font": "20px",
+      "color": "rgb(29, 29, 31)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "meta": {
+      "x": 220,
+      "y": 244,
+      "w": 28,
+      "h": 11,
+      "scrollWidth": 51,
+      "clientWidth": 51,
+      "scrollHeight": 20,
+      "clientHeight": 20,
+      "font": "13px",
+      "color": "rgb(72, 72, 74)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  }
+}

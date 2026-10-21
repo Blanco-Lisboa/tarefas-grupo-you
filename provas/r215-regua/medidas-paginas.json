@@ -1,0 +1,351 @@
+[
+  {
+    "width": 1903,
+    "name": "esteira",
+    "measure": {
+      "viewport": 1903,
+      "body": {
+        "x": 0,
+        "y": 0,
+        "w": 1903,
+        "h": 2822,
+        "scrollWidth": 1903,
+        "clientWidth": 1903
+      },
+      "main": {
+        "x": 180,
+        "y": 0,
+        "w": 1723,
+        "h": 2822,
+        "scrollWidth": 1723,
+        "clientWidth": 1723
+      },
+      "overflow": []
+    }
+  },
+  {
+    "width": 1903,
+    "name": "calendario",
+    "measure": {
+      "viewport": 1903,
+      "body": {
+        "x": 0,
+        "y": 0,
+        "w": 1903,
+        "h": 900,
+        "scrollWidth": 1903,
+        "clientWidth": 1903
+      },
+      "main": {
+        "x": 180,
+        "y": 0,
+        "w": 1723,
+        "h": 900,
+        "scrollWidth": 1723,
+        "clientWidth": 1723
+      },
+      "overflow": []
+    }
+  },
+  {
+    "width": 1903,
+    "name": "caderno",
+    "measure": {
+      "viewport": 1903,
+      "body": {
+        "x": 0,
+        "y": 0,
+        "w": 1903,
+        "h": 900,
+        "scrollWidth": 1903,
+        "clientWidth": 1903
+      },
+      "main": {
+        "x": 180,
+        "y": 0,
+        "w": 1723,
+        "h": 900,
+        "scrollWidth": 1723,
+        "clientWidth": 1723
+      },
+      "overflow": []
+    }
+  },
+  {
+    "width": 1903,
+    "name": "configuracoes",
+    "measure": {
+      "viewport": 1903,
+      "body": {
+        "x": 0,
+        "y": 0,
+        "w": 1903,
+        "h": 900,
+        "scrollWidth": 1903,
+        "clientWidth": 1903
+      },
+      "main": {
+        "x": 180,
+        "y": 0,
+        "w": 1723,
+        "h": 900,
+        "scrollWidth": 1723,
+        "clientWidth": 1723
+      },
+      "overflow": []
+    }
+  },
+  {
+    "width": 1440,
+    "name": "esteira",
+    "measure": {
+      "viewport": 1440,
+      "body": {
+        "x": 0,
+        "y": 0,
+        "w": 1440,
+        "h": 2998,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      },
+      "main": {
+        "x": 180,
+        "y": 0,
+        "w": 1260,
+        "h": 2998,
+        "scrollWidth": 1260,
+        "clientWidth": 1260
+      },
+      "overflow": [
+        {
+          "tag": "SECTION",
+          "cls": "conteudos-coluna",
+          "txt": "06Postado1+YouPostagemDepoimento de cliente6/6MatheusReels · 20/10 · 0",
+          "r": {
+            "x": 1324,
+            "y": 93,
+            "w": 216,
+            "h": 2857,
+            "scrollWidth": 214,
+            "clientWidth": 214
+          }
+        },
+        {
+          "tag": "DIV",
+          "cls": "conteudos-coluna-topo",
+          "txt": "06Postado1+",
+          "r": {
+            "x": 1325,
+            "y": 94,
+            "w": 214,
+            "h": 48,
+            "scrollWidth": 209,
+            "clientWidth": 209
+          }
+        },
+        {
+          "tag": "H2",
+          "cls": "",
+          "txt": "Postado",
+          "r": {
+            "x": 1367,
+            "y": 107,
+            "w": 88,
+            "h": 22,
+            "scrollWidth": 88,
+            "clientWidth": 88
+          }
+        },
+        {
+          "tag": "SPAN",
+          "cls": "conteudos-contagem",
+          "txt": "1",
+          "r": {
+            "x": 1463,
+            "y": 104,
+            "w": 28,
+            "h": 28,
+            "scrollWidth": 28,
+            "clientWidth": 28
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "conteudos-novo",
+          "txt": "+",
+          "r": {
+            "x": 1499,
+            "y": 104,
+            "w": 28,
+            "h": 28,
+            "scrollWidth": 28,
+            "clientWidth": 28
+          }
+        },
+        {
+          "tag": "DIV",
+          "cls": "conteudos-pilha",
+          "txt": "YouPostagemDepoimento de cliente6/6MatheusReels · 20/10 · 09:00",
+          "r": {
+            "x": 1325,
+            "y": 142,
+            "w": 214,
+            "h": 255,
+            "scrollWidth": 214,
+            "clientWidth": 214
+          }
+        },
+        {
+          "tag": "DIV",
+          "cls": "conteudos-cartao-sombra",
+          "txt": "YouPostagemDepoimento de cliente6/6MatheusReels · 20/10 · 09:00",
+          "r": {
+            "x": 1333,
+            "y": 150,
+            "w": 198,
+            "h": 239,
+            "scrollWidth": 198,
+            "clientWidth": 198
+          }
+        },
+        {
+          "tag": "ARTICLE",
+          "cls": "conteudos-cartao",
+          "txt": "YouPostagemDepoimento de cliente6/6MatheusReels · 20/10 · 09:00",
+          "r": {
+            "x": 1333,
+            "y": 150,
+            "w": 198,
+            "h": 239,
+            "scrollWidth": 196,
+            "clientWidth": 196
+          }
+        },
+        {
+          "tag": "DIV",
+          "cls": "conteudos-cartao-topo",
+          "txt": "You",
+          "r": {
+            "x": 1346,
+            "y": 163,
+            "w": 172,
+            "h": 28,
+            "scrollWidth": 172,
+            "clientWidth": 172
+          }
+        },
+        {
+          "tag": "SPAN",
+          "cls": "conteudos-empresa",
+          "txt": "You",
+          "r": {
+            "x": 1346,
+            "y": 167,
+            "w": 140,
+            "h": 20,
+            "scrollWidth": 140,
+            "clientWidth": 140
+          }
+        },
+        {
+          "tag": "SPAN",
+          "cls": "conteudos-rede",
+          "txt": "",
+          "r": {
+            "x": 1490,
+            "y": 163,
+            "w": 28,
+            "h": 28,
+            "scrollWidth": 28,
+            "clientWidth": 28
+          }
+        },
+        {
+          "tag": "IMG",
+          "cls": "marca-rede",
+          "txt": "",
+          "r": {
+            "x": 1495,
+            "y": 168,
+            "w": 18,
+            "h": 18,
+            "scrollWidth": 18,
+            "clientWidth": 18
+          }
+        }
+      ]
+    }
+  },
+  {
+    "width": 1440,
+    "name": "calendario",
+    "measure": {
+      "viewport": 1440,
+      "body": {
+        "x": 0,
+        "y": 0,
+        "w": 1440,
+        "h": 760,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      },
+      "main": {
+        "x": 180,
+        "y": 0,
+        "w": 1260,
+        "h": 760,
+        "scrollWidth": 1260,
+        "clientWidth": 1260
+      },
+      "overflow": []
+    }
+  },
+  {
+    "width": 1440,
+    "name": "caderno",
+    "measure": {
+      "viewport": 1440,
+      "body": {
+        "x": 0,
+        "y": 0,
+        "w": 1440,
+        "h": 760,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      },
+      "main": {
+        "x": 180,
+        "y": 0,
+        "w": 1260,
+        "h": 760,
+        "scrollWidth": 1260,
+        "clientWidth": 1260
+      },
+      "overflow": []
+    }
+  },
+  {
+    "width": 1440,
+    "name": "configuracoes",
+    "measure": {
+      "viewport": 1440,
+      "body": {
+        "x": 0,
+        "y": 0,
+        "w": 1440,
+        "h": 760,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      },
+      "main": {
+        "x": 180,
+        "y": 0,
+        "w": 1260,
+        "h": 760,
+        "scrollWidth": 1260,
+        "clientWidth": 1260
+      },
+      "overflow": []
+    }
+  }
+]
