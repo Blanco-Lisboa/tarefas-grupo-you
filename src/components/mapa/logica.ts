@@ -1,7 +1,7 @@
 // Mapa: lê as MESMAS tarefas da agenda. Todo conteúdo (tipo "postagem") com data vira um nó. Só a data conta, sem horário.
 import type { Tarefa } from "@/lib/dados";
 import { deTexto, paraDia, somarDias } from "@/components/calendario/logica";
-import { diasDeAtraso } from "@/lib/atraso";
+import { diasDeAtraso, quandoDe } from "@/lib/atraso";
 import { ehConteudo, montarGrade } from "@/components/tarefas/grade";
 
 /** Hoje pelo relógio do navegador, em data local (nunca toISOString: em UTC viraria o dia errado à noite no Brasil). */
@@ -21,8 +21,8 @@ export function diasDoPeriodo(inicio: string, ate = "") {
 export const tituloDe = (t: Tarefa) => t.titulo.trim() || t.objetivo?.trim() || "Sem título";
 
 export const foiPostado = (t: Tarefa) => t.etapa === "postado" || !!t.concluida;
-/** Quando o card entra no Mapa: card de Postagem usa a data e hora de POSTAR quando existe (programado pode nem ter início); senão, o início. */
-export const quandoDe = (t: Tarefa) => (t.tipo === "postagem" && t.postarEm) || t.inicio;
+/** Quando o card entra no Mapa: card de Postagem usa a data e hora de POSTAR quando existe; senão, o início. Mora em @/lib/atraso (o atraso usa a mesma regra). */
+export { quandoDe };
 /** Só vale para card que já tem data (quandoDe). */
 export const diaDe = (t: Tarefa) => quandoDe(t)!.slice(0, 10);
 
