@@ -32,7 +32,7 @@ const Cadeado = () => (
   <svg className="pasta-cadeado" viewBox="0 0 20 20" width="18" height="18" aria-label="Permanente" role="img"><rect x="4" y="9" width="12" height="8" rx="2.4" /><path d="M7 9V6.5a3 3 0 0 1 6 0V9" /></svg>
 );
 
-type Aberto = { conteudo: Tarefa } | { documento: DocumentoSolto } | { ideias: true };
+type Aberto = { conteudo: Tarefa } | { documento: DocumentoSolto } | { ideias: string | undefined };
 type Destino = { formato?: PastaFormato["formato"]; nomeFormato: string; tema: PastaTema };
 
 function Faixa({ empresa }: { empresa: Empresa }) {
@@ -50,6 +50,7 @@ function Faixa({ empresa }: { empresa: Empresa }) {
   const t = tomDaEmpresa(empresa.id);
   const tom = { base: t.r, sombra: `${t.g}99` };
   const arte = receitaDaEmpresa("post", empresa.id);
+  const categorias = [...new Set(ideias.map((i) => i.categoria))];
   const chave = (f: PastaFormato) => f.formato ?? "sem";
   const itensDe = (f: PastaFormato) => f.temas.reduce((s, p) => s + p.conteudos.length + p.documentos.length, 0);
   const total = arvore.reduce((s, f) => s + itensDe(f), 0);
@@ -69,11 +70,6 @@ function Faixa({ empresa }: { empresa: Empresa }) {
         <button type="button" className="btn pastas-nova" onClick={() => setNovo(true)}>+ Novo tema</button>
       </h2>
 
-      <button type="button" className="pastas-ideias" onClick={() => setAberto({ ideias: true })}>
-        <strong>Ideias de conteúdo</strong>
-        <span>{nIdeias(ideias.length)}</span>
-      </button>
-
       <div className="pastas-grade">
         {arvore.map((f, i) => (
           <div key={chave(f)} className="pastas-cel" data-escolhida={f === atual || undefined}>
@@ -90,6 +86,19 @@ function Faixa({ empresa }: { empresa: Empresa }) {
             />
           </div>
         ))}
+        {/* Ideias de conteúdo: pasta como as outras, a última da fileira; fora do Drive */}
+        <div className="pastas-cel">
+          <PastaDeVidro
+            rotulo="Ideias de conteúdo"
+            legenda={nIdeias(ideias.length)}
+            tom={tom}
+            arte={receitaDaEmpresa("story", empresa.id)}
+            seed={19}
+            atraso={arvore.length * 120}
+            arquivos={categorias.map((c) => ({ nome: c, meta: nIdeias(ideias.filter((x) => x.categoria === c).length), arte: receitaDaEmpresa("story", empresa.id) }))}
+            onSelecionar={(a) => setAberto({ ideias: a.nome })}
+          />
+        </div>
       </div>
 
       {atual && (
@@ -179,7 +188,7 @@ function Faixa({ empresa }: { empresa: Empresa }) {
       )}
       {aberto && "conteudo" in aberto && <Ficha key={aberto.conteudo.id} tarefa={aberto.conteudo} aoFechar={() => setAberto(null)} />}
       {aberto && "documento" in aberto && <CardDocumento doc={aberto.documento} aoFechar={() => setAberto(null)} />}
-      {aberto && "ideias" in aberto && <CardIdeias empresaId={empresa.id} aoFechar={() => setAberto(null)} />}
+      {aberto && "ideias" in aberto && <CardIdeias empresaId={empresa.id} inicio={aberto.ideias} aoFechar={() => setAberto(null)} />}
     </div>
   );
 }
