@@ -23,14 +23,12 @@ const redeDoLink = (l: string) => {
 type Dados = Omit<Ideia, "empresaId" | "id"> & { id?: string };
 
 export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: string; nome: string; tom: string; aoFechar: () => void }) {
-  const { ideias, salvar, apagar } = useIdeias(empresaId);
+  const { ideias, categorias: todas, salvar, apagar, criarCategoria } = useIdeias(empresaId);
   const [busca, setBusca] = useState("");
-  const [extras, setExtras] = useState<string[]>([]); // categorias novas, ainda sem ideia
   const [foco, setFoco] = useState<string | null>(null);
 
   const q = sem(busca.trim());
   const acha = (i: Ideia) => !q || sem(`${i.titulo} ${i.texto} ${i.link ?? ""} ${i.categoria}`).includes(q);
-  const todas = [...new Set([...ideias.map((i) => i.categoria), ...extras])];
   const colunas = todas.map((cat) => ({ cat, itens: ideias.filter((i) => i.categoria === cat && acha(i)) })).filter((c) => !q || c.itens.length);
   const achadas = colunas.reduce((s, c) => s + c.itens.length, 0);
 
@@ -57,7 +55,7 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
             </div>
           </section>
         ))}
-        {!q && <NovaCategoria existentes={todas} aoCriar={(c) => { setExtras((e) => [...e, c]); setFoco(c); }} />}
+        {!q && <NovaCategoria existentes={todas} aoCriar={(c) => { criarCategoria(c); setFoco(c); }} />}
         {q && colunas.length === 0 && <p className="mural-vazio">Nenhuma ideia com “{busca.trim()}”.</p>}
       </div>
     </CardFlutuante>

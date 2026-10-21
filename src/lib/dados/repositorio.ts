@@ -42,7 +42,7 @@ export const assinar = (f: () => void) => {
   return () => void ouvintes.delete(f);
 };
 
-const falhou = (mensagem: string) => { erro = mensagem; avisar(); };
+export const falhou = (mensagem: string) => { erro = mensagem; avisar(); };
 const idDe = (slug: Responsavel) => pessoas.find((p) => p.slug === slug)?.id;
 const slugDe = (id: string | null) => pessoas.find((p) => p.id === id)?.slug;
 

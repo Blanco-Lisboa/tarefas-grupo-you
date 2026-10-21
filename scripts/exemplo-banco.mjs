@@ -179,7 +179,28 @@ const hojeTexto = em(diaHoje);
 const anotacoesDia = [{ dono_id: P.natham, dia: hojeTexto, texto: "Gravar o Reels das 11h com o Matheus.\nConferir a legenda do carrossel do pró-labore." }];
 const naoEsquecer = [{ dono_id: P.natham, dia: hojeTexto, texto: "Ligar para o contador antes das 10h." }];
 
-const tabelas = { pastas_livres: pastasLivres, ocasioes, pessoas, empresas, tags, tarefas, fazendo_agora: fazendoAgora, arquivos, postagens, anotacoes_dia: anotacoesDia, nao_esquecer: naoEsquecer };
+// 256: ideias de conteúdo no banco (os exemplos de antes, já com as 2 da You em Ganchos). seq = ordem dos cards e das colunas.
+const IG = "https://www.instagram.com/explore/", TT = "https://www.tiktok.com/discover";
+const ideias = [], ideiasCategorias = [];
+for (const e of ["you", "beec"]) {
+  const perfis = e === "beec" ? "Perfis - Empresários sellers" : "Perfis - Contabilidade";
+  [["Formatos de conteúdo", "X regras para não perder [TEMA]", "Lista curta e direta. Exemplo: 5 regras pra não tomar bloqueio na sua loja.", IG],
+   ["Formatos de conteúdo", "Explicando assunto na lousa", "Fala para a câmera e desenha o passo a passo. Funciona bem para imposto e fluxo de caixa.", TT],
+   ["Formatos de conteúdo", "Rankeando o melhor e o pior", "Tier list de erros comuns do assunto da semana, do mais perigoso ao mais bobo.", IG],
+   ["Formatos de conteúdo", "React em tela verde", "Reage a uma notícia ou a um vídeo de concorrente, com a opinião do especialista.", TT],
+   ["Ganchos", "Você está pagando imposto a mais", "Abertura de 3 segundos para vídeos de economia tributária.", null],
+   ["Ganchos", "Ninguém te conta isso sobre [TEMA]", "Gancho de curiosidade para carrossel ou reels.", null],
+   ["Ganchos", "O erro que custou R$ 10 mil", "História real (sem citar o cliente) que termina numa dica prática.", IG],
+   [perfis, "Perfis para acompanhar", "Contas que postam bem sobre o nosso público. Olhar toda segunda e anotar o que está funcionando.", IG],
+   [perfis, "Referência de edição", "Perfil com cortes rápidos e legenda grande, bom modelo para os reels.", TT],
+   ["Datas e sazonais", "Calendário fiscal do mês", "Um post por mês com os vencimentos principais. Serve de lembrete e de gancho de conversa.", null],
+  ].forEach(([categoria, titulo, texto, link]) => {
+    ideias.push({ id: `5eed${String(ideias.filter((x) => x.empresa_id === e).length + 1).padStart(4, "0")}-0000-4000-8000-${e === "you" ? "796f75000000" : "626565630000"}`, empresa_id: e, categoria, titulo, texto, link, seq: ideias.length + 1 });
+    if (!ideiasCategorias.some((c) => c.empresa_id === e && c.nome === categoria)) ideiasCategorias.push({ empresa_id: e, nome: categoria, seq: ideiasCategorias.length + 1 });
+  });
+}
+
+const tabelas = { ideias, ideias_categorias: ideiasCategorias, pastas_livres: pastasLivres, ocasioes, pessoas, empresas, tags, tarefas, fazendo_agora: fazendoAgora, arquivos, postagens, anotacoes_dia: anotacoesDia, nao_esquecer: naoEsquecer };
 
 // ---- imagem de mentira (SVG colorido com o nome do arquivo)
 const imagem = (caminho) => {
@@ -304,6 +325,14 @@ createServer(async (req, res) => {
     const lista = tabelas[tabela], i = lista.findIndex((x) => x.dono_id === corpo.dono_id && x.dia === corpo.dia);
     if (i >= 0) lista[i] = corpo; else lista.push(corpo);
   }
+  // 256: ideias e colunas do mural. on_conflict + "ignore-duplicates" como o banco de verdade; DELETE por id.
+  else if ((tabela === "ideias" || tabela === "ideias_categorias") && req.method === "POST") {
+    const lista = tabelas[tabela], chaves = (url.searchParams.get("on_conflict") ?? "id").split(","), ignora = (req.headers.prefer ?? "").includes("ignore-duplicates");
+    for (const l of [].concat(corpo)) {
+      const i = lista.findIndex((x) => chaves.every((k) => x[k] === l[k]));
+      if (i < 0) lista.push({ ...l, seq: Math.max(0, ...lista.map((x) => x.seq)) + 1 }); else if (!ignora) lista[i] = { ...lista[i], ...l };
+    }
+  } else if (tabela === "ideias" && req.method === "DELETE") { const i = ideias.findIndex((x) => x.id === id); if (i >= 0) ideias.splice(i, 1); }
   // Qualquer outra escrita: aceita e não guarda (esta é só uma cópia para olhar).
   res.writeHead(req.method === "POST" ? 201 : 200).end(JSON.stringify([{ id: "x" }]));
 }).listen(PORTA_BANCO, "127.0.0.1", () => console.log(`banco falso de exemplo em 127.0.0.1:${PORTA_BANCO}`));
