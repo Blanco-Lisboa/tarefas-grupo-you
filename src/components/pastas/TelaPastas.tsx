@@ -132,6 +132,7 @@ function Faixa({ empresa }: { empresa: Empresa }) {
             seed={19}
             atraso={(arvore.length + livres.length) * 120}
             arquivos={categorias.map((c) => ({ nome: c, meta: nIdeias(ideias.filter((x) => x.categoria === c).length), arte: receitaDaEmpresa("story", empresa.id) }))}
+            abreNoHover
             aoClicar={() => setAberto({ ideias: true })}
             onSelecionar={() => setAberto({ ideias: true })}
           />

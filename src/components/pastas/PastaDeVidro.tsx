@@ -47,6 +47,8 @@ type Props = {
   selo?: ReactNode;
   /** Se dado, o clique na pasta chama isto em vez de abrir/fechar no lugar. */
   aoClicar?: () => void;
+  /** Pasta de Ideias (248): o leque abre ao passar o mouse, sem precisar clicar. */
+  abreNoHover?: boolean;
   /** Avisa quando a pasta abre ou fecha. */
   aoMudar?: (aberta: boolean) => void;
 };
@@ -60,11 +62,13 @@ const FRENTE = `M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 
 
 const leque = (i: number, n: number) => (n <= 1 ? 0 : (i / (n - 1)) * 2 - 1);
 
-export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes, aoNovaFolha, rotuloNova = "+ Nova folha", folhasBrancas, miniatura, selo, aoClicar, aoMudar }: Props) {
+export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes, aoNovaFolha, rotuloNova = "+ Nova folha", folhasBrancas, miniatura, selo, aoClicar, abreNoHover, aoMudar }: Props) {
   const uid = useId().replace(/:/g, "");
   const raiz = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
   const [aberta, setAberta] = useState(defaultOpen);
+  const [sobre, setSobre] = useState(false);
+  const aberto = aberta || sobre;
   const [entrou, setEntrou] = useState(false);
   const [dpr, setDpr] = useState(1);
   const [largura, setLargura] = useState(340);
@@ -169,7 +173,9 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
     <div
       ref={raiz}
       className={`gf-root${folhasBrancas ? " gf-brancas" : ""}${miniatura ? " gf-mini" : ""}`}
-      data-open={aberta || undefined}
+      data-open={aberto || undefined}
+      onPointerEnter={abreNoHover ? (e) => e.pointerType === "mouse" && setSobre(true) : undefined}
+      onPointerLeave={abreNoHover ? () => setSobre(false) : undefined}
       data-entered={entrou || undefined}
       style={{ width: largura, height: (H + ALTURA_ABA) * k, "--gf-k": k, ...(tom && { "--gf-base": tom.base, "--gf-sombra": tom.sombra }) } as CSSProperties}
     >
@@ -213,7 +219,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
           </div>
 
           {/* o conteúdo: depois do vidro na ordem do Tab, atrás dele na tela */}
-          <div className="gf-files" role="list" aria-label={`Peças de ${rotulo}`} inert={!aberta}>
+          <div className="gf-files" role="list" aria-label={`Peças de ${rotulo}`} inert={!aberto}>
             {n === 0 && vazio && <p className="gf-vazio">{vazio}</p>}
             {visiveis.map((f, v) => {
               const jitter = rng(hashString(f.nome));
