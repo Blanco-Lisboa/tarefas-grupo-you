@@ -156,7 +156,6 @@ export function criarManipulador(d: Deps) {
           return { arquivo_id: ja.id }; // repetição do mesmo pedido
         }
         const card = await cardDe(tarefaId);
-        const pasta = await pastaDoCard(card, pessoa.id);
         const f = await d.api.ver(driveId).catch((e: unknown) => {
           if (e instanceof ErroDrive && e.status === 404) throw new Recusa(410, "O arquivo não existe mais no Drive."); // a tela pode descartar a anotação do envio
           throw e;
@@ -169,6 +168,7 @@ export function criarManipulador(d: Deps) {
           throw new Recusa(422, "O arquivo não chegou inteiro ao Drive. Tente de novo.");
         }
         // A ocasião do card pode ter mudado durante o envio: o arquivo é bom, então SEGUE para a pasta atual do card (não se descarta nem se deixa na antiga sem registro)
+        const pasta = await pastaDoCard(card, pessoa.id); // só depois das recusas: pedido recusado não cria ocasião nem pasta
         if (!f.parents?.includes(pasta)) await d.api.mover(driveId, pasta, f.parents ?? []);
         try {
           const [l] = await s.inserir<{ id: string }>("arquivos", { tarefa_id: tarefaId, drive_id: driveId, nome, tipo, tamanho, papel, ordem, criado_por: pessoa.id });

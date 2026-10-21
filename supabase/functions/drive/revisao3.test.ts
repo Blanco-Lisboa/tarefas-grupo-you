@@ -54,6 +54,19 @@ describe("214: confirmar_envio só aceita o card para o qual a sessão foi abert
     expect(m.b.estado.tabelas.arquivos).toHaveLength(0);
   });
 
+  it("recusa no card B não cria ocasião, pasta no Drive nem vínculo: card B intacto", async () => {
+    const m = montar();
+    const id = await m.enviar("A");
+    const pastas = () => [...m.g.estado.arquivos.values()].filter((a) => a.folder).length;
+    const [ocasioes, drivePastas, nPastas] = [m.b.estado.tabelas.ocasioes.length, JSON.stringify(m.b.estado.tabelas.drive_pastas), pastas()];
+    const cardB = JSON.stringify(m.b.estado.tabelas.tarefas.find((t) => t.id === "B"));
+    expect((await m.confirmar("B", id)).status).toBe(422);
+    expect(m.b.estado.tabelas.ocasioes).toHaveLength(ocasioes);
+    expect(JSON.stringify(m.b.estado.tabelas.drive_pastas)).toBe(drivePastas);
+    expect(pastas()).toBe(nPastas);
+    expect(JSON.stringify(m.b.estado.tabelas.tarefas.find((t) => t.id === "B"))).toBe(cardB);
+  });
+
   it("envio do card A confirmado no card C (outra empresa): recusado, nada movido nem registrado", async () => {
     const m = montar();
     const id = await m.enviar("A");
