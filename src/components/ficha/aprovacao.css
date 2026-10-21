@@ -88,10 +88,15 @@
 /* Item 210: o título fica fora, como os outros da ficha; a caixa ocupa a largura dos campos e tudo dentro dela fecha nas mesmas margens */
 .publicacao { --aprovar: #2C6B49; /* o verde do Aprovar/Programar mora em .aprovacao, que não envolve este bloco */ }
 .publicacao-caixa { display: grid; gap: var(--s-12); min-width: 0; padding: var(--s-16); border: 1px solid var(--linha); border-radius: var(--raio-b); background: var(--sup-2); }
-.publicacao-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); }
-.publicacao-acoes > button { flex: 1 1 auto; }
-.publicacao-acoes .aprovacao-botao { min-height: 36px; padding: 6px var(--s-16); font-size: var(--t-14); }
-.publicacao-acoes .campo-data-botao { height: 36px; min-height: 36px; border-radius: 8px; }
+/* Item 231: data, Programar/Reprogramar e Postar agora com 1/3 cada e o mesmo vão, nas bordas das redes de cima (vão igual nas duas linhas).
+   Tentar de novo (sozinho) ocupa a linha inteira; no celular, um embaixo do outro. */
+.publicacao .aprovacao-redes { gap: var(--s-8); }
+.publicacao-acoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center; gap: var(--s-8); }
+.publicacao-acoes > * { min-width: 0; }
+.publicacao-acoes [data-acao="tentar"] { grid-column: 1 / -1; }
+.publicacao-acoes .aprovacao-botao { min-height: 36px; padding: 6px var(--s-12); font-size: var(--t-14); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.publicacao-acoes .campo-data-botao { width: 100%; height: 36px; min-height: 36px; border-radius: 8px; }
+@media (max-width: 520px) { .publicacao-acoes { grid-template-columns: 1fr; } }
 .publicacao-links { display: flex; flex-wrap: wrap; gap: var(--s-16); }
 .publicacao .aprovacao-erro { padding: var(--s-12); }
 /* Consertar e Aprovar no fim da ficha, acima do pé (item 219): metade cada, nas bordas dos campos; tamanho dos botões da Publicação */
