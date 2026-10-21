@@ -2,7 +2,14 @@
 /provas
 /prototipos
 /docs
-/supabase
+# supabase fica de fora, MENOS o único arquivo que a tela importa (src/lib/dados/arvore.ts usa supabase/functions/_shared/pastas.ts: nomes das pastas e dias da limpeza).
+# Sem isto a montagem na Vercel falha com "Module not found" (item 244). O teste src/vercelignore.test.ts confere.
+/supabase/*
+!/supabase/functions
+/supabase/functions/*
+!/supabase/functions/_shared
+/supabase/functions/_shared/*
+!/supabase/functions/_shared/pastas.ts
 .env*
 !.env.example
 /dev-3100.log
