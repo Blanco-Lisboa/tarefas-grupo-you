@@ -11,7 +11,7 @@
 // - soLer: só para olhar (Caderno de outra pessoa): campos travados, sem Salvar nem lixeira; links do Drive e das notas seguem abrindo.
 //   Lixeira no pé (item 179) só para quem podeApagar: clicar troca o pé por Apagar (vermelho) e Cancelar; Esc também cancela.
 // - Fazendo agora (item 170): tarefa já salva mostra Começar/Parar no topo e quem está nela desde quando (todos veem de todos).
-// - Postagem em "Em análise" (item 208): Aprovar e Consertar no topo, ao lado de Começar/Fechar, para quem aprova. Gravam a ficha
+// - Postagem em "Em análise" (item 208): Consertar e Aprovar no fim da ficha, depois de Notas (item 219), para quem aprova. Gravam a ficha
 //   inteira com a etapa nova (Lupa 215, como a Publicação) e a ficha continua aberta já no novo estado.
 // - aoSalvar: chamado com o que foi gravado quando o banco aceita (o Calendário avisa da tarefa salva sem empresa com o filtro ligado).
 // - Sem campo Etapa (item 205): a etapa muda arrastando na Esteira; card novo com empresa entra em Roteiro (etapaAoSalvar).
@@ -205,12 +205,6 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
               )}
             </span>
             {!nova && <Agora tarefaId={tarefa.id!} soLer={soLer} encerrada={viva?.tipo === "postagem" && (viva.etapa === "aprovado" || viva.etapa === "postado")} nomes={NOMES.responsavel} />}
-            {decide && (
-              <div className="ficha-decidir">
-                <button type="button" className="aprovacao-botao" data-acao="aprovar" disabled={salvando} onClick={() => void decidir({ etapa: "aprovado" })}>{decidindo === "aprovado" ? "Aprovando…" : "Aprovar"}</button>
-                <button type="button" className="aprovacao-botao" data-acao="consertar" disabled={salvando} onClick={() => void decidir({ etapa: "edicao", conserto: true })}>{decidindo === "edicao" ? "Consertando…" : "Consertar"}</button>
-              </div>
-            )}
             <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>
           </div>
           <textarea
@@ -315,6 +309,12 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
             )}
           </div>
 
+          {decide && (
+            <div className="ficha-decidir">
+              <button type="button" className="aprovacao-botao" data-acao="consertar" disabled={salvando} onClick={() => void decidir({ etapa: "edicao", conserto: true })}>{decidindo === "edicao" ? "Consertando…" : "Consertar"}</button>
+              <button type="button" className="aprovacao-botao" data-acao="aprovar" disabled={salvando} onClick={() => void decidir({ etapa: "aprovado" })}>{decidindo === "aprovado" ? "Aprovando…" : "Aprovar"}</button>
+            </div>
+          )}
         </fieldset>
 
         <footer className="ficha-pe">

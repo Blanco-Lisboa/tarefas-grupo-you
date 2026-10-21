@@ -5,7 +5,7 @@
 //   <Aprovacao tarefa={tarefa} />      // o pé do card, conforme o tipo e a etapa (abaixo)
 //
 // - Card que NÃO é Postagem: "Concluir" em qualquer etapa (Natham, Matheus ou o dono), que pede confirmação e APAGA o card (decisão de 23/10).
-// - Postagem em "Em análise": nada no pé; Aprovar e Consertar ficam no topo da ficha (item 208, pedido do Natham).
+// - Postagem em "Em análise": nada no pé; Consertar e Aprovar ficam no fim da ficha (itens 208 e 219, pedido do Natham).
 // - Postagem em "Aprovado": UMA linha de estado (Programado · data · redes / Postando… / Erro ao postar: abra o card / Sem programação).
 //   Programar, Postar agora, Tentar de novo e as redes ficam na ficha, no bloco Publicação (pedido do Natham: o card fica baixo).
 // - Postagem em "Postado": nada no pé; os links do post ficam na ficha e no Mapa.
