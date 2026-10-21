@@ -148,13 +148,18 @@ Nenhuma outra linha muda (gatilho, alarme, sentinela, alarmes de serviço, trava
 
 ```ts
 // @/lib/dados
-export type PostagemAutomatica = { ligada: boolean };
-export const usePostagemAutomatica: () => PostagemAutomatica;   // reativo; { ligada: false } enquanto carrega, antes do 019 e entre o 019 e o 019b
+export type PostagemAutomatica = { ligada: boolean; deVerdade: boolean };
+export const usePostagemAutomatica: () => PostagemAutomatica;   // reativo
 export const lerPostagemAutomatica: () => PostagemAutomatica;   // o mesmo valor, fora de componente
-export const recarregarPostagemAutomatica: () => Promise<void>; // ler de novo (ex.: ao voltar para a aba)
+export const recarregarPostagemAutomatica: () => Promise<void>; // ler de novo agora
+export function acompanharPostagemAutomatica(doc, cadaMs = 300000): () => void; // a camada já chama: relê ao voltar para a aba e a cada 5 min
 ```
+- `ligada` = interruptor do banco (`public.postagem_automatica_ligada()`, só leitura; o 019b liga). `{ ligada: false, deVerdade: false }` enquanto carrega, antes do 019 e entre o 019 e o 019b.
+- **239 · `deVerdade`** = a função `postar-meta` CONFIRMOU `POSTAR_DE_VERDADE=sim`. Ela responde à ação `modo` (só com login; devolve só `{ deVerdade: true|false }`, nenhum segredo; CORS ligado). **False também quando a função está fora do ar ou não respondeu** (conservador). Regra para os textos do Sextante: `ligada && deVerdade` = pode prometer "vai ao ar"; `ligada && !deVerdade` = "modo de teste: nada sai nas redes"; `!ligada` = "hora marcada" (como hoje). Só é perguntado à função quando `ligada`.
+- **Releitura (239/4):** a camada relê quando a aba volta a ficar visível e a cada 5 minutos com a aba visível; as telas não precisam chamar nada.
+
 Vem do banco (`public.postagem_automatica_ligada()`, só leitura do interruptor do 019; o 019b liga). **Ligada** = o banco chama a função de postagem: só então a ficha pode prometer "vai ao ar". **Desligada** = Programar e Postar agora não podem prometer post: o card só vira Postado na hora marcada (relógio do 015). Atenção: mesmo ligada, `POSTAR_DE_VERDADE=nao` é modo de teste (a função não publica); o banco não sabe disso, então a frase da ficha deve dizer "modo de teste" até o Natham trocar para `sim` (decisão de texto do Sextante, que o Natham confere).
-Na cópia de exemplo (3101) está desligada; para ver ligada: `EXEMPLO_POSTAGEM_AUTOMATICA=1 npm run exemplo`.
+Na cópia de exemplo (3101) está desligada; ligada em teste: `EXEMPLO_POSTAGEM_AUTOMATICA=1 npm run exemplo`; ligada de verdade: junto com `EXEMPLO_POSTAR_DE_VERDADE=1`.
 
 ## 11. Documento solto numa pasta de Tema (sem card)
 
@@ -198,3 +203,9 @@ Junto: a camada de dados exporta `NOME_FORMATO`, `SEM_FORMATO`, `SEM_TEMA`, `nom
 - **6 (cadeado contra exclusão/limpeza):** trava de linha no banco: `iniciar_apagar_pasta_livre` e `iniciar_limpeza_tema` marcam "apagando/limpando" e ligar o Permanente espera 10 min (erro 55006, mensagem pronta); se o cadeado entrou antes, apagar e limpar não começam.
 - **7 (prazo errado até recarregar):** `postadoEmDe` grava a data real na memória ao salvar (o banco grava a mesma).
 - **Interruptor para a tela:** seção 10c. O 019 v2 continua seguro para colar ANTES das funções e da interface: `prova_236.sh` agora tem 61 conferências, 0 falhas.
+
+### 13c. 239 · Hoje: HEAD publicado com o 019 v2 colado, SEM função drive e SEM Google (resposta; nada codado)
+- **Anexo em card com Empresa:** falha (`/functions/v1/drive` não existe, ou o Google não está ligado). O card salva e a ficha avisa "a tarefa foi salva, mas o anexo não foi guardado". Card sem Empresa e anexo antigo seguem pelo Supabase. **Vídeo não entra em lugar nenhum** (o 019 só aceita vídeo no Drive). Capa por quadro e player de vídeo também dependem da função.
+- **Tela Pastas:** abre; a árvore dos posts fica vazia (nenhum arquivo com `drive_id`), temas e pastas livres vêm vazios; "+ Nova pasta", "Subir arquivo" e "Criar tema" (todos passam pela função) mostram erro. Ideias de conteúdo funciona (não é Drive).
+- **Mapa e Esteira:** normais (só leem cards). Ficha: Tema vazio, Publicação em "hora marcada" (interruptor desligado). Nada quebra a página.
+- **Custo de um "Drive desligado"** (como o interruptor da postagem): pequeno. Banco: 1 função `public.drive_ligado()` = existe o segredo do Google no Vault (liga sozinho quando o Natham autoriza; sem tabela nova). Dados: `useDriveLigado()` (mesmo molde do `usePostagemAutomatica`, com releitura) + teste. Anexos: com o Drive desligado, imagem e documento de card com Empresa vão para o Supabase como hoje (ficam só na ficha, viram "anexo antigo" quando o Drive ligar); vídeo fica bloqueado com a frase "Vídeo precisa do Google Drive ligado". Pastas: faixa "O Drive ainda não foi ligado: as pastas aparecem depois que o Google for autorizado", com "+ Nova pasta", "Subir arquivo" e "Criar tema" desabilitados e explicados. Meio dia entre Alvenaria (banco, dados, anexos), Vitral (faixa) e Sextante (Criar tema, vídeo). Recomendo fazer: tira a restrição de ordem do passo 4 da seção 13.

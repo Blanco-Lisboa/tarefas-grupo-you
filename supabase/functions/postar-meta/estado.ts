@@ -25,10 +25,25 @@ const PRAZO_MS = 300_000; // a função vive até 400 s; conferências dentro da
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const vazio = (status: number) => new Response(null, { status });
 
+const CORS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
+  "access-control-allow-methods": "POST, OPTIONS",
+};
+
 export function criarManipulador(d: Deps) {
   const trabalhar = criarTrabalho(d);
+  /** 239 · A tela pergunta "está em modo de teste?" (POSTAR_DE_VERDADE). Responde SÓ um verdadeiro/falso (nenhum segredo), e só para quem está logado. */
+  async function modo(req: Request): Promise<Response> {
+    const token = /^Bearer (.+)$/.exec(req.headers.get("authorization") ?? "")?.[1];
+    const r = token ? await d.fetch(`${d.env("SUPABASE_URL")}/auth/v1/user`, { headers: { apikey: d.env("SUPABASE_ANON_KEY") ?? "", authorization: `Bearer ${token}` } }).catch(() => null) : null;
+    if (!r?.ok) return new Response(JSON.stringify({ erro: "Entre no sistema." }), { status: 401, headers: { ...CORS, "content-type": "application/json" } });
+    return new Response(JSON.stringify({ deVerdade: d.env("POSTAR_DE_VERDADE") === "sim" }), { status: 200, headers: { ...CORS, "content-type": "application/json" } });
+  }
   return async (req: Request): Promise<Response> => {
+    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
     if (req.method !== "POST") return vazio(405);
+    if (req.headers.get("x-tarefas-segredo") === null && (await req.clone().json().catch(() => null))?.acao === "modo") return modo(req);
     const certo = await criarBanco(d.env, d.fetch).segredo("tarefas_funcoes_segredo").catch(() => null);
     if (!certo || !(await iguais(req.headers.get("x-tarefas-segredo") ?? "", certo))) return vazio(401);
     const corpo = (await req.json().catch(() => null)) as { acao?: string; tarefa_id?: string } | null;

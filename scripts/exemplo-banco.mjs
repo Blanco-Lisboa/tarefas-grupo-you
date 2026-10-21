@@ -240,6 +240,8 @@ createServer(async (req, res) => {
   // Envio "para o Drive" de mentira: a sessão é este endereço mesmo; aceita as partes e devolve um id (nada sai do PC).
   const sessao = url.pathname.match(/^\/upload\/sessao\/(\w+)$/)?.[1];
   if (sessao && req.method === "PUT") { req.resume(); return req.on("end", () => res.writeHead(200).end(JSON.stringify({ id: `drive-up-${sessao}` }))); }
+  // 239: a postar-meta de mentira só diz se publica de verdade (EXEMPLO_POSTAR_DE_VERDADE=1; padrão: modo de teste)
+  if (url.pathname === "/functions/v1/postar-meta" && req.method === "POST") return res.writeHead(200).end(JSON.stringify({ deVerdade: process.env.EXEMPLO_POSTAR_DE_VERDADE === "1" }));
   // Função `drive` de mentira (item 229/234), em exemplo-funcao-drive.mjs
   if (url.pathname === "/functions/v1/drive" && req.method === "POST") {
     return funcaoDrive(await corpoDe(req), { res, ocasioes, pastasLivres, arquivos, tarefas, P, porta: PORTA_BANCO, novoId: () => ++n });

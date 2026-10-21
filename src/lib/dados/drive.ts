@@ -160,7 +160,7 @@ async function carregarOcasioes() {
 }
 const assinar = (f: () => void) => {
   ouvintes.add(f);
-  if (!carregou && typeof window !== "undefined") { carregou = true; void carregarOcasioes(); void carregarDocumentos(); void carregarPastasLivres(); void carregarPostagemAutomatica(); }
+  if (!carregou && typeof window !== "undefined") { carregou = true; void carregarOcasioes(); void carregarDocumentos(); void carregarPastasLivres(); void carregarPostagemAutomatica(); acompanharPostagemAutomatica(document); }
   return () => void ouvintes.delete(f);
 };
 const NADA: Ocasiao[] = [];
@@ -200,23 +200,40 @@ export const organizarCard = (tarefaId: string) => chamar<{ movida: boolean }>({
 /** Recarrega a lista de temas. */
 export const recarregarOcasioes = () => carregarOcasioes();
 
-// ---- Interruptor da postagem automática (238): a tela só promete "vai ao ar" quando está LIGADA (o 019b liga, depois da função postar-meta) ----
-export type PostagemAutomatica = { ligada: boolean };
-const DESLIGADA: PostagemAutomatica = { ligada: false };
+// ---- Interruptor da postagem automática (238/239): a tela só promete "vai ao ar" quando está LIGADA e a função publica DE VERDADE ----
+/** `ligada` = o interruptor do banco (o 019b liga). `deVerdade` = a função postar-meta confirmou POSTAR_DE_VERDADE=sim; FALSE também quando ela está fora do ar ou não respondeu
+    (conservador: sem confirmação a tela fala "modo de teste", nunca promete post). */
+export type PostagemAutomatica = { ligada: boolean; deVerdade: boolean };
+const DESLIGADA: PostagemAutomatica = { ligada: false, deVerdade: false };
 let postagemAutomatica: PostagemAutomatica = DESLIGADA;
+/** Pergunta à função postar-meta (ação "modo": devolve só um verdadeiro/falso, sem segredo) se ela publica de verdade. Qualquer falha = false. */
+async function perguntarModo(): Promise<boolean> {
+  try {
+    const r = await fetch(`${base()}/functions/v1/postar-meta`, { method: "POST", headers: await cabecalho(), body: JSON.stringify({ acao: "modo" }) });
+    return r.ok && ((await r.json().catch(() => ({}))) as { deVerdade?: boolean }).deVerdade === true;
+  } catch { return false; }
+}
 async function carregarPostagemAutomatica() {
   const { data, error } = await supabase().rpc("postagem_automatica_ligada"); // antes do 019 a função não existe: fica "desligada"
   const ligada = !error && data === true;
-  if (ligada === postagemAutomatica.ligada) return;
-  postagemAutomatica = ligada ? { ligada } : DESLIGADA;
+  const deVerdade = ligada && (await perguntarModo());
+  if (ligada === postagemAutomatica.ligada && deVerdade === postagemAutomatica.deVerdade) return;
+  postagemAutomatica = ligada ? { ligada, deVerdade } : DESLIGADA;
   avisar();
 }
-/** A postagem automática está ligada? `{ ligada: false }` enquanto carrega, antes do 019 e entre o 019 e o 019b. Reativo. */
+/** A postagem automática está ligada? E publica de verdade? `{ ligada: false, deVerdade: false }` enquanto carrega, antes do 019 e entre o 019 e o 019b. Reativo. */
 export const usePostagemAutomatica = (): PostagemAutomatica => useSyncExternalStore(assinar, () => postagemAutomatica, () => DESLIGADA);
 /** Valor atual, fora de componente. */
 export const lerPostagemAutomatica = () => postagemAutomatica;
-/** Lê de novo (ex.: ao voltar para a aba). */
+/** Lê de novo. A própria camada já faz isso quando a aba volta a ficar visível e a cada 5 minutos (acompanharPostagemAutomatica). */
 export const recarregarPostagemAutomatica = () => carregarPostagemAutomatica();
+/** 239 · Mantém a tela em dia sem recarregar a página: relê quando a aba volta a ficar visível e a cada `cadaMs` (5 min) com a aba visível. Devolve quem desliga. */
+export function acompanharPostagemAutomatica(doc: Pick<Document, "addEventListener" | "removeEventListener" | "hidden">, cadaMs = 5 * 60_000): () => void {
+  const aoVoltar = () => { if (!doc.hidden) void recarregarPostagemAutomatica(); };
+  doc.addEventListener("visibilitychange", aoVoltar);
+  const relogio = setInterval(aoVoltar, cadaMs);
+  return () => { doc.removeEventListener("visibilitychange", aoVoltar); clearInterval(relogio); };
+}
 
 // ---- Pastas livres (item 234): a "+ Nova pasta". Ficam na empresa, ao lado das pastas de formato; NÃO são Tema; qualquer arquivo; nada sai sozinho ----
 /** `permanente` = cadeado: a pasta não se apaga (renomear pode). Só o Natham desliga (o banco recusa o Matheus). */

@@ -88,7 +88,7 @@ export function mundo(o: { verdade?: boolean; conferencias?: number; env?: Recor
   };
 
   const ENV: Record<string, string> = {
-    SUPABASE_URL: URL_FALSA, SUPABASE_SERVICE_ROLE_KEY: b.estado.servico, META_PUBLISHER_TOKEN: TOKEN,
+    SUPABASE_URL: URL_FALSA, SUPABASE_ANON_KEY: "chave-anon-falsa", SUPABASE_SERVICE_ROLE_KEY: b.estado.servico, META_PUBLISHER_TOKEN: TOKEN,
     META_BASE: "https://meta.falsa/v26.0", RUPLOAD_BASE: "https://rupload.falsa",
     GOOGLE_API_BASE: BASE_FALSA, GOOGLE_TOKEN_BASE: BASE_FALSA, POSTAR_DE_VERDADE: o.verdade === false ? "nao" : "sim", ...o.env,
   };

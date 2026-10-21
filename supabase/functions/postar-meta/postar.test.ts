@@ -249,3 +249,42 @@ describe("postar-meta: a chave", () => {
     expect(t.erro).not.toContain("token=abc");
   });
 });
+
+describe("239: a tela pergunta se a postar-meta está em MODO DE TESTE", () => {
+  const modo = (m: ReturnType<typeof mundo>, token?: string, extra: Record<string, string> = {}) =>
+    m.manipulador(new Request("https://f/postar-meta", { method: "POST", headers: { ...(token ? { authorization: `Bearer ${token}` } : {}), origin: "https://app", ...extra }, body: JSON.stringify({ acao: "modo" }) }));
+  it("logado: responde só { deVerdade } (true só com POSTAR_DE_VERDADE=sim) e nenhum segredo", async () => {
+    const real = mundo({ verdade: true });
+    real.b.estado.usuarios.set("tok-natham", "u-natham");
+    const r = await modo(real, "tok-natham");
+    expect(r.status).toBe(200);
+    expect(await r.json()).toEqual({ deVerdade: true });
+    expect(r.headers.get("access-control-allow-origin")).toBe("*");
+    const teste = mundo({ verdade: false });
+    teste.b.estado.usuarios.set("tok-natham", "u-natham");
+    const t = await modo(teste, "tok-natham");
+    expect(await t.json()).toEqual({ deVerdade: false });
+    const corpo = JSON.stringify(await (await modo(teste, "tok-natham")).json());
+    expect(corpo).not.toContain(TOKEN); // nada de chave da Meta
+  });
+  it("só 'sim' vale: outro valor (vazio, 'nao', 'SIM') é modo de teste", async () => {
+    for (const v of ["nao", "", "SIM", "true"]) {
+      const m = mundo({ env: { POSTAR_DE_VERDADE: v } });
+      m.b.estado.usuarios.set("tok-natham", "u-natham");
+      expect(await (await modo(m, "tok-natham")).json()).toEqual({ deVerdade: false });
+    }
+  });
+  it("sem login ou com login que o banco não conhece: 401, e sem a resposta de modo", async () => {
+    const m = mundo({ verdade: true });
+    expect((await modo(m)).status).toBe(401);
+    expect((await modo(m, "tok-qualquer")).status).toBe(401);
+  });
+  it("responde ao preflight do navegador (OPTIONS) e não abre o postar sem campainha", async () => {
+    const m = mundo();
+    const pre = await m.manipulador(new Request("https://f/postar-meta", { method: "OPTIONS" }));
+    expect(pre.status).toBe(204);
+    expect(pre.headers.get("access-control-allow-headers")).toContain("authorization");
+    const sem = await m.manipulador(new Request("https://f/postar-meta", { method: "POST", body: JSON.stringify({ acao: "postar", tarefa_id: TAREFA }) }));
+    expect(sem.status).toBe(401);
+  });
+});
