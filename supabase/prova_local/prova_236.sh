@@ -272,4 +272,9 @@ end $$;
 SQL
 
 echo; q -c "select case when ok then 'ok    ' else 'FALHOU' end || ' · ' || nome || coalesce(nullif(' [' || detalhe || ']', ' []'), '') from public.prova order by ok, nome" | sed 's/^/  /'
+# PROVA_FORCAR_FALHA=1 insere uma conferência que falha de propósito (para provar que o script devolve erro).
+[ -n "$PROVA_FORCAR_FALHA" ] && qq -c "select public.confere('FALHA FORCADA (teste do próprio script)', false)"
 q -c "select 'FALHAS: ' || count(*) filter (where not ok) || ' de ' || count(*) from public.prova"
+# 240 · Código de saída: 0 só se NENHUMA conferência falhou (antes saía 0 mesmo com falhas e uma automação liberava o 019b sem ver).
+falhas=$(q -c "select count(*) filter (where not ok) from public.prova")
+[ "$falhas" = "0" ] || { echo "PROVA FALHOU: $falhas conferência(s)."; exit 1; }
