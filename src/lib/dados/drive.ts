@@ -160,7 +160,7 @@ async function carregarOcasioes() {
 }
 const assinar = (f: () => void) => {
   ouvintes.add(f);
-  if (!carregou && typeof window !== "undefined") { carregou = true; void carregarOcasioes(); void carregarDocumentos(); void carregarPastasLivres(); }
+  if (!carregou && typeof window !== "undefined") { carregou = true; void carregarOcasioes(); void carregarDocumentos(); void carregarPastasLivres(); void carregarPostagemAutomatica(); }
   return () => void ouvintes.delete(f);
 };
 const NADA: Ocasiao[] = [];
@@ -199,6 +199,24 @@ export async function ligarPermanente(id: string, ligado: boolean): Promise<void
 export const organizarCard = (tarefaId: string) => chamar<{ movida: boolean }>({ acao: "organizar_card", tarefa_id: tarefaId }).then((r) => r.movida);
 /** Recarrega a lista de temas. */
 export const recarregarOcasioes = () => carregarOcasioes();
+
+// ---- Interruptor da postagem automática (238): a tela só promete "vai ao ar" quando está LIGADA (o 019b liga, depois da função postar-meta) ----
+export type PostagemAutomatica = { ligada: boolean };
+const DESLIGADA: PostagemAutomatica = { ligada: false };
+let postagemAutomatica: PostagemAutomatica = DESLIGADA;
+async function carregarPostagemAutomatica() {
+  const { data, error } = await supabase().rpc("postagem_automatica_ligada"); // antes do 019 a função não existe: fica "desligada"
+  const ligada = !error && data === true;
+  if (ligada === postagemAutomatica.ligada) return;
+  postagemAutomatica = ligada ? { ligada } : DESLIGADA;
+  avisar();
+}
+/** A postagem automática está ligada? `{ ligada: false }` enquanto carrega, antes do 019 e entre o 019 e o 019b. Reativo. */
+export const usePostagemAutomatica = (): PostagemAutomatica => useSyncExternalStore(assinar, () => postagemAutomatica, () => DESLIGADA);
+/** Valor atual, fora de componente. */
+export const lerPostagemAutomatica = () => postagemAutomatica;
+/** Lê de novo (ex.: ao voltar para a aba). */
+export const recarregarPostagemAutomatica = () => carregarPostagemAutomatica();
 
 // ---- Pastas livres (item 234): a "+ Nova pasta". Ficam na empresa, ao lado das pastas de formato; NÃO são Tema; qualquer arquivo; nada sai sozinho ----
 /** `permanente` = cadeado: a pasta não se apaga (renomear pode). Só o Natham desliga (o banco recusa o Matheus). */

@@ -253,6 +253,8 @@ createServer(async (req, res) => {
     if (i >= 0) tarefas[i] = { ...tarefas[i], ...nova }; else tarefas.push(nova);
     return res.writeHead(204).end();
   }
+  // 238: o interruptor da postagem automática (a cópia de exemplo fica DESLIGADA; para ver ligada: EXEMPLO_POSTAGEM_AUTOMATICA=1 npm run exemplo)
+  if (rpc === "postagem_automatica_ligada") return res.writeHead(200).end(JSON.stringify(process.env.EXEMPLO_POSTAGEM_AUTOMATICA === "1"));
   if (rpc) return res.writeHead(200).end("[]"); // tarefas_no_google, postar_agora etc.: nada a fazer
 
   const tabela = url.pathname.match(/^\/rest\/v1\/(\w+)/)?.[1];

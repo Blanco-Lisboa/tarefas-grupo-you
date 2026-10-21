@@ -144,6 +144,18 @@ Nenhuma outra linha muda (gatilho, alarme, sentinela, alarmes de serviço, trava
 **SQL (no mesmo `_colar/019_postagem_drive.sql` v2, marcas "234"):** tabela `pastas_livres`, gatilho do cadeado, `definir_permanente_livre`, `pode_apagar_pasta_livre`, e `arquivos.pasta_livre_id` (a constraint `arquivos_solto_ok` ganha o ramo da pasta livre). Chave no Drive: `livre:<id>` em `drive_pastas`.
 **Banco falso da 3101:** 2 pastas livres na You ("Logos e marca", com cadeado, e "Referências") com arquivos de vários tipos.
 
+### 10c. 238: o interruptor da postagem automática na tela (para o Sextante, achado 1 da Re-revisão)
+
+```ts
+// @/lib/dados
+export type PostagemAutomatica = { ligada: boolean };
+export const usePostagemAutomatica: () => PostagemAutomatica;   // reativo; { ligada: false } enquanto carrega, antes do 019 e entre o 019 e o 019b
+export const lerPostagemAutomatica: () => PostagemAutomatica;   // o mesmo valor, fora de componente
+export const recarregarPostagemAutomatica: () => Promise<void>; // ler de novo (ex.: ao voltar para a aba)
+```
+Vem do banco (`public.postagem_automatica_ligada()`, só leitura do interruptor do 019; o 019b liga). **Ligada** = o banco chama a função de postagem: só então a ficha pode prometer "vai ao ar". **Desligada** = Programar e Postar agora não podem prometer post: o card só vira Postado na hora marcada (relógio do 015). Atenção: mesmo ligada, `POSTAR_DE_VERDADE=nao` é modo de teste (a função não publica); o banco não sabe disso, então a frase da ficha deve dizer "modo de teste" até o Natham trocar para `sim` (decisão de texto do Sextante, que o Natham confere).
+Na cópia de exemplo (3101) está desligada; para ver ligada: `EXEMPLO_POSTAGEM_AUTOMATICA=1 npm run exemplo`.
+
 ## 11. Documento solto numa pasta de Tema (sem card)
 
 - **Onde entra:** direto na pasta do Tema DENTRO do Formato em que a pessoa está: `Tarefas · Conteúdos → Empresa → Formato → Tema` (ou "Sem tema"; "Sem formato" se a pasta é essa). Não cria pasta de conteúdo.
@@ -178,3 +190,11 @@ Junto: a camada de dados exporta `NOME_FORMATO`, `SEM_FORMATO`, `SEM_TEMA`, `nom
 4. **Publicar a interface nova** (compatível com o banco novo) e autorizar o Drive em Configurações.
 5. **Colar o 019b** (liga a postagem automática, toca os vencidos, tira o relógio de todo minuto), com `POSTAR_DE_VERDADE=nao`: testar rascunho na Meta e um Drive real. Aviso de erro no WhatsApp (n8n) ligado antes do passo 6.
 6. **Natham aprova o primeiro post** e muda para `POSTAR_DE_VERDADE=sim`; acompanhar as duas redes e os links. Para voltar atrás a qualquer hora: `update private.interruptores set ligado = false where nome = 'postagem_automatica';` e reagendar `tarefas_postar_vencidos` (comando no topo do 019b).
+
+### 13b. 238 · Consertos da Re-revisão 1 (achados 2, 3, 4, 6 e 7; o 5 NÃO se faz: documento solto só em pasta livre, decisão do Natham)
+- **2 (Adrian apagava pasta livre):** `iniciar_apagar_pasta_livre` (banco) só deixa Natham e Matheus; a função também exige `pode_mexer_pastas`.
+- **3 (arquivo anexado depois de Postado):** gatilho em `arquivos`: arquivo do Drive novo em card já Postado arma a limpeza de 7 dias (uma vez só; anexo antigo sem `drive_id` não).
+- **4 (ficha não tirava o Tema):** `salvarTarefa` manda `ocasiao_id: null` quando o card tinha Tema e agora não tem (`campoOcasiao`).
+- **6 (cadeado contra exclusão/limpeza):** trava de linha no banco: `iniciar_apagar_pasta_livre` e `iniciar_limpeza_tema` marcam "apagando/limpando" e ligar o Permanente espera 10 min (erro 55006, mensagem pronta); se o cadeado entrou antes, apagar e limpar não começam.
+- **7 (prazo errado até recarregar):** `postadoEmDe` grava a data real na memória ao salvar (o banco grava a mesma).
+- **Interruptor para a tela:** seção 10c. O 019 v2 continua seguro para colar ANTES das funções e da interface: `prova_236.sh` agora tem 61 conferências, 0 falhas.

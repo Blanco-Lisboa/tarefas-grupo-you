@@ -70,6 +70,15 @@ export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem:
   };
 }
 
+/** 238 · O que vai em `ocasiao_id` ao salvar. Com tema: manda. SEM tema mas o card tinha um: manda null (a ficha tirou o Tema, ou mudou de empresa).
+    Nunca teve tema: nem manda (a coluna só existe depois do 019). */
+export const campoOcasiao = (atual: string | undefined, antes: string | undefined): { ocasiao_id?: string | null } =>
+  atual ? { ocasiao_id: atual } : antes ? { ocasiao_id: null } : {};
+/** 238 · Quando o card entrou em Postado, do jeito que o gatilho do banco grava: entrar agora = agora; já estava Postado = mantém; saiu = nada.
+    Assim o prazo dos 7 dias mostra a data real logo depois de arrastar, sem esperar recarregar. */
+export const postadoEmDe = (antes: { etapa?: string; postadoEm?: string } | undefined, etapa: string | undefined, agora = new Date()): string | undefined =>
+  etapa !== "postado" ? undefined : antes?.etapa === "postado" && antes.postadoEm ? antes.postadoEm : agora.toISOString();
+
 /** Campos que a pessoa pode mudar depois de criada (dono, criado_por e enviada_por o banco não deixa mudar). */
 export const paraBanco = (t: Tarefa, responsavelId: string | undefined) => ({
   titulo: t.titulo, tipo: t.tipo, empresa_id: t.empresaId || null, rede: t.rede ?? null, etapa: t.etapa ?? null,
@@ -148,6 +157,7 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa | null> {
   // O gatilho do 015 faz o mesmo no banco: Conserto só em Edição, data do post só em Aprovado/Postado.
   const tarefa: Tarefa = { ...resto, conserto: resto.etapa === "edicao" && resto.conserto ? true : undefined,
     postarEm: postarEmQueVale({ ...resto, postarRedes: redesQueValem(resto) }), postarRedes: redesQueValem(resto), programacaoCancelada: undefined, id, dono, criadoPor: antes?.criadoPor ?? eu ?? undefined, enviadaPor: antes ? antes.enviadaPor : dono !== eu ? eu ?? undefined : undefined };
+  tarefa.postadoEm = postadoEmDe(antes, tarefa.etapa); // 238: a data real de entrada em Postado (o banco grava a mesma)
   // Havia data e o salvar a tirou (só Facebook + vídeo): a tela avisa "Programação cancelada" até alguém programar de novo.
   if (antes?.postarEm && !tarefa.postarEm && tarefa.etapa === "aprovado") { cancelados.add(id); tarefa.programacaoCancelada = true; }
   if (tarefa.postarEm) cancelados.delete(id);
@@ -160,8 +170,8 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa | null> {
     const campos = paraBanco(tarefa, idDe(tarefa.responsavel));
     const linha = { id, ...campos, postar_em: tarefa.postarEm ?? null, conserto: !!tarefa.conserto, formato: tarefa.formato ?? null, responsavel_id: campos.responsavel_id ?? null, dono_id: idDe(dono), criado_por: idDe(eu), enviada_por: dono !== eu ? idDe(eu) : null,
       legenda: tarefa.legenda?.trim() || null, postar_redes: tarefa.postarRedes ?? null, capa_quadro_ms: tarefa.capaQuadroMs ?? null,
-      // ocasião só vai quando a tela sabe qual é: a função drive cria a ocasião no 1º envio, e mandar nulo depois a apagaria
-      ...(tarefa.ocasiaoId ? { ocasiao_id: tarefa.ocasiaoId } : {}),
+      // 238: Tema escolhido vai; Tema TIRADO (tinha e agora não tem) vai como null; nunca teve, nem vai (ver campoOcasiao)
+      ...campoOcasiao(tarefa.ocasiaoId, antes?.ocasiaoId),
       // só vai quando é verdade: antes do 010 a coluna não existe e mandar `false` derrubaria o salvar de toda tarefa do Caderno
       ...(tarefa.vaiProGoogle ? { vai_pro_google: true } : {}) };
     // Caminho novo: tarefa e tags numa só chamada (007). Se a função ainda não existe no banco, segue pelo caminho antigo.

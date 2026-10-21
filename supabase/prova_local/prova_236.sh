@@ -191,13 +191,85 @@ select public.confere('1 crítico: 019b liga o interruptor', private.postagem_au
 select public.confere('1 crítico: 019b tira o relógio de todo minuto', not exists (select 1 from cron.job where jobname = 'tarefas_postar_vencidos'));
 select public.confere('2 alto: card JÁ VENCIDO no momento da colagem tocou na hora (chamou a função)', exists (select 1 from net.chamadas where body ->> 'tarefa_id' = '$(id2 vencido2)' and url like '%postar-meta'));
 select public.confere('2 alto: card do minuto ATUAL também tocou na hora', exists (select 1 from net.chamadas where body ->> 'tarefa_id' = '$(id2 minuto_atual)'));
-select public.confere('2 alto: card a ≤ 1 minuto ganhou alarme no PRÓXIMO minuto cheio (não no ano que vem)',
-  (select schedule from cron.job where jobname = 'tarefas_postar_' || '$(id2 proximo2)') =
-  (select format('%s %s %s %s *', extract(minute from d)::int, extract(hour from d)::int, extract(day from d)::int, extract(month from d)::int)
-     from (select date_trunc('minute', now() at time zone 'UTC') + interval '1 minute' as d) x)
-  or (select schedule from cron.job where jobname = 'tarefas_postar_' || '$(id2 proximo2)') like '% % % % *');
+select public.confere('2 alto: card a ≤ 1 minuto não ficou sem relógio (alarme no próximo minuto cheio, ou já tocou se o minuto passou durante a prova)',
+  exists (select 1 from cron.job where jobname = 'tarefas_postar_' || '$(id2 proximo2)') or exists (select 1 from net.chamadas where body ->> 'tarefa_id' = '$(id2 proximo2)'));
+select public.confere('2 alto: e o alarme dele não é de "ano que vem" (minuto cheio dentro dos próximos 2 min)',
+  not exists (select 1 from cron.job where jobname = 'tarefas_postar_' || '$(id2 proximo2)')
+  or (select schedule from cron.job where jobname = 'tarefas_postar_' || '$(id2 proximo2)') in (
+       select format('%s %s %s %s *', extract(minute from d)::int, extract(hour from d)::int, extract(day from d)::int, extract(month from d)::int)
+       from generate_series(date_trunc('minute', now() at time zone 'UTC'), date_trunc('minute', now() at time zone 'UTC') + interval '2 minutes', interval '1 minute') d));
 select public.confere('2 alto: card futuro tem alarme', exists (select 1 from cron.job where jobname = 'tarefas_postar_' || '$(id2 futuro2)'));
 select public.confere('1 crítico: com a postagem ligada o relógio antigo (se alguém o chamar) não faz nada', private.postar_vencidos() = 0);
 SQL
+# ---- 5. 238: achados 2, 3, 6 e o interruptor legível (019 v2 + 019b já colados)
+qq <<'SQL'
+do $$
+declare u record; pasta uuid; tema uuid; t uuid; t2 uuid; t3 uuid; n uuid := (select id from public.pessoas where slug = 'natham'); v boolean; j int;
+begin
+  select * into u from public.prova_u;
+  -- ===== 2 alto: só Natham e Matheus APAGAM pasta livre (Adrian com login não)
+  insert into public.pastas_livres (empresa_id, nome) values ('you', 'Apagavel') returning id into pasta;
+  perform set_config('request.jwt.claims', json_build_object('sub', u.ua, 'role', 'authenticated')::text, true); set local role authenticated;
+  perform public.confere('238-2 alto: Adrian (login) NÃO começa a apagar pasta livre', not public.iniciar_apagar_pasta_livre(pasta));
+  reset role;
+  perform public.confere('238-2 alto: e nada foi marcado', (select apagando_desde is null from public.pastas_livres where id = pasta));
+  perform set_config('request.jwt.claims', json_build_object('sub', u.um, 'role', 'authenticated')::text, true); set local role authenticated;
+  perform public.confere('238-2 alto: Matheus começa a apagar pasta sem cadeado', public.iniciar_apagar_pasta_livre(pasta));
+  reset role;
+  -- ===== 6 alto: ligar o cadeado NÃO corre contra a exclusão da pasta (trava de linha + espera de 10 min)
+  perform set_config('request.jwt.claims', json_build_object('sub', u.un, 'role', 'authenticated')::text, true); set local role authenticated;
+  begin perform public.definir_permanente_livre(pasta, true); perform public.confere('238-6 alto: ligar o cadeado DURANTE a exclusão é recusado', false);
+  exception when sqlstate '55006' then perform public.confere('238-6 alto: ligar o cadeado DURANTE a exclusão é recusado', true); end;
+  reset role;
+  update public.pastas_livres set apagando_desde = now() - interval '11 minutes' where id = pasta;
+  perform set_config('request.jwt.claims', json_build_object('sub', u.un, 'role', 'authenticated')::text, true); set local role authenticated;
+  perform public.definir_permanente_livre(pasta, true);
+  reset role;
+  perform public.confere('238-6 alto: passada a janela (exclusão abandonada) dá para ligar o cadeado', (select permanente from public.pastas_livres where id = pasta));
+  perform set_config('request.jwt.claims', json_build_object('sub', u.um, 'role', 'authenticated')::text, true); set local role authenticated;
+  perform public.confere('238-6 alto: com o cadeado ligado antes, começar a apagar é recusado', not public.iniciar_apagar_pasta_livre(pasta));
+  reset role;
+  -- ===== 6 alto: ligar o Permanente do TEMA não corre contra a limpeza dos 7 dias
+  perform set_config('request.jwt.claims', '{}', true);  -- volta a ser o editor do SQL (sem login), como o 019 é colado
+  insert into public.ocasioes (empresa_id, nome) values ('you', 'Tema da limpeza') returning id into tema;
+  insert into public.tarefas (titulo, tipo, empresa_id, etapa, responsavel_id, dono_id, criado_por, aprovador, ocasiao_id)
+    values ('prova limpeza', 'postagem', 'you', 'postado', n, n, n, 'Natham', tema) returning id into t;
+  select public.iniciar_limpeza_tema(t) into v;
+  perform public.confere('238-6 alto: a limpeza de tema comum começa', v);
+  perform public.confere('238-6 alto: e marca a trava no tema', (select limpando_desde is not null from public.ocasioes where id = tema));
+  perform set_config('request.jwt.claims', json_build_object('sub', u.un, 'role', 'authenticated')::text, true); set local role authenticated;
+  begin perform public.definir_permanente(tema, true); perform public.confere('238-6 alto: ligar o Permanente do tema DURANTE a limpeza é recusado', false);
+  exception when sqlstate '55006' then perform public.confere('238-6 alto: ligar o Permanente do tema DURANTE a limpeza é recusado', true); end;
+  reset role;
+  update public.ocasioes set limpando_desde = now() - interval '11 minutes' where id = tema;
+  perform set_config('request.jwt.claims', json_build_object('sub', u.un, 'role', 'authenticated')::text, true); set local role authenticated;
+  perform public.definir_permanente(tema, true);
+  reset role;
+  perform public.confere('238-6 alto: Permanente ligado antes: a limpeza NÃO começa (devolve falso)', not public.iniciar_limpeza_tema(t));
+  perform public.confere('238-6 alto: card sem tema sempre pode ser limpo', public.iniciar_limpeza_tema((select id from public.prova_ids where rotulo = 'roteiro')));
+  -- ===== 3 alto: arquivo do Drive anexado DEPOIS de o card já estar Postado ganha a limpeza
+  insert into public.tarefas (titulo, tipo, empresa_id, etapa, responsavel_id, dono_id, criado_por, aprovador) values ('prova depois', 'postagem', 'you', 'postado', n, n, n, 'Natham') returning id into t3;
+  perform public.confere('238-3 alto: card Postado sem arquivo do Drive não tinha limpeza', not exists (select 1 from cron.job where jobname = 'tarefas_limpar_' || t3::text));
+  insert into public.arquivos (tarefa_id, drive_id, nome, tipo, tamanho) values (t3, 'drive-depois-de-postado', 'foto.png', 'imagem', 5);
+  perform public.confere('238-3 alto: ao anexar arquivo do Drive a card JÁ Postado, a limpeza de 7 dias é armada', exists (select 1 from cron.job where jobname = 'tarefas_limpar_' || t3::text));
+  select count(*) into j from cron.job where jobname like 'tarefas_limpar_' || t3::text;
+  insert into public.arquivos (tarefa_id, drive_id, nome, tipo, tamanho) values (t3, 'drive-segundo', 'foto2.png', 'imagem', 5);
+  perform public.confere('238-3 alto: um segundo arquivo não duplica nem reinicia o alarme', (select count(*) from cron.job where jobname = 'tarefas_limpar_' || t3::text) = j);
+  insert into public.tarefas (titulo, tipo, empresa_id, etapa, responsavel_id, dono_id, criado_por, aprovador) values ('prova antigo2', 'postagem', 'you', 'postado', n, n, n, 'Natham') returning id into t2;
+  insert into public.arquivos (tarefa_id, caminho, nome, tipo, tamanho) values (t2, 'tarefas/' || t2::text || '/_x.png', 'x.png', 'imagem', 5);
+  perform public.confere('238-3 alto: anexo ANTIGO (sem drive_id) anexado a card Postado não ganha limpeza', not exists (select 1 from cron.job where jobname = 'tarefas_limpar_' || t2::text));
+  -- ===== interruptor legível pela tela
+  perform set_config('request.jwt.claims', json_build_object('sub', u.un, 'role', 'authenticated')::text, true); set local role authenticated;
+  select public.postagem_automatica_ligada() into v;
+  reset role;
+  perform public.confere('238 interruptor: depois do 019b a tela lê "ligada"', v);
+  update private.interruptores set ligado = false where nome = 'postagem_automatica';
+  perform set_config('request.jwt.claims', json_build_object('sub', u.un, 'role', 'authenticated')::text, true); set local role authenticated;
+  select public.postagem_automatica_ligada() into v;
+  reset role;
+  perform public.confere('238 interruptor: desligado a tela lê "desligada"', not v);
+end $$;
+SQL
+
 echo; q -c "select case when ok then 'ok    ' else 'FALHOU' end || ' · ' || nome || coalesce(nullif(' [' || detalhe || ']', ' []'), '') from public.prova order by ok, nome" | sed 's/^/  /'
 q -c "select 'FALHAS: ' || count(*) filter (where not ok) || ' de ' || count(*) from public.prova"

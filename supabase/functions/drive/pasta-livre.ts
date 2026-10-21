@@ -73,6 +73,7 @@ export function criarPastaLivre(d: { api: DriveApi }, servico: () => Rest, pasta
         const id = texto(c.pasta_id);
         if (!id || typeof c.ligado !== "boolean") throw new Recusa(400, "Pedido inválido.");
         try { await eu.rpc("definir_permanente_livre", { p_pasta: id, p_ligado: c.ligado }); } catch (e) { // o Matheus liga mas o BANCO recusa desligar
+          if (e instanceof ErroRest && e.codigo === "55006") throw new Recusa(409, "Esta pasta está sendo apagada agora. Tente de novo em alguns minutos.");
           if (e instanceof ErroRest && (e.status === 403 || e.codigo === "42501")) throw new Recusa(403, SEM_CADEADO);
           throw e;
         }
@@ -80,8 +81,13 @@ export function criarPastaLivre(d: { api: DriveApi }, servico: () => Rest, pasta
       }
       case "apagar_pasta_livre": {
         const p = await pastaDe(texto(c.pasta_id));
+        await exigirPessoa(eu); // 238: só Natham e Matheus apagam pasta livre (Adrian ou Lucas com login não)
         if (p.permanente) throw new Recusa(409, COM_CADEADO);
-        if ((await eu.rpc("pode_apagar_pasta_livre", { p_pasta: p.id })) !== true) throw new Recusa(403, "Você não pode apagar esta pasta.");
+        // O banco COMEÇA a apagar de forma atômica: confere pessoa e cadeado e marca "apagando" na mesma trava que o cadeado usa (ligar o cadeado agora espera).
+        if ((await eu.rpc("iniciar_apagar_pasta_livre", { p_pasta: p.id })) !== true) {
+          if ((await pastaDe(p.id)).permanente) throw new Recusa(409, COM_CADEADO); // o cadeado entrou na frente
+          throw new Recusa(403, "Você não pode apagar esta pasta.");
+        }
         const chave = chaves.livre(p.id);
         const [x] = await s.ler<{ drive_id: string }>("drive_pastas", { chave }, "drive_id");
         // a pasta e tudo que tem nela vão para a lixeira do Drive (volta por 30 dias): cada arquivo e depois a pasta (repetir é seguro)

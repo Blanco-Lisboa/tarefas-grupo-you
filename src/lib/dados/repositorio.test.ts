@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daLinha, funcaoAusente, motivoDoBanco, paraBanco, podeAlterar, podeApagar, trocarFazendo } from "./repositorio";
+import { campoOcasiao, daLinha, funcaoAusente, motivoDoBanco, paraBanco, podeAlterar, podeApagar, postadoEmDe, trocarFazendo } from "./repositorio";
 
 const quem = (id: string | null) => ({ a: "natham", b: "matheus" } as const)[id as "a" | "b"];
 const linha: Parameters<typeof daLinha>[0] = {
@@ -77,5 +77,22 @@ describe("salvar_tarefa ainda não aplicada", () => {
   it("só 'função não existe' cai no caminho antigo; outro erro continua erro", () => {
     expect([funcaoAusente({ code: "PGRST202" }), funcaoAusente({ code: "42883" })]).toEqual([true, true]);
     expect([funcaoAusente({ code: "42501" }), funcaoAusente({ code: "P0001" }), funcaoAusente(null)]).toEqual([false, false, false]);
+  });
+});
+
+describe("238: Tema tirado e data real de Postado", () => {
+  it("4 alto: tirar o Tema de um card manda null (antes só mandava quando preenchido, e o banco guardava o antigo); sem tema nunca antes, nem manda", () => {
+    expect(campoOcasiao("tema-1", undefined)).toEqual({ ocasiao_id: "tema-1" });
+    expect(campoOcasiao("tema-2", "tema-1")).toEqual({ ocasiao_id: "tema-2" });
+    expect(campoOcasiao(undefined, "tema-1")).toEqual({ ocasiao_id: null }); // Sem tema, ou mudou de empresa
+    expect(campoOcasiao(undefined, undefined)).toEqual({}); // coluna só existe depois do 019
+  });
+  it("7 médio: arrastar para Postado mostra a data real na hora; já Postado mantém; sair apaga", () => {
+    const agora = new Date("2026-10-21T15:00:00Z");
+    expect(postadoEmDe({ etapa: "aprovado" }, "postado", agora)).toBe("2026-10-21T15:00:00.000Z");
+    expect(postadoEmDe(undefined, "postado", agora)).toBe("2026-10-21T15:00:00.000Z");
+    expect(postadoEmDe({ etapa: "postado", postadoEm: "2026-10-18T09:00:00Z" }, "postado", agora)).toBe("2026-10-18T09:00:00Z");
+    expect(postadoEmDe({ etapa: "postado" }, "postado", agora)).toBe("2026-10-21T15:00:00.000Z"); // card antigo sem data guardada
+    expect(postadoEmDe({ etapa: "postado", postadoEm: "2026-10-18T09:00:00Z" }, "edicao", agora)).toBeUndefined();
   });
 });

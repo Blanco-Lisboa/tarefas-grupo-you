@@ -38,11 +38,21 @@ function montar() {
   b.estado.rpcs.armar_alarme_servico = (a) => void alarmes.push({ tipo: "armar", tarefa: String(a.p_tarefa), minutos: Number(a.p_minutos) });
   b.estado.rpcs.desarmar_alarme_servico = (a) => void alarmes.push({ tipo: "desarmar", tarefa: String(a.p_tarefa) });
   // Regra do 019 v2 (private.definir_permanente): só Natham e Matheus; ligado só o Natham desliga.
+  // 019 v2 (238): a limpeza dos 7 dias COMEÇA no banco (tema permanente = não; tema comum = sim e marca "limpando"; ligar o Permanente espera: 55006)
+  b.estado.rpcs.iniciar_limpeza_tema = (a) => {
+    const card = t.tarefas.find((x) => x.id === a.p_tarefa);
+    const o = t.ocasioes.find((x) => x.id === card?.ocasiao_id);
+    if (!o) return true;
+    if (o.permanente) return false;
+    o.limpando = true;
+    return true;
+  };
   b.estado.rpcs.definir_permanente = (a, token) => {
     const slug = token === "tok-natham" ? "natham" : token === "tok-matheus" ? "matheus" : undefined;
     const o = t.ocasioes.find((x) => x.id === a.p_ocasiao);
     if (!slug || !o) throw { status: 403, codigo: "42501" };
     if (o.permanente && !a.p_ligado && slug !== "natham") throw { status: 403, codigo: "42501" };
+    if (a.p_ligado && !o.permanente && o.limpando) throw { status: 500, codigo: "55006" };
     o.permanente = a.p_ligado;
     return null;
   };
@@ -392,5 +402,40 @@ describe("236: achados da Lupa no 229", () => {
     const m = montar();
     const r = await m.chamar({ acao: "sessao_envio_pasta", empresa_id: "you", nome: "a.pdf", tipo: "documento", mime: "application/pdf", tamanho: 4 }, "tok-adrian");
     expect(r.status).toBe(403);
+  });
+});
+
+describe("238: limpeza dos 7 dias e ligar o Permanente não correm um contra o outro", () => {
+  it("6 alto: Permanente ligado ANTES: a limpeza não começa, não apaga nada e desarma o alarme", async () => {
+    const m = montar();
+    const tema = await criarTema(m, "Reunião");
+    Object.assign(m.t.tarefas[0], { etapa: "postado", ocasiao_id: tema.id });
+    await anexar(m);
+    expect((await m.chamar({ acao: "permanente_ocasiao", ocasiao_id: tema.id, ligado: true })).status).toBe(200);
+    const r = await lerJson(await m.campainha({ acao: "limpar", tarefa_id: "t1" }));
+    expect(r.permanente).toBe(true);
+    expect(m.t.arquivos).toHaveLength(1);
+    expect(m.alarmes).toEqual([{ tipo: "desarmar", tarefa: "t1" }]);
+  });
+  it("6 alto: limpeza COMEÇOU antes: ligar o Permanente espera (409 em português) e a limpeza termina; depois liga", async () => {
+    const m = montar();
+    const tema = await criarTema(m, "Comum");
+    Object.assign(m.t.tarefas[0], { etapa: "postado", ocasiao_id: tema.id });
+    await anexar(m);
+    expect((await m.campainha({ acao: "limpar", tarefa_id: "t1" })).status).toBe(200); // o banco marcou "limpando" ao começar
+    const r = await m.chamar({ acao: "permanente_ocasiao", ocasiao_id: tema.id, ligado: true });
+    expect(r.status).toBe(409);
+    expect((await lerJson(r)).erro).toBe("Este tema está sendo limpo agora. Tente de novo em alguns minutos.");
+    expect(m.t.ocasioes[0].permanente).toBe(false);
+    expect(m.t.arquivos).toHaveLength(0);
+    m.t.ocasioes[0].limpando = false; // passados os 10 minutos
+    expect((await m.chamar({ acao: "permanente_ocasiao", ocasiao_id: tema.id, ligado: true })).status).toBe(200);
+  });
+  it("card sem tema: a limpeza não pergunta nada ao banco sobre tema (sempre pode)", async () => {
+    const m = montar();
+    Object.assign(m.t.tarefas[0], { etapa: "postado" });
+    await anexar(m);
+    expect((await m.campainha({ acao: "limpar", tarefa_id: "t1" })).status).toBe(200);
+    expect(m.b.estado.chamadasRpc.some((c) => c.nome === "iniciar_limpeza_tema")).toBe(false);
   });
 });

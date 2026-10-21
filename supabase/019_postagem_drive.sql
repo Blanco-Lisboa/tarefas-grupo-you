@@ -14,6 +14,8 @@ end $$;
 -- 019 v2 (item 229) · contrato do 196 (postagem IG/FB) + 203 (arquivo no Drive) + Concluir/lixeira/trava depois de Aprovado.
 -- v2 = o 019 que a Lupa liberou + 3 mudanças do 229 + a PASTA LIVRE do 234 (marcada com "234"), todas marcadas com "229": (a) ocasioes ganha permanente/desligado_em e perde drive_pasta_id,
 --   (b) arquivos aceita documento SOLTO de pasta (empresa/formato/tema, sem card), (c) funções definir_permanente e pode_mexer_pastas. O resto não mudou.
+--   238 (marcado com "238"): só Natham e Matheus apagam pasta livre; ligar o cadeado não corre mais contra apagar pasta / limpar tema (trava de linha); limpeza de arquivo anexado
+--   depois de Postado; interruptor legível pela tela (postagem_automatica_ligada).
 --   236 (marcado com "236"): o relógio de todo minuto do 015 NÃO sai aqui (fica até o 019b), a limpeza dos 7 dias só olha arquivo do Drive, o banco não recusa mais o que a
 --   versão publicada permite (arrastar qualquer card até Postado), e a data real de entrada em Postado é gravada (tarefas.postado_em).
 -- Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Idempotente. Depende do 002, 006, 009, 015, 016.
@@ -53,11 +55,13 @@ create table if not exists public.ocasioes (
   nome text not null check (btrim(nome) <> ''),
   permanente boolean not null default false,  -- 229: tema permanente = a limpeza dos 7 dias não apaga nada dele (cadeado na tela)
   desligado_em timestamptz,                   -- 229: quando o Natham desligou o Permanente (a tela conta os 7 dias de novo a partir daqui)
+  limpando_desde timestamptz,                 -- 238: a função drive começou a limpar um conteúdo deste tema; ligar o Permanente espera 10 min (não corre contra a limpeza)
   criado_por uuid references public.pessoas(id),
   created_at timestamptz not null default now()
 );
 alter table public.ocasioes add column if not exists permanente boolean not null default false;
 alter table public.ocasioes add column if not exists desligado_em timestamptz;
+alter table public.ocasioes add column if not exists limpando_desde timestamptz;
 alter table public.ocasioes drop column if exists drive_pasta_id;
 create unique index if not exists ocasioes_nome_unico on public.ocasioes (empresa_id, lower(btrim(nome)));
 alter table public.ocasioes enable row level security;
@@ -74,13 +78,15 @@ alter table public.drive_pastas enable row level security;  -- sem política: s�
 create or replace function private.definir_permanente(p_ocasiao uuid, p_ligado boolean) returns void
 language plpgsql security definer set search_path = ''
 as $$
-declare v_slug text; v_atual boolean;
+declare v_slug text; v_atual boolean; v_limpando timestamptz;
 begin
   select slug into v_slug from public.pessoas where id = (select private.minha_pessoa());
   if v_slug is null or v_slug not in ('natham', 'matheus') then raise exception 'sem permissao' using errcode = '42501'; end if;
-  select permanente into v_atual from public.ocasioes where id = p_ocasiao for update;
+  select permanente, limpando_desde into v_atual, v_limpando from public.ocasioes where id = p_ocasiao for update;
   if not found then raise exception 'tema nao existe' using errcode = 'P0002'; end if;
   if v_atual and not p_ligado and v_slug <> 'natham' then raise exception 'so o Natham desliga o Permanente' using errcode = '42501'; end if;
+  -- 238: a limpeza já decidiu apagar conteúdo deste tema; ligar agora o cadeado correria contra ela. Espera (a tela diz "tente em alguns minutos").
+  if p_ligado and not v_atual and v_limpando > now() - interval '10 minutes' then raise exception 'tema esta sendo limpo agora' using errcode = '55006'; end if;
   update public.ocasioes set permanente = p_ligado, desligado_em = case when p_ligado then null when v_atual then now() else desligado_em end where id = p_ocasiao;
 end $$;
 revoke all on function private.definir_permanente(uuid, boolean) from public, anon;
@@ -97,9 +103,11 @@ create table if not exists public.pastas_livres (
   empresa_id text not null references public.empresas(id),
   nome text not null check (btrim(nome) <> ''),
   permanente boolean not null default false,
+  apagando_desde timestamptz,  -- 238: alguém confirmou Apagar; ligar o cadeado espera 10 min (não corre contra a exclusão)
   criado_por uuid references public.pessoas(id),
   created_at timestamptz not null default now()
 );
+alter table public.pastas_livres add column if not exists apagando_desde timestamptz;
 create unique index if not exists pastas_livres_nome_unico on public.pastas_livres (empresa_id, lower(btrim(nome)));
 alter table public.pastas_livres enable row level security;
 drop policy if exists pastas_livres_le on public.pastas_livres;
@@ -120,13 +128,15 @@ create trigger pastas_livres_cadeado before delete on public.pastas_livres for e
 create or replace function private.definir_permanente_livre(p_pasta uuid, p_ligado boolean) returns void
 language plpgsql security definer set search_path = ''
 as $$
-declare v_slug text; v_atual boolean;
+declare v_slug text; v_atual boolean; v_apagando timestamptz;
 begin
   select slug into v_slug from public.pessoas where id = (select private.minha_pessoa());
   if v_slug is null or v_slug not in ('natham', 'matheus') then raise exception 'sem permissao' using errcode = '42501'; end if;
-  select permanente into v_atual from public.pastas_livres where id = p_pasta for update;
+  select permanente, apagando_desde into v_atual, v_apagando from public.pastas_livres where id = p_pasta for update;
   if not found then raise exception 'pasta nao existe' using errcode = 'P0002'; end if;
   if v_atual and not p_ligado and v_slug <> 'natham' then raise exception 'so o Natham desliga o Permanente' using errcode = '42501'; end if;
+  -- 238: já mandaram apagar a pasta; ligar o cadeado agora correria contra a exclusão (arquivos já na lixeira com a pasta protegida).
+  if p_ligado and not v_atual and v_apagando > now() - interval '10 minutes' then raise exception 'pasta esta sendo apagada agora' using errcode = '55006'; end if;
   update public.pastas_livres set permanente = p_ligado where id = p_pasta;
 end $$;
 revoke all on function private.definir_permanente_livre(uuid, boolean) from public, anon;
@@ -135,17 +145,47 @@ create or replace function public.definir_permanente_livre(p_pasta uuid, p_ligad
 language sql security invoker set search_path = '' as $$ select private.definir_permanente_livre(p_pasta, p_ligado) $$;
 revoke all on function public.definir_permanente_livre(uuid, boolean) from public, anon;
 grant execute on function public.definir_permanente_livre(uuid, boolean) to authenticated;
--- A função drive pergunta ao BANCO (com a chave de quem clicou) se pode apagar: pessoa com login e pasta sem cadeado.
-create or replace function private.pode_apagar_pasta_livre(p_pasta uuid) returns boolean
-language sql stable security definer set search_path = '' as $$
-  select (select private.minha_pessoa()) is not null and exists (select 1 from public.pastas_livres where id = p_pasta and not permanente)
-$$;
-revoke all on function private.pode_apagar_pasta_livre(uuid) from public, anon;
-grant execute on function private.pode_apagar_pasta_livre(uuid) to authenticated;
-create or replace function public.pode_apagar_pasta_livre(p_pasta uuid) returns boolean
-language sql stable security invoker set search_path = '' as $$ select private.pode_apagar_pasta_livre(p_pasta) $$;
-revoke all on function public.pode_apagar_pasta_livre(uuid) from public, anon;
-grant execute on function public.pode_apagar_pasta_livre(uuid) to authenticated;
+-- 238 · A função drive pede ao BANCO (com a chave de quem clicou) para COMEÇAR a apagar: só Natham e Matheus, só pasta sem cadeado, e já marca "apagando" na mesma trava de linha
+-- que o cadeado usa: ou o cadeado entra antes (e apagar é recusado) ou a exclusão entra antes (e ligar o cadeado espera). Nunca os dois ao mesmo tempo.
+create or replace function private.iniciar_apagar_pasta_livre(p_pasta uuid) returns boolean
+language plpgsql security definer set search_path = ''
+as $$
+declare v_perm boolean;
+begin
+  if not exists (select 1 from public.pessoas p where p.user_id = (select auth.uid()) and p.slug in ('natham', 'matheus')) then return false; end if;
+  select permanente into v_perm from public.pastas_livres where id = p_pasta for update;
+  if not found or v_perm then return false; end if;
+  update public.pastas_livres set apagando_desde = now() where id = p_pasta;
+  return true;
+end $$;
+revoke all on function private.iniciar_apagar_pasta_livre(uuid) from public, anon;
+grant execute on function private.iniciar_apagar_pasta_livre(uuid) to authenticated;
+create or replace function public.iniciar_apagar_pasta_livre(p_pasta uuid) returns boolean
+language sql security invoker set search_path = '' as $$ select private.iniciar_apagar_pasta_livre(p_pasta) $$;
+revoke all on function public.iniciar_apagar_pasta_livre(uuid) from public, anon;
+grant execute on function public.iniciar_apagar_pasta_livre(uuid) to authenticated;
+-- 238 · Limpeza dos 7 dias de um conteúdo: a função drive pede ao banco (chave de serviço) para COMEÇAR; tema permanente = não (e a função desarma o alarme);
+-- tema comum = sim, e marca "limpando" na trava do tema, para ligar o Permanente não correr contra a limpeza.
+create or replace function public.iniciar_limpeza_tema(p_tarefa uuid) returns boolean
+language plpgsql security definer set search_path = ''
+as $$
+declare v_tema uuid; v_perm boolean;
+begin
+  select ocasiao_id into v_tema from public.tarefas where id = p_tarefa;
+  if v_tema is null then return true; end if;
+  select permanente into v_perm from public.ocasioes where id = v_tema for update;
+  if not found then return true; end if;
+  if v_perm then return false; end if;
+  update public.ocasioes set limpando_desde = now() where id = v_tema;
+  return true;
+end $$;
+revoke all on function public.iniciar_limpeza_tema(uuid) from public, anon, authenticated;
+grant execute on function public.iniciar_limpeza_tema(uuid) to service_role;
+-- 238 · A tela precisa saber se a postagem automática está ligada (para não prometer post que não sai): só leitura do interruptor.
+create or replace function public.postagem_automatica_ligada() returns boolean
+language sql stable security definer set search_path = '' as $$ select private.postagem_automatica() $$;
+revoke all on function public.postagem_automatica_ligada() from public, anon;
+grant execute on function public.postagem_automatica_ligada() to authenticated;
 
 -- 229 · Quem pode pôr e tirar documento solto nas pastas da tela Pastas: qualquer pessoa com login (hoje Natham e Matheus).
 create or replace function private.pode_mexer_pastas() returns boolean
@@ -176,6 +216,20 @@ alter table public.arquivos add constraint arquivos_video_no_drive check (tipo <
 alter table public.arquivos drop constraint if exists arquivos_papel_ok;
 alter table public.arquivos add constraint arquivos_papel_ok check (papel in ('anexo', 'capa') and (papel <> 'capa' or tipo = 'imagem'));
 create unique index if not exists arquivos_uma_capa on public.arquivos (tarefa_id) where papel = 'capa';
+
+-- 3a. 238 · Arquivo do Drive anexado a um card que JÁ está Postado ganha a limpeza de 7 dias (se o card ainda não tem alarme de limpeza armado).
+create or replace function private.arquivos_limpeza() returns trigger
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  if new.tarefa_id is not null and new.drive_id is not null
+     and exists (select 1 from public.tarefas t where t.id = new.tarefa_id and t.etapa = 'postado')
+     and not exists (select 1 from cron.job where jobname = private.alarme_nome('limpar', new.tarefa_id)) then
+    perform private.armar_alarme('limpar', new.tarefa_id, now() + interval '7 days');
+  end if;
+  return new;
+end $$;
+revoke all on function private.arquivos_limpeza() from public, anon, authenticated;
 
 -- 3b. 229 · Documento SOLTO de pasta: arquivo posto direto numa pasta de Tema pela tela Pastas (sem card). Mora no Drive, em Empresa → Formato → Tema.
 --     Não vence em 7 dias (não há "Postado" que o arme); só sai quando alguém o apaga. Só a função drive grava (a política de inserir exige drive_id nulo).
@@ -667,6 +721,10 @@ do $$ declare r record; begin
     end if;
   end loop;
 end $$;
+
+-- 238 · gatilho do arquivo do Drive anexado depois de Postado (a função fica na seção 3a; o gatilho só aqui, depois dos alarmes existirem)
+drop trigger if exists arquivos_limpeza on public.arquivos;
+create trigger arquivos_limpeza after insert on public.arquivos for each row execute function private.arquivos_limpeza();
 
 -- Privilégios explícitos (não depender do padrão do projeto): a tela só lê; escrever é da função com a chave de serviço.
 revoke all on public.ocasioes, public.postagens, public.drive_pastas from anon, authenticated;

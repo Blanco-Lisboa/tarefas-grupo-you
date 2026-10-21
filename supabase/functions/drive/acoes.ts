@@ -168,6 +168,7 @@ export function criarManipulador(d: Deps) {
         if (!id || typeof c.ligado !== "boolean") throw new Recusa(400, "Pedido inválido.");
         // QUEM pode é do banco, não da tela: o Matheus liga mas não desliga (definir_permanente recusa com 42501).
         try { await eu.rpc("definir_permanente", { p_ocasiao: id, p_ligado: c.ligado }); } catch (e) {
+          if (e instanceof ErroRest && e.codigo === "55006") throw new Recusa(409, "Este tema está sendo limpo agora. Tente de novo em alguns minutos.");
           if (e instanceof ErroRest && (e.status === 403 || e.codigo === "42501")) throw new Recusa(403, "Só o Natham desliga o Permanente.");
           throw e;
         }
@@ -309,7 +310,8 @@ export function criarManipulador(d: Deps) {
         const t = await cardDe(id);
         if (t.etapa !== "postado") throw new Recusa(409, "O card não está em Postado.");
         // Tema permanente: o alarme não apaga nada. Desarma, senão o sentinela de 12 min tocaria de novo até o teto.
-        if (t.empresa_id && (await temaDe(t.ocasiao_id, t.empresa_id))?.permanente) {
+        // 238: quem decide é o BANCO, de forma atômica (trava de linha do tema): se o Permanente entrou antes, não limpa; se a limpeza entrou antes, ligar o Permanente espera.
+        if (t.empresa_id && t.ocasiao_id && (await servico().rpc("iniciar_limpeza_tema", { p_tarefa: id })) !== true) {
           await rearmarLimpeza(id, true);
           return json(200, { ok: true, permanente: true });
         }

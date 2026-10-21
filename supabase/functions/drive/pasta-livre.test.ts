@@ -42,10 +42,17 @@ function montar() {
     const p = t.pastas_livres.find((x) => x.id === a.p_pasta);
     if (!slug || !p) throw { status: 403, codigo: "42501" };
     if (p.permanente && !a.p_ligado && slug !== "natham") throw { status: 403, codigo: "42501" };
+    if (a.p_ligado && !p.permanente && p.apagando) throw { status: 500, codigo: "55006" };
     p.permanente = a.p_ligado;
     return null;
   };
-  b.estado.rpcs.pode_apagar_pasta_livre = (a, token) => b.estado.usuarios.has(token) && t.pastas_livres.some((x) => x.id === a.p_pasta && !x.permanente);
+  // 019 v2 (238): começar a apagar = só Natham e Matheus, só sem cadeado, e marca "apagando" (ligar o cadeado espera: 55006)
+  b.estado.rpcs.iniciar_apagar_pasta_livre = (a, token) => {
+    const p = t.pastas_livres.find((x) => x.id === a.p_pasta);
+    if (!natMat(null, token) || !p || p.permanente) return false;
+    p.apagando = true;
+    return true;
+  };
   const google = criarGoogle({ env, fetch: roteado });
   const api = criarDriveApi({ api: BASE_FALSA, token: google.tokenGoogle, fetch: roteado });
   const tratar = criarManipulador({ env, fetch: roteado, api, baixar: google.baixarDoDrive });
@@ -138,12 +145,12 @@ describe("234: o cadeado (Permanente) da pasta livre", () => {
   it("o banco barra o apagar mesmo se a função fosse enganada (gatilho do cadeado)", async () => {
     const m = montar();
     const { pasta } = await criar(m, "Logos", { permanente: true });
-    m.b.estado.rpcs.pode_apagar_pasta_livre = () => true; // finge que a pergunta ao banco deu sim
+    m.b.estado.rpcs.iniciar_apagar_pasta_livre = () => true; // finge que a pergunta ao banco deu sim
     const lida = m.t.pastas_livres[0];
     lida.permanente = false; // a função lê "sem cadeado"...
     const antes = lida;
     // ...mas na hora do delete o cadeado já está ligado (corrida): o gatilho recusa e a função responde com a mensagem do cadeado
-    m.b.estado.rpcs.pode_apagar_pasta_livre = () => { antes.permanente = true; return true; };
+    m.b.estado.rpcs.iniciar_apagar_pasta_livre = () => { antes.permanente = true; return true; };
     const r = await m.chamar({ acao: "apagar_pasta_livre", pasta_id: pasta.id });
     expect(r.status).toBe(409);
     expect(m.t.pastas_livres).toHaveLength(1);
@@ -243,5 +250,38 @@ describe("236: pasta livre e quem liga", () => {
     expect(m.arvore()).toEqual([]);
     expect((await m.chamar({ acao: "criar_pasta_livre", empresa_id: "you", nome: "Comum" }, "tok-adrian")).status).toBe(403); // pasta livre é só de Natham e Matheus
     expect((await criar(m, "Com cadeado", { permanente: true }, "tok-matheus")).pasta.permanente).toBe(true);
+  });
+});
+
+describe("238: pasta livre, quem apaga e a corrida com o cadeado", () => {
+  it("2 alto: Adrian (login que não é Natham/Matheus) NÃO apaga pasta livre sem cadeado; nada vai para a lixeira", async () => {
+    const m = montar();
+    const { pasta } = await criar(m, "Referências");
+    const { driveId } = await subir(m, pasta.id);
+    const r = await m.chamar({ acao: "apagar_pasta_livre", pasta_id: pasta.id }, "tok-adrian");
+    expect(r.status).toBe(403);
+    expect(m.t.pastas_livres).toHaveLength(1);
+    expect(m.t.arquivos).toHaveLength(1);
+    expect(m.g.estado.arquivos.get(driveId!)!.trashed).toBe(false);
+  });
+  it("6 alto: com a exclusão em andamento, ligar o cadeado espera (o banco recusa com 55006) e a função diz em português", async () => {
+    const m = montar();
+    const { pasta } = await criar(m, "Referências");
+    m.t.pastas_livres[0].apagando = true; // o banco marca isto no começo da exclusão
+    const r = await m.chamar({ acao: "permanente_pasta_livre", pasta_id: pasta.id, ligado: true }, "tok-natham");
+    expect(r.status).toBe(409);
+    expect((await lerJson(r)).erro).toBe("Esta pasta está sendo apagada agora. Tente de novo em alguns minutos.");
+    expect(m.t.pastas_livres[0].permanente).toBe(false);
+  });
+  it("6 alto: a exclusão marca 'apagando' ANTES de mexer no Drive e termina apagando tudo", async () => {
+    const m = montar();
+    const { pasta } = await criar(m, "Referências");
+    await subir(m, pasta.id);
+    let marcouAntes = false;
+    const original = m.b.estado.rpcs.iniciar_apagar_pasta_livre;
+    m.b.estado.rpcs.iniciar_apagar_pasta_livre = (a, token) => { const r = original(a, token); marcouAntes = m.t.pastas_livres[0].apagando === true && m.arvore().some((p) => p.endsWith("/Referências")); return r; };
+    expect((await m.chamar({ acao: "apagar_pasta_livre", pasta_id: pasta.id }, "tok-matheus")).status).toBe(200);
+    expect(marcouAntes).toBe(true); // quando o banco marcou, a pasta ainda estava no Drive
+    expect(m.t.pastas_livres).toHaveLength(0);
   });
 });
