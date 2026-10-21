@@ -22,11 +22,11 @@ function subirBanco() {
   return new Promise((ok) => p.stdout.on("data", (d) => { if (String(d).includes("banco falso em")) ok(p); }));
 }
 
-async function abrir(pessoa, largura, altura) {
+async function abrir(pessoa, largura, altura, escala = 1) {
   const uid = `u-${pessoa}`;
   const jwt = [b64({ alg: "HS256", typ: "JWT" }), b64({ sub: uid, exp, role: "authenticated", aud: "authenticated" }), b64("assinatura")].join(".");
   const sessao = { access_token: jwt, refresh_token: "x", expires_in: 3600, expires_at: exp, token_type: "bearer", user: { id: uid, aud: "authenticated", role: "authenticated", email: `${pessoa}@exemplo.invalid`, app_metadata: {}, user_metadata: {}, created_at: "2026-10-19T00:00:00Z" } };
-  const contexto = await navegador.newContext({ viewport: { width: largura, height: altura }, deviceScaleFactor: 1 });
+  const contexto = await navegador.newContext({ viewport: { width: largura, height: altura }, deviceScaleFactor: escala });
   await contexto.addCookies([{ name: "sb-127-auth-token", value: `base64-${b64(sessao)}`, domain: "127.0.0.1", path: "/" }]);
   const pagina = await contexto.newPage();
   const erros = [], pedidos = [];
@@ -71,7 +71,17 @@ for (const [largura, altura] of [[1903, 900], [1440, 760], [390, 844]]) {
   const beec = cartao(pg, "Reels da Beec");
   confere((await texto(beec.locator(".aprovacao-situacao"))) === "Postagem automática só para a You (por enquanto)" && !(await beec.innerText()).includes("Programado"), `${largura}: Beec sem "Programado", só o aviso`);
   confere(await cartao(pg, "Depoimento de cliente").locator(".aprovacao-link, .aprovacao-links").count() === 0, `${largura}: card Postado sem a linha de links`);
-  confere(await cartao(pg, "Reels: 5 erros no IR").locator(".selo-conserto").count() === 1, `${largura}: Conserto continua`);
+  const selo = cartao(pg, "Reels: 5 erros no IR").locator(".selo-conserto");
+  confere(await selo.locator("img").count() === 1 && (await selo.innerText()).trim() === "" && await selo.getAttribute("title") === "Conserto"
+    && await selo.locator("img").evaluate((i) => i.complete && i.naturalWidth === 1080 && i.getBoundingClientRect().width === 20), `${largura}: Conserto só com o ícone do Natham (PNG original, 20px, title "Conserto")`);
+  const [fita, logo] = [await selo.boundingBox(), await cartao(pg, "Reels: 5 erros no IR").locator(".conteudos-empresa").boundingBox()];
+  confere(fita.y + fita.height <= logo.y || fita.x + fita.width <= logo.x, `${largura}: a fita do Conserto não encosta no logo da empresa`);
+  if (largura === 1440) { // foto de perto: o mesmo card a 3x, para ver o ícone
+    const perto = await abrir("natham", 1440, 760, 3);
+    const caixa = await cartao(perto.pagina, "Reels: 5 erros no IR").boundingBox(); // a fita fica 10px acima do card: a foto pega uma margem
+    await perto.pagina.screenshot({ path: join(pasta, "conserto-perto-1440.png"), clip: { x: caixa.x - 12, y: caixa.y - 24, width: caixa.width + 24, height: 130 } });
+    await perto.contexto.close();
+  }
   await dica.scrollIntoViewIfNeeded();
   await foto(pg, `card-aprovado-${largura}`);
   await cartao(pg, "Depoimento de cliente").scrollIntoViewIfNeeded();

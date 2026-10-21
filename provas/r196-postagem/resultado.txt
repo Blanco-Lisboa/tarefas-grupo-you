@@ -3,7 +3,8 @@ OK 1903: card com erro = "Erro ao postar: abra o card"
 OK 1903: card postando
 OK 1903: Beec sem "Programado", só o aviso
 OK 1903: card Postado sem a linha de links
-OK 1903: Conserto continua
+OK 1903: Conserto só com o ícone do Natham (PNG original, 20px, title "Conserto")
+OK 1903: a fita do Conserto não encosta no logo da empresa
 OK 1903: ficha com Publicação (estado, redes, Reprogramar, Postar agora)
 OK 1903: confirmação do Postar agora
 OK 1903: Postar agora grava a ficha, chama postar_agora e o card mostra Postando…
@@ -31,7 +32,8 @@ OK 1440: card com erro = "Erro ao postar: abra o card"
 OK 1440: card postando
 OK 1440: Beec sem "Programado", só o aviso
 OK 1440: card Postado sem a linha de links
-OK 1440: Conserto continua
+OK 1440: Conserto só com o ícone do Natham (PNG original, 20px, title "Conserto")
+OK 1440: a fita do Conserto não encosta no logo da empresa
 OK 1440: ficha com Publicação (estado, redes, Reprogramar, Postar agora)
 OK 1440: confirmação do Postar agora
 OK 1440: Postar agora grava a ficha, chama postar_agora e o card mostra Postando…
@@ -59,7 +61,8 @@ OK 390: card com erro = "Erro ao postar: abra o card"
 OK 390: card postando
 OK 390: Beec sem "Programado", só o aviso
 OK 390: card Postado sem a linha de links
-OK 390: Conserto continua
+OK 390: Conserto só com o ícone do Natham (PNG original, 20px, title "Conserto")
+OK 390: a fita do Conserto não encosta no logo da empresa
 OK 390: ficha com Publicação (estado, redes, Reprogramar, Postar agora)
 OK 390: confirmação do Postar agora
 OK 390: Postar agora grava a ficha, chama postar_agora e o card mostra Postando…
