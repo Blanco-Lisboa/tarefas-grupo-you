@@ -40,7 +40,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const aprova = podeAprovar(salvo, eu);
   const sit = situacao(salvo);
   const cancelada = programacaoCancelada(salvo);
-  const ajuste = !cancelada && carrosselSoFacebook(salvo, salvo.formato, redesDe(salvo)); // programado assim antes do conserto: o próximo salvar cancela
+  const ajuste = !!salvo.postarEm && carrosselSoFacebook(salvo, salvo.formato, redesDe(salvo)); // programado assim antes do conserto: o próximo salvar cancela
   const redes = redesDe(rascunho);
   const soInstagram = carrosselComVideo(rascunho, rascunho.formato);
   const valem = redesValidas(rascunho, rascunho.formato, redes);

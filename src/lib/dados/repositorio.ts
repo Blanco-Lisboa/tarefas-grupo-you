@@ -109,7 +109,8 @@ async function carregar() {
   const [anexos, postagens] = await Promise.all([carregarAnexos(sb), carregarPostagens(sb)]);
   empresas = e.data as Empresa[];
   tags = (g.data as Tag[]).map((x) => ({ id: x.id, nome: x.nome, cor: x.cor, ...(x.aprovacao && { aprovacao: true as const }) }));
-  tarefas = (t.data as LinhaTarefa[]).map((l) => daLinha(l, anexos.get(l.id) ?? tarefas.find((x) => x.id === l.id)?.arquivos.filter((a) => a.pendente), slugDe, postagens.get(l.id)));
+  tarefas = (t.data as LinhaTarefa[]).map((l) => daLinha(l, anexos.get(l.id) ?? tarefas.find((x) => x.id === l.id)?.arquivos.filter((a) => a.pendente), slugDe, postagens.get(l.id)))
+    .map((x) => (cancelados.has(x.id) && !x.postarEm ? { ...x, programacaoCancelada: true } : x));
   fazendo = doBanco(f.data as LinhaFazendo[]);
   avisar();
   // Postando (196): a função grava o resultado no servidor; enquanto algum card posta, olha de novo a cada 15 s (só leitura, só com a aba aberta).
@@ -118,6 +119,7 @@ async function carregar() {
 }
 
 let espiando: ReturnType<typeof setTimeout> | undefined;
+const cancelados = new Set<string>(); // cards cuja programação o salvar desta sessão tirou (ver salvarTarefa)
 let espiarAte = 0; // depois de mandar postar, a função pode levar alguns segundos para registrar: olha por 2 min mesmo sem linha nova
 const espiar = () => { clearTimeout(espiando); espiando = setTimeout(() => { if (!document.hidden) void carregar(); }, 15_000); };
 
@@ -143,7 +145,10 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   void _enviarPara;
   // O gatilho do 015 faz o mesmo no banco: Conserto só em Edição, data do post só em Aprovado/Postado.
   const tarefa: Tarefa = { ...resto, conserto: resto.etapa === "edicao" && resto.conserto ? true : undefined,
-    postarEm: postarEmQueVale({ ...resto, postarRedes: redesQueValem(resto) }), postarRedes: redesQueValem(resto), id, dono, criadoPor: antes?.criadoPor ?? eu ?? undefined, enviadaPor: antes ? antes.enviadaPor : dono !== eu ? eu ?? undefined : undefined };
+    postarEm: postarEmQueVale({ ...resto, postarRedes: redesQueValem(resto) }), postarRedes: redesQueValem(resto), programacaoCancelada: undefined, id, dono, criadoPor: antes?.criadoPor ?? eu ?? undefined, enviadaPor: antes ? antes.enviadaPor : dono !== eu ? eu ?? undefined : undefined };
+  // Havia data e o salvar a tirou (só Facebook + vídeo): a tela avisa "Programação cancelada" até alguém programar de novo.
+  if (antes?.postarEm && !tarefa.postarEm && tarefa.etapa === "aprovado") { cancelados.add(id); tarefa.programacaoCancelada = true; }
+  if (tarefa.postarEm) cancelados.delete(id);
   if (!eu || !dono) { falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham."); return tarefa; }
   if (antes && !podeAlterar(antes, eu)) { falhou(soLeitura); return antes; } // trava na origem: nenhuma tela mexe em tarefa só de leitura
   tarefas = antes ? tarefas.map((t) => (t.id === id ? tarefa : t)) : [...tarefas, tarefa];

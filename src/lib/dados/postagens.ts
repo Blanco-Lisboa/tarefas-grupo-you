@@ -19,8 +19,10 @@ export const postarEmQueVale = (t: Pick<Tarefa, "etapa" | "postarEm" | "formato"
 export const carrosselComVideoGuardado = (t: Pick<Tarefa, "formato" | "arquivos">) =>
   t.formato === "carrossel" && t.arquivos.some((a) => a.papel !== "capa" && !a.removido && a.tipo === "video");
 
-/** Alguma rede na fila, enviando ou processando. */
-export const postando = (t: Tarefa) => !!t.postagens?.some((p) => p.status !== "postado" && p.status !== "erro");
+/** Rede ESCOLHIDA na fila, enviando ou processando, com o card ainda em Aprovado. Linha de rede tirada do card não conta (achado b da Lupa):
+    sem isso uma linha velha em "fila" fazia a tela recarregar a cada 15 s para sempre. Status desconhecido também não conta. */
+export const postando = (t: Tarefa) => t.etapa === "aprovado" && !!t.postagens?.some((p) =>
+  (t.postarRedes ?? ["instagram", "facebook"]).includes(p.rede) && (p.status === "fila" || p.status === "enviando" || p.status === "processando"));
 
 type LinhaPostagem = { tarefa_id: string; rede: Postagem["rede"]; status: Postagem["status"]; link: string | null; erro: string | null; postado_em: string | null };
 /** Resultado da postagem automática por card. Antes do 019 a tabela não existe: segue sem nada (não derruba a carga). */

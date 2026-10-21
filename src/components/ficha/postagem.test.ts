@@ -38,6 +38,10 @@ describe("situação do card Aprovado", () => {
     expect(situacao({ postagens: [{ rede: "facebook", status: "erro", erro: "estado incerto: confira a rede antes de tentar de novo" }] })).toMatchObject({ incerto: true });
     expect(situacao({ postagens: [{ rede: "facebook", status: "erro", erro: "Não dá para saber se saiu no Facebook" }] })).toMatchObject({ incerto: true });
   });
+  it("linha de rede tirada do card não conta (achado b da Lupa)", () => {
+    expect(situacao({ postarRedes: ["instagram"], postagens: [{ rede: "facebook", status: "fila" }] })).toBeNull();
+    expect(situacao({ postarRedes: ["instagram"], postagens: [{ rede: "facebook", status: "erro", erro: "x" }, { rede: "instagram", status: "fila" }] })).toEqual({ tipo: "postando" });
+  });
   it("programado mostra data e redes; sem data e sem postagem, nada", () => {
     expect(situacao({ postarEm: "2026-10-25T18:00", postarRedes: ["instagram"] })).toEqual({ tipo: "programado", texto: "Programado · 25/10 18:00 · Instagram" });
     expect(situacao({})).toBeNull();
@@ -53,8 +57,10 @@ describe("linha única do card Aprovado (botões na ficha)", () => {
     expect(estadoDoCard(you).texto).toBe("Sem programação");
     expect(estadoDoCard({ ...you, empresaId: "beec", postarEm: "2026-10-27T12:00" }).texto).toBe("Postagem automática só para a You (por enquanto)");
   });
-  it("carrossel com vídeo só para o Facebook e sem data = programação cancelada (achado 6, 3ª volta)", () => {
-    expect(estadoDoCard({ empresaId: "you", formato: "carrossel", arquivos: [img, vid], postarRedes: ["facebook"] })).toEqual({ texto: "Programação cancelada: abra o card", tom: "erro" });
+  it("só Facebook + vídeo sem data: 'cancelada' só se havia programação; nunca programado = só a checagem (achado a da Lupa)", () => {
+    const soFb = { empresaId: "you", formato: "carrossel" as const, arquivos: [img, vid], postarRedes: ["facebook" as const] };
+    expect(estadoDoCard(soFb)).toEqual({ texto: "Sem programação", tom: "normal" });
+    expect(estadoDoCard({ ...soFb, programacaoCancelada: true })).toEqual({ texto: "Programação cancelada: abra o card", tom: "erro" });
     // ainda programado assim (dado de antes do conserto): não diz "Programado"
     expect(estadoDoCard({ empresaId: "you", formato: "carrossel", arquivos: [img, vid], postarRedes: ["facebook"], postarEm: "2026-10-28T11:00" })).toEqual({ texto: "Precisa de ajuste: abra o card", tom: "erro" });
   });

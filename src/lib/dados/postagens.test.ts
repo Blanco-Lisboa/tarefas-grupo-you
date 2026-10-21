@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { postarEmQueVale, redesQueValem } from "./postagens";
-import type { Arquivo } from "./tipos";
+import { postando, postarEmQueVale, redesQueValem } from "./postagens";
+import type { Arquivo, Tarefa } from "./tipos";
 
 const img: Arquivo = { nome: "a.jpg", tipo: "imagem" }, vid: Arquivo = { nome: "b.mp4", tipo: "video" };
 
@@ -26,5 +26,15 @@ describe("postar_redes gravado (achado 3 da Lupa no Correio)", () => {
     expect(postarEmQueVale({ ...base, arquivos: [img, img], postarRedes: ["facebook"] })).toBe("2026-10-27T10:00");
     expect(postarEmQueVale({ ...base, etapa: "postado", arquivos: [img, vid], postarRedes: ["facebook"] })).toBe("2026-10-27T10:00"); // postado não se mexe
     expect(postarEmQueVale({ ...base, etapa: "edicao", arquivos: [img] })).toBeUndefined(); // fora de Aprovado/Postado, sem data (015)
+  });
+});
+
+describe("recarga de 15 s (achado b da Lupa): só rede escolhida em andamento, e só em Aprovado", () => {
+  const card = (extra: Partial<Tarefa>) => ({ id: "t", titulo: "x", tipo: "postagem", empresaId: "you", etapa: "aprovado", responsavel: "natham", diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra }) as Tarefa;
+  it("rede tirada do card em 'fila' não segura a recarga; Postado nunca; status desconhecido também não", () => {
+    expect(postando(card({ postarRedes: ["instagram"], postagens: [{ rede: "facebook", status: "fila" }, { rede: "instagram", status: "postado" }] }))).toBe(false);
+    expect(postando(card({ etapa: "postado", postagens: [{ rede: "facebook", status: "fila" }] }))).toBe(false);
+    expect(postando(card({ postagens: [{ rede: "instagram", status: "cancelado" as never }] }))).toBe(false);
+    expect(postando(card({ postarRedes: ["instagram"], postagens: [{ rede: "instagram", status: "enviando" }] }))).toBe(true);
   });
 });

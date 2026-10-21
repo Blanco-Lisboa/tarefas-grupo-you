@@ -73,6 +73,8 @@ export type Tarefa = {
   ocasiaoId?: string;
   /** Resultado por rede, só leitura (tabela postagens). */
   postagens?: Postagem[];
+  /** Só na tela, não vai ao banco: o salvar desta sessão tirou a data (carrossel com vídeo só para o Facebook). Nunca programado não conta. */
+  programacaoCancelada?: boolean;
   /** Vêm do banco, só leitura. dono = de quem é o caderno; enviadaPor = quem mandou (só se foi enviada). */
   dono?: Responsavel;
   criadoPor?: Responsavel;

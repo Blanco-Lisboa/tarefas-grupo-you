@@ -49,7 +49,7 @@ export type Situacao =
 
 /** O que o card Aprovado mostra sobre a postagem. Postando vence erro; erro vence a data programada. */
 export function situacao(t: Pick<Tarefa, "postagens" | "postarEm" | "postarRedes">): Situacao | null {
-  const ps = t.postagens ?? [];
+  const ps = (t.postagens ?? []).filter((p) => redesDe(t).includes(p.rede)); // rede tirada do card não conta (achado b da Lupa)
   if (ps.some(emAndamento)) return { tipo: "postando" };
   const erros = ps.filter((p) => p.status === "erro");
   if (erros.length) {
@@ -64,17 +64,17 @@ export function situacao(t: Pick<Tarefa, "postagens" | "postarEm" | "postarRedes
 
 export const CANCELADA = "Programação cancelada: carrossel com vídeo não vai para o Facebook. Acenda o Instagram ou tire o vídeo e programe de novo.";
 /** O salvar tirou a programação (carrossel com vídeo só para o Facebook, achado 6 da Lupa): sem data, e a ficha mostra CANCELADA. */
-export const programacaoCancelada = (t: Pick<Tarefa, "arquivos" | "formato" | "postarEm" | "postarRedes">) =>
-  !t.postarEm && carrosselSoFacebook(t, t.formato, redesDe(t));
+export const programacaoCancelada = (t: Pick<Tarefa, "arquivos" | "formato" | "postarEm" | "postarRedes" | "programacaoCancelada" | "postagens">) =>
+  !t.postarEm && carrosselSoFacebook(t, t.formato, redesDe(t)) && (!!t.programacaoCancelada || !!t.postagens?.length); // nunca programado: só a checagem (achado a da Lupa)
 
 /** A linha única do card Aprovado na Esteira (pedido do Natham: os botões ficam na ficha, o card fica baixo). */
-export function estadoDoCard(t: Pick<Tarefa, "empresaId" | "postagens" | "postarEm" | "postarRedes" | "arquivos" | "formato">): { texto: string; tom: "normal" | "postando" | "erro" } {
+export function estadoDoCard(t: Pick<Tarefa, "empresaId" | "postagens" | "postarEm" | "postarRedes" | "arquivos" | "formato" | "programacaoCancelada">): { texto: string; tom: "normal" | "postando" | "erro" } {
   if (t.empresaId !== "you") return { texto: "Postagem automática só para a You (por enquanto)", tom: "normal" };
   const sit = situacao(t);
   if (sit?.tipo === "postando") return { texto: "Postando…", tom: "postando" };
   if (sit?.tipo === "erro") return { texto: "Erro ao postar: abra o card", tom: "erro" };
   if (programacaoCancelada(t)) return { texto: "Programação cancelada: abra o card", tom: "erro" };
   // Programado assim antes do conserto (dado antigo): a função recusaria; o próximo salvar cancela a programação.
-  if (carrosselSoFacebook(t, t.formato, redesDe(t))) return { texto: "Precisa de ajuste: abra o card", tom: "erro" };
+  if (t.postarEm && carrosselSoFacebook(t, t.formato, redesDe(t))) return { texto: "Precisa de ajuste: abra o card", tom: "erro" };
   return sit ? { texto: sit.texto, tom: "normal" } : { texto: "Sem programação", tom: "normal" };
 }
