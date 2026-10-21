@@ -105,6 +105,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .gf-sheet-name { overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 600; color: var(--texto); }
 .gf-sheet-meta { flex: none; font-size: 11px; font-weight: 500; letter-spacing: .02em; color: var(--texto); }
 
+/* Item 215 (Régua 6): a pasta inteira é reduzida pela escala --gf-k; o texto compensa para o nome ficar com 14px e a contagem com 12,5px na tela (em 340 ou mais nada muda) */
 /* ---- vidro da frente ---- */
 .gf-front {
   position: absolute; left: 0; top: 74px; width: 340px; height: 198px; z-index: 10;
@@ -124,8 +125,8 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .gf-hit:focus-visible { outline: 2px solid var(--azul); outline-offset: -12px; } /* contorno único da base (azul sólido), 2px porque o 1px some nas veias escuras da arte */
 
 .gf-label { position: absolute; z-index: 2; left: 28px; bottom: 32px; display: flex; flex-direction: column; gap: 4px; max-width: 280px; pointer-events: none; color: var(--gf-ink); }
-.gf-title { font-size: var(--t-20); font-weight: var(--titulo-peso); line-height: 1.15; letter-spacing: var(--titulo-espaco); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.gf-meta { font-size: 13px; letter-spacing: .02em; color: var(--gf-ink-soft); white-space: nowrap; }
+.gf-title { font-size: max(var(--t-20), calc(14px / var(--gf-k, 1))); font-weight: var(--titulo-peso); line-height: 1.15; letter-spacing: var(--titulo-espaco); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gf-meta { font-size: max(13px, calc(12.5px / var(--gf-k, 1))); letter-spacing: .02em; color: var(--gf-ink-soft); white-space: nowrap; }
 
 /* ---- Mapa (213): folhas brancas com texto preto, e pasta pequena com letras maiores (opções do componente; sem elas nada muda) ---- */
 /* folhas brancas: leque regular (mesmo passo, sem giro), curtas para terminar acima do vidro (senão o vidro borra o branco numa mancha), e duas linhas: título e, embaixo, rede + etapa + horário */
@@ -137,8 +138,8 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .gf-brancas .gf-sheet-detalhe { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; letter-spacing: .02em; color: #48484A; }
 .gf-title .marca-logo { display: inline-block; vertical-align: -.18em; margin-right: .3em; }
 .gf-mini .gf-label { left: 24px; bottom: 28px; gap: 6px; max-width: 300px; }
-.gf-mini .gf-title { font-size: 34px; }
-.gf-mini .gf-meta { font-size: 25px; }
+.gf-mini .gf-title { font-size: max(34px, calc(14px / var(--gf-k, 1))); }
+.gf-mini .gf-meta { font-size: max(25px, calc(12.5px / var(--gf-k, 1))); }
 
 /* ---- entrada: a pasta se monta ---- */
 .gf-root:not([data-entered]) .gf-back,

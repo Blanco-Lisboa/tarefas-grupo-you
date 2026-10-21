@@ -169,7 +169,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
       className={`gf-root${folhasBrancas ? " gf-brancas" : ""}${miniatura ? " gf-mini" : ""}`}
       data-open={aberta || undefined}
       data-entered={entrou || undefined}
-      style={{ width: largura, height: (H + ALTURA_ABA) * k, ...(tom && { "--gf-base": tom.base, "--gf-sombra": tom.sombra }) } as CSSProperties}
+      style={{ width: largura, height: (H + ALTURA_ABA) * k, "--gf-k": k, ...(tom && { "--gf-base": tom.base, "--gf-sombra": tom.sombra }) } as CSSProperties}
     >
       <div className="gf-stage" style={{ transform: `translateY(${ALTURA_ABA * k}px) scale(${k})` }}>
         <div className="gf-tilt">
