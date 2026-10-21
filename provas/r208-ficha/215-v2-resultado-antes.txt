@@ -1,0 +1,10 @@
+OK antes: Aprovar salvou o card em Aprovado (aprovado)
+OK antes: a ficha mostra o aviso do anexo ("A tarefa foi salva, mas não consegui guardar os anexos. Abra a ficha e anexe de novo.")
+OK antes: a ficha está no Aprovado (sem Aprovar/Consertar, com o bloco Publicação)
+FALHA antes: Salvar seguinte continua Aprovado (aprovado -> analise)
+FALHA antes: Consertar + anexo falho + Salvar: continua Edição com Conserto (edicao/true -> analise/false)
+OK antes: a tarefa foi salva sem empresa
+OK antes: a ficha fica aberta com o aviso do anexo ("A tarefa foi salva, mas não consegui guardar os anexos. Abra a ficha e anexe de novo.")
+FALHA antes: o aviso "Salva sem empresa. Ela aparece com o filtro em Todas." aparece
+FALHA antes: Salvar de novo atualiza a mesma tarefa, não cria outra (02074cf2, 08b0c3a2)
+4 FALHA(S)

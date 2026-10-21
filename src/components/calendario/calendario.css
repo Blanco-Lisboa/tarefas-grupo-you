@@ -263,3 +263,5 @@
 .cal-semdata-nova { align-self: flex-start; margin: var(--s-12) 0 4px; }
 /* Aviso da tarefa salva sem empresa com o filtro ligado (Lupa 215): a faixa do aviso de falha, em grafite */
 .aviso-info { background: var(--texto); color: var(--sup); }
+/* Com o aviso de falha também na tela (ex.: anexo que não subiu), este sobe para cima dele (cabe o de falha com até 3 linhas) */
+body:has(.aviso-erro:not(.aviso-info)) .aviso-info { bottom: calc(var(--s-16) + 88px); }

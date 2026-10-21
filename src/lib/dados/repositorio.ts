@@ -137,7 +137,9 @@ export function motivoDoBanco(e: unknown, padrao: string) {
 let semSalvarTarefa = false;
 export const funcaoAusente = (e: { code?: string } | null) => e?.code === "PGRST202" || e?.code === "42883";
 
-export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
+/** Devolve a tarefa gravada, ou null se o banco recusou (nada mudou). Gravada com anexo que não subiu: devolve a tarefa e o aviso
+    (lerErro) diz que "a tarefa foi salva, mas..." (Lupa 215 v2: quem chama trata como salva). */
+export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa | null> {
   const id = nova.id ?? crypto.randomUUID();
   const antes = tarefas.find((t) => t.id === id);
   const dono = antes?.dono ?? nova.enviarPara ?? eu ?? undefined;
@@ -149,8 +151,8 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   // Havia data e o salvar a tirou (só Facebook + vídeo): a tela avisa "Programação cancelada" até alguém programar de novo.
   if (antes?.postarEm && !tarefa.postarEm && tarefa.etapa === "aprovado") { cancelados.add(id); tarefa.programacaoCancelada = true; }
   if (tarefa.postarEm) cancelados.delete(id);
-  if (!eu || !dono) { falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham."); return tarefa; }
-  if (antes && !podeAlterar(antes, eu)) { falhou(soLeitura); return antes; } // trava na origem: nenhuma tela mexe em tarefa só de leitura
+  if (!eu || !dono) { falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham."); return null; }
+  if (antes && !podeAlterar(antes, eu)) { falhou(soLeitura); return null; } // trava na origem: nenhuma tela mexe em tarefa só de leitura
   tarefas = antes ? tarefas.map((t) => (t.id === id ? tarefa : t)) : [...tarefas, tarefa];
   avisar();
   try {
@@ -188,7 +190,7 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa> {
   } catch (e) {
     tarefas = antes ? tarefas.map((t) => (t.id === id ? antes : t)) : tarefas.filter((t) => t.id !== id);
     falhou(motivoDoBanco(e, "Não consegui salvar a tarefa. Tente de novo."));
-    return tarefa;
+    return null;
   }
   // A tarefa já está no banco (o anexo precisa dela). Se o anexo falhar, a tarefa fica e o aviso diz que o anexo não subiu.
   try {

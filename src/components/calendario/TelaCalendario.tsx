@@ -52,10 +52,10 @@ function Calendario({ agora }: { agora: string }) {
   // Lupa 215 (achado 3): com o filtro de empresa ligado, a tarefa salva sem empresa some da tela; o aviso diz onde ela está.
   const [semEmpresa, setSemEmpresa] = useState(false);
   useEffect(() => {
-    if (!semEmpresa) return;
+    if (!semEmpresa || aberta) return; // ficha ainda aberta (anexo que falhou): o aviso espera ela fechar para contar o tempo
     const id = setTimeout(() => setSemEmpresa(false), 8000);
     return () => clearTimeout(id);
-  }, [semEmpresa]);
+  }, [semEmpresa, aberta]);
 
   const visiveis = useMemo(() => aplicar(tarefas).filter(passa(filtros)), [aplicar, tarefas, filtros]);
   const mapa = useMemo(() => porDia(visiveis), [visiveis]);

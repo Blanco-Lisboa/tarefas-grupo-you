@@ -109,15 +109,14 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
   const mudar = <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => setT((x) => ({ ...x, [campo]: valor }));
   // Enquanto grava a decisão, os botões ficam (desligados, "Aprovando…"): a escrita otimista já tirou o card de Em análise
   const decide = !soLer && viva?.tipo === "postagem" && (viva.etapa === "analise" || !!decidindo) && podeAprovar(viva, eu);
-  // Lupa 215 (achados 1 e 2): grava a ficha inteira com a etapa nova, numa gravação só, sem fechar; depois o rascunho fica com a
-  // etapa nova, então um Salvar seguinte não desfaz a decisão.
+  // Lupa 215 (achados 1 e 2): grava a ficha inteira com a etapa nova, numa gravação só, sem fechar; o gravar põe a etapa nova
+  // no rascunho (também quando só o anexo falhou), então um Salvar seguinte não desfaz a decisão.
   async function decidir(mudanca: { etapa: "aprovado" | "edicao"; conserto?: boolean }) {
     setRecusa("");
     setDecidindo(mudanca.etapa);
     const ok = await gravar(mudanca, false);
     setDecidindo(null);
-    if (ok) setT((x) => ({ ...x, ...mudanca }));
-    else setRecusa(lerErro());
+    if (!ok) setRecusa(lerErro());
   }
 
   // Mudou o início: o fim anda junto e a duração fica igual (senão o fim fica antes do início e trava o formulário).
@@ -142,7 +141,9 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
     if (d && !d.open) d.showModal();
   }, []);
 
-  /** Salva a ficha inteira (`extra` por cima: a Publicação manda redes e data); true = o banco aceitou. `fechar` false: a ficha fica aberta. */
+  /** Salva a ficha inteira (`extra` por cima: a Publicação manda redes e data); true = tudo gravado, anexos inclusive. `fechar` false: a ficha fica aberta.
+      Card gravado com anexo que falhou (Lupa 215 v2) conta como salvo: o rascunho passa a ser o que foi gravado (com id e etapa nova,
+      para um Salvar seguinte não criar outra tarefa nem desfazer a decisão) e aoSalvar é chamado; devolve false por causa do anexo. */
   async function gravar(extra: Partial<NovaTarefa> = {}, fechar = true): Promise<boolean> {
     if (soLer || !t.titulo.trim() || !empresaOk || gravando.current) return false; // dois cliques em Salvar criavam a tarefa duas vezes
     gravando.current = true;
@@ -163,13 +164,15 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
     const salva = { ...(aprovadorTravado ? { ...pronta, aprovador: tarefa.aprovador } : pronta), ...extra }; // só quem aprova muda o aprovador (015), mesmo tirando a tag
-    await salvarTarefa(salva);
+    const gravada = await salvarTarefa(salva);
     gravando.current = false;
     setSalvando(false);
-    const ok = !lerErro();
-    if (ok) aoSalvar?.(salva);
+    if (gravada) {
+      setT((x) => ({ ...x, ...extra, id: gravada.id, etapa: gravada.etapa, conserto: gravada.conserto })); // etapa como ficou (Roteiro do 205, decisão)
+      aoSalvar?.(salva);
+    }
     if (fechar) setEnviou(true);
-    return ok;
+    return !!gravada && !lerErro();
   }
 
   async function excluir() {

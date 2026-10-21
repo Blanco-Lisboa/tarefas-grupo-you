@@ -1,0 +1,12 @@
+OK depois: Aprovar salvou o card em Aprovado (aprovado)
+OK depois: a ficha mostra o aviso do anexo ("A tarefa foi salva, mas não consegui guardar os anexos. Abra a ficha e anexe de novo.")
+OK depois: a ficha está no Aprovado (sem Aprovar/Consertar, com o bloco Publicação)
+OK depois: Salvar seguinte continua Aprovado (aprovado -> aprovado)
+OK depois: Consertar + anexo falho + Salvar: continua Edição com Conserto (edicao/true -> edicao/true)
+OK depois: a tarefa foi salva sem empresa
+OK depois: a ficha fica aberta com o aviso do anexo ("A tarefa foi salva, mas não consegui guardar os anexos. Abra a ficha e anexe de novo.")
+OK depois: o aviso "Salva sem empresa. Ela aparece com o filtro em Todas." aparece
+OK depois: Salvar de novo atualiza a mesma tarefa, não cria outra (41087db2, 41087db2)
+OK depois: fechada a ficha (depois de 9 s aberta), o aviso de "sem empresa" está na tela, sem ficar embaixo do aviso do anexo ([619,686])
+OK depois: com empresa: as duas gravações em Roteiro, mesma tarefa (5d0f7c2f/roteiro, 5d0f7c2f/roteiro)
+TUDO OK
