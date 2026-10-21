@@ -11,3 +11,9 @@ Commit "215-lupa-1-3:", npm run check verde (cópia limpa se a pasta tiver lixo 
 Commit "215-lupa-4:", testes do Drive verdes. Nada de deploy, nada de banco.
 
 Cada um: responda SÓ na mensagem final com o que mudou, sha e saída dos testes.
+
+---
+# Volta 2 (Re-revisão da Lupa, novos achados)
+- **Sextante · novo 1:** falha parcial (card salvo, anexo falhou). O repositório já salvou o card com a etapa nova; a ficha tem de tratar isso como SALVO-com-aviso-do-anexo: atualizar o rascunho para a etapa nova (Salvar seguinte não desfaz) e, no Calendário, mostrar o aviso de "sem empresa" também nesse caso. Teste com anexo que falha depois de salvar. Commit "215-lupa-v2-1:".
+- **Vitral · novo 3:** pasta aberta do Mapa trava a rolagem do fundo enquanto aberta (mesmo comportamento da ficha no 212); ao fechar, a Linha do tempo está no mesmo dia/posição. Prova com medida de scroll antes/depois. Commit "215-lupa-v2-3:".
+- **Novo 2 (Fila por dia sem pasta): NÃO fazer.** O pedido dele (213) era trocar a PILHA de folhas; a Fila nunca teve pilha (é lista). Decisão do Maestro, registrada na leva.
