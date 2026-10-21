@@ -1,0 +1,8 @@
+Esteira com a ficha aberta: {"pagina":[0,60],"conteudos-quadro":[120,0]}
+OK antes: a roda rola a ficha até o fim (735 de 735)
+FALHA antes: roda na ficha (até o fim) não mexe a Esteira {"pagina":[0,2238],"conteudos-quadro":[120,0]}
+FALHA antes: roda de lado na ficha não mexe a Esteira {"pagina":[0,2238],"conteudos-quadro":[120,0]}
+FALHA antes: roda no fundo escurecido não mexe a Esteira {"pagina":[0,238],"conteudos-quadro":[120,0]}
+FALHA antes: ao fechar, a Esteira está na mesma posição {"pagina":[0,238],"conteudos-quadro":[120,0]}
+OK antes: fechada, a Esteira volta a rolar {"pagina":[0,1138],"conteudos-quadro":[124,0]}
+4 FALHA(S)

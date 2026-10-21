@@ -13,13 +13,14 @@
 // - Fazendo agora (item 170): tarefa já salva mostra Começar/Parar no topo e quem está nela desde quando (todos veem de todos).
 // - Postagem em "Em análise" (item 208): Aprovar e Consertar no topo, ao lado de Começar/Fechar, para quem aprova. Gravam na hora
 //   (como faziam no card) e a ficha continua aberta já no novo estado.
+// - Sem campo Etapa (item 205): a etapa muda arrastando na Esteira; card novo com empresa entra em Roteiro (etapaAoSalvar).
 // - tipos: limita o menu Tipo (a Esteira passa só os tipos que são colunas, item 194); sem ele, todos.
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ehConteudo } from "@/components/tarefas/grade";
 import {
-  ETAPAS, FORMATOS, REDES, RESPONSAVEIS, TIPOS, lerErro, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
+  FORMATOS, REDES, RESPONSAVEIS, TIPOS, lerErro, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
   type Etapa, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type Tarefa, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
@@ -35,7 +36,7 @@ import { CamposPost } from "./CamposPost";
 import { Publicacao } from "./Publicacao";
 import { TagsFicha } from "./TagsFicha";
 import { LINK_VALIDO, LinksDrive } from "./LinksDrive";
-import { arrumar, ehQuemAprova, fimValido } from "./arrumar";
+import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido } from "./arrumar";
 import { CampoOcasiao } from "./CampoOcasiao";
 import { TextoComLinks } from "@/components/pastas/links";
 import { CampoData } from "@/components/ui/CampoData";
@@ -146,9 +147,10 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
     setEnviou(false);
     setSalvando(true);
     // Tarefa nova para outra pessoa vai para o caderno dela (achado 2, igual ao Caderno). Conteúdo com empresa todos já veem: fica de quem criou.
-    const enviarPara = nova && t.responsavel !== eu && !ehConteudo(t) ? t.responsavel : undefined;
+    const etapa = etapaAoSalvar(t);
+    const enviarPara = nova && t.responsavel !== eu && !ehConteudo({ ...t, etapa }) ? t.responsavel : undefined;
     const pronta = arrumar(t, pedeAprovador, {
-      ...quando, enviarPara, arquivos,
+      ...quando, etapa, enviarPara, arquivos,
       vaiProGoogle: nova ? vai : tarefa.vaiProGoogle, // só liga na criação e se pode ir (R5-5)
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
@@ -231,9 +233,6 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
             </div>
             <div className="ficha-campo ficha-escolha">
               <Selecao rotulo="Rede" soIcone opcoes={REDES.map((v) => ({ valor: v, rotulo: NOMES.rede[v], antes: <IconeRede rede={v} tamanho={18} /> }))} valor={t.rede ? [t.rede] : []} multipla={false} rotuloTodos="Sem rede" aoMudar={([v]) => mudar("rede", v as Rede | undefined)} />
-            </div>
-            <div className="ficha-campo ficha-escolha" inert={postTravado}>
-              <Selecao rotulo="Etapa" opcoes={ETAPAS.filter((v) => t.tipo === "postagem" || (v !== "aprovado" && v !== "postado")).map((v) => ({ valor: v, rotulo: NOMES.etapa[v] }))} valor={t.etapa ? [t.etapa] : []} multipla={false} rotuloTodos="Sem etapa" aoMudar={([v]) => mudar("etapa", v as Etapa | undefined)} />
             </div>
             {t.tipo === "postagem" && (
               // Formato já ao criar/anexar (203): é dele que sai o campo Capa do Reels. O Programar postagem do card usa o mesmo valor.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NovaTarefa } from "@/lib/dados";
-import { arrumar, ehQuemAprova } from "./arrumar";
+import { arrumar, ehQuemAprova, etapaAoSalvar } from "./arrumar";
 
 describe("ficha: o que vai para o banco ao salvar (Lupa R6-1)", () => {
   const t: NovaTarefa = {
@@ -25,5 +25,15 @@ describe("ehQuemAprova (015)", () => {
     expect(ehQuemAprova("Natham", "matheus")).toBe(false);
     expect(ehQuemAprova(undefined, "matheus")).toBe(false);
     expect(ehQuemAprova("Matheus", null)).toBe(false);
+  });
+});
+
+describe("ficha: etapa ao salvar sem o campo Etapa (item 205)", () => {
+  const nova: NovaTarefa = { titulo: "Vídeo do mês", tipo: "outro", empresaId: "you", responsavel: "natham", diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [] };
+  it("card novo com empresa entra em Roteiro; com etapa (+ da coluna) fica na dela", () => {
+    expect([etapaAoSalvar(nova), etapaAoSalvar({ ...nova, etapa: "edicao" })]).toEqual(["roteiro", "edicao"]);
+  });
+  it("sem empresa, reunião ou tarefa que já existe (do Caderno): continua sem etapa", () => {
+    expect([etapaAoSalvar({ ...nova, empresaId: "" }), etapaAoSalvar({ ...nova, titulo: "Reunião com cliente" }), etapaAoSalvar({ ...nova, id: "t1" })]).toEqual([undefined, undefined, undefined]);
   });
 });

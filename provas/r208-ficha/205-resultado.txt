@@ -1,0 +1,9 @@
+OK ficha sem o campo Etapa (campos: Tipo, Empresa, Rede, Ocasião)
+OK Calendário + empresa: grava etapa = roteiro (you, roteiro)
+OK Calendário sem empresa: sem etapa (sem empresa, null)
+OK Caderno: tarefa com empresa (beec) sem etapa
+OK Caderno: aberta e salva na ficha, continua sem etapa (null)
+OK Esteira: o card do Calendário está em Roteiro
+OK Esteira: a tarefa do Caderno e a sem empresa não aparecem
+OK card que já tem etapa continua nela (edicao)
+TUDO OK
