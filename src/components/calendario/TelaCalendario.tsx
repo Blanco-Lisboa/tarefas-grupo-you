@@ -11,6 +11,7 @@ import { agendaPorDia, andar, comMinuto, diasDaSemana, diasDoMes, esperarFimDoAr
 import { Mes } from "./Mes";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { daMinhaLista } from "@/components/tarefas/grade";
+import { CampoData } from "@/components/ui/CampoData";
 import { Selecao } from "@/components/ui/Selecao";
 import "./calendario.css";
 
@@ -103,27 +104,17 @@ function Calendario({ agora }: { agora: string }) {
 
   return (
     <section className="cal">
+      {/* Item 224 (como o Google Agenda): uma faixa só. Sem Hoje / ← / →: o título abre o calendário de data (o mesmo do Caderno);
+          as teclas T e as setas continuam. */}
       <header className="cal-barra">
-        <div className="cal-quem">
-          <div className="cal-titulo">
-            <h1>{titulo ? <>{titulo} <span className="cal-titulo-ano">{ano}</span></> : ano}</h1>
-            <p>{noPeriodo ? `${noPeriodo} ${noPeriodo === 1 ? "tarefa" : "tarefas"} neste período` : "Nenhuma tarefa neste período"}</p>
-          </div>
-          <FiltroEmpresa />
+        <div className="cal-titulo">
+          <h1>
+            <CampoData rotulo="Ir para a data" valor={cursor} aoMudar={(d) => d && setCursor(d)} semLimpar
+              titulo={titulo ? <span>{titulo} <span className="cal-titulo-ano">{ano}</span></span> : <span>{ano}</span>} />
+          </h1>
+          <p>{noPeriodo ? `${noPeriodo} ${noPeriodo === 1 ? "tarefa" : "tarefas"}` : "Nenhuma tarefa"}</p>
         </div>
-        <div className="cal-navega">
-          <button type="button" className="btn btn-2" onClick={() => setCursor(hoje)} title="Hoje (T)">Hoje</button>
-          <button type="button" className="btn btn-2 cal-seta cal-seta-volta" onClick={() => setCursor(andar(visao, cursor, -1))} aria-label="Anterior" title="Anterior (seta para a esquerda)">
-            <svg className="seta" viewBox="0 0 24 24" aria-hidden><path d="M4 12h15M13 6l6 6-6 6" /></svg>
-          </button>
-          <button type="button" className="btn btn-2 cal-seta" onClick={() => setCursor(andar(visao, cursor, 1))} aria-label="Próximo" title="Próximo (seta para a direita)">
-            <svg className="seta" viewBox="0 0 24 24" aria-hidden><path d="M4 12h15M13 6l6 6-6 6" /></svg>
-          </button>
-        </div>
-        <button type="button" className="btn cal-nova" onClick={() => acoes.criar(null)}>+ Nova tarefa</button>
-      </header>
-
-      <div className="cal-linha-filtros">
+        <FiltroEmpresa />
         <BarraFiltros filtros={filtros} mudar={setFiltros} />
         <div className="cal-acoes">
           <SemData lista={semData} acoes={acoes} />
@@ -134,8 +125,9 @@ function Calendario({ agora }: { agora: string }) {
             valor={[visao]}
             aoMudar={(n) => n[0] && setVisao(n[0] as Visao)}
           />
+          <button type="button" className="btn cal-nova" onClick={() => acoes.criar(null)}>+ Nova tarefa</button>
         </div>
-      </div>
+      </header>
 
       <div className="cal-painel-pai">
         <div className="cal-painel" data-visao={visao}>

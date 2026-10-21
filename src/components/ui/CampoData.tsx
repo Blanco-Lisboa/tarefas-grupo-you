@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import { andar, deTexto, inicioSemana, nomeMes, paraDia, somarDias } from "@/components/calendario/logica";
 import "./selecao.css";
 import "./campo-data.css";
@@ -10,6 +10,7 @@ import "./campo-data.css";
 //   <CampoData rotulo="Data" valor={dia} aoMudar={setDia} />            // valor "AAAA-MM-DD"; "" = sem data
 //   <CampoData rotulo="Termina no dia" valor={fim} min={inicio} aoMudar={setFim} semLimpar />
 //   <CampoData rotulo="Começa" valor={dia} hora={hora} aoMudar={(d, h) => …} />   // com hora (item 76)
+//   <CampoData rotulo="Ir para a data" valor={dia} aoMudar={ir} semLimpar titulo={<>18 a 24 de outubro</>} />  // o próprio título abre o painel (item 224)
 //
 // Com `hora` ("HH:MM" ou ""), o painel ganha ao lado as rodas de hora e minuto (como no CRM, foto 24; no celular, embaixo):
 // escolher o dia não fecha, "Selecionar" devolve aoMudar(dia, hora) e "Limpar" devolve aoMudar("", "").
@@ -28,6 +29,8 @@ type Props = {
   vazio?: string;
   /** Liga as rodas de hora e minuto. "" = sem hora ainda (as rodas abrem em 00:00, item 84). */
   hora?: string;
+  /** No lugar do botão de vidro, um texto clicável (o título do Calendário, item 224); o painel é o mesmo. */
+  titulo?: ReactNode;
 };
 
 const SEMANA = ["D", "S", "T", "Q", "Q", "S", "S"];
@@ -53,7 +56,7 @@ function mesmoDia(dia: string, passo: 1 | -1) {
   return `${alvo.slice(0, 8)}${String(Math.min(Number(dia.slice(8, 10)), ultimo)).padStart(2, "0")}`;
 }
 
-export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem data", hora }: Props) {
+export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem data", hora, titulo }: Props) {
   const id = useId();
   const painel = useRef<HTMLDivElement>(null);
   const grade = useRef<HTMLDivElement>(null);
@@ -104,16 +107,18 @@ export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem
     <>
       <button
         type="button"
-        className="selecao-botao campo-data-botao"
+        className={titulo ? "campo-data-titulo" : "selecao-botao campo-data-botao"}
         popoverTarget={`${id}-painel`}
         aria-label={`${rotulo}: ${valor ? `${extenso.format(deTexto(valor))}${hora ? `, ${hora}` : ""}` : vazio}`}
         style={{ anchorName: ancora } as CSSProperties}
       >
-        <svg className="campo-data-icone" viewBox="0 0 24 24" aria-hidden>
-          <rect x="3.5" y="5" width="17" height="15.5" rx="3" />
-          <path d="M3.5 10h17M8 3v4M16 3v4" />
-        </svg>
-        <span className={valor ? "campo-data-valor" : "campo-data-vazio"}>{texto}</span>
+        {titulo ?? <>
+          <svg className="campo-data-icone" viewBox="0 0 24 24" aria-hidden>
+            <rect x="3.5" y="5" width="17" height="15.5" rx="3" />
+            <path d="M3.5 10h17M8 3v4M16 3v4" />
+          </svg>
+          <span className={valor ? "campo-data-valor" : "campo-data-vazio"}>{texto}</span>
+        </>}
         <svg className="selecao-seta" viewBox="0 0 24 24" aria-hidden>
           <path d="M6 9l6 6 6-6" />
         </svg>

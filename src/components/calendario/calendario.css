@@ -1,27 +1,23 @@
 /* Calendário (tela principal). Só tokens da Névoa (tarefas-tokens.css) e da camada do app (globals.css); as cores das
    tarefas vêm de --etiqueta-N. De ponta a ponta, sem coluna ao lado (itens 39 e 40); no computador ocupa a altura que
    sobra da tela e só a grade rola por dentro. Azul só no que se clica e no "hoje". */
-.cal { --gutter: 56px; display: flex; flex-direction: column; gap: var(--s-12); min-width: 0; }
+.cal { --gutter: 52px; --app-controle: 36px; display: flex; flex-direction: column; gap: var(--s-8); min-width: 0; }
+/* Item 224: tela cheia como o Google Agenda; a casca dá menos margem só aqui (no celular fica a de sempre) */
+@media (min-width: 768px) { .casca-conteudo:has(> .cal) { padding: var(--s-8) var(--s-12); } }
 .cal[aria-busy="true"] { min-height: 60vh; }
 
-/* ---------- barra de cima: navegação, título, ações ----------
-   Botões = .btn/.btn-2 da base (globals.css), um principal por tela (+ Nova tarefa). */
-.cal-barra { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--s-12) var(--s-24); }
-.cal-quem { display: flex; align-items: flex-start; gap: var(--app-respiro); min-width: 0; } /* Título + filtro Empresa (item 141); a contagem fica embaixo do título */
-@media (max-width: 767px) { .cal-quem { flex-wrap: wrap; } .cal-titulo { flex: 1 1 100%; } .cal-titulo h1 { line-height: 1.2; } } /* celular: título em cima, Empresa embaixo */
-.cal-navega { display: flex; align-items: center; gap: var(--s-8); }
-@media (min-width: 768px) { .cal-navega { padding-left: var(--s-24); border-left: 1px solid var(--linha); } } /* linha suave entre Empresa e a navegação */
-.cal-seta { width: var(--app-controle); padding: 0; }
-.cal-seta .seta { width: 18px; height: 18px; }
-.cal-seta-volta .seta { transform: scaleX(-1); }
-.cal-titulo { min-width: 0; } /* título e contagem sempre em 2 linhas: trocar de visão não muda a altura da barra */
-.cal-titulo h1 { margin: 0; font-size: var(--app-t-titulo); line-height: var(--app-controle); color: var(--texto); text-wrap: balance; }
+/* ---------- barra de cima (item 224): UMA faixa como no Google Agenda ----------
+   Título (clicável: abre o calendário de data) + contagem, Empresa, filtros; à direita Sem data, Visão e + Nova tarefa.
+   Botões = .btn/.btn-2 da base (globals.css), um principal por tela (+ Nova tarefa). Se não couber, quebra linha. */
+.cal-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
+.cal-titulo { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.cal-titulo h1 { margin: 0; font-size: 22px; line-height: var(--app-controle); color: var(--texto); white-space: nowrap; }
 .cal-titulo-ano { color: var(--fraco); font-weight: 400; }
-.cal-titulo p { margin: 2px 0 0; font-size: var(--app-t-texto); color: var(--fraco); }
-.cal-nova { margin-left: auto; }
-/* 2ª linha: filtros à esquerda; Sem data e Visão (também escolhas) à direita */
-.cal-linha-filtros { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--app-vao) var(--s-24); }
-.cal-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
+.cal-titulo p { margin: 0; font-size: var(--t-12); color: var(--fraco); white-space: nowrap; }
+.cal-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); margin-left: auto; }
+.cal .selecao-botao { gap: 6px; padding: 0 10px 0 12px; } /* mais justos que nas outras telas: a faixa inteira cabe em 1440 */
+.cal .cal-barra .btn { padding: 0 var(--s-12); }
+@media (max-width: 767px) { .cal-titulo { flex: 1 1 100%; flex-wrap: wrap; } .cal-titulo h1 { font-size: var(--t-20); } }
 
 /* ---------- filtros da tela: botões de seleção da base ---------- */
 .cal-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
@@ -31,8 +27,8 @@
 .cal-painel-pai { min-width: 0; }
 .cal-painel { background: var(--sup); border-radius: var(--raio-c); box-shadow: var(--sombra); overflow: clip; min-width: 0; }
 @media (min-width: 768px) {
-  /* Altura = tela menos o respiro de cima da casca e o respiro de baixo (32 = 2 respiros); sem a barra de cima (item 141) */
-  .cal { height: calc(100dvh - var(--app-respiro) * 3); min-height: 520px; }
+  /* Altura = tela menos a margem de cima e de baixo da casca nesta tela (item 224) */
+  .cal { height: calc(100dvh - var(--s-8) * 2); min-height: 520px; }
   .cal-painel-pai { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .cal-painel { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: auto; }
   .grade-janela, .grade { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -160,13 +156,13 @@
 .grade-cabeca { overflow: hidden; scrollbar-gutter: stable; border-bottom: 1px solid var(--borda); }
 .grade-canto-rotulo { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--fraco); font-weight: 600; padding: 6px 4px 6px 8px; line-height: 1.15; }
 .grade-dia {
-  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--s-16) 4px var(--s-8);
+  display: flex; flex-direction: column; align-items: center; gap: 1px; padding: var(--s-8) 4px 6px;
   background: none; border: 0; border-left: 1px solid var(--linha); cursor: pointer; color: var(--texto); min-width: 0;
 }
 .grade-dia-nome { font-size: var(--t-12); letter-spacing: .06em; text-transform: uppercase; color: var(--fraco); font-weight: 600; }
 .grade-dia-num {
-  display: grid; place-items: center; width: 40px; height: 40px;
-  border-radius: 50%; font: 500 var(--t-25) var(--fonte); font-variant-numeric: tabular-nums;
+  display: grid; place-items: center; width: 36px; height: 36px;
+  border-radius: 50%; font: 500 var(--t-20) var(--fonte); font-variant-numeric: tabular-nums;
   transition: background-color var(--dur-rapida) var(--curva);
 }
 .grade-dia:hover .grade-dia-num { background: var(--realce); }
@@ -180,7 +176,10 @@
   border-left: 1px solid var(--linha); border-top: 1px solid var(--linha); min-width: 0; cursor: copy;
 }
 .grade-canto-rotulo { border-top: 1px solid var(--linha); }
-.grade-rolagem { max-height: max(420px, calc(100dvh - 330px)); overflow-y: auto; scrollbar-gutter: stable; }
+.grade-rolagem { overflow-y: auto; scrollbar-gutter: stable; }
+/* Só no celular a grade tem teto; no computador ela enche o painel (item 224: esta regra vinha depois do flex: 1 lá de cima e
+   prendia a grade em 100dvh - 330px, sobrando um vão embaixo) */
+@media (max-width: 767px) { .grade-rolagem { max-height: max(420px, calc(100dvh - 330px)); } }
 .grade-corpo { position: relative; height: calc(24 * 48px); }
 .grade-horas { position: relative; }
 .grade-horas span { position: absolute; right: 8px; transform: translateY(-50%); font-size: 11px; color: var(--fraco); }

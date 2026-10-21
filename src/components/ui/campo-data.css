@@ -5,6 +5,14 @@
 }
 .campo-data-valor { font-variant-numeric: tabular-nums; }
 .campo-data-vazio { color: var(--fraco); }
+/* Título que abre o painel (item 224, Calendário): sem a pele de vidro; só um realce leve ao passar o mouse, com a seta da seleção */
+.campo-data-titulo {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; margin: 0 0 0 calc(-1 * var(--s-8)); padding: 0 var(--s-8);
+  border: 0; border-radius: var(--raio-b); background: none; color: inherit; font: inherit; line-height: inherit; text-align: left; cursor: pointer;
+  transition: background-color var(--dur-rapida) var(--curva);
+}
+.campo-data-titulo:hover, .campo-data-titulo:focus-visible { background: var(--realce); }
+.campo-data-titulo .selecao-seta { width: 18px; height: 18px; flex: none; }
 
 /* O painel com hora é alto e largo: além de virar para cima ou para a esquerda, tenta os dois juntos (botão no canto); se
    nada couber, o navegador empurra a janela para dentro da tela. Duas classes de propósito (item 109, foto 65): com uma só,
