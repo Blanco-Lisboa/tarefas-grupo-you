@@ -173,7 +173,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 /* o topo vazio de cada pasta (reservado ao leque) sobe por cima da linha do título; o leque aberto cobre o título */
 .pastas-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s-8) var(--s-24); margin-top: calc(-1 * var(--s-24)); padding: 0 0 var(--s-48); }
 /* telas largas: as pastas de uma empresa numa linha só (6 na You, a partir de 1800) */
-@media (min-width: 1400px) { .pastas-grade { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); column-gap: var(--s-16); } } /* formatos, pastas livres e Ideias: 7 por linha em 1440, sem cair uma para a linha de baixo */
+@media (min-width: 1400px) { .pastas-grade { grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: var(--s-16); } } /* 245: 6 por linha, pasta no tamanho maior de antes da 234 (a 7ª desce para a linha de baixo) */
 .pastas-cel { min-width: 0; display: flex; flex-direction: column; align-items: stretch; }
 
 /* ver todas: lista completa da pasta, para baixar quando passa das 4 do leque */
