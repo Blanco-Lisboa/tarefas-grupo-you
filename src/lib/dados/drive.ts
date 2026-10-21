@@ -21,8 +21,14 @@ async function chamar<T>(corpo: Record<string, unknown>): Promise<T> {
     throw new Error("Sem conexão com o servidor. Tente de novo.");
   }
   const j = (await r.json().catch(() => ({}))) as { erro?: string };
-  if (!r.ok) throw new Error(j.erro ?? "Não consegui falar com o Drive. Tente de novo.");
+  if (!r.ok) throw new ErroServidor(j.erro ?? "Não consegui falar com o Drive. Tente de novo.", r.status);
   return j as T;
+}
+/** Resposta de erro da função `drive`, com o código HTTP (a anotação do envio depende dele). */
+export class ErroServidor extends Error {
+  constructor(mensagem: string, public status: number) {
+    super(mensagem);
+  }
 }
 
 export const tipoDe = (f: { type: string }): NonNullable<Arquivo["tipo"]> => (f.type.startsWith("video/") ? "video" : f.type.startsWith("image/") ? "imagem" : "documento");
@@ -101,8 +107,10 @@ export async function enviarParaDrive(tarefaId: string, arquivo: File, papel: "a
   try {
     ({ arquivo_id } = await chamar<{ arquivo_id: string }>({ acao: "confirmar_envio", tarefa_id: tarefaId, drive_id: driveId, nome: arquivo.name, tipo, tamanho: arquivo.size, papel, ordem }));
   } catch (e) {
-    if (anotacao(chave)?.driveId && nota?.driveId) anotacao(chave, null); // a anotada já falhou uma vez aqui: não prende a pessoa nela, a próxima tentativa sobe de novo
-    throw e;
+    // O arquivo continua no Drive: a anotação fica e a próxima tentativa só confirma. Só se descarta quando o servidor diz que o arquivo não serve mais
+    // (não existe, lixeira, pasta errada ou tamanho errado: 410/422); aí o próximo envio é novo e não deixa o antigo solto.
+    if (e instanceof ErroServidor && (e.status === 410 || e.status === 422)) { anotacao(chave, null); throw e; }
+    throw new Error("Não deu para confirmar o envio, tente de novo.", { cause: e });
   }
   anotacao(chave, null);
   return { id: arquivo_id, nome: arquivo.name, tipo, driveId, ordem, papel };

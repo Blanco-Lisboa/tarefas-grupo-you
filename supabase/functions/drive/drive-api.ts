@@ -1,7 +1,7 @@
 // Chamadas ao Google Drive v3. Recebe o token e a base por injeção: no teste a base é o Google falso.
 type Busca = typeof fetch;
 export type Contexto = { api: string; token: () => Promise<string>; fetch?: Busca };
-export type ArquivoDrive = { id: string; parents?: string[]; size?: string; mimeType?: string };
+export type ArquivoDrive = { id: string; parents?: string[]; size?: string; mimeType?: string; trashed?: boolean };
 
 export class ErroDrive extends Error {
   constructor(public status: number) {
@@ -41,7 +41,7 @@ export function criarDriveApi(c: Contexto) {
       return url;
     },
     async ver(id: string): Promise<ArquivoDrive> {
-      return (await (await chamar(`${arq(id)}?fields=id,parents,size,mimeType`)).json()) as ArquivoDrive;
+      return (await (await chamar(`${arq(id)}?fields=id,parents,size,mimeType,trashed`)).json()) as ArquivoDrive;
     },
     /** Manda para a lixeira do Google (volta por 30 dias). Arquivo que já não existe conta como feito. */
     async lixeira(id: string) {

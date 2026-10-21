@@ -97,3 +97,67 @@ describe("achado 3: a conexão cai depois de o arquivo subir e antes de confirma
     expect(localStorage.getItem("grade:envio:t1:anexo:a.mp4:6:7")).toBeNull();
   });
 });
+
+describe("2a volta da Lupa: nunca apagar nem abandonar um arquivo que existe", () => {
+  it("achado 4: se a consulta de desempate FALHA, devolve erro e NÃO apaga o arquivo", async () => {
+    const m = montar();
+    const s = (await (await m.tratar(new Request("https://f", { method: "POST", headers: { authorization: "Bearer tok-n", origin: "https://app" }, body: JSON.stringify({ acao: "sessao_envio", tarefa_id: "t1", nome: "a.mp4", tipo: "video", mime: "video/mp4", tamanho: 4, papel: "anexo" }) }))).json()) as { sessao_url: string };
+    const id = ((await (await m.g.fetch(s.sessao_url, { method: "PUT", headers: { "content-range": "bytes 0-3/4" }, body: new Uint8Array(4) })).json()) as { id: string }).id;
+    m.b.estado.tabelas.arquivos.push({ id: "ja", tarefa_id: "t1", drive_id: id }); // outra confirmação já registrou
+    let leituras = 0;
+    const f = (async (e: RequestInfo | URL, i?: RequestInit) => {
+      const url = String(new Request(e).url);
+      if (url.includes("/rest/v1/arquivos?") && url.includes("drive_id=eq.") && (i?.method ?? "GET") === "GET" && ++leituras === 1) return new Response("[]", { status: 200 }); // a 1a leitura não a vê (corrida)
+      if (url.includes("/rest/v1/arquivos?") && url.includes("drive_id=eq.") && (i?.method ?? "GET") === "GET") return new Response("{}", { status: 500 }); // o desempate falha
+      return m.base(e, i);
+    }) as typeof fetch;
+    const google = criarGoogle({ env, fetch: f });
+    const tratar = criarManipulador({ env, fetch: f, api: criarDriveApi({ api: BASE_FALSA, token: google.tokenGoogle, fetch: f }), baixar: google.baixarDoDrive });
+    const r = await tratar(new Request("https://f", { method: "POST", headers: { authorization: "Bearer tok-n", origin: "https://app" }, body: JSON.stringify({ acao: "confirmar_envio", tarefa_id: "t1", drive_id: id, nome: "a.mp4", tipo: "video", tamanho: 4, papel: "anexo", ordem: 0 }) }));
+    expect(r.status).toBe(500);
+    expect(m.g.estado.arquivos.get(id)!.trashed).toBe(false);
+  });
+
+  const armar = (m: ReturnType<typeof montar>, regra: (corpo: string) => Response | undefined) =>
+    vi.stubGlobal("fetch", (async (e: RequestInfo | URL, i?: RequestInit) => {
+      const url = new Request(e).url;
+      if (url === `${URL_FALSA}/functions/v1/drive`) return regra(String(i?.body)) ?? m.tratar(new Request(url, { method: "POST", headers: i?.headers as HeadersInit, body: i?.body as string }));
+      return m.base(e, i);
+    }) as typeof fetch);
+  const preparar = () => {
+    const memoria = new Map<string, string>();
+    vi.stubGlobal("localStorage", { getItem: (k: string) => memoria.get(k) ?? null, setItem: (k: string, v: string) => void memoria.set(k, v), removeItem: (k: string) => void memoria.delete(k) });
+    process.env.NEXT_PUBLIC_SUPABASE_URL = URL_FALSA;
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "chave-anon-falsa";
+  };
+
+  it("achado 3: a confirmação falha duas vezes e a terceira ainda confirma o MESMO arquivo (um só no Drive)", async () => {
+    preparar();
+    const m = montar();
+    let n = 0;
+    armar(m, (corpo) => { if (corpo.includes("confirmar_envio") && ++n <= 2) { if (n === 1) throw new TypeError("rede caiu"); return new Response(JSON.stringify({ erro: "x" }), { status: 503 }); } });
+    const arquivo = new File([new Uint8Array(10)], "reels.mp4", { type: "video/mp4", lastModified: 3 });
+    await expect(enviarParaDrive("t1", arquivo, "anexo", 0)).rejects.toThrow();
+    await expect(enviarParaDrive("t1", arquivo, "anexo", 0)).rejects.toThrow("Não deu para confirmar o envio, tente de novo.");
+    const feito = await enviarParaDrive("t1", arquivo, "anexo", 0);
+    const noDrive = [...m.g.estado.arquivos.values()].filter((a) => !a.folder);
+    expect(noDrive).toHaveLength(1);
+    expect(feito.driveId).toBe(noDrive[0].id);
+    expect(m.b.estado.tabelas.arquivos).toHaveLength(1);
+  });
+
+  it("achado 3: quando o servidor diz que o arquivo anotado não existe mais (lixeira), a anotação é descartada e o envio seguinte é novo", async () => {
+    preparar();
+    const m = montar();
+    let n = 0;
+    armar(m, (corpo) => { if (corpo.includes("confirmar_envio") && ++n === 1) throw new TypeError("rede caiu"); return undefined; });
+    const arquivo = new File([new Uint8Array(10)], "reels.mp4", { type: "video/mp4", lastModified: 4 });
+    await expect(enviarParaDrive("t1", arquivo, "anexo", 0)).rejects.toThrow();
+    const antigo = [...m.g.estado.arquivos.values()].find((a) => !a.folder)!;
+    antigo.trashed = true; // alguém apagou o arquivo no Drive
+    await expect(enviarParaDrive("t1", arquivo, "anexo", 0)).rejects.toThrow("lixeira");
+    const feito = await enviarParaDrive("t1", arquivo, "anexo", 0);
+    expect(feito.driveId).not.toBe(antigo.id);
+    expect([...m.g.estado.arquivos.values()].filter((a) => !a.folder && !a.trashed)).toHaveLength(1);
+  });
+});

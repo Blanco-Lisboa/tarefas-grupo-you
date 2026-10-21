@@ -109,7 +109,7 @@ export function criarGoogleFalso(opcoes: { clientId?: string; clientSecret?: str
         if (ini >= tam) return new Response(null, { status: 416, headers: { "content-range": `bytes */${tam}` } });
         return new Response(a.bytes.slice(ini, fim + 1), { status: 206, headers: { "content-type": a.mimeType, "content-length": String(fim - ini + 1), "content-range": `bytes ${ini}-${fim}/${tam}` } });
       }
-      return json({ id: a.id, parents: a.parents, size: String(a.bytes.length), mimeType: a.mimeType });
+      return json({ id: a.id, parents: a.parents, size: String(a.bytes.length), mimeType: a.mimeType, trashed: a.trashed });
     }
     return json({ error: "rota desconhecida" }, 404);
   }

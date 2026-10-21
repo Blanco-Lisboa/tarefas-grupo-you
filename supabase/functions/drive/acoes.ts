@@ -157,7 +157,11 @@ export function criarManipulador(d: Deps) {
         }
         const card = await cardDe(tarefaId);
         const pasta = await pastaDoCard(card, pessoa.id);
-        const f = await d.api.ver(driveId);
+        const f = await d.api.ver(driveId).catch((e: unknown) => {
+          if (e instanceof ErroDrive && e.status === 404) throw new Recusa(410, "O arquivo não existe mais no Drive."); // a tela pode descartar a anotação do envio
+          throw e;
+        });
+        if (f.trashed) throw new Recusa(410, "O arquivo foi para a lixeira do Drive.");
         // arquivo fora da pasta do card NÃO é nosso: só recusa, nunca mexe nele
         if (!f.parents?.includes(pasta) || f.mimeType === "application/vnd.google-apps.folder") throw new Recusa(422, "O arquivo não está na pasta deste card.");
         if (Number(f.size) !== tamanho) {
@@ -169,7 +173,8 @@ export function criarManipulador(d: Deps) {
           return { arquivo_id: l.id };
         } catch (e) {
           // Perdeu a corrida contra a mesma confirmação? Então a linha existe: é o MESMO arquivo, não se apaga nada.
-          const [agora] = await s.ler<{ id: string; tarefa_id: string }>("arquivos", { drive_id: driveId }, "id,tarefa_id").catch(() => []);
+          // Se esta consulta falhar, o erro sobe: NUNCA se apaga um arquivo que pode estar registrado.
+          const [agora] = await s.ler<{ id: string; tarefa_id: string }>("arquivos", { drive_id: driveId }, "id,tarefa_id");
           if (agora) {
             if (agora.tarefa_id !== tarefaId) throw new Recusa(409, "Este arquivo já pertence a outro card.");
             return { arquivo_id: agora.id };
