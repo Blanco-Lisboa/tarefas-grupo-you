@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Arquivo } from "@/lib/dados";
-import { estadoDoCard, faltaParaPostar, redesValidas, situacao, textosPublicacao, comoHoraMarcada, CANCELADA } from "./postagem";
+import { estadoDoCard, faltaParaPostar, redesValidas, situacao, textosPublicacao, comoHoraMarcada, CANCELADA, MODO_TESTE } from "./postagem";
 
 const img: Arquivo = { nome: "a.png", tipo: "imagem" }, vid: Arquivo = { nome: "b.mp4", tipo: "video" }, capa: Arquivo = { nome: "c.jpg", tipo: "imagem", papel: "capa" };
 const card = (arquivos: Arquivo[], legenda = "Texto") => ({ arquivos, legenda, empresaId: "you" });
@@ -89,5 +89,20 @@ describe("comoHoraMarcada (238)", () => {
     expect(comoHoraMarcada("Programado · 26/10 08:00 · Instagram", true)).toBe("Programado · 26/10 08:00 · Instagram");
     expect(comoHoraMarcada("Erro ao postar: abra o card", false)).toBe("Erro ao postar: abra o card");
     expect(comoHoraMarcada("Postagem automática só para a You (por enquanto)", false)).toBe("Postagem automática ainda desligada");
+  });
+});
+
+describe("modo de teste (239)", () => {
+  it("ligada em modo de teste: aviso e confirmação dizem que cria rascunho e não publica", () => {
+    const t = textosPublicacao(true, true, true);
+    expect(t.aviso).toBe("Modo de teste: cria um rascunho na Meta, não publica.");
+    expect(t.confirmar("Instagram", "Reels")).toEqual({ titulo: "Mandar um rascunho para o Instagram?", texto: `"Reels": ${MODO_TESTE}`, acao: "Mandar rascunho" });
+    expect(t.postarAgora).toBe(true);
+  });
+  it("ligada de verdade: sem aviso, a confirmação de sempre; desligada: o aviso da 238 (o teste não conta)", () => {
+    const t = textosPublicacao(true, true, false);
+    expect(t.aviso).toBeUndefined();
+    expect(t.confirmar("Instagram", "Reels")).toEqual({ titulo: "Postar agora no Instagram da You?", texto: '"Reels" vai para o ar agora. Não dá para desfazer.', acao: "Postar" });
+    expect(textosPublicacao(false, false, true).aviso).toMatch(/^Postagem automática ainda desligada/);
   });
 });

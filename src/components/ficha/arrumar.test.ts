@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NovaTarefa } from "@/lib/dados";
-import { arrumar, ehQuemAprova, etapaAoSalvar, mudouPasta, podeTrocarAprovador } from "./arrumar";
+import { arrumar, ehQuemAprova, etapaAoSalvar, mudouPasta, podeTrocarAprovador, trocarEmpresa } from "./arrumar";
 
 describe("ficha: o que vai para o banco ao salvar (Lupa R6-1)", () => {
   const t: NovaTarefa = {
@@ -60,5 +60,14 @@ describe("mudouPasta (229)", () => {
     expect(mudouPasta(card, { ...card, empresaId: "beec" })).toBe(true);
     expect(mudouPasta(card, { ...card, notas: "x" })).toBe(false);
     expect(mudouPasta({ ...card, ocasiaoId: undefined }, { ...card, ocasiaoId: "" })).toBe(false);
+  });
+});
+
+describe("trocarEmpresa (239)", () => {
+  const card: NovaTarefa = { titulo: "Reels", tipo: "postagem", empresaId: "you", responsavel: "natham", diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ocasiaoId: "tema-you" };
+  it("outra empresa (ou nenhuma) tira o Tema; a mesma empresa deixa como está", () => {
+    expect(trocarEmpresa(card, "beec")).toMatchObject({ empresaId: "beec", ocasiaoId: undefined });
+    expect(trocarEmpresa(card, "")).toMatchObject({ empresaId: "", ocasiaoId: undefined });
+    expect(trocarEmpresa(card, "you")).toBe(card);
   });
 });

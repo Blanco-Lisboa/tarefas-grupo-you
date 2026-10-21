@@ -24,7 +24,10 @@ type Props = {
 
 export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const eu = useEu();
-  const { ligada } = usePostagemAutomatica(); // 238: desligada (ou carregando) = a ficha não promete post real
+  // 238: desligada (ou carregando) = a ficha não promete post real. 239: ligada sem a postar-meta confirmar que publica de verdade
+  // (POSTAR_DE_VERDADE=nao, fora do ar ou sem resposta: deVerdade false) = modo de teste.
+  const { ligada, deVerdade } = usePostagemAutomatica();
+  const teste = ligada && !deVerdade;
   const [quando, setQuando] = useState(salvo.postarEm ?? "");
   const [falta, setFalta] = useState<string[]>([]);
   const [confirmando, setConfirmando] = useState(false);
@@ -60,7 +63,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
     if (checar(!quando ? ["Escolha a data e a hora."] : quando < paraHora(new Date()) ? ["Escolha um horário que ainda não passou."] : [])) void gravar({ postarRedes: valem, postarEm: quando });
   };
   const tentar = async () => { if (checar() && (await gravar({ postarRedes: valem }))) void tentarDeNovo(salvo.id); };
-  const txt = textosPublicacao(ligada, !!salvo.postarEm);
+  const txt = textosPublicacao(ligada, !!salvo.postarEm, teste);
   const postar = async () => { setConfirmando(false); if (await gravar({ postarRedes: valem })) void postarAgora(salvo.id); };
 
   return (
@@ -115,7 +118,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
           {falta.length > 0 && <ul className="aprovacao-falta" role="alert">{falta.map((f) => <li key={f}>{f}</li>)}</ul>}
         </>}
       </>}
-      {confirmando && ligada && <Confirmar titulo={`Postar agora no ${textoRedes(valem)} da You?`} texto={`"${rascunho.titulo}" vai para o ar agora. Não dá para desfazer.`} acao="Postar"
+      {confirmando && ligada && <Confirmar {...txt.confirmar(textoRedes(valem), rascunho.titulo)}
         aoCancelar={() => setConfirmando(false)} aoConfirmar={() => void postar()} />}
     </div></fieldset>
   );

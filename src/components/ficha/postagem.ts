@@ -27,12 +27,18 @@ export function comoHoraMarcada(texto: string, ligada: boolean) {
     .replace("programe de novo", "marque a hora de novo").replace("a programação é cancelada", "a hora marcada é cancelada")
     .replace(/^Postagem automática só para a You \(por enquanto\)/, "Postagem automática ainda desligada"); // card da Beec: nem a You posta sozinha ainda
 }
-export function textosPublicacao(ligada: boolean, programado: boolean) {
+export const MODO_TESTE = "Modo de teste: cria um rascunho na Meta, não publica.";
+/** `teste` (239): ligada MAS a função postar-meta com POSTAR_DE_VERDADE=nao; o aviso e a confirmação do Postar agora dizem que não publica. */
+export function textosPublicacao(ligada: boolean, programado: boolean, teste = false) {
   return {
+    teste: ligada && teste,
+    confirmar: (redes: string, titulo: string) => (ligada && teste
+      ? { titulo: `Mandar um rascunho para o ${redes}?`, texto: `"${titulo}": ${MODO_TESTE}`, acao: "Mandar rascunho" }
+      : { titulo: `Postar agora no ${redes} da You?`, texto: `"${titulo}" vai para o ar agora. Não dá para desfazer.`, acao: "Postar" }),
     marcar: ligada ? (programado ? "Reprogramar postagem" : "Programar postagem") : programado ? "Remarcar hora" : "Marcar hora",
     postarAgora: ligada,
     situacao: (texto: string) => comoHoraMarcada(texto, ligada),
-    aviso: ligada ? undefined : "Postagem automática ainda desligada: na hora marcada o card vira Postado e você publica nas redes.",
+    aviso: !ligada ? "Postagem automática ainda desligada: na hora marcada o card vira Postado e você publica nas redes." : teste ? MODO_TESTE : undefined,
   };
 }
 export const SO_FACEBOOK = "Carrossel com vídeo não vai para o Facebook: acenda o Instagram ou tire o vídeo.";

@@ -37,7 +37,7 @@ import { CamposPost } from "./CamposPost";
 import { Publicacao } from "./Publicacao";
 import { TagsFicha } from "./TagsFicha";
 import { LINK_VALIDO, LinksDrive } from "./LinksDrive";
-import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido, mudouPasta, podeTrocarAprovador } from "./arrumar";
+import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido, mudouPasta, podeTrocarAprovador, trocarEmpresa } from "./arrumar";
 import { CampoOcasiao, PrazoDrive } from "./CampoOcasiao";
 import { TextoComLinks } from "@/components/pastas/links";
 import { CampoData } from "@/components/ui/CampoData";
@@ -237,7 +237,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
             </div>
             <div className="ficha-campo ficha-escolha">
               {empresas.length ? (
-                <Selecao rotulo="Empresa" soIcone opcoes={[...empresas.map((x) => ({ valor: x.id, rotulo: x.nome, antes: <SeloEmpresa empresaId={x.id} nome={x.nome} tamanho={18} /> })), { valor: NENHUMA, rotulo: "Nenhuma" }]} valor={t.empresaId ? (temEmpresa ? [t.empresaId] : []) : [NENHUMA]} multipla={false} aoMudar={([v]) => { if (v) mudar("empresaId", v === NENHUMA ? "" : v); }} />
+                <Selecao rotulo="Empresa" soIcone opcoes={[...empresas.map((x) => ({ valor: x.id, rotulo: x.nome, antes: <SeloEmpresa empresaId={x.id} nome={x.nome} tamanho={18} /> })), { valor: NENHUMA, rotulo: "Nenhuma" }]} valor={t.empresaId ? (temEmpresa ? [t.empresaId] : []) : [NENHUMA]} multipla={false} aoMudar={([v]) => { if (v) setT((x) => trocarEmpresa(x, v === NENHUMA ? "" : v)); }} />
               ) : (
                 <p className="ficha-aviso" role="alert">
                   Nenhuma empresa cadastrada. <Link href="/configuracoes" onClick={() => dialogo.current?.close()}>Cadastrar em Configurações</Link>

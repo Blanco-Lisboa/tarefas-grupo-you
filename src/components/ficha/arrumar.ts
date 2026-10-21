@@ -25,6 +25,9 @@ export const ehQuemAprova = (aprovador: string | undefined, eu: Responsavel | nu
     ou quem aprova hoje. Antes era só ehQuemAprova, e o Matheus não escolhia nada em card do Natham ou sem aprovador. */
 export const podeTrocarAprovador = (aprovador: string | undefined, eu: Responsavel | null) => eu === "matheus" || ehQuemAprova(aprovador, eu);
 
+/** 239: o Tema é da Empresa. Trocar a Empresa tira o Tema (o salvar manda null: campoOcasiao), senão o card da Beec guardaria um Tema da You. */
+export const trocarEmpresa = (t: NovaTarefa, empresaId: string): NovaTarefa => (empresaId === t.empresaId ? t : { ...t, empresaId, ocasiaoId: undefined });
+
 /** 229: título, formato, tema ou empresa mudou → a pasta do conteúdo no Drive muda de lugar e de nome (organizarCard, se já tem arquivo lá). */
 export const mudouPasta = (antes: NovaTarefa, depois: NovaTarefa) => (["titulo", "formato", "ocasiaoId", "empresaId"] as const).some((k) => (antes[k] ?? "") !== (depois[k] ?? ""));
 
