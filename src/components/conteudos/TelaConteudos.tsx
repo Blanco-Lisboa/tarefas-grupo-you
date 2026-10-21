@@ -8,7 +8,7 @@ import { IconeRede, SeloEmpresa, temLogo } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { ehConteudo } from "@/components/tarefas/grade";
-import { ETAPAS, podeAlterar, salvarTarefa, useEmpresas, useEu, useFazendo, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { ETAPAS, podeAlterar, salvarTarefa, useEmpresas, useEu, useFazendo, usePostagemAutomatica, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { diasDeAtraso } from "@/lib/atraso";
@@ -27,13 +27,15 @@ const semAviso = () => () => {};
 const hojeTexto = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 const diaNumero = (texto: string) => { const [a, m, d] = texto.split("-").map(Number); return Date.UTC(a, m - 1, d) / 86_400_000; };
 
-/** Quanto falta para a postagem. Conteúdo já postado ou sem data não tem contagem. */
-function prazo(tarefa: Tarefa, hoje: string): { texto: string; tom: "atrasado" | "perto" | "normal" } | null {
+/** Quanto falta para a postagem. Conteúdo já postado ou sem data não tem contagem.
+    Com a postagem automática desligada (238) o texto não promete que o sistema posta: "post hoje / amanhã / em N dias". */
+export function prazo(tarefa: Tarefa, hoje: string, automatica = true): { texto: string; tom: "atrasado" | "perto" | "normal" } | null {
   if (!tarefa.inicio || !hoje || tarefa.etapa === "postado") return null;
   if (diasDeAtraso(tarefa, hoje)) return { texto: "atrasado", tom: "atrasado" };
   const dias = diaNumero(tarefa.inicio.slice(0, 10)) - diaNumero(hoje);
-  if (dias === 0) return { texto: "hoje", tom: "perto" };
-  return { texto: dias === 1 ? "posta amanhã" : `posta em ${dias} dias`, tom: dias <= 2 ? "perto" : "normal" };
+  const verbo = automatica ? "posta" : "post";
+  if (dias === 0) return { texto: automatica ? "hoje" : "post hoje", tom: "perto" };
+  return { texto: dias === 1 ? `${verbo} amanhã` : `${verbo} em ${dias} dias`, tom: dias <= 2 ? "perto" : "normal" };
 }
 const linkDrive = (tarefa: Tarefa) => {
   const url = tarefa.links.find((l) => /^(https?:\/\/)?drive\.google\.com\//i.test(l.url.trim()))?.url.trim();
@@ -50,6 +52,7 @@ function dataLegivel(inicio?: string) {
 export function TelaConteudos() {
   const tarefas = useTarefas();
   const eu = useEu();
+  const { ligada } = usePostagemAutomatica();
   const empresas = useEmpresas();
   const tags = useTags();
   const fazendo = useFazendo();
@@ -158,7 +161,7 @@ export function TelaConteudos() {
                 {itens.map((tarefa) => {
                   const levantado = arraste?.id === tarefa.id ? arraste : null;
                   // aprovado: conta até a hora do post (item 195); postando ou com erro (196) a contagem sai, senão um texto contradiz o outro
-                  const falta = tarefa.postagens?.some((p) => p.status !== "postado") ? null : prazo({ ...tarefa, inicio: tarefa.postarEm ?? tarefa.inicio }, hoje);
+                  const falta = tarefa.postagens?.some((p) => p.status !== "postado") ? null : prazo({ ...tarefa, inicio: tarefa.postarEm ?? tarefa.inicio }, hoje, ligada);
                   const drive = linkDrive(tarefa);
                   const quemFazAgora = fazendo[tarefa.id]?.quem;
                   const nomeEmpresa = tarefa.empresaId ? nomesEmpresas.get(tarefa.empresaId) : undefined;
