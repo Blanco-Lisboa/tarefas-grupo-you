@@ -2,7 +2,9 @@
 // Nada vai ao banco real: o app de exemplo (porta 3101) é ligado a este endereço pelo `npm run exemplo` (scripts/exemplo.mjs).
 // Datas contam a partir de HOJE (domingo desta semana = dia 0), para o Calendário e o Mapa sempre abrirem cheios.
 // GET /entrar = "login" sem senha: grava a sessão de mentira do Natham no cookie e volta para o app.
+import { createReadStream, statSync } from "node:fs";
 import { createServer } from "node:http";
+import { fileURLToPath } from "node:url";
 
 export const PORTA_BANCO = Number(process.env.EXEMPLO_PORTA_BANCO ?? 3201);
 const PORTA_APP = Number(process.env.EXEMPLO_PORTA_APP ?? 3101);
@@ -74,6 +76,9 @@ const tarefas = [
   card("Carrossel: 5 dicas de MEI", "you", "instagram", "carrossel", "postado", "natham", 1, "10:00", { cor: "etiqueta-6", concluida: true, ...programado(1, "10:00", IG_FB) }),
   card("Post: aviso de feriado", "beec", "instagram", "post", "postado", "matheus", -3, "09:00", { cor: "etiqueta-7", concluida: true, ...programado(-3, "09:00", IG_FB) }),
   card("TikTok: o que é pró-labore", "you", "tiktok", "reels", "postado", "natham", -1, "19:00", { cor: "etiqueta-8", concluida: true, ...programado(-1, "19:00", IG_FB) }),
+  // Item 225: Reels da You com vídeo de verdade (scripts/exemplo-midia/), capa = quadro escolhido
+  card("Reels: bastidores da You", "you", "instagram", "reels", "analise", "matheus", diaHoje + 1, "11:00", { cor: "etiqueta-13", objetivo: "Mostrar o dia a dia do time da You", ...esperando, capa_quadro_ms: 4500, legenda: "Um dia com o time da You. Salva para ver de novo!" }),
+  card("Reels: cliente da You conta como foi", "you", "instagram", "reels", "postado", "natham", Math.max(diaHoje - 1, 0), "18:00", { cor: "etiqueta-4", concluida: true, capa_quadro_ms: 6000, ...programado(Math.max(diaHoje - 1, 0), "18:00", IG_FB) }),
   // Caderno do Natham (sem etapa): tarefas e 2 reuniões
   tarefa("Ligar para o contador", { inicio: em(diaHoje, "09:00"), cor: "etiqueta-5" }),
   tarefa("Revisar proposta da Beec", { inicio: em(diaHoje, "10:30"), empresa_id: "beec", cor: "etiqueta-12" }),
@@ -93,7 +98,10 @@ const fazendoAgora = [{ pessoa_id: P.matheus, tarefa_id: idDe("Reels: bastidores
 const anexo = (titulo, nome, papel = "anexo", ordem = 0) => ({
   id: `a${++n}`, tarefa_id: idDe(titulo), caminho: `exemplo/${idDe(titulo)}-${nome}`, drive_id: null, ordem, papel, nome, tipo: "imagem", created_at: "2026-10-18T10:00:00Z",
 });
+const video = (titulo, nome) => ({ id: `a${++n}`, tarefa_id: idDe(titulo), caminho: `exemplo/${nome}`, drive_id: null, ordem: 0, papel: "anexo", nome: `${nome}`, tipo: "video", created_at: "2026-10-18T10:00:00Z" });
 const arquivos = [
+  video("Reels: bastidores da You", "bastidores.mp4"),
+  video("Reels: cliente da You conta como foi", "depoimento.mp4"),
   anexo("Reels: contabilidade sem mistério", "capa.png", "capa"),
   anexo("Reels: contabilidade sem mistério", "frame-1.png", "anexo", 1),
   anexo("Carrossel: guia do pró-labore", "capa.png", "capa"),
@@ -108,7 +116,7 @@ const arquivos = [
   anexo("Carrossel: 5 dicas de MEI", "capa.png", "capa"),
   anexo("Carrossel: 5 dicas de MEI", "slide-2.png", "anexo", 1),
 ];
-const postagens = ["Reels: depoimento da Maria", "Carrossel: 5 dicas de MEI", "Post: aviso de feriado", "TikTok: o que é pró-labore"].flatMap((titulo, i) =>
+const postagens = ["Reels: cliente da You conta como foi", "Reels: depoimento da Maria", "Carrossel: 5 dicas de MEI", "Post: aviso de feriado", "TikTok: o que é pró-labore"].flatMap((titulo, i) =>
   IG_FB.map((rede) => ({ tarefa_id: idDe(titulo), rede, status: "postado", link: `https://www.${rede}.com/exemplo/${i}`, erro: null, postado_em: new Date().toISOString() })));
 
 const hojeTexto = em(diaHoje);
@@ -159,6 +167,13 @@ createServer(async (req, res) => {
   if (url.pathname === "/storage/v1/object/sign/arquivos" && req.method === "POST") {
     const { paths = [] } = await corpoDe(req);
     return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(paths.map((path) => ({ error: null, path, signedURL: `/object/sign/arquivos/${path}?token=exemplo` }))));
+  }
+  if (url.pathname.startsWith("/storage/v1/object/sign/arquivos/") && url.pathname.endsWith(".mp4")) {
+    const arquivo = fileURLToPath(new URL(`./exemplo-midia/${url.pathname.split("/").pop()}`, import.meta.url));
+    const total = statSync(arquivo).size, faixa = /bytes=(\d*)-(\d*)/.exec(req.headers.range ?? "");
+    const ini = faixa?.[1] ? Number(faixa[1]) : 0, fim = faixa?.[2] ? Number(faixa[2]) : total - 1;
+    res.writeHead(faixa ? 206 : 200, { "content-type": "video/mp4", "accept-ranges": "bytes", "content-length": fim - ini + 1, ...(faixa && { "content-range": `bytes ${ini}-${fim}/${total}` }) });
+    return createReadStream(arquivo, { start: ini, end: fim }).pipe(res);
   }
   if (url.pathname.startsWith("/storage/v1/object/sign/arquivos/")) {
     return res.writeHead(200, { "content-type": "image/svg+xml", "cache-control": "max-age=3600" }).end(imagem(decodeURIComponent(url.pathname.split("/arquivos/")[1])));
