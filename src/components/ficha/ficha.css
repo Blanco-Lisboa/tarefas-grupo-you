@@ -37,6 +37,9 @@ html:has(.ficha[open]) { overflow: hidden; scrollbar-gutter: stable; }
 .ficha-tags > .ficha-escolha { flex: 1 1 0; }
 .ficha-tags > .ficha-tag-nova { flex: 1; }
 .ficha-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-16); }
+/* Tema (pasta no Drive), item 233: de ponta a ponta (largura de Tipo + Empresa), com a ajuda embaixo e a lista na mesma largura */
+.ficha-tema { grid-column: 1 / -1; }
+.ficha-tema .selecao-pop { width: anchor-size(width); max-width: calc(100vw - 24px); }
 .ficha-escolha .selecao-botao { width: 100%; justify-content: space-between; }
 .ficha-escolha .selecao-escolha { margin-left: auto; }
 /* Menus da ficha (Tipo, Empresa, Rede, Etapa, Tags, Quem aprova e o painel de data) com fundo cheio: o vidro de 78% deixava Rede, Responsável e as fotos aparecerem através das opções (pedido da Régua, foto 194-tipo-1440) */

@@ -250,7 +250,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
               </div>
             )}
             {/* Ocasião = pasta do Drive dentro da empresa (203, Vitral); sem empresa não existe */}
-            {t.empresaId && <div className="ficha-campo ficha-escolha"><CampoOcasiao tarefaId={tarefa.id} empresaId={t.empresaId} valor={t.ocasiaoId} aoMudar={(id) => mudar("ocasiaoId", id)} /></div>}
+            {t.empresaId && <div className="ficha-campo ficha-escolha ficha-tema"><CampoOcasiao tarefaId={tarefa.id} empresaId={t.empresaId} valor={t.ocasiaoId} aoMudar={(id) => mudar("ocasiaoId", id)} /></div>}
           </div>
 
           <div className="ficha-quem-quando">
