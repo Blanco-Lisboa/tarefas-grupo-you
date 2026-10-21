@@ -10,6 +10,9 @@ npm run dev      # abre em http://localhost:3000
 npm run check    # lint, tipos, regras, testes e build
 ```
 
+Cópia de exemplo só no seu PC, com cards inventados e sem senha: `npm run exemplo` (abre em http://127.0.0.1:3101).
+Nada vai ao banco real; o que você mexer ali some ao desligar (Ctrl+C).
+
 Fase 1: tudo roda com dados de exemplo em memória. Nenhuma credencial é necessária.
 
 ## Documentação

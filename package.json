@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "exemplo": "node scripts/exemplo.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "lint:rules": "node scripts/verify-quality-rules.mjs ./eslint-rules/index.cjs",
