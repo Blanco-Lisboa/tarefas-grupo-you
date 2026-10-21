@@ -126,7 +126,7 @@ function Faixa({ empresa }: { empresa: Empresa }) {
         <div className="pastas-cel">
           <PastaDeVidro
             rotulo="Ideias de conteúdo"
-            legenda={nIdeias(ideias.length)}
+            legenda={`${nIdeias(ideias.length)} · só aqui`}
             tom={tom}
             arte={receitaDaEmpresa("story", empresa.id)}
             seed={19}
@@ -271,7 +271,7 @@ export function TelaPastas() {
           <h1>Pastas</h1>
           <FiltroEmpresa />
         </div>
-        <p>O que está no Drive de cada empresa, por formato e tema. Abra uma pasta e clique no cartão para ver as informações.</p>
+        <p>Os arquivos de cada empresa no Drive, por formato e tema, e as suas pastas. Ideias de conteúdo fica só aqui no sistema.</p>
       </header>
 
       {mostradas.length === 0 && <p className="pastas-vazio">Nenhuma empresa para o filtro atual.</p>}
