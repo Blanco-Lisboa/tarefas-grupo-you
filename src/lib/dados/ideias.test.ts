@@ -1,22 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const { falhou } = vi.hoisted(() => ({ falhou: vi.fn() }));
+vi.mock("./repositorio", () => ({ falhou }));
+
 // Banco de mentira (só o que ideias.ts usa): select/eq/order, upsert (com onConflict e ignoreDuplicates) e delete/eq.
 type L = Record<string, unknown>;
 let tabelas: Record<string, L[]>;
 let recusar: Set<string>; // operações que o "banco" recusa: "upsert:ideias", "delete:ideias"...
 let seq: number;
+let segurar: Promise<void> | null = null; // se definido, os upserts em ideias só terminam quando ele resolver
 let semColuna = false; // banco antes do 025: não conhece a coluna "links"
 const fake = {
   from(t: string) {
     const filtros: [string, unknown][] = [];
+    let espera: Promise<void> | null = null;
     let fim: () => { data?: L[]; error: unknown } = () => ({ data: [], error: null });
     const q = {
       select: (cols?: string) => (fim = () => semColuna && cols?.includes("links") ? { error: "42703" } : ({ data: tabelas[t].filter((l) => filtros.every(([k, v]) => l[k] === v)).toSorted((a, b) => (a.seq as number) - (b.seq as number)), error: null }), q),
       eq: (k: string, v: unknown) => (filtros.push([k, v]), q),
       order: () => q,
       delete: () => (fim = () => (recusar.has(`delete:${t}`) ? { error: "x" } : ((tabelas[t] = tabelas[t].filter((l) => !filtros.every(([k, v]) => l[k] === v))), { error: null })), q),
-      upsert: (linhas: L | L[], o: { onConflict: string; ignoreDuplicates?: boolean }) => (fim = () => {
-        if (recusar.has(`upsert:${t}`) || (semColuna && [].concat(linhas as never).some((l: L) => "links" in l))) return { error: "x" };
+      upsert: (linhas: L | L[], o: { onConflict: string; ignoreDuplicates?: boolean }) => (espera = t === "ideias" ? segurar : null, fim = () => {
+        if (recusar.has(`upsert:${t}`) || [].concat(linhas as never).some((l: L) => l.titulo === "falha") || (semColuna && [].concat(linhas as never).some((l: L) => "links" in l))) return { error: "x" };
         for (const l of [].concat(linhas as never) as L[]) {
           const i = tabelas[t].findIndex((x) => o.onConflict.split(",").every((k) => x[k] === l[k]));
           if (i < 0) tabelas[t].push({ ...l, seq: ++seq });
@@ -24,7 +29,7 @@ const fake = {
         }
         return { error: null };
       }, q),
-      then: (ok: (r: unknown) => unknown) => Promise.resolve(fim()).then(ok),
+      then: (ok: (r: unknown) => unknown) => (espera ?? Promise.resolve()).then(() => fim()).then(ok),
     };
     return q;
   },
@@ -43,6 +48,8 @@ beforeEach(() => {
   vi.resetModules(); // estado novo do módulo = "abrir a página de novo"
   tabelas = { ideias: [], ideias_categorias: [] };
   recusar = new Set();
+  segurar = null;
+  falhou.mockClear();
   semColuna = false;
   seq = 0;
   guardado = new Map([[CHAVE, JSON.stringify(doNavegador)]]);
@@ -50,45 +57,44 @@ beforeEach(() => {
 });
 
 describe("cópia do navegador para o banco", () => {
-  it("sobe tudo, com as 2 da You de volta em Ganchos, categorias na ordem e sem duplicar ao rodar de novo ou em outra aba", async () => {
+  it("sobe só as ideias escritas pela pessoa, sem duplicar ao rodar de novo ou em outra aba; os exemplos não sobem", async () => {
     const m = await import("./ideias");
-    await Promise.all([m.carregarIdeias("you"), m.carregarIdeias("you")]); // duas abas ao mesmo tempo
-    expect(tabelas.ideias).toHaveLength(4);
-    expect(tabelas.ideias.map((l) => l.categoria)).toEqual(["Formatos de conteúdo", "Ganchos", "Ganchos", "Ganchos"]);
-    expect(tabelas.ideias_categorias.map((l) => l.nome)).toEqual(["Formatos de conteúdo", "Ganchos"]);
-    expect(guardado.get(`${CHAVE}:subiu:you`)).toBe("1");
+    await Promise.all([m.carregarIdeias("beec"), m.carregarIdeias("beec")]); // duas abas ao mesmo tempo
+    expect(tabelas.ideias).toHaveLength(1);
+    expect(tabelas.ideias[0]).toMatchObject({ id: "11111111-1111-4111-8111-111111111111", link: "https://x", categoria: "Perfis - Empresários sellers" });
+    expect(tabelas.ideias_categorias.map((l) => l.nome)).toEqual(["Perfis - Empresários sellers"]);
+    expect(guardado.get(`${CHAVE}:subiu:beec`)).toBe("1");
     expect(guardado.get(CHAVE)).toBe(JSON.stringify(doNavegador)); // nada apagado do navegador
 
     vi.resetModules(); // reabre a página
-    const outra = await import("./ideias");
-    await outra.carregarIdeias("you");
-    expect(tabelas.ideias).toHaveLength(4);
+    await (await import("./ideias")).carregarIdeias("beec");
+    expect(tabelas.ideias).toHaveLength(1);
   });
 
-  it("o mesmo exemplo vindo de outro endereço cai na mesma linha; a ideia dele e a coluna renomeada sobem inteiras", async () => {
-    let m = await import("./ideias");
-    await m.carregarIdeias("beec");
-    expect(tabelas.ideias).toHaveLength(2);
-    expect(tabelas.ideias.find((l) => l.titulo === "Minha ideia")).toMatchObject({ id: "11111111-1111-4111-8111-111111111111", link: "https://x", categoria: "Perfis - Empresários sellers" });
-    expect(tabelas.ideias_categorias.map((l) => l.nome)).toEqual(["Formatos na prática", "Perfis - Empresários sellers"]);
-
-    guardado = new Map([[CHAVE, JSON.stringify({ beec: [ex("beec", 1, "Formatos na prática", "B")] })]]); // outro endereço, mesmo exemplo
-    vi.resetModules();
-    m = await import("./ideias");
-    await m.carregarIdeias("beec");
-    expect(tabelas.ideias).toHaveLength(2);
-  });
-
-  it("se o banco recusar, não marca como subiu e tenta de novo na próxima abertura", async () => {
-    recusar.add("upsert:ideias");
+  it("exemplo apagado não volta quando outro endereço, com cópia antiga, abre depois (achado 1)", async () => {
     let m = await import("./ideias");
     await m.carregarIdeias("you");
-    expect(guardado.has(`${CHAVE}:subiu:you`)).toBe(false);
+    expect(tabelas.ideias).toHaveLength(0); // os 4 exemplos da You já estão no banco de verdade; a cópia não os sobe
+    expect(guardado.get(`${CHAVE}:subiu:you`)).toBe("1");
+
+    guardado = new Map([[CHAVE, JSON.stringify(doNavegador)]]); // outro endereço, sem marca
+    vi.resetModules();
+    m = await import("./ideias");
+    await m.carregarIdeias("you");
+    expect(tabelas.ideias).toHaveLength(0);
+  });
+
+  it("se o banco recusar, avisa na tela, não marca como subiu e tenta de novo na próxima abertura (achado 4)", async () => {
+    recusar.add("upsert:ideias");
+    let m = await import("./ideias");
+    await m.carregarIdeias("beec");
+    expect(guardado.has(`${CHAVE}:subiu:beec`)).toBe(false);
+    expect(falhou).toHaveBeenCalledWith(expect.stringContaining("copiar"));
     recusar.clear();
     vi.resetModules();
     m = await import("./ideias");
-    await m.carregarIdeias("you");
-    expect(tabelas.ideias).toHaveLength(4);
+    await m.carregarIdeias("beec");
+    expect(tabelas.ideias).toHaveLength(1);
   });
 });
 
@@ -147,5 +153,39 @@ describe("vários links por ideia (257)", () => {
     await vi.waitFor(() => expect(tabelas.ideias).toHaveLength(2));
     expect(tabelas.ideias[1]).toMatchObject({ link: "https://x" });
     expect(tabelas.ideias[1]).not.toHaveProperty("links");
+  });
+});
+
+describe("conferências da Lupa (261)", () => {
+  it("falha antiga não desfaz a edição posterior que deu certo (achado 6)", async () => {
+    guardado.clear();
+    const m = await import("./ideias");
+    await m.carregarIdeias("you");
+    const a = m.gravarIdeia("you", { categoria: "Ganchos", titulo: "base", texto: "", links: [] });
+    await vi.waitFor(() => expect(tabelas.ideias).toHaveLength(1));
+    m.gravarIdeia("you", { ...a, titulo: "falha" }); // o banco recusa
+    m.gravarIdeia("you", { ...a, titulo: "boa" });
+    await vi.waitFor(() => expect(falhou).toHaveBeenCalled());
+    expect(m.ideiasDe("you").ideias[0].titulo).toBe("boa");
+  });
+
+  it("a gravação de uma empresa não descarta a leitura de outra (achado 7)", async () => {
+    guardado.clear();
+    tabelas.ideias.push({ id: "a", empresa_id: "you", categoria: "Ganchos", titulo: "Velha", texto: "", link: null, links: [], seq: 1 });
+    const m = await import("./ideias");
+    let soltar!: () => void;
+    segurar = new Promise<void>((ok) => (soltar = ok));
+    m.gravarIdeia("beec", { categoria: "Ganchos", titulo: "Lenta", texto: "", links: [] });
+    await m.carregarIdeias("you");
+    expect(m.ideiasDe("you").ideias).toHaveLength(1);
+    soltar();
+  });
+
+  it("categoria vazia guardada aparece na lista de categorias (achado 8)", async () => {
+    guardado.clear();
+    tabelas.ideias_categorias.push({ empresa_id: "you", nome: "Vazia", seq: 1 });
+    const m = await import("./ideias");
+    await m.carregarIdeias("you");
+    expect(m.ideiasDe("you")).toMatchObject({ ideias: [], categorias: ["Vazia"] });
   });
 });

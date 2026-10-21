@@ -35,7 +35,7 @@ type Aberto = { conteudo: Tarefa } | { documento: DocumentoSolto } | { ideias: t
 
 function Faixa({ empresa }: { empresa: Empresa }) {
   const eu = useEu();
-  const { ideias } = useIdeias(empresa.id);
+  const { ideias, categorias } = useIdeias(empresa.id);
   const tarefas = useTarefas(), ocasioes = useOcasioes(), documentos = useDocumentosSoltos();
   const pastasLivres = usePastasLivres();
   const livres = pastasLivresDaEmpresa({ empresaId: empresa.id, pastas: pastasLivres, documentos });
@@ -53,7 +53,6 @@ function Faixa({ empresa }: { empresa: Empresa }) {
   const t = tomDaEmpresa(empresa.id);
   const tom = { base: t.r, sombra: `${t.g}99` };
   const arte = receitaDaEmpresa("post", empresa.id);
-  const categorias = [...new Set(ideias.map((i) => i.categoria))];
   const chave = (f: PastaFormato) => f.formato ?? "sem";
   const itensDe = (f: PastaFormato) => f.temas.reduce((s, p) => s + p.conteudos.length + p.documentos.length, 0);
   const total = arvore.reduce((s, f) => s + itensDe(f), 0) + livres.reduce((s, l) => s + l.documentos.length, 0);

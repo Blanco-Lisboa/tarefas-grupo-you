@@ -14,7 +14,8 @@ const CHAVE = "grade-conteudo:ideias:v1"; // onde ficavam, no navegador, antes d
 const marca = (e: string) => `${CHAVE}:subiu:${e}`;
 
 let estado = new Map<string, Estado>(); // troca o mapa a cada mudança (exigência do useSyncExternalStore)
-let pendentes = 0; // escritas ainda não confirmadas: a leitura não pisa por cima delas
+const pendentes = new Map<string, number>(); // por empresa: escritas ainda não confirmadas; a leitura daquela empresa não pisa por cima delas
+const versoes = new Map<string, number>(); // por ideia: nº da última gravação; uma falha antiga só desfaz se ainda for a última
 const ouvintes = new Set<() => void>();
 let iniciado = false;
 const assinar = (f: () => void) => {
@@ -38,15 +39,10 @@ const paraBanco = (i: Omit<Ideia, "links"> & { links?: string[]; link?: string }
 };
 
 // ---- cópia única do navegador para o banco ------------------------------------------------------------------------------
-const GANCHOS = new Set(["you-ideia-5", "you-ideia-6"]); // item 254: voltam para Ganchos ao subir
 const ehUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
-/** Os exemplos do código tinham ids como "you-ideia-5". No banco o id é uuid: este é derivado do nome, então o mesmo exemplo
- *  vindo de dois endereços (127.0.0.1 e vercel) ou de duas abas cai na MESMA linha. */
-export const idDoExemplo = (id: string) => {
-  const [e, , n = "0"] = id.split("-");
-  const hex = [...e].map((c) => c.charCodeAt(0).toString(16).padStart(2, "0")).join("").padEnd(12, "0").slice(0, 12);
-  return `5eed${n.padStart(4, "0")}-0000-4000-8000-${hex}`;
-};
+/** Os exemplos do código tinham ids como "you-ideia-5" (ou o uuid derivado "5eed...", da cópia anterior). Eles já estão no banco:
+ *  não sobem de novo, senão um exemplo apagado voltaria por outro endereço. */
+const ehExemplo = (id: string) => !ehUuid(id) || id.startsWith("5eed");
 
 const subidas = new Map<string, Promise<boolean>>();
 /** Uma vez por abertura e empresa: o que esta pessoa tinha guardado no navegador sobe para o banco sem pisar no que já está lá
@@ -62,7 +58,8 @@ async function subir(e: string): Promise<boolean> {
     if (localStorage.getItem(marca(e))) return true;
     const lista = (JSON.parse(localStorage.getItem(CHAVE) || "{}") as Record<string, (Omit<Ideia, "links"> & { links?: string[]; link?: string })[]>)[e];
     if (!lista?.length) return true;
-    const linhas = lista.map((i) => paraBanco({ ...i, id: ehUuid(i.id) ? i.id : idDoExemplo(i.id), empresaId: e, categoria: GANCHOS.has(i.id) ? "Ganchos" : i.categoria, texto: i.texto ?? "" }));
+    const linhas = lista.filter((i) => !ehExemplo(i.id)).map((i) => paraBanco({ ...i, empresaId: e, texto: i.texto ?? "" }));
+    if (!linhas.length) { localStorage.setItem(marca(e), "1"); return true; }
     const cats = [...new Set(linhas.map((l) => l.categoria))].map((nome) => ({ empresa_id: e, nome }));
     const sb = supabase();
     // categorias antes: uma ideia nunca fica numa coluna que não existe. Linhas na ordem original = cards na mesma ordem.
@@ -79,7 +76,7 @@ async function subir(e: string): Promise<boolean> {
 
 // ---- leitura -------------------------------------------------------------------------------------------------------------
 export async function carregarIdeias(e: string) {
-  await subirIdeiasDoNavegador(e);
+  const copiou = await subirIdeiasDoNavegador(e);
   const sb = supabase();
   const ler = (cols: string) => sb.from("ideias").select(cols).eq("empresa_id", e).order("seq");
   const [i0, c] = await Promise.all([ler("id, empresa_id, categoria, titulo, texto, link, links"), sb.from("ideias_categorias").select("nome").eq("empresa_id", e).order("seq")]);
@@ -87,18 +84,20 @@ export async function carregarIdeias(e: string) {
   comLista = !i.error;
   if (i.error) i = await ler("id, empresa_id, categoria, titulo, texto, link"); // ainda sem a coluna "links": lê o link único
   if (i.error || c.error) return falhou("Não consegui carregar as ideias. Recarregue a página.");
-  if (pendentes) return;
+  if (!copiou) falhou("Não consegui copiar as ideias que estavam só neste navegador. Elas continuam guardadas; tento de novo na próxima abertura.");
+  if (pendentes.get(e)) return;
   const ideias = (i.data as unknown as Linha[]).map(daLinha);
   trocar(e, () => ({ ideias, categorias: ideias.reduce((cats, x) => com(cats, x.categoria), (c.data ?? []).map((x) => x.nome as string)) }));
 }
 
 // ---- escrita otimista ----------------------------------------------------------------------------------------------------
-async function escrever(op: PromiseLike<{ error: unknown }>, desfazer: () => void, aviso: string) {
-  pendentes++;
+async function escrever(e: string, op: PromiseLike<{ error: unknown }>, desfazer: () => void, aviso: string) {
+  pendentes.set(e, (pendentes.get(e) ?? 0) + 1);
   const { error } = await op;
-  pendentes--;
+  pendentes.set(e, pendentes.get(e)! - 1);
   if (error) { desfazer(); falhou(aviso); }
 }
+const versao = (id: string) => { const v = (versoes.get(id) ?? 0) + 1; versoes.set(id, v); return v; };
 const colocar = (e: string, id: string, ideia: Ideia | undefined) =>
   trocar(e, (s) => ({ ...s, ideias: ideia ? (s.ideias.some((i) => i.id === id) ? s.ideias.map((i) => (i.id === id ? ideia : i)) : [...s.ideias, ideia]) : s.ideias.filter((i) => i.id !== id) }));
 
@@ -106,9 +105,10 @@ const colocar = (e: string, id: string, ideia: Ideia | undefined) =>
 export function gravarIdeia(e: string, nova: Omit<Ideia, "id" | "empresaId"> & { id?: string }): Ideia {
   const ideia: Ideia = { ...nova, id: nova.id ?? crypto.randomUUID(), empresaId: e };
   const antes = (estado.get(e) ?? VAZIO).ideias.find((i) => i.id === ideia.id);
+  const v = versao(ideia.id);
   colocar(e, ideia.id, ideia);
   trocar(e, (s) => ({ ...s, categorias: com(s.categorias, ideia.categoria) }));
-  void escrever(supabase().from("ideias").upsert(paraBanco(ideia), { onConflict: "id" }), () => colocar(e, ideia.id, antes), "Não consegui salvar a ideia. Tente de novo.");
+  void escrever(e, supabase().from("ideias").upsert(paraBanco(ideia), { onConflict: "id" }), () => versoes.get(ideia.id) === v && colocar(e, ideia.id, antes), "Não consegui salvar a ideia. Tente de novo.");
   return ideia;
 }
 
@@ -116,23 +116,27 @@ export function gravarIdeia(e: string, nova: Omit<Ideia, "id" | "empresaId"> & {
 export function apagarIdeia(e: string, id: string) {
   const antes = (estado.get(e) ?? VAZIO).ideias.find((i) => i.id === id);
   if (!antes) return;
+  const v = versao(id);
   colocar(e, id, undefined);
-  void escrever(supabase().from("ideias").delete().eq("id", id), () => colocar(e, id, antes), "Não consegui apagar a ideia. Tente de novo.");
+  void escrever(e, supabase().from("ideias").delete().eq("id", id), () => versoes.get(id) === v && colocar(e, id, antes), "Não consegui apagar a ideia. Tente de novo.");
 }
 
 /** Nova coluna do mural; fica guardada mesmo vazia. */
 export function criarCategoria(e: string, nome: string) {
   trocar(e, (s) => ({ ...s, categorias: com(s.categorias, nome) }));
   void escrever(
+    e,
     supabase().from("ideias_categorias").upsert({ empresa_id: e, nome }, { onConflict: "empresa_id,nome", ignoreDuplicates: true }),
     () => trocar(e, (s) => ({ ...s, categorias: s.categorias.filter((c) => c !== nome || s.ideias.some((i) => i.categoria === nome)) })),
     "Não consegui criar a categoria. Tente de novo.",
   );
 }
 
+export const ideiasDe = (e: string) => estado.get(e) ?? VAZIO;
+
 /** Ideias e colunas de uma empresa (reativo). Vem do banco; antes de chegar, vazio. */
 export function useIdeias(e: string) {
-  const s = useSyncExternalStore(assinar, () => estado.get(e) ?? VAZIO, () => VAZIO);
+  const s = useSyncExternalStore(assinar, () => ideiasDe(e), () => VAZIO);
   useEffect(() => { void carregarIdeias(e); }, [e]);
   const salvar = useCallback((nova: Parameters<typeof gravarIdeia>[1]) => gravarIdeia(e, nova), [e]);
   const apagar = useCallback((id: string) => apagarIdeia(e, id), [e]);
