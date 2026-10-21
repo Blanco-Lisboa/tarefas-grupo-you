@@ -204,7 +204,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
                 </span>
               )}
             </span>
-            {!nova && <Agora tarefaId={tarefa.id!} soLer={soLer} nomes={NOMES.responsavel} />}
+            {!nova && <Agora tarefaId={tarefa.id!} soLer={soLer} encerrada={viva?.tipo === "postagem" && (viva.etapa === "aprovado" || viva.etapa === "postado")} nomes={NOMES.responsavel} />}
             {decide && (
               <div className="ficha-decidir">
                 <button type="button" className="aprovacao-botao" data-acao="aprovar" disabled={salvando} onClick={() => void decidir({ etapa: "aprovado" })}>{decidindo === "aprovado" ? "Aprovando…" : "Aprovar"}</button>
@@ -291,7 +291,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
               <input value={t.objetivo ?? ""} onChange={(e) => mudar("objetivo", e.target.value)} placeholder="Para que serve este conteúdo?" />
             </Campo>
           )}
-          {t.tipo === "postagem" && <CamposPost t={t} arquivos={arquivos} travado={postTravado} mudar={mudar} aoMudarCapa={(v) => setArquivos([...arquivos.filter((a) => a.papel !== "capa"), ...v])} />}
+          {t.tipo === "postagem" && <CamposPost t={t} arquivos={arquivos} travado={postTravado} postado={viva?.etapa === "postado"} mudar={mudar} aoMudarCapa={(v) => setArquivos([...arquivos.filter((a) => a.papel !== "capa"), ...v])} />}
           {viva && <Publicacao salvo={viva} rascunho={{ ...t, arquivos }} mudar={mudar} gravar={gravar} />}
 
           <div className="ficha-opcional" aria-hidden>Opcional</div>

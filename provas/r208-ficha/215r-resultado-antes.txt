@@ -1,0 +1,22 @@
+   esteira 1440: {"clientWidth":1197,"scrollWidth":1336,"coluna":216,"fimUltima":1540,"fimQuadro":1401,"transborda":[],"fonteTitulo":20}
+FALHA antes: 1440 Esteira: as 6 colunas cabem (scroll 1336 / visível 1197, coluna 216px)
+OK antes: 1440 Esteira: nada transborda nas colunas e cards (nenhum)
+   calendário 1440: [{"titulo":"Reels: vale a pena abrir MEI?","bloco":158,"visivel":30,"primeiraPalavra":35},{"titulo":"Carrossel: prazo do MEI","bloco":77,"visivel":30,"primeiraPalavra":60},{"titulo":"Depoimento de cliente","bloco":77,"visivel":30,"primeiraPalavra":70},{"titulo":"Story: último dia do DAS","bloco":158,"visivel":30,"primeiraPalavra":35}]
+FALHA antes: 1440 Calendário: todo bloco curto mostra ao menos a 1ª palavra inteira do título
+FALHA antes: 1440 ficha Postado: sem Começar, sem "Anexe o vídeo", com os 2 links ({"comecar":1,"anexeVideo":true,"links":2})
+FALHA antes: 1440 ficha Aprovado/Programado: sem Começar ({"comecar":1,"situacao":"Programado · 25/10 18:00 · Instagram + Facebook"})
+FALHA antes: 1440 Capa do Reels: miniatura com a altura dos controles ({"miniatura":[96,171],"controles":95,"vao":76})
+FALHA antes: 1440 Descrição curta: começa com 2 linhas ({"altura":138,"linhasCabem":5,"linhasTexto":5})
+OK antes: 1440 Descrição longa: cresce até o limite e depois rola ({"altura":354,"linhasCabem":14,"linhasTexto":20})
+   esteira 1903: {"clientWidth":1660,"scrollWidth":1660,"coluna":270,"fimUltima":1864,"fimQuadro":1864,"transborda":[],"fonteTitulo":20}
+OK antes: 1903 Esteira: as 6 colunas cabem (scroll 1660 / visível 1660, coluna 270px)
+OK antes: 1903 Esteira: nada transborda nas colunas e cards (nenhum)
+   calendário 1903: [{"titulo":"Reels: vale a pena abrir MEI?","bloco":224,"visivel":84,"primeiraPalavra":35},{"titulo":"Carrossel: prazo do MEI","bloco":110,"visivel":30,"primeiraPalavra":60},{"titulo":"Depoimento de cliente","bloco":110,"visivel":30,"primeiraPalavra":70},{"titulo":"Story: último dia do DAS","bloco":224,"visivel":88,"primeiraPalavra":35}]
+FALHA antes: 1903 Calendário: todo bloco curto mostra ao menos a 1ª palavra inteira do título
+FALHA antes: 1903 ficha Postado: sem Começar, sem "Anexe o vídeo", com os 2 links ({"comecar":1,"anexeVideo":true,"links":2})
+FALHA antes: 1903 ficha Aprovado/Programado: sem Começar ({"comecar":1,"situacao":"Programado · 25/10 18:00 · Instagram + Facebook"})
+FALHA antes: 1903 Capa do Reels: miniatura com a altura dos controles ({"miniatura":[96,171],"controles":95,"vao":76})
+FALHA antes: 1903 Descrição curta: começa com 2 linhas ({"altura":138,"linhasCabem":5,"linhasTexto":5})
+OK antes: 1903 Descrição longa: cresce até o limite e depois rola ({"altura":354,"linhasCabem":14,"linhasTexto":20})
+{"1440":{"esteira":{"clientWidth":1197,"scrollWidth":1336,"coluna":216,"fimUltima":1540,"fimQuadro":1401,"transborda":[],"fonteTitulo":20},"calendario":[{"titulo":"Reels: vale a pena abrir MEI?","bloco":158,"visivel":30,"primeiraPalavra":35},{"titulo":"Carrossel: prazo do MEI","bloco":77,"visivel":30,"primeiraPalavra":60},{"titulo":"Depoimento de cliente","bloco":77,"visivel":30,"primeiraPalavra":70},{"titulo":"Story: último dia do DAS","bloco":158,"visivel":30,"primeiraPalavra":35}],"postado":{"comecar":1,"anexeVideo":true,"links":2},"aprovado":{"comecar":1,"situacao":"Programado · 25/10 18:00 · Instagram + Facebook"},"capa":{"miniatura":[96,171],"controles":95,"vao":76},"descricaoCurta":{"altura":138,"linhasCabem":5,"linhasTexto":5},"descricaoLonga":{"altura":354,"linhasCabem":14,"linhasTexto":20}},"1903":{"esteira":{"clientWidth":1660,"scrollWidth":1660,"coluna":270,"fimUltima":1864,"fimQuadro":1864,"transborda":[],"fonteTitulo":20},"calendario":[{"titulo":"Reels: vale a pena abrir MEI?","bloco":224,"visivel":84,"primeiraPalavra":35},{"titulo":"Carrossel: prazo do MEI","bloco":110,"visivel":30,"primeiraPalavra":60},{"titulo":"Depoimento de cliente","bloco":110,"visivel":30,"primeiraPalavra":70},{"titulo":"Story: último dia do DAS","bloco":224,"visivel":88,"primeiraPalavra":35}],"postado":{"comecar":1,"anexeVideo":true,"links":2},"aprovado":{"comecar":1,"situacao":"Programado · 25/10 18:00 · Instagram + Facebook"},"capa":{"miniatura":[96,171],"controles":95,"vao":76},"descricaoCurta":{"altura":138,"linhasCabem":5,"linhasTexto":5},"descricaoLonga":{"altura":354,"linhasCabem":14,"linhasTexto":20}}}
+11 FALHA(S)

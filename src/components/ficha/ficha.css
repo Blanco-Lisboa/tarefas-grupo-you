@@ -178,13 +178,17 @@ html:has(.ficha[open]) { overflow: hidden; scrollbar-gutter: stable; }
 .ficha-legenda-post { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--s-8); }
 .ficha-legenda-post small { color: var(--fraco); font: 500 var(--t-12) var(--fonte); font-variant-numeric: tabular-nums; }
 .ficha-capa { border: 0; padding: 0; margin: 0; min-width: 0; }
+/* Capa travada (post publicado, ou Aprovado para quem não aprova): sem a área de soltar nem o × da capa, só o que vale */
+.ficha-capa:disabled :is(.ficha-anexo-solta, .ficha-anexo-tirar) { display: none; }
+.ficha-capa:disabled .ficha-anexos:not(:has(.ficha-anexo)) { display: none; } /* sem capa própria: a linha vazia não deixa vão */
 .ficha-capa-quadro { display: flex; gap: var(--s-16); align-items: flex-start; }
-.ficha-capa-quadro video, .ficha-capa-vazio { flex: none; width: 96px; aspect-ratio: 9 / 16; border-radius: 8px; background: #000; object-fit: cover; }
-.ficha-capa-vazio { display: grid; place-items: center; padding: var(--s-8); background: var(--sup-2); color: var(--fraco); font-size: var(--t-12); text-align: center; }
+/* Régua 215 (achado 4): miniatura com a altura dos controles ao lado (54 x 96), sem vão embaixo deles */
+.ficha-capa-quadro video, .ficha-capa-vazio { flex: none; width: 54px; aspect-ratio: 9 / 16; border-radius: 8px; background: #000; object-fit: cover; }
+.ficha-capa-vazio { background: var(--sup-2); }
 .ficha-capa-controles { flex: 1; min-width: 0; display: grid; gap: var(--s-8); }
 .ficha-capa-controles input[type="range"] { width: 100%; margin: 0; accent-color: var(--azul); }
 .ficha-capa-texto { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-4) var(--s-12); margin: 0; color: var(--texto); font-size: var(--t-14); }
 .ficha-capa-fb { color: var(--fraco); font-size: var(--t-12); }
 .ficha-capa-texto .ficha-texto-botao { padding: 0; font-size: var(--t-12); }
 /* Descrição do post (até 2200 caracteres): caixa de várias linhas que cresce com o texto, ao contrário dos outros campos de texto da ficha (48px) */
-.ficha .ficha-campo textarea.ficha-legenda-texto { flex: none; height: auto; min-height: calc(5lh + 2 * var(--s-8) + 2px); max-height: calc(14lh + 2 * var(--s-8) + 2px); field-sizing: content; resize: vertical; }
+.ficha .ficha-campo textarea.ficha-legenda-texto { flex: none; height: auto; min-height: calc(2lh + 2 * var(--s-8) + 2px); /* Régua 215 (achado 5): nasce com 2 linhas */ max-height: calc(14lh + 2 * var(--s-8) + 2px); field-sizing: content; resize: vertical; }

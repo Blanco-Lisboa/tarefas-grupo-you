@@ -1,0 +1,24 @@
+   esteira 1440: {"clientWidth":1197,"scrollWidth":1197,"coluna":193,"fimUltima":1401,"fimQuadro":1401,"transborda":[],"fonteTitulo":16}
+OK depois: 1440 Esteira: as 6 colunas cabem (scroll 1197 / visível 1197, coluna 193px)
+OK depois: 1440 Esteira: nada transborda nas colunas e cards (nenhum)
+   calendário 1440: [{"titulo":"Reels: vale a pena abrir MEI?","bloco":158,"visivel":112,"primeiraPalavra":35},{"titulo":"Carrossel: prazo do MEI","bloco":77,"visivel":71,"primeiraPalavra":60},{"titulo":"Depoimento de cliente","bloco":77,"visivel":71,"primeiraPalavra":70},{"titulo":"Story: último dia do DAS","bloco":158,"visivel":112,"primeiraPalavra":35}]
+OK depois: 1440 Calendário: todo bloco curto mostra ao menos a 1ª palavra inteira do título
+OK depois: 1440 ficha Postado: sem vão entre "Capa do Reels" e o aviso (14px)
+OK depois: 1440 ficha Postado: sem Começar, sem "Anexe o vídeo", com os 2 links ({"comecar":0,"anexeVideo":false,"links":2,"vaoCapa":14})
+OK depois: 1440 ficha Aprovado/Programado: sem Começar ({"comecar":0,"situacao":"Programado · 25/10 18:00 · Instagram + Facebook"})
+OK depois: 1440 Capa do Reels: miniatura com a altura dos controles ({"miniatura":[54,96],"controles":95,"vao":1})
+OK depois: 1440 Descrição curta: começa com 2 linhas ({"altura":66,"linhasCabem":2,"linhasTexto":2})
+OK depois: 1440 Descrição longa: cresce até o limite e depois rola ({"altura":354,"linhasCabem":14,"linhasTexto":20})
+   esteira 1903: {"clientWidth":1660,"scrollWidth":1660,"coluna":270,"fimUltima":1864,"fimQuadro":1864,"transborda":[],"fonteTitulo":20}
+OK depois: 1903 Esteira: as 6 colunas cabem (scroll 1660 / visível 1660, coluna 270px)
+OK depois: 1903 Esteira: nada transborda nas colunas e cards (nenhum)
+   calendário 1903: [{"titulo":"Reels: vale a pena abrir MEI?","bloco":224,"visivel":84,"primeiraPalavra":35},{"titulo":"Carrossel: prazo do MEI","bloco":110,"visivel":104,"primeiraPalavra":60},{"titulo":"Depoimento de cliente","bloco":110,"visivel":104,"primeiraPalavra":70},{"titulo":"Story: último dia do DAS","bloco":224,"visivel":88,"primeiraPalavra":35}]
+OK depois: 1903 Calendário: todo bloco curto mostra ao menos a 1ª palavra inteira do título
+OK depois: 1903 ficha Postado: sem vão entre "Capa do Reels" e o aviso (14px)
+OK depois: 1903 ficha Postado: sem Começar, sem "Anexe o vídeo", com os 2 links ({"comecar":0,"anexeVideo":false,"links":2,"vaoCapa":14})
+OK depois: 1903 ficha Aprovado/Programado: sem Começar ({"comecar":0,"situacao":"Programado · 25/10 18:00 · Instagram + Facebook"})
+OK depois: 1903 Capa do Reels: miniatura com a altura dos controles ({"miniatura":[54,96],"controles":95,"vao":1})
+OK depois: 1903 Descrição curta: começa com 2 linhas ({"altura":66,"linhasCabem":2,"linhasTexto":2})
+OK depois: 1903 Descrição longa: cresce até o limite e depois rola ({"altura":354,"linhasCabem":14,"linhasTexto":20})
+{"1440":{"esteira":{"clientWidth":1197,"scrollWidth":1197,"coluna":193,"fimUltima":1401,"fimQuadro":1401,"transborda":[],"fonteTitulo":16},"calendario":[{"titulo":"Reels: vale a pena abrir MEI?","bloco":158,"visivel":112,"primeiraPalavra":35},{"titulo":"Carrossel: prazo do MEI","bloco":77,"visivel":71,"primeiraPalavra":60},{"titulo":"Depoimento de cliente","bloco":77,"visivel":71,"primeiraPalavra":70},{"titulo":"Story: último dia do DAS","bloco":158,"visivel":112,"primeiraPalavra":35}],"postado":{"comecar":0,"anexeVideo":false,"links":2,"vaoCapa":14},"aprovado":{"comecar":0,"situacao":"Programado · 25/10 18:00 · Instagram + Facebook"},"capa":{"miniatura":[54,96],"controles":95,"vao":1},"descricaoCurta":{"altura":66,"linhasCabem":2,"linhasTexto":2},"descricaoLonga":{"altura":354,"linhasCabem":14,"linhasTexto":20}},"1903":{"esteira":{"clientWidth":1660,"scrollWidth":1660,"coluna":270,"fimUltima":1864,"fimQuadro":1864,"transborda":[],"fonteTitulo":20},"calendario":[{"titulo":"Reels: vale a pena abrir MEI?","bloco":224,"visivel":84,"primeiraPalavra":35},{"titulo":"Carrossel: prazo do MEI","bloco":110,"visivel":104,"primeiraPalavra":60},{"titulo":"Depoimento de cliente","bloco":110,"visivel":104,"primeiraPalavra":70},{"titulo":"Story: último dia do DAS","bloco":224,"visivel":88,"primeiraPalavra":35}],"postado":{"comecar":0,"anexeVideo":false,"links":2,"vaoCapa":14},"aprovado":{"comecar":0,"situacao":"Programado · 25/10 18:00 · Instagram + Facebook"},"capa":{"miniatura":[54,96],"controles":95,"vao":1},"descricaoCurta":{"altura":66,"linhasCabem":2,"linhasTexto":2},"descricaoLonga":{"altura":354,"linhasCabem":14,"linhasTexto":20}}}
+TUDO OK

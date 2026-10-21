@@ -82,8 +82,20 @@
 .evento-curto .evento-linha { width: 100%; }
 .evento-bloco.evento-curto .evento-titulo { display: block; white-space: nowrap; }
 .evento-curto .evento-titulo { min-width: 2.5em; }
-/* Coluna estreita (semana a 1440 ou menos): no bloco curto a hora sai, a posição na grade já diz a hora. */
-@container (max-width: 160px) { .evento-curto .evento-hora { display: none; } }
+/* Bloco curto (uma linha só), medido pela largura DELE (Régua 215, achado 2): o título é o que fica.
+   Até 200px: a hora sai (a posição na grade já diz a hora) e a etapa vira uma bolinha da cor dela.
+   Até 120px (dois ou mais lado a lado): saem também a foto e a bolinha; o nome inteiro está no title do bloco. */
+.evento-bloco.evento-curto { container-type: inline-size; }
+@container (max-width: 200px) {
+  .evento-curto .evento-hora { display: none; }
+  .evento-curto .etapa { align-self: center; width: 8px; height: 8px; padding: 0; border-radius: 50%; font-size: 0; }
+}
+@container (max-width: 120px) {
+  .evento-curto :is(.pessoa, .etapa, .selo) { display: none; }
+  .evento-curto .evento-linha { width: calc(100% + 6px); margin-inline: -3px; } /* a regra não alcança o próprio bloco (é ele que se mede): a linha avança 3px no respiro de cada lado */
+  /* sem reticências (elas comiam a 1ª palavra): o título vai até a borda e esmaece nos últimos 4px */
+  .evento-bloco.evento-curto .evento-titulo { text-overflow: clip; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 4px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 4px), transparent); }
+}
 /* Chip em lugar estreito (mês a 1440, dia inteiro da semana): título na 1ª linha, hora e selo na 2ª. */
 @container (max-width: 170px) {
   .evento-chip .evento-linha { flex-wrap: wrap; row-gap: 2px; }
