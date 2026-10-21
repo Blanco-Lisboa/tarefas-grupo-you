@@ -11,11 +11,15 @@
    Botões = .btn/.btn-2 da base (globals.css), um principal por tela (+ Nova tarefa). Se não couber, quebra linha. */
 .cal-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); }
 .cal-titulo { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
-.cal-titulo h1 { margin: 0; font-size: 22px; line-height: var(--app-controle); color: var(--texto); white-space: nowrap; }
+.cal-titulo h1 { margin: 0; font-size: var(--t-20); line-height: var(--app-controle); color: var(--texto); white-space: nowrap; }
 .cal-titulo-ano { color: var(--fraco); font-weight: 400; }
 .cal-titulo p { margin: 0; font-size: var(--t-12); color: var(--fraco); white-space: nowrap; }
 .cal-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao); margin-left: auto; }
-.cal .selecao-botao { gap: 6px; padding: 0 10px 0 12px; } /* mais justos que nas outras telas: a faixa inteira cabe em 1440 */
+/* Mais justos que nas outras telas: a faixa inteira cabe em 1440 mesmo com o filtro Agendas (que o Natham sempre tem, 227).
+   O "Visão" sai da vista (o leitor de tela e o title seguem com ele), como o "Semana" sozinho do Google. */
+.cal { --app-vao: 6px; }
+.cal .selecao-botao { gap: 5px; padding: 0 8px 0 10px; }
+.cal-acoes .selecao-rotulo-p { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* escondido só da vista */
 .cal .cal-barra .btn { padding: 0 var(--s-12); }
 @media (max-width: 767px) { .cal-titulo { flex: 1 1 100%; flex-wrap: wrap; } .cal-titulo h1 { font-size: var(--t-20); } }
 
@@ -71,7 +75,9 @@
 .etapa-postado { background: var(--etapa-postado); }
 .evento-bloco { position: absolute; overflow: hidden; z-index: 1; box-shadow: 0 0 0 1px var(--sup); justify-content: flex-start; }
 .evento-bloco .evento-linha { align-items: flex-start; }
-.evento-bloco .evento-titulo { white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.evento-bloco .evento-titulo { white-space: normal; display: -webkit-box; -webkit-line-clamp: var(--linhas, 3); -webkit-box-orient: vertical; }
+/* --linhas (Grade.tsx) = linhas do título que cabem com a linha da hora embaixo; a hora não quebra em duas (bloco estreito lado a lado) */
+.evento-bloco .evento-detalhes { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
 .evento-chip { flex-direction: row; align-items: center; min-height: 22px; }
 .evento-chip .evento-linha { width: 100%; }
 .evento-curto { flex-direction: row; align-items: flex-start; }

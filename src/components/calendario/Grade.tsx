@@ -94,8 +94,9 @@ export function Grade({ dias, mapa, agenda, agora, acoes }: Props) {
                 >
                   <CriarAqui destino={{ dia, minuto: 9 * 60 }} criar={acoes.criar} style={{ top: 9 * HORA + 4 }} />
                   {empilhar(itens, dias.length > 1).map((p) => {
+                    // Linhas do título que cabem com a linha da hora embaixo (Lupa do 224: na reunião de 1 hora a hora saía cortada)
                     const style = {
-                      top: p.topo * PX, height: p.altura * PX - 2,
+                      top: p.topo * PX, height: p.altura * PX - 2, "--linhas": Math.min(3, Math.max(1, Math.floor((p.altura * PX - 24) / 16))),
                       left: "mais" in p ? "2px" : `calc(${(p.faixa / p.total) * 100}% + 2px)`, width: "mais" in p ? "calc(100% - 4px)" : `calc(${100 / p.total}% - 4px)`,
                     };
                     if ("mais" in p) return <Mais key={`mais-${p.topo}`} itens={p.mais} abrir={acoes.abrir} style={style} />;

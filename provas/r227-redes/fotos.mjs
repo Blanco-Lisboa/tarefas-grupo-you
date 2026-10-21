@@ -1,0 +1,54 @@
+// Item 227 (Sextante, volta do 226): não escolhido = vidro com a luz que corre do item ativo do menu lateral, no tom da rede, com o logo;
+// escolhido = cheio na cor da rede, branco, ✓. Na cópia de exemplo (3101, banco falso 3201 com /entrar), card do print do Natham.
+// Só olha e clica na ficha aberta; fecha com Esc (não salva nada). Uso: node provas/r227-redes/fotos.mjs
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const pasta = fileURLToPath(new URL("./", import.meta.url));
+const navegador = await chromium.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe" });
+const pg = await (await navegador.newContext({ viewport: { width: 1440, height: 760 } })).newPage();
+let falhas = 0;
+const confere = (ok, texto) => { if (!ok) falhas++; console.log(`${ok ? "OK" : "FALHA"} ${texto}`); };
+await pg.goto("http://127.0.0.1:3201/entrar");
+await pg.goto("http://127.0.0.1:3101/conteudos", { waitUntil: "networkidle" });
+await pg.locator(".conteudos-cartao").filter({ hasText: "Carrossel: calendário fiscal de novembro" }).locator(".conteudos-titulo").click();
+const ficha = pg.locator(".ficha-cartao");
+await ficha.waitFor();
+await pg.waitForTimeout(500);
+const bloco = ficha.locator(".publicacao");
+await bloco.evaluate((b) => b.scrollIntoView({ block: "center" }));
+await pg.mouse.move(5, 5);
+const marca = () => pg.evaluate(() => {
+  document.querySelector("#marca-largura")?.remove();
+  const d = Object.assign(document.createElement("div"), { id: "marca-largura", textContent: `innerWidth ${innerWidth}` });
+  d.style.cssText = "position:fixed;left:4px;bottom:4px;z-index:2147483647;background:#000;color:#fff;font:700 12px monospace;padding:2px 6px";
+  document.body.append(d);
+});
+const estado = () => bloco.locator(".aprovacao-rede").evaluateAll((bs) => bs.map((b) => ({ rede: b.dataset.rede, escolhida: b.getAttribute("aria-pressed"), fundo: getComputedStyle(b).backgroundColor, texto: getComputedStyle(b).color, logo: !!b.querySelector("img"), check: b.innerText.includes("✓") })));
+const dois = await estado();
+console.log("   os dois:", JSON.stringify(dois));
+confere(dois.every((b) => b.escolhida === "true" && b.texto === "rgb(255, 255, 255)" && b.check && b.logo), "227: os dois escolhidos, cheios, texto branco, ✓ e logo");
+await pg.waitForTimeout(300);
+await marca();
+await pg.screenshot({ path: join(pasta, "227-os-dois-escolhidos-1440.png") });
+await bloco.locator(".aprovacao-rede[data-rede=facebook]").click();
+await pg.mouse.move(5, 5);
+await pg.waitForTimeout(400);
+const um = await estado();
+console.log("   um:", JSON.stringify(um));
+const [ig, fb] = um;
+confere(ig.escolhida === "true" && fb.escolhida === "false" && !fb.check && fb.logo && fb.texto !== "rgb(255, 255, 255)" && fb.fundo !== ig.fundo, "227: Facebook não escolhido: claro, logo, sem ✓; Instagram segue cheio");
+const anima = await bloco.locator(".aprovacao-rede[data-rede=facebook]").evaluate((b) => getComputedStyle(b).animationName);
+confere(anima === "menu-brilho", `227: o não escolhido tem o brilho do menu lateral (${anima})`);
+// A luz anda (2,4 s por volta): para a foto, o brilho do Facebook e o do item ativo do menu param no mesmo ponto, com a luz no meio
+await pg.evaluate(() => document.getAnimations().filter((a) => a.animationName === "menu-brilho").forEach((a) => { a.pause(); a.currentTime = 1800; }));
+await marca();
+await pg.screenshot({ path: join(pasta, "227-so-instagram-1440.png") });
+await pg.screenshot({ path: join(pasta, "227-so-instagram-perto-1440.png"), clip: await bloco.boundingBox() });
+await pg.keyboard.press("Escape");
+await navegador.close();
+console.log(falhas ? `${falhas} FALHA(S)` : "TUDO OK");
+process.exit(falhas ? 1 : 0);
