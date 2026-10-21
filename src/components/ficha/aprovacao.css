@@ -93,6 +93,8 @@
 .publicacao .aprovacao-redes { gap: var(--s-8); }
 .publicacao-acoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center; gap: var(--s-8); }
 .publicacao-acoes > * { min-width: 0; }
+.publicacao-acoes[data-botoes="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* 238: sem Postar agora, data e Marcar hora meio a meio */
+.publicacao-desligada { padding: var(--s-8) 10px; border-radius: 8px; background: color-mix(in srgb, var(--azul) 7%, transparent); box-shadow: inset 3px 0 0 var(--azul); color: var(--texto); font-size: var(--t-12); }
 .publicacao-acoes [data-acao="tentar"] { grid-column: 1 / -1; }
 .publicacao-acoes .aprovacao-botao { min-height: 36px; padding: 6px var(--s-12); font-size: var(--t-14); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .publicacao-acoes .campo-data-botao { width: 100%; height: 36px; min-height: 36px; border-radius: 8px; justify-content: center; padding: 0 var(--s-12); } /* ícone, data e seta no meio (232) */

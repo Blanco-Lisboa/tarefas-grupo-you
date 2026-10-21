@@ -7,13 +7,13 @@
 // - Toda ação passa pela checagem (o que falta) e grava a FICHA INTEIRA (gravar) antes, para não perder o que foi mudado nela.
 // - Só a You está ligada: em outra empresa fica só o aviso.
 import { useState } from "react";
-import { REDES_POST, postarAgora, tentarDeNovo, useEu, type NovaTarefa, type RedePost, type Tarefa } from "@/lib/dados";
+import { REDES_POST, postarAgora, tentarDeNovo, useEu, usePostagemAutomatica, type NovaTarefa, type RedePost, type Tarefa } from "@/lib/dados";
 import { paraDia, paraHora } from "@/components/calendario/logica";
 import { CampoData } from "@/components/ui/CampoData";
 import Image from "next/image";
 import { podeAprovar } from "./Aprovacao";
 import { Confirmar } from "./Confirmar";
-import { CANCELADA, NOME_REDE, SO_FACEBOOK, carrosselComVideo, carrosselSoFacebook, faltaParaPostar, programacaoCancelada, redesDe, redesValidas, situacao, textoRedes } from "./postagem";
+import { CANCELADA, NOME_REDE, SO_FACEBOOK, carrosselComVideo, carrosselSoFacebook, faltaParaPostar, programacaoCancelada, redesDe, redesValidas, situacao, textoRedes, textosPublicacao } from "./postagem";
 
 type Props = {
   salvo: Tarefa; rascunho: NovaTarefa;
@@ -24,6 +24,7 @@ type Props = {
 
 export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const eu = useEu();
+  const { ligada } = usePostagemAutomatica(); // 238: desligada (ou carregando) = a ficha não promete post real
   const [quando, setQuando] = useState(salvo.postarEm ?? "");
   const [falta, setFalta] = useState<string[]>([]);
   const [confirmando, setConfirmando] = useState(false);
@@ -59,6 +60,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
     if (checar(!quando ? ["Escolha a data e a hora."] : quando < paraHora(new Date()) ? ["Escolha um horário que ainda não passou."] : [])) void gravar({ postarRedes: valem, postarEm: quando });
   };
   const tentar = async () => { if (checar() && (await gravar({ postarRedes: valem }))) void tentarDeNovo(salvo.id); };
+  const txt = textosPublicacao(ligada, !!salvo.postarEm);
   const postar = async () => { setConfirmando(false); if (await gravar({ postarRedes: valem })) void postarAgora(salvo.id); };
 
   return (
@@ -66,7 +68,8 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
     <fieldset className="ficha-campo publicacao"><legend>Publicação</legend><div className="publicacao-caixa">
       {salvo.empresaId !== "you" ? <p className="ficha-dica ficha-dica-fica">Postagem automática só para a You (por enquanto).</p> : <>
         {sit?.tipo === "postando" && <p className="aprovacao-situacao" data-tipo="postando" role="status">Postando…</p>}
-        {sit?.tipo === "programado" && !ajuste && <p className="aprovacao-situacao">{sit.texto}</p>}
+        {txt.aviso && <p className="aprovacao-nota publicacao-desligada" role="note">{txt.aviso}</p>}
+        {sit?.tipo === "programado" && !ajuste && <p className="aprovacao-situacao">{txt.situacao(sit.texto)}</p>}
         {ajuste && <div className="aprovacao-erro" role="alert"><p>Precisa de ajuste: {SO_FACEBOOK} Ao salvar, a programação é cancelada.</p></div>}
         {!sit && !cancelada && <p className="aprovacao-situacao">Sem programação.</p>}
         {cancelada && <div className="aprovacao-erro" role="alert"><p>{CANCELADA}</p></div>}
@@ -102,17 +105,17 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
               </button>
             </div>
           ) : (
-            <div className="publicacao-acoes">
+            <div className="publicacao-acoes" data-botoes={txt.postarAgora ? 3 : 2}>
               <CampoData rotulo="Data e hora do post" valor={quando.slice(0, 10)} hora={quando.slice(11, 16)} min={paraDia(new Date())} semLimpar vazio="Quando?" anoCurto
                 aoMudar={(dia, hora) => setQuando(dia ? `${dia}T${hora || "00:00"}` : "")} />
-              <button type="button" className="aprovacao-botao" data-acao={salvo.postarEm ? "reprogramar" : "aprovar"} onClick={programar}>{salvo.postarEm ? "Reprogramar postagem" : "Programar postagem"}</button>
-              <button type="button" className="aprovacao-botao" data-acao="postar" onClick={() => { if (checar()) setConfirmando(true); }}>Postar agora</button>
+              <button type="button" className="aprovacao-botao" data-acao={salvo.postarEm ? "reprogramar" : "aprovar"} onClick={programar}>{txt.marcar}</button>
+              {txt.postarAgora && <button type="button" className="aprovacao-botao" data-acao="postar" onClick={() => { if (checar()) setConfirmando(true); }}>Postar agora</button>}
             </div>
           )}
           {falta.length > 0 && <ul className="aprovacao-falta" role="alert">{falta.map((f) => <li key={f}>{f}</li>)}</ul>}
         </>}
       </>}
-      {confirmando && <Confirmar titulo={`Postar agora no ${textoRedes(valem)} da You?`} texto={`"${rascunho.titulo}" vai para o ar agora. Não dá para desfazer.`} acao="Postar"
+      {confirmando && ligada && <Confirmar titulo={`Postar agora no ${textoRedes(valem)} da You?`} texto={`"${rascunho.titulo}" vai para o ar agora. Não dá para desfazer.`} acao="Postar"
         aoCancelar={() => setConfirmando(false)} aoConfirmar={() => void postar()} />}
     </div></fieldset>
   );

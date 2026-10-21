@@ -16,6 +16,16 @@ export const carrosselComVideo = (t: Pick<Tarefa, "arquivos">, formato?: Formato
     só Facebook fica só Facebook, e a checagem barra (SO_FACEBOOK). */
 export const redesValidas = (t: Pick<Tarefa, "arquivos">, formato: Formato | undefined, redes: readonly RedePost[]) =>
   carrosselComVideo(t, formato) && redes.includes("instagram") ? ["instagram" as const] : [...redes];
+/** 238: com a postagem automática DESLIGADA a ficha não promete post real: sem "Postar agora", "Marcar hora" no lugar de "Programar
+    postagem" (a mesma ação: grava a hora), "Hora marcada" no lugar de "Programado" e o aviso de que a publicação é à mão. Ligada: como sempre. */
+export function textosPublicacao(ligada: boolean, programado: boolean) {
+  return {
+    marcar: ligada ? (programado ? "Reprogramar postagem" : "Programar postagem") : programado ? "Remarcar hora" : "Marcar hora",
+    postarAgora: ligada,
+    situacao: (texto: string) => (ligada ? texto : texto.replace(/^Programado/, "Hora marcada")),
+    aviso: ligada ? undefined : "Postagem automática ainda desligada: na hora marcada o card vira Postado e você publica nas redes.",
+  };
+}
 export const SO_FACEBOOK = "Carrossel com vídeo não vai para o Facebook: acenda o Instagram ou tire o vídeo.";
 /** Carrossel com vídeo marcado só para o Facebook: não posta até alguém acender o Instagram ou tirar o vídeo. */
 export const carrosselSoFacebook = (t: Pick<Tarefa, "arquivos">, formato: Formato | undefined, redes: readonly RedePost[]) =>

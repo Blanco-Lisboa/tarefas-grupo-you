@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Arquivo } from "@/lib/dados";
-import { estadoDoCard, faltaParaPostar, redesValidas, situacao } from "./postagem";
+import { estadoDoCard, faltaParaPostar, redesValidas, situacao, textosPublicacao } from "./postagem";
 
 const img: Arquivo = { nome: "a.png", tipo: "imagem" }, vid: Arquivo = { nome: "b.mp4", tipo: "video" }, capa: Arquivo = { nome: "c.jpg", tipo: "imagem", papel: "capa" };
 const card = (arquivos: Arquivo[], legenda = "Texto") => ({ arquivos, legenda, empresaId: "you" });
@@ -63,5 +63,19 @@ describe("linha única do card Aprovado (botões na ficha)", () => {
     expect(estadoDoCard({ ...soFb, programacaoCancelada: true })).toEqual({ texto: "Programação cancelada: abra o card", tom: "erro" });
     // ainda programado assim (dado de antes do conserto): não diz "Programado"
     expect(estadoDoCard({ empresaId: "you", formato: "carrossel", arquivos: [img, vid], postarRedes: ["facebook"], postarEm: "2026-10-28T11:00" })).toEqual({ texto: "Precisa de ajuste: abra o card", tom: "erro" });
+  });
+});
+
+describe("textosPublicacao (238)", () => {
+  it("ligada: Programar/Reprogramar, Postar agora, Programado e nenhum aviso", () => {
+    const t = textosPublicacao(true, false);
+    expect([t.marcar, t.postarAgora, t.aviso, t.situacao("Programado · 26/10 08:00 · Instagram")]).toEqual(["Programar postagem", true, undefined, "Programado · 26/10 08:00 · Instagram"]);
+    expect(textosPublicacao(true, true).marcar).toBe("Reprogramar postagem");
+  });
+  it("desligada: Marcar hora, sem Postar agora, Hora marcada e o aviso de que a publicação é à mão", () => {
+    const t = textosPublicacao(false, false);
+    expect([t.marcar, t.postarAgora, t.situacao("Programado · 26/10 08:00 · Instagram")]).toEqual(["Marcar hora", false, "Hora marcada · 26/10 08:00 · Instagram"]);
+    expect(t.aviso).toBe("Postagem automática ainda desligada: na hora marcada o card vira Postado e você publica nas redes.");
+    expect(textosPublicacao(false, true).marcar).toBe("Remarcar hora");
   });
 });
