@@ -30,4 +30,5 @@ export * from "./ideias";
 export * from "./pastas";
 export * from "./agenda";
 export * from "./anotacoes";
+export * from "./agenda-feitos";
 export * from "./drive";

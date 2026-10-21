@@ -8,7 +8,8 @@ import { horaDoSlot, SLOTS } from "./grade";
 import { ETIQUETAS, MenuTarefa, type Acoes } from "./MenuTarefa";
 import "./caderno.css";
 
-export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; /** Tarefa com nome de reunião (item 188): destaque âmbar. */ reuniao?: boolean; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao;
+export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; /** Tarefa com nome de reunião (item 188): destaque âmbar. */ reuniao?: boolean;
+  /** Compromisso do Google (item 221): só leitura, mas com quadradinho de feito. "continua" = linha de baixo de um compromisso longo, só pintada. */ compromisso?: "primeira" | "continua"; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao;
   /** Nome de quem mandou a tarefa (selo "enviada por"). Vazio = não foi enviada. */ enviadaPor?: string;
   /** Nome de quem recebeu, no caderno de quem enviou (selo "enviada →"). Vale no lugar de enviadaPor. */ enviadaPara?: string;
   /** false = só leitura para quem está olhando (trava do banco). Vazio = pode. */ podeAlterar?: boolean; podeApagar?: boolean };
@@ -22,6 +23,8 @@ type Props = {
   subtitulo?: string;
   /** Uma entrada por linha da folha; null = linha vazia (onde se escreve). */
   linhas: (LinhaFolha | null)[];
+  /** Compromissos de dia inteiro: faixa acima das linhas de horário. */
+  faixa?: LinhaFolha[];
   /** Texto da margem, por linha (o horário). */
   rotulos?: string[];
   vazio: string;
@@ -51,7 +54,28 @@ const giro = (id: string) => (([...id].reduce((s, c) => s + c.charCodeAt(0), 0) 
 // Estouro do check (mesmas posições do CRM): 12 pontos de tinta e 4 riscos, só ao marcar.
 const PONTOS = [[25, -25], [-25, -25], [25, 25], [-25, 25], [35, 0], [-35, 0], [0, 35], [0, -35], [20, -30], [-20, 30], [30, 20], [-30, -20]];
 
-export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empresas, empresasMenu, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoMover, acoes, aoEscrever, responsavelPadrao = "natham", continua }: Props) {
+// Quadradinho de feito (o mesmo da tarefa e do compromisso do Google): quadro, visto e o estouro de pontos.
+function Caixa({ l, estourando, desabilitada, aoClicar }: { l: LinhaFolha; estourando: boolean; desabilitada: boolean; aoClicar: () => void }) {
+  return (
+    <button
+      type="button" className={`caixa${estourando ? " estourando" : ""}`} disabled={desabilitada} aria-pressed={l.feita}
+      aria-label={`${l.feita ? "Desmarcar" : "Marcar como feita"}: ${l.titulo}`}
+      onClick={aoClicar}
+    >
+      <span className="caixa-brilho" aria-hidden="true" />
+      <svg viewBox="0 0 28 28" aria-hidden="true">
+        <path className="caixa-quadro" d="M5 6.5 L22.5 5 L23.2 22.6 L6 23.4 Z" />
+        <path className="caixa-visto" d="M8 14.5 L13 20 L25 4.5" />
+      </svg>
+      <span className="caixa-fx" aria-hidden="true">
+        {PONTOS.map(([x, y], i) => <i key={i} className="ponto" style={{ "--x": `${x}px`, "--y": `${y}px` } as CSSProperties} />)}
+        {[0, 90, 180, 270].map((r) => <i key={r} className="faisca" style={{ "--r": `${r}deg` } as CSSProperties} />)}
+      </span>
+    </button>
+  );
+}
+
+export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio, empresas, empresasMenu, empresaPadrao, aoMarcar, aoApagar, aoAbrir, aoMover, acoes, aoEscrever, responsavelPadrao = "natham", continua }: Props) {
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [estourando, setEstourando] = useState<string | null>(null);
   const [texto, setTexto] = useState<{ linha: number; valor: string }>({ linha: -1, valor: "" });
@@ -123,7 +147,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
         <ul ref={principal ? lista : undefined} className="folha-linhas" data-arrastando={!!arrasto}>
       {ls.map((l, i) => { const k = base + i; return (
         <li
-          key={l?.id ?? `v${k}`} className="linha" data-feita={l?.feita}
+          key={l?.id ?? `v${k}`} className="linha" data-feita={l?.feita} data-faixa={l && (l.compromisso || l.reuniao) ? (l.reuniao ? "reuniao" : "comum") : undefined}
           data-arrastada={arrasto?.id === l?.id && !!l || undefined} data-alvo={arrasto && arrasto.alvo === k && arrasto.alvo !== arrasto.de || undefined}
           style={arrasto && arrasto.id === l?.id ? { transform: `translateY(${arrasto.dy}px)` } : undefined}
         >
@@ -140,27 +164,15 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
               </button>
             )}
           </span>
-          {l ? (
+          {l?.compromisso === "continua" ? (
+            <span className="linha-miolo" aria-hidden="true" />
+          ) : l ? (
             <div className="linha-miolo" data-reuniao={l.reuniao || undefined} style={{ transform: `rotate(${giro(l.id)}deg)` }}>
-              <button
-                type="button" className={`caixa${estourando === l.id ? " estourando" : ""}`} disabled={!aoMarcar || l.podeAlterar === false} aria-pressed={l.feita}
-                aria-label={`${l.feita ? "Desmarcar" : "Marcar como feita"}: ${l.titulo}`}
-                onClick={() => marcar(l)}
-              >
-                <span className="caixa-brilho" aria-hidden="true" />
-                <svg viewBox="0 0 28 28" aria-hidden="true">
-                  <path className="caixa-quadro" d="M5 6.5 L22.5 5 L23.2 22.6 L6 23.4 Z" />
-                  <path className="caixa-visto" d="M8 14.5 L13 20 L25 4.5" />
-                </svg>
-                <span className="caixa-fx" aria-hidden="true">
-                  {PONTOS.map(([x, y], i) => <i key={i} className="ponto" style={{ "--x": `${x}px`, "--y": `${y}px` } as CSSProperties} />)}
-                  {[0, 90, 180, 270].map((r) => <i key={r} className="faisca" style={{ "--r": `${r}deg` } as CSSProperties} />)}
-                </span>
-              </button>
+              <Caixa l={l} estourando={estourando === l.id} desabilitada={!aoMarcar || (l.podeAlterar === false && !l.compromisso)} aoClicar={() => marcar(l)} />
               <span className="linha-texto">
                 {/* O espaço da logo é reservado mesmo sem empresa: os títulos ficam todos alinhados na mesma coluna (item 164). */}
                 <span className="linha-empresa">{l.empresa && <SeloEmpresa empresaId={l.empresa.id} nome={l.empresa.nome} tamanho={20} />}</span>
-                <button type="button" className="abrir" disabled={!aoAbrir} title="Abrir a ficha" onClick={() => aoAbrir?.(l.id)}>
+                <button type="button" className="abrir" disabled={!aoAbrir || !!l.compromisso} title="Abrir a ficha" onClick={() => aoAbrir?.(l.id)}>
                   <span className="folha-tinta risco">{l.titulo}</span>
                 </button>
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
@@ -238,6 +250,19 @@ export function Folha({ letra, titulo, subtitulo, linhas, rotulos, vazio, empres
           </div>
         )}
 
+        {!!faixa?.length && (
+          <ul className="folha-linhas">
+            {faixa.map((l) => (
+              <li key={l.id} className="linha" data-feita={l.feita} data-faixa={l.reuniao ? "reuniao" : "comum"}>
+                <span className="linha-hora"><span className="linha-hora-txt">dia</span></span>
+                <div className="linha-miolo">
+                  <Caixa l={l} estourando={estourando === l.id} desabilitada={!aoMarcar} aoClicar={() => marcar(l)} />
+                  <span className="linha-texto"><span className="linha-empresa" /><span className="folha-tinta risco">{l.titulo}</span></span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
         {lista_(esquerda, 0, true)}
       </div>
     </section>

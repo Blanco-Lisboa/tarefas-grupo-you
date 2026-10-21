@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { PointerEvent as EventoPonteiro } from "react";
 import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
-import { RESPONSAVEIS, podeAlterar, podeApagar, removerTarefa, salvarTarefa, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
+import { RESPONSAVEIS, marcarEventoFeito, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useAgendaEventos, useEventosFeitos, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { doCaderno, enviadaPorMim, ehConteudo, ehReuniao, horaDe, horaDoSlot, minutos, montarGrade, msAteMeiaNoite, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { doCaderno, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -52,6 +52,8 @@ export function TelaTarefas() {
   const tarefas = useTarefas();
   const empresas = useEmpresas();
   const eu = useEu();
+  const agendaGoogle = useAgendaEventos();
+  const eventosFeitos = useEventosFeitos();
   // Caderno de quem (item 155): cada um vê só o que é seu; o Natham pode espiar o de outra pessoa, só olhando.
   const [ver, setVer] = useState<Responsavel | null>(null);
   const de = ver ?? eu;
@@ -78,8 +80,21 @@ export function TelaTarefas() {
   const doDiaSeguinte = visiveis.filter((t) => t.inicio?.slice(0, 10) === somarDias(dia, 1)).sort(porHora);
   const mostradas = aba === "dia" ? doDia : visiveis.filter((t) => !t.inicio);
 
-  const grade = montarGrade(mostradas, aba === "dia");
-  const linhas: (LinhaFolha | null)[] = grade.map((t) => t && {
+  // Item 221: só no Caderno do próprio Natham, a agenda pessoal dele (fonte natham) entra nas linhas, menos o que ele já digitou.
+  const comAgenda = aba === "dia" && !alheio && de === "natham";
+  const { faixa, horas } = separarCompromissos(comAgenda ? eventosDoDia(agendaGoogle, dia, "natham").filter((e) => !jaTemTarefa(e, doDia)) : [], dia);
+  const grade = encaixarCompromissos(montarGrade(mostradas, aba === "dia"), horas, dia);
+  const daAgenda = (e: Encaixe["evento"], detalhe: string, k: string, compromisso: "primeira" | "continua"): LinhaFolha => ({
+    id: `ev:${e.id}${k}`, titulo: e.titulo, detalhe, feita: eventosFeitos.has(e.id), reuniao: ehReuniao(e), compromisso, podeAlterar: false, podeApagar: false,
+  });
+  const linhaDe = (t: Tarefa | Encaixe | null, k: number): LinhaFolha | null => {
+    if (!t) return null;
+    if ("evento" in t) {
+      // hora no texto quando a linha não a mostra (11:15, 2h de duração, ou o compromisso desceu de linha)
+      const redonda = t.inicio === rotuloSlot(k) && t.fim === somarMinutos(t.inicio, 30);
+      return daAgenda(t.evento, t.primeira && !redonda ? `${t.inicio} às ${t.fim}` : "", t.primeira ? "" : `#${k}`, t.primeira ? "primeira" : "continua");
+    }
+    return {
     id: t.id,
     titulo: t.titulo,
     empresa: t.empresaId ? { id: t.empresaId, nome: nomeEmpresa(t.empresaId) } : undefined,
@@ -92,11 +107,16 @@ export function TelaTarefas() {
     enviadaPara: enviadaPorMim(t, de) && t.dono ? NOMES[t.dono] : undefined,
     podeAlterar: podeAlterar(t, eu),
     podeApagar: podeApagar(t, eu),
-  });
+    };
+  };
+  const linhas = grade.map(linhaDe);
+  const linhasFaixa = faixa.map((e) => daAgenda(e, "dia inteiro", "", "primeira"));
   const rotulos = aba === "dia" ? grade.map((_, k) => rotuloSlot(k)) : undefined;
 
-  const feitas = mostradas.filter((t) => t.concluida).length;
-  const resumo = mostradas.length ? `${mostradas.length} ${mostradas.length === 1 ? "tarefa" : "tarefas"}, ${feitas} ${feitas === 1 ? "feita" : "feitas"}` : undefined;
+  const compromissos = [...faixa, ...horas];
+  const total = mostradas.length + compromissos.length;
+  const feitas = mostradas.filter((t) => t.concluida).length + compromissos.filter((e) => eventosFeitos.has(e.id)).length;
+  const resumo = total ? `${total} ${total === 1 ? "tarefa" : "tarefas"}, ${feitas} ${feitas === 1 ? "feita" : "feitas"}` : undefined;
   const titulo = aba === "dia" ? extenso(dia) : "Sem data";
 
   const empresasEscolha = empresas.filter((e) => !selecionadas.length || selecionadas.includes(e.id));
@@ -221,13 +241,13 @@ export function TelaTarefas() {
           <CampoData rotulo="Ir para o dia" valor={dia} aoMudar={(d) => d && ir(d)} semLimpar />
         </div>
         <div className="tarefas-grupo tarefas-fim">
-          {mostradas.length > 0 && (
-            <p className="tarefas-contador bloco-destaque" aria-label={`${feitas} de ${mostradas.length} feitas`}>
+          {total > 0 && (
+            <p className="tarefas-contador bloco-destaque" aria-label={`${feitas} de ${total} feitas`}>
               <span className="bloco-numero">{feitas}</span>
-              <span className="bloco-fraco">de {mostradas.length} feitas</span>
+              <span className="bloco-fraco">de {total} feitas</span>
               {/* medidor: 10 barrinhas; a do meio enche em parte */}
               <span className="medidor" aria-hidden="true">
-                {Array.from({ length: 10 }, (_, i) => <i key={i} style={{ "--p": `${Math.round(Math.min(1, Math.max(0, (feitas / mostradas.length) * 10 - i)) * 100)}%` } as CSSProperties} />)}
+                {Array.from({ length: 10 }, (_, i) => <i key={i} style={{ "--p": `${Math.round(Math.min(1, Math.max(0, (feitas / total) * 10 - i)) * 100)}%` } as CSSProperties} />)}
               </span>
             </p>
           )}
@@ -249,6 +269,7 @@ export function TelaTarefas() {
             titulo="Caderno"
             subtitulo={[tag + titulo, resumo].filter(Boolean).join(" · ")}
             linhas={linhas}
+            faixa={linhasFaixa}
             rotulos={rotulos}
             vazio={alheio ? (aba === "dia" ? "Nada marcado para este dia." : "Nenhuma tarefa sem data.") : aba === "dia" ? "Nada marcado para este dia. Escreva aqui." : "Nenhuma tarefa sem data. Escreva aqui."}
             empresas={empresasEscolha}
@@ -256,7 +277,7 @@ export function TelaTarefas() {
             empresaPadrao={empresasEscolha[0]?.id ?? ""}
             /* caderno de outra pessoa: não escreve; cada linha só liga marcar/mover/⋮ se podeAlterar (a privada dele fica só leitura, a que o Natham enviou edita) */
             aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
-            aoMarcar={(id) => { const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
+            aoMarcar={(id) => { if (id.startsWith("ev:")) { const ev = id.slice(3); return void marcarEventoFeito(ev, !eventosFeitos.has(ev)); } const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
             aoApagar={(id) => void removerTarefa(id)}
             continua={aba === "semdata"}
             aoMover={aba === "dia" ? moverPara : undefined}

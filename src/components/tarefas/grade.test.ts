@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { doCaderno, daMinhaLista, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
   ({ id, titulo: id, tipo: "outro", empresaId: "e", responsavel: "natham", inicio, diaInteiro, cor: "etiqueta-1", links: [], arquivos: [] }) as Tarefa;
@@ -133,5 +133,44 @@ describe("agenda do Google no caderno (item 190)", () => {
     expect(quandoEvento(ev("b", "2026-10-20T09:00"), "2026-10-20")).toBe("a partir das 09:00");
     expect(quandoEvento(ev("c", "2026-10-20", { diaInteiro: true }), "2026-10-20")).toBe("dia inteiro");
     expect(quandoEvento(ev("d", "2026-10-19T22:00", { fim: "2026-10-20T02:00" }), "2026-10-20")).toBe("até as 02:00");
+  });
+});
+
+describe("compromissos do Google nas linhas (item 221)", () => {
+  const dia = "2026-10-21";
+  const ev = (id: string, inicio: string, fim?: string, extra: Partial<EventoAgenda> = {}) =>
+    ({ id, titulo: id, inicio, fim, diaInteiro: false, particular: false, fontes: ["natham"], ...extra }) as EventoAgenda;
+  const onde = (g: ReturnType<typeof encaixarCompromissos>) => g.map((l, k) => (l && "evento" in l ? `${k}:${l.evento.id}${l.primeira ? "" : "+"}` : l ? `${k}:t` : "")).filter(Boolean);
+
+  it("30 min cai na linha da hora; 11:15 cai na linha das 11:00; 2h pinta 4 linhas", () => {
+    const g = encaixarCompromissos(montarGrade([], true), [ev("a", `${dia}T09:00`, `${dia}T09:30`), ev("b", `${dia}T11:15`, `${dia}T11:45`), ev("c", `${dia}T14:00`, `${dia}T16:00`)], dia);
+    expect(onde(g)).toEqual(["4:a", "8:b", "14:c", "15:c+", "16:c+", "17:c+"]);
+    const b = g[8];
+    expect(b && "evento" in b && b.inicio).toBe("11:15");
+  });
+  it("na mesma hora de uma tarefa: o compromisso fica na linha de baixo", () => {
+    const g = encaixarCompromissos(montarGrade([t("x", `${dia}T11:00`)], true), [ev("a", `${dia}T11:00`, `${dia}T11:30`)], dia);
+    expect(onde(g)).toEqual(["8:t", "9:a"]);
+  });
+  it("longo para de pintar ao achar linha ocupada; começa antes de 07:00 e entra pela primeira linha", () => {
+    const g = encaixarCompromissos(montarGrade([t("x", `${dia}T09:00`)], true), [ev("a", `${dia}T06:00`, `${dia}T09:30`), ev("b", `${dia}T08:30`, `${dia}T10:00`)], dia);
+    expect(onde(g)).toEqual(["0:a", "1:a+", "2:a+", "3:a+", "4:t", "5:b", "6:b+", "7:b+"]);
+  });
+  it("evento de outro dia que termina hoje pinta desde as 07:00; sem fim vale 30 min", () => {
+    const g = encaixarCompromissos(montarGrade([], true), [ev("a", "2026-10-20T22:00", `${dia}T08:00`), ev("b", `${dia}T12:00`)], dia);
+    expect(onde(g)).toEqual(["0:a", "1:a+", "10:b"]);
+  });
+  it("separa dia inteiro (faixa) do que cai todo fora de 07:00 às 22:30 (só agenda da direita)", () => {
+    const dias = ev("d", dia, undefined, { diaInteiro: true }), cedo = ev("c", `${dia}T05:00`, `${dia}T06:30`), tarde = ev("t", `${dia}T22:30`, `${dia}T23:00`), borda = ev("b", `${dia}T22:00`, `${dia}T23:00`);
+    expect(separarCompromissos([dias, cedo, tarde, borda], dia)).toEqual({ faixa: [dias], horas: [borda] });
+  });
+  it("esconde o compromisso que já foi digitado: mesmo dia, até 30 min de diferença e título parecido", () => {
+    const e = ev("Reunião com a Beec", `${dia}T11:15`, `${dia}T12:00`);
+    const tarefa = (titulo: string, inicio: string) => ({ ...t("x", inicio), titulo });
+    expect(jaTemTarefa(e, [tarefa("reuniao beec", `${dia}T11:00`)])).toBe(true);
+    expect(jaTemTarefa(e, [tarefa("Reunião com a Beec", `${dia}T13:00`)])).toBe(false);
+    expect(jaTemTarefa(e, [tarefa("Ligar para o contador", `${dia}T11:00`)])).toBe(false);
+    expect(jaTemTarefa(ev("Feriado", dia, undefined, { diaInteiro: true }), [tarefa("Feriado", dia)])).toBe(true);
+    expect(titulosParecidos("Reunião com a Beec", "Reunião deodato")).toBe(false);
   });
 });
