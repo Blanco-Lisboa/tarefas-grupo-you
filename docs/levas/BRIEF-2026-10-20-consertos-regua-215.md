@@ -17,3 +17,10 @@ Commit "215-regua-1-5:" (pode ser mais de um).
 7. **Caderno: textos de ajuda com contraste ~3:1** ("Escreva o que quiser lembrar deste dia", "Recados soltos, que não são tarefa"). Tirar a opacidade 0,7 / usar cinza que dê ≥ 4,5:1, mantendo o ar de letra de mão. Commit "215-regua-7:".
 
 Todos: `npm run check` verde (cópia limpa se a pasta tiver lixo de outra sessão), commit pelo index SÓ com os seus arquivos (no 215 já houve commit levando arquivo de outro), nada de banco, nada de publicar. Responda SÓ na mensagem final: o que mudou, sha, fotos.
+
+---
+# Volta 2 · Sextante (Re-revisão 2 da Lupa, `docs/levas/2026-10-20-lupa-215.md`)
+1. **Calendário, 2+ cards na mesma hora:** "Carrossel: p" / "Depoimento" ainda não identifica a pauta. Com 2+ cards no mesmo horário e pouca largura, empilhar um embaixo do outro (cada um com a largura toda da coluna do dia, título em 1 linha) em vez de lado a lado; se não couber na altura da hora, mostrar "+N" que abre a lista. A prova tem de exigir o título inteiro legível (ou ≥ 18 caracteres), não só a 1ª palavra.
+2. **Ficha Postado, capa própria:** a trava de Postado só desliga a EDIÇÃO da capa (soltar arquivo, barrinha); a miniatura continua clicável para ver a capa em tamanho grande. Prova com um Reels Postado COM capa própria.
+- (Fila do Mapa sem pastas: segue decisão do Maestro, fora do pedido 213. Não fazer.)
+Commit "215-lupa-r2:". Responda SÓ na mensagem final.
