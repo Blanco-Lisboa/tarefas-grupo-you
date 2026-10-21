@@ -89,6 +89,9 @@
 .mapa-pasta .gf-barra, .mapa-pasta .gf-lista { display: none; } /* a lista "Ver todas" só existe na pasta aberta */
 /* a pasta aberta: grande, no centro da tela, com fundo que escurece de leve */
 .mapa-pasta-fundo { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 110px var(--s-16) var(--s-16); background: rgb(20 24 32 / .28); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); overflow-y: auto; }
+/* Item 215 volta 2: com a pasta aberta a página de trás fica parada (como na ficha, item 212); o espaço da barra de rolagem fica para nada pular */
+html:has(.mapa-pasta-fundo) { overflow: hidden; scrollbar-gutter: stable; }
+.mapa-pasta-fundo { overscroll-behavior: contain; }
 .mapa-pasta-grande { width: min(340px, calc(100vw - 32px)); margin-block: auto; }
 .mapa-postados { display: grid; gap: var(--s-8); margin-top: var(--s-16); }
 /* Brilho frio e discreto no fundo da linha do tempo. */

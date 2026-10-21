@@ -1,0 +1,35 @@
+// 215 volta 2 (Vitral novo 3): rolagem da página antes/depois de abrir a pasta do Mapa. App em 3472, banco-falso em 3299.
+import { createRequire } from "node:module";
+import { join } from "node:path";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+const exp = 1893456000, uid = "u-natham";
+const jwt = [b64({ alg: "HS256", typ: "JWT" }), b64({ sub: uid, exp, role: "authenticated", aud: "authenticated" }), b64("assinatura")].join(".");
+const sessao = { access_token: jwt, refresh_token: "x", expires_in: 3600, expires_at: exp, token_type: "bearer", user: { id: uid, aud: "authenticated", role: "authenticated", email: "f@e.invalid", app_metadata: {}, user_metadata: {}, created_at: "2026-10-19T00:00:00Z" } };
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const ctx = await nav.newContext({ viewport: { width: 1440, height: 760 } });
+await ctx.addCookies([{ name: "sb-127-auth-token", value: "base64-" + b64(sessao), domain: "127.0.0.1", path: "/" }]);
+const p = await ctx.newPage();
+await p.goto("http://127.0.0.1:3472/mapa", { waitUntil: "networkidle" });
+await p.waitForTimeout(1000);
+const medir = () => p.evaluate(() => ({ scrollY: Math.round(scrollY), faixa: document.querySelector(".mapa-faixa")?.style.transform || getComputedStyle(document.querySelector(".mapa-faixa")).transform, dia: [...document.querySelectorAll(".mapa-dia")].find((e) => e.getBoundingClientRect().left > 220)?.textContent }));
+await p.mouse.move(700, 400);
+await p.mouse.wheel(0, 700); await p.waitForTimeout(800);
+const antes = await medir();
+await p.locator(".mapa-pasta .gf-hit").nth(3).click(); // pasta visível na posição rolada
+await p.mouse.move(700, 600);
+await p.waitForTimeout(1500);
+const aberta = await p.locator(".mapa-pasta-grande").count();
+await p.mouse.wheel(0, 900); await p.waitForTimeout(800);
+const durante = await medir();
+await p.mouse.wheel(0, -900); await p.waitForTimeout(500);
+await p.keyboard.press("Escape"); await p.waitForTimeout(800);
+const depois = await medir();
+console.log("pasta aberta:", aberta === 1);
+console.log("antes de abrir  :", JSON.stringify(antes));
+console.log("aberta + roda   :", JSON.stringify(durante));
+console.log("depois de fechar:", JSON.stringify(depois));
+await p.mouse.wheel(0, 300); await p.waitForTimeout(600);
+console.log("volta a rolar   :", JSON.stringify(await medir()));
+await nav.close();
