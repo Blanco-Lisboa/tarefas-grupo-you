@@ -201,6 +201,26 @@ describe("postar-meta: Reels, Story e carrossel", () => {
     expect(m.linha("facebook")).toMatchObject({ status: "erro", erro: expect.stringContaining("só vai para o Instagram") });
   });
 
+  it("Facebook publica as fotos e responde HTTP 500: estado incerto, sem segundo post (achado da Lupa)", async () => {
+    const m = mundo();
+    m.meta.estado.feedPublicaE500 = true;
+    m.card({ formato: "post", postar_redes: ["facebook"] }, [{ tipo: "imagem", bytes: JPG }]);
+    await m.trabalhar(TAREFA);
+    expect(m.linha("facebook")).toMatchObject({ status: "erro", erro: expect.stringContaining("Estado incerto") });
+    await m.trabalhar(TAREFA);
+    expect(pubs(m, "facebook")).toHaveLength(1);
+  });
+
+  it("Facebook recusa as fotos com 4xx: nada saiu, tenta de novo 1 vez do zero", async () => {
+    const m = mundo();
+    m.card({ formato: "post", legenda: "ERRO-PNG", postar_redes: ["facebook"] }, [{ tipo: "imagem", bytes: JPG }]);
+    await m.trabalhar(TAREFA);
+    expect(m.linha("facebook")).toMatchObject({ status: "fila", conteiner_id: null });
+    await m.trabalhar(TAREFA);
+    expect(m.linha("facebook")).toMatchObject({ status: "erro", erro: expect.stringContaining("A Meta recusou") });
+    expect(pubs(m)).toHaveLength(0);
+  });
+
   it("Facebook caiu depois de subir as fotos: estado incerto, nunca reposta às cegas", async () => {
     const m = mundo();
     m.card({ formato: "post", postar_redes: ["facebook"] }, [{ tipo: "imagem", bytes: JPG }]);

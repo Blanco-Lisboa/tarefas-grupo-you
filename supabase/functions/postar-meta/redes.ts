@@ -214,7 +214,8 @@ export async function facebook(c: Ctx): Promise<Resultado> {
     c.log("publicou");
     return { fim: "postado", post_id: r.id, link: `https://www.facebook.com/${r.id}` };
   } catch (e) {
-    if (e instanceof ErroMeta) throw new ErroDescartado(e.http, e.codigo, e.sub, e.message); // recusa clara: não publicou
+    // Só recusa de validação (HTTP 4xx) prova que não saiu. 5xx, queda ou resposta sem status: pode ter publicado, nunca repostar sozinho.
+    if (e instanceof ErroMeta && e.http >= 400 && e.http < 500) throw new ErroDescartado(e.http, e.codigo, e.sub, e.message);
     throw new ErroIncerto(INCERTO_FB);
   }
 }

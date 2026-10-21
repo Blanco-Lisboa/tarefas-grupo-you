@@ -28,6 +28,7 @@ export function criarMetaFalsa(o = {}) {
     conferenciasAteFinished: o.conferenciasAteFinished ?? 1,
     falhasDeRede: 0, // próximas N chamadas falham como queda de conexão
     recusarFacebook: false, // a página recusa tudo (prova de "saiu numa rede, falhou na outra")
+    feedPublicaE500: false, // o /feed publica e mesmo assim responde HTTP 500 (como a Meta faz às vezes)
   };
   const json = (c, status = 200) => new Response(JSON.stringify(c), { status, headers: { "content-type": "application/json" } });
   const erro = (code, message, sub = 0, status = 400) => json({ error: { message, type: "OAuthException", code, error_subcode: sub } }, status);
@@ -137,6 +138,7 @@ export function criarMetaFalsa(o = {}) {
         if (!fotos.length || fotos.some((f) => !estado.fotosFb.has(f))) return erro(100, "Invalid attached_media");
         const id = `${PAGINA}_${novoId()}`;
         estado.publicacoes.push({ rede: "facebook", tipo: "feed", id, legenda: campos.message ?? "", fotos });
+        if (estado.feedPublicaE500) return erro(1, "An unknown error has occurred.", 0, 500);
         return json({ id });
       }
       if (aresta === "photo_stories") {
