@@ -48,9 +48,9 @@ export function PastaDoDia({ empresaId, ts, abrir }: { empresaId: string; ts: Ta
       <span className="gf-sheet-detalhe">
         {c.rede && <IconeRede rede={c.rede} tamanho={14} />}
         <span>{estadoDe(c)}</span>
+        {horaDe(c) && <span>· {horaDe(c)}</span>}
       </span>
     ),
-    corpo: horaDe(c) ? `Às ${horaDe(c)}` : undefined,
   }));
   const comum = {
     rotulo: nome,
@@ -73,7 +73,7 @@ export function PastaDoDia({ empresaId, ts, abrir }: { empresaId: string; ts: Ta
         // "Ver todas" e a lista ficam fora da pasta: sem isto, tocar neles fecharia tudo
         onPointerDown={(e) => { if ((e.target as Element).closest(".gf-barra, .gf-lista, .mapa-postados")) e.stopPropagation(); }}>
         <div className="mapa-pasta-grande">
-          <PastaDeVidro {...comum} defaultOpen tamanhoMax={440} seed={11} aoMudar={(a) => { if (!a) fechar(); }} onSelecionar={(a) => { const c = ts.find((x) => x.id === a.id); setGrande(false); if (c) abrir(c); }} />
+          <PastaDeVidro {...comum} defaultOpen seed={11} aoMudar={(a) => { if (!a) fechar(); }} onSelecionar={(a) => { const c = ts.find((x) => x.id === a.id); setGrande(false); if (c) abrir(c); }} />
           {postados.length > 0 && <div className="mapa-postados">{postados.map((c) => <PostadoNasRedes key={c.id} t={c} />)}</div>}
         </div>
       </div>,

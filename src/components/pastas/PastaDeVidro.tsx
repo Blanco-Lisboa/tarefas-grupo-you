@@ -15,8 +15,6 @@ export type ArquivoPasta = {
   meta?: string;
   /** No lugar do `meta` na folha (a lista "Ver todas" segue usando o `meta`). */
   detalhe?: ReactNode;
-  /** Texto na parte de baixo da folha (só a folha da frente aparece inteira). */
-  corpo?: ReactNode;
   arte: ArtRecipe;
 };
 
@@ -43,8 +41,6 @@ type Props = {
   folhasBrancas?: boolean;
   /** Mapa (213): pasta pequena de linha do tempo, com letras maiores para ler em tamanho reduzido. */
   miniatura?: boolean;
-  /** Largura máxima da pasta em px (padrão 340, o tamanho das Pastas). */
-  tamanhoMax?: number;
   /** Logo ao lado do nome, no rótulo. */
   selo?: ReactNode;
   /** Se dado, o clique na pasta chama isto em vez de abrir/fechar no lugar. */
@@ -62,7 +58,7 @@ const FRENTE = `M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 
 
 const leque = (i: number, n: number) => (n <= 1 ? 0 : (i / (n - 1)) * 2 - 1);
 
-export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes, aoNovaFolha, folhasBrancas, miniatura, tamanhoMax = W, selo, aoClicar, aoMudar }: Props) {
+export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes, aoNovaFolha, folhasBrancas, miniatura, selo, aoClicar, aoMudar }: Props) {
   const uid = useId().replace(/:/g, "");
   const raiz = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
@@ -79,12 +75,12 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
     if (!el) return;
     const medir = () => {
       setDpr(window.devicePixelRatio || 1);
-      setLargura(Math.max(120, Math.min(tamanhoMax, Math.floor(el.clientWidth))));
+      setLargura(Math.max(120, Math.min(340, Math.floor(el.clientWidth))));
     };
     const ro = new ResizeObserver(medir);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [tamanhoMax]);
+  }, []);
 
   // Entrada: a pasta se monta quando aparece na tela pela primeira vez.
   useEffect(() => {
@@ -228,8 +224,8 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
                     style={{
                   "--gf-slot": leque(v, visiveis.length),
                   "--gf-depth": visiveis.length - 1 - v,
-                  "--gf-jx": `${((jitter() - 0.5) * 10).toFixed(2)}px`,
-                  "--gf-jr": `${((jitter() - 0.5) * 3.2).toFixed(2)}deg`,
+                  "--gf-jx": `${(folhasBrancas ? 0 : (jitter() - 0.5) * 10).toFixed(2)}px`,
+                  "--gf-jr": `${(folhasBrancas ? 0 : (jitter() - 0.5) * 3.2).toFixed(2)}deg`,
                   zIndex: v + 1,
                     } as CSSProperties}
                   >
@@ -238,7 +234,6 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
                     <span className="gf-sheet-name">{f.nome}</span>
                     {f.detalhe ?? (f.meta ? <span className="gf-sheet-meta">{f.meta}</span> : null)}
                   </span>
-                  {f.corpo && <span className="gf-sheet-corpo">{f.corpo}</span>}
                   </button>
                 </div>
               );
