@@ -84,6 +84,14 @@ describe("cópia do navegador para o banco", () => {
     expect(tabelas.ideias).toHaveLength(0);
   });
 
+  it("ideia real com uuid começando por 5eed sobe; só o id de exemplo derivado é descartado (Lupa re-revisão 1)", async () => {
+    const real = "5eedc0de-1234-4abc-9def-0123456789ab";
+    const derivado = "5eed0005-0000-4000-8000-796f75000000";
+    guardado.set(CHAVE, JSON.stringify({ beec: [{ ...ex("beec", 1, "Formatos na prática", "Real"), id: real }, { ...ex("beec", 2, "Formatos na prática", "Derivado"), id: derivado }] }));
+    await (await import("./ideias")).carregarIdeias("beec");
+    expect(tabelas.ideias.map((l) => l.id)).toEqual([real]);
+  });
+
   it("se o banco recusar, avisa na tela, não marca como subiu e tenta de novo na próxima abertura (achado 4)", async () => {
     recusar.add("upsert:ideias");
     let m = await import("./ideias");

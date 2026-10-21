@@ -42,7 +42,8 @@ const paraBanco = (i: Omit<Ideia, "links"> & { links?: string[]; link?: string }
 const ehUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 /** Os exemplos do código tinham ids como "you-ideia-5" (ou o uuid derivado "5eed...", da cópia anterior). Eles já estão no banco:
  *  não sobem de novo, senão um exemplo apagado voltaria por outro endereço. */
-const ehExemplo = (id: string) => !ehUuid(id) || id.startsWith("5eed");
+// Só o formato completo que idDoExemplo gerava (5eedNNNN-0000-4000-8000-...): um uuid real que por acaso comece com "5eed" sobe normalmente.
+const ehExemplo = (id: string) => !ehUuid(id) || /^5eed[0-9a-f]{4}-0000-4000-8000-[0-9a-f]{12}$/i.test(id);
 
 const subidas = new Map<string, Promise<boolean>>();
 /** Uma vez por abertura e empresa: o que esta pessoa tinha guardado no navegador sobe para o banco sem pisar no que já está lá
