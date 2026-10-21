@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useState } from "react";
 import {
-  apagarDocumentoSolto, arvoreDePastas, criarOcasiao, enviarDocumentoNaPasta, ligarPermanente, renomearOcasiao,
-  useDocumentosSoltos, useEmpresas, useEu, useIdeias, useOcasioes, useTarefas,
-  type DocumentoSolto, type Empresa, type PastaConteudo, type PastaFormato, type PastaTema, type Tarefa,
+  apagarPastaLivre, arvoreDePastas, criarPastaLivre, ligarPermanente, ligarPermanentePastaLivre, pastasLivresDaEmpresa, renomearOcasiao, renomearPastaLivre,
+  useDocumentosSoltos, useEmpresas, useEu, useIdeias, useOcasioes, usePastasLivres, useTarefas,
+  type DocumentoSolto, type Empresa, type PastaConteudo, type PastaFormato, type PastaLivre, type PastaTema, type Tarefa,
 } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
@@ -12,14 +12,13 @@ import { SeloEmpresa } from "@/components/ui/Marca";
 import { receitaDaEmpresa, tomDaEmpresa } from "./cores";
 import { CardIdeias } from "./CardIdeias";
 import { CardFlutuante } from "./CardFlutuante";
+import { CardDocumento, CardNome, CardSubir, mensagem, type Destino } from "./CardsPasta";
 import { MenuPasta } from "./MenuPasta";
 import { PastaDeVidro } from "./PastaDeVidro";
 
 const MS_DIA = 86_400_000;
 const nIdeias = (n: number) => (n === 1 ? "1 ideia" : `${n} ideias`);
 const nItens = (n: number) => (n === 1 ? "1 item" : `${n} itens`);
-const drive = (id: string) => `https://drive.google.com/file/d/${id}/view`;
-const mensagem = (e: unknown, padrao: string) => (e instanceof Error ? e.message : padrao);
 
 /** "some em 3 dias" (o Drive manda para a lixeira 7 dias depois de Postado). Vazio quando não vence. */
 function someEm(c: PastaConteudo) {
@@ -33,16 +32,20 @@ const Cadeado = () => (
 );
 
 type Aberto = { conteudo: Tarefa } | { documento: DocumentoSolto } | { ideias: string | undefined };
-type Destino = { formato?: PastaFormato["formato"]; nomeFormato: string; tema: PastaTema };
 
 function Faixa({ empresa }: { empresa: Empresa }) {
   const eu = useEu();
   const { ideias } = useIdeias(empresa.id);
   const tarefas = useTarefas(), ocasioes = useOcasioes(), documentos = useDocumentosSoltos();
+  const pastasLivres = usePastasLivres();
+  const livres = pastasLivresDaEmpresa({ empresaId: empresa.id, pastas: pastasLivres, documentos });
   const arvore = arvoreDePastas({ empresaId: empresa.id, tarefas, ocasioes, documentos });
   const [escolhido, setEscolhido] = useState<string | undefined>();
   const [aberto, setAberto] = useState<Aberto | null>(null);
   const [novo, setNovo] = useState(false);
+  const [renomeandoLivre, setRenomeandoLivre] = useState<PastaLivre | null>(null);
+  const [desligandoLivre, setDesligandoLivre] = useState<PastaLivre | null>(null);
+  const [apagando, setApagando] = useState<PastaLivre | null>(null);
   const [renomeando, setRenomeando] = useState<PastaTema | null>(null);
   const [desligando, setDesligando] = useState<PastaTema | null>(null);
   const [subindo, setSubindo] = useState<Destino | null>(null);
@@ -53,11 +56,14 @@ function Faixa({ empresa }: { empresa: Empresa }) {
   const categorias = [...new Set(ideias.map((i) => i.categoria))];
   const chave = (f: PastaFormato) => f.formato ?? "sem";
   const itensDe = (f: PastaFormato) => f.temas.reduce((s, p) => s + p.conteudos.length + p.documentos.length, 0);
-  const total = arvore.reduce((s, f) => s + itensDe(f), 0);
+  const total = arvore.reduce((s, f) => s + itensDe(f), 0) + livres.reduce((s, l) => s + l.documentos.length, 0);
   // sem escolha, abre o primeiro formato que tem algo (senão o primeiro)
   const atual = arvore.find((f) => chave(f) === escolhido) ?? arvore.find((f) => itensDe(f) > 0) ?? arvore[0];
   const natham = eu === "natham";
 
+  const alternarLivre = async (p: PastaLivre) => {
+    try { await ligarPermanentePastaLivre(p.id, !p.permanente); } catch (e) { setAviso(mensagem(e, "Não consegui mudar o Permanente.")); }
+  };
   const alternarPermanente = async (p: PastaTema) => {
     if (!p.ocasiao) return;
     try { await ligarPermanente(p.ocasiao.id, !p.permanente); } catch (e) { setAviso(mensagem(e, "Não consegui mudar o Permanente.")); }
@@ -67,7 +73,7 @@ function Faixa({ empresa }: { empresa: Empresa }) {
     <div className="pastas-empresa">
       <h2>
         <SeloEmpresa empresaId={empresa.id} nome={empresa.nome} tamanho={28} comNome /> <small>{nItens(total)}</small>
-        <button type="button" className="btn pastas-nova" onClick={() => setNovo(true)}>+ Novo tema</button>
+        <button type="button" className="btn pastas-nova" onClick={() => setNovo(true)}>+ Nova pasta</button>
       </h2>
 
       <div className="pastas-grade">
@@ -86,6 +92,36 @@ function Faixa({ empresa }: { empresa: Empresa }) {
             />
           </div>
         ))}
+        {livres.map(({ pasta, documentos: docs }, i) => {
+          const podeLigar = !pasta.permanente || natham; // só o Natham desliga: o banco recusa os outros
+          return (
+            <div key={pasta.id} className="pastas-cel">
+              <PastaDeVidro
+                rotulo={pasta.nome}
+                legenda={docs.length === 0 ? "Pasta vazia" : docs.length === 1 ? "1 arquivo" : `${docs.length} arquivos`}
+                vazio="Nada aqui ainda. Suba um arquivo."
+                tom={tom}
+                arte={receitaDaEmpresa("post", empresa.id)}
+                seed={53 + i * 4}
+                atraso={(arvore.length + i) * 120}
+                selo={pasta.permanente ? <Cadeado /> : undefined}
+                rotuloNova="+ Subir arquivo"
+                aoNovaFolha={() => setSubindo({ pasta })}
+                acoes={
+                  <MenuPasta
+                    nome={pasta.nome}
+                    aoRenomear={() => setRenomeandoLivre(pasta)}
+                    aoExcluir={() => (pasta.permanente ? setAviso("Esta pasta tem cadeado. Desligue o Permanente para apagar.") : setApagando(pasta))}
+                    rotuloExcluir="Apagar pasta"
+                    itens={podeLigar ? [{ rotulo: "Permanente", marcado: pasta.permanente, aoEscolher: () => (pasta.permanente ? setDesligandoLivre(pasta) : void alternarLivre(pasta)) }] : []}
+                  />
+                }
+                arquivos={docs.map((d) => ({ id: d.id, nome: d.nome, meta: d.tamanho ? `${(d.tamanho / 1_000_000).toFixed(1).replace(".", ",")} MB` : "Arquivo", arte: receitaDaEmpresa("post", empresa.id) }))}
+                onSelecionar={(a) => { const d = docs.find((x) => x.id === a.id); if (d) setAberto({ documento: d }); }}
+              />
+            </div>
+          );
+        })}
         {/* Ideias de conteúdo: pasta como as outras, a última da fileira; fora do Drive */}
         <div className="pastas-cel">
           <PastaDeVidro
@@ -94,7 +130,7 @@ function Faixa({ empresa }: { empresa: Empresa }) {
             tom={tom}
             arte={receitaDaEmpresa("story", empresa.id)}
             seed={19}
-            atraso={arvore.length * 120}
+            atraso={(arvore.length + livres.length) * 120}
             arquivos={categorias.map((c) => ({ nome: c, meta: nIdeias(ideias.filter((x) => x.categoria === c).length), arte: receitaDaEmpresa("story", empresa.id) }))}
             onSelecionar={(a) => setAberto({ ideias: a.nome })}
           />
@@ -104,7 +140,7 @@ function Faixa({ empresa }: { empresa: Empresa }) {
       {atual && (
         <section className="pastas-temas" aria-label={`Temas de ${atual.nome}`}>
           <h3>{atual.nome} <small>temas</small></h3>
-          {atual.temas.length === 0 && <p className="pastas-vazio">Nenhum tema aqui ainda. Crie um em “+ Novo tema”.</p>}
+          {atual.temas.length === 0 && <p className="pastas-vazio">Nenhum tema aqui ainda. Crie um na ficha de um conteúdo.</p>}
           <div className="pastas-grade">
             {atual.temas.map((p, i) => {
               const n = p.conteudos.length + p.documentos.length;
@@ -114,14 +150,12 @@ function Faixa({ empresa }: { empresa: Empresa }) {
                   <PastaDeVidro
                     rotulo={p.nome}
                     legenda={p.vazio ? "Tema vazio" : nItens(n)}
-                    vazio="Nada aqui ainda. Suba um documento."
+                    vazio="Nada aqui ainda."
                     tom={tom}
                     arte={arte}
                     seed={31 + i * 4}
                     atraso={i * 120}
                     selo={p.permanente ? <Cadeado /> : undefined}
-                    rotuloNova="+ Subir documento"
-                    aoNovaFolha={() => setSubindo({ formato: atual.formato, nomeFormato: atual.nome, tema: p })}
                     acoes={p.ocasiao ? (
                       <MenuPasta
                         nome={p.nome}
@@ -148,17 +182,48 @@ function Faixa({ empresa }: { empresa: Empresa }) {
 
       {novo && (
         <CardNome
-          titulo="Novo tema"
-          botao="Criar tema"
+          titulo="Nova pasta"
+          coisa="pasta"
+          botao="Criar pasta"
           comPermanente
-          emUso={(n) => ocasioes.some((o) => o.empresaId === empresa.id && o.nome.trim().toLowerCase() === n.toLowerCase())}
-          aoSalvar={async (n, permanente) => { await criarOcasiao(empresa.id, n, permanente); setNovo(false); }}
+          emUso={(n) => pastasLivres.some((o) => o.empresaId === empresa.id && o.nome.trim().toLowerCase() === n.toLowerCase())}
+          aoSalvar={async (n, permanente) => { await criarPastaLivre(empresa.id, n, permanente); setNovo(false); }}
           aoFechar={() => setNovo(false)}
         />
+      )}
+      {renomeandoLivre && (
+        <CardNome
+          titulo="Renomear pasta"
+          coisa="pasta"
+          botao="Salvar"
+          inicial={renomeandoLivre.nome}
+          emUso={(n) => pastasLivres.some((o) => o.empresaId === empresa.id && o.id !== renomeandoLivre.id && o.nome.trim().toLowerCase() === n.toLowerCase())}
+          aoSalvar={async (n) => { await renomearPastaLivre(renomeandoLivre.id, n); setRenomeandoLivre(null); }}
+          aoFechar={() => setRenomeandoLivre(null)}
+        />
+      )}
+      {desligandoLivre && (
+        <CardFlutuante titulo="Desligar Permanente" aoFechar={() => setDesligandoLivre(null)}>
+          <p className="pasta-texto">Sem o cadeado, a pasta “{desligandoLivre.nome}” poderá ser apagada com tudo o que tem nela. Nada sai sozinho.</p>
+          <div className="ideia-acoes">
+            <button type="button" className="btn pasta-perigo" onClick={() => { const p = desligandoLivre; setDesligandoLivre(null); void alternarLivre(p); }}>Desligar</button>
+            <button type="button" className="btn btn-2" autoFocus onClick={() => setDesligandoLivre(null)}>Manter permanente</button>
+          </div>
+        </CardFlutuante>
+      )}
+      {apagando && (
+        <CardFlutuante titulo="Apagar pasta" aoFechar={() => setApagando(null)}>
+          <p className="pasta-texto">Apagar a pasta “{apagando.nome}” e tudo o que tem nela? Vai para a lixeira do Drive.</p>
+          <div className="ideia-acoes">
+            <button type="button" className="btn pasta-perigo" onClick={async () => { const p = apagando; setApagando(null); try { await apagarPastaLivre(p.id); } catch (e) { setAviso(mensagem(e, "Não consegui apagar a pasta.")); } }}>Apagar pasta</button>
+            <button type="button" className="btn btn-2" autoFocus onClick={() => setApagando(null)}>Manter</button>
+          </div>
+        </CardFlutuante>
       )}
       {renomeando?.ocasiao && (
         <CardNome
           titulo="Renomear tema"
+          coisa="tema"
           botao="Salvar"
           inicial={renomeando.nome}
           emUso={(n) => ocasioes.some((o) => o.empresaId === empresa.id && o.id !== renomeando.ocasiao?.id && o.nome.trim().toLowerCase() === n.toLowerCase())}
@@ -190,103 +255,6 @@ function Faixa({ empresa }: { empresa: Empresa }) {
       {aberto && "documento" in aberto && <CardDocumento doc={aberto.documento} aoFechar={() => setAberto(null)} />}
       {aberto && "ideias" in aberto && <CardIdeias empresaId={empresa.id} inicio={aberto.ideias} aoFechar={() => setAberto(null)} />}
     </div>
-  );
-}
-
-function CardNome({ titulo, botao, inicial = "", comPermanente, emUso, aoSalvar, aoFechar }: {
-  titulo: string; botao: string; inicial?: string; comPermanente?: boolean;
-  emUso: (n: string) => boolean; aoSalvar: (n: string, permanente: boolean) => void | Promise<void>; aoFechar: () => void;
-}) {
-  const [erro, setErro] = useState("");
-  const [permanente, setPermanente] = useState(false);
-  const campo = useRef<HTMLInputElement>(null);
-  // o <dialog> só abre depois deste efeito e leva o foco para o X: o foco no campo vem em seguida
-  useEffect(() => {
-    const t = setTimeout(() => { campo.current?.focus(); campo.current?.select(); });
-    return () => clearTimeout(t);
-  }, []);
-  const enviar = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const n = String(new FormData(e.currentTarget).get("nome")).trim();
-    if (!n) return setErro("Escreva um nome para o tema.");
-    if (emUso(n)) return setErro("Já existe um tema com esse nome nesta empresa.");
-    Promise.resolve(aoSalvar(n, permanente)).catch((x: unknown) => setErro(mensagem(x, "Não consegui salvar.")));
-  };
-  return (
-    <CardFlutuante titulo={titulo} aoFechar={aoFechar}>
-      <form className="ideia-form" onSubmit={enviar}>
-        <label>Nome do tema<input ref={campo} name="nome" maxLength={40} defaultValue={inicial} aria-invalid={!!erro} onChange={() => setErro("")} /></label>
-        {comPermanente && (
-          <label className="pasta-interruptor">
-            <input type="checkbox" role="switch" checked={permanente} onChange={(e) => setPermanente(e.target.checked)} />
-            <span className="pasta-trilho" aria-hidden="true" />
-            <span><strong>Permanente</strong><small>Os conteúdos postados deste tema ficam no Drive, sem apagar em 7 dias.</small></span>
-          </label>
-        )}
-        {erro && <p className="pasta-erro" role="alert">{erro}</p>}
-        <button type="submit" className="btn">{botao}</button>
-      </form>
-    </CardFlutuante>
-  );
-}
-
-function CardSubir({ empresaId, destino, aoFechar }: { empresaId: string; destino: Destino; aoFechar: () => void }) {
-  const [envio, setEnvio] = useState<{ nome: string; fracao: number } | null>(null);
-  const [erro, setErro] = useState("");
-  const [feito, setFeito] = useState("");
-  const subir = async (arquivo: File) => {
-    setErro(""); setFeito(""); setEnvio({ nome: arquivo.name, fracao: 0 });
-    try {
-      await enviarDocumentoNaPasta({ empresaId, formato: destino.formato, ocasiaoId: destino.tema.ocasiao?.id }, arquivo, (fracao) => setEnvio({ nome: arquivo.name, fracao }));
-      setFeito(arquivo.name);
-    } catch (e) {
-      setErro(mensagem(e, "Não consegui enviar o documento."));
-    }
-    setEnvio(null);
-  };
-  const pct = envio ? Math.round(envio.fracao * 100) : 0;
-  return (
-    <CardFlutuante titulo="Subir documento" aoFechar={aoFechar}>
-      <p className="pasta-texto">Vai direto para <strong>{destino.nomeFormato} › {destino.tema.nome}</strong> no Drive. Não vence em 7 dias: só sai quando alguém apagar.</p>
-      <label className="btn btn-2 pasta-escolher" aria-disabled={!!envio}>
-        Escolher arquivo
-        <input type="file" disabled={!!envio} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void subir(f); }} />
-      </label>
-      {envio && (
-        <div className="pasta-progresso" role="status">
-          <span>{envio.nome}</span>
-          <progress max={100} value={pct} aria-label={`Enviando ${envio.nome}`} />
-          <small>{pct}%</small>
-        </div>
-      )}
-      {feito && <p className="pasta-texto" role="status">“{feito}” enviado.</p>}
-      {erro && <p className="pasta-erro" role="alert">{erro}</p>}
-    </CardFlutuante>
-  );
-}
-
-function CardDocumento({ doc, aoFechar }: { doc: DocumentoSolto; aoFechar: () => void }) {
-  const [confirmando, setConfirmando] = useState(false);
-  const [erro, setErro] = useState("");
-  const apagar = async () => {
-    try { await apagarDocumentoSolto(doc.id); aoFechar(); } catch (e) { setErro(mensagem(e, "Não consegui apagar.")); }
-  };
-  return (
-    <CardFlutuante titulo={doc.nome} aoFechar={aoFechar}>
-      <p className="pasta-texto">{doc.tamanho ? `${(doc.tamanho / 1_000_000).toFixed(1).replace(".", ",")} MB · ` : ""}Documento solto na pasta, não vence em 7 dias.</p>
-      {erro && <p className="pasta-erro" role="alert">{erro}</p>}
-      {confirmando ? (
-        <div className="ideia-acoes">
-          <button type="button" className="btn pasta-perigo" onClick={apagar}>Apagar do Drive</button>
-          <button type="button" className="btn btn-2" autoFocus onClick={() => setConfirmando(false)}>Manter</button>
-        </div>
-      ) : (
-        <div className="ideia-acoes">
-          <a className="btn" href={drive(doc.driveId)} target="_blank" rel="noopener noreferrer">Abrir no Drive</a>
-          <button type="button" className="btn btn-2 pasta-excluir" onClick={() => setConfirmando(true)}>Apagar</button>
-        </div>
-      )}
-    </CardFlutuante>
   );
 }
 

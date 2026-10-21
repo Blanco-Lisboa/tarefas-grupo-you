@@ -6,7 +6,7 @@ import "@/components/tarefas/caderno.css";
 // ⋮ da pasta: Renomear e Excluir, com a mesma pele do menu das tarefas (popover do navegador: Esc e clique fora fecham).
 export type ItemMenu = { rotulo: string; marcado?: boolean; aoEscolher: () => void };
 
-export function MenuPasta({ nome, aoRenomear, aoExcluir, itens = [] }: { nome: string; aoRenomear: () => void; aoExcluir?: () => void; itens?: ItemMenu[] }) {
+export function MenuPasta({ nome, aoRenomear, aoExcluir, rotuloExcluir = "Excluir", itens = [] }: { nome: string; aoRenomear: () => void; aoExcluir?: () => void; rotuloExcluir?: string; itens?: ItemMenu[] }) {
   const uid = useId();
   const ancora = `--menu-${uid.replace(/[^\w-]/g, "")}`;
   const id = `${uid}-menu`;
@@ -30,7 +30,7 @@ export function MenuPasta({ nome, aoRenomear, aoExcluir, itens = [] }: { nome: s
           ))}
           {aoExcluir && <button type="button" className="selecao-opcao mt-perigo" onClick={escolher(aoExcluir)}>
             <svg className="mt-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4" /></svg>
-            <span className="selecao-opcao-rotulo">Excluir</span>
+            <span className="selecao-opcao-rotulo">{rotuloExcluir}</span>
           </button>}
         </div>
       </div>

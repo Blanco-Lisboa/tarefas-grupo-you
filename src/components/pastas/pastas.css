@@ -168,12 +168,12 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .pastas-vazio { margin: 0; color: var(--fraco); }
 
 .pastas-empresa { display: grid; gap: 0; padding-top: var(--s-8); border-top: 1px solid var(--linha); }
-.pastas-empresa h2 { margin: 0; display: flex; align-items: center; gap: var(--s-12); font-size: var(--app-t-secao); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); color: var(--texto); }
+.pastas-empresa h2 { position: relative; z-index: 2; margin: 0; display: flex; align-items: center; gap: var(--s-12); font-size: var(--app-t-secao); font-weight: var(--titulo-peso); letter-spacing: var(--titulo-espaco); color: var(--texto); }
 .pastas-empresa h2 small { font-size: var(--app-t-rotulo); font-weight: 500; color: var(--fraco); }
 /* o topo vazio de cada pasta (reservado ao leque) sobe por cima da linha do título; o leque aberto cobre o título */
 .pastas-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s-8) var(--s-24); margin-top: calc(-1 * var(--s-24)); padding: 0 0 var(--s-48); }
 /* telas largas: as pastas de uma empresa numa linha só (6 na You, a partir de 1800) */
-@media (min-width: 1400px) { .pastas-grade { grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: var(--s-16); } }
+@media (min-width: 1400px) { .pastas-grade { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); column-gap: var(--s-16); } } /* formatos, pastas livres e Ideias: 7 por linha em 1440, sem cair uma para a linha de baixo */
 .pastas-cel { min-width: 0; display: flex; flex-direction: column; align-items: stretch; }
 
 /* ver todas: lista completa da pasta, para baixar quando passa das 4 do leque */
