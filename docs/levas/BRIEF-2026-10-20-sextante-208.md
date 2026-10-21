@@ -36,3 +36,10 @@ Pente fino da ficha inteira, olhando o print:
 - Capa do Reels: miniatura, barrinha e textos alinhados com o resto; "Capa própria" e "Anexos" com a mesma largura/margem dos campos.
 - Mesma margem esquerda e direita em todos os campos e blocos da ficha; espaçamento igual entre seções; nada encostando.
 - Prova: foto da ficha inteira (rolando) antes/depois em 1440, olhada por você.
+
+---
+# Acréscimo · item 211
+Print: `docs/referencias/2026-10-20-item-208/4-legenda.png`. Palavras dele: "Não é legenda, é 'Descrição do post'".
+- Trocar o rótulo "Legenda" por "Descrição do post" em TODA a tela (ficha, checagem do que falta no Programar, avisos, textos de ajuda). Contador 2200 continua.
+- Só texto visível: nome de coluna/variável no banco NÃO muda.
+- Prova: `grep -rn "egenda" src/` mostrando que não sobrou nenhum texto visível com "Legenda".
