@@ -178,9 +178,10 @@ html:has(.ficha[open]) { overflow: hidden; scrollbar-gutter: stable; }
 .ficha-legenda-post { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--s-8); }
 .ficha-legenda-post small { color: var(--fraco); font: 500 var(--t-12) var(--fonte); font-variant-numeric: tabular-nums; }
 .ficha-capa { border: 0; padding: 0; margin: 0; min-width: 0; }
-/* Capa travada (post publicado, ou Aprovado para quem não aprova): sem a área de soltar nem o × da capa, só o que vale */
-.ficha-capa:disabled :is(.ficha-anexo-solta, .ficha-anexo-tirar) { display: none; }
-.ficha-capa:disabled .ficha-anexos:not(:has(.ficha-anexo)) { display: none; } /* sem capa própria: a linha vazia não deixa vão */
+/* Capa travada (post publicado, ou Aprovado para quem não aprova): sem a área de soltar nem o × da capa, só o que vale;
+   a miniatura continua um botão que abre a capa grande (Lupa 215 r2: com o fieldset desligado, ela também desligava) */
+.ficha-capa[data-travada] :is(.ficha-anexo-solta, .ficha-anexo-tirar) { display: none; }
+.ficha-capa[data-travada] .ficha-anexos:not(:has(.ficha-anexo)) { display: none; } /* sem capa própria: a linha vazia não deixa vão */
 .ficha-capa-quadro { display: flex; gap: var(--s-16); align-items: flex-start; }
 /* Régua 215 (achado 4): miniatura com a altura dos controles ao lado (54 x 96), sem vão embaixo deles */
 .ficha-capa-quadro video, .ficha-capa-vazio { flex: none; width: 54px; aspect-ratio: 9 / 16; border-radius: 8px; background: #000; object-fit: cover; }

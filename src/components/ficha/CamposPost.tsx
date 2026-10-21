@@ -19,11 +19,12 @@ export function CamposPost({ t, arquivos, travado, postado, mudar, aoMudarCapa }
           placeholder="O texto que vai junto do post no Instagram e no Facebook" />
       </label>
       {t.formato === "reels" && (
-        <fieldset className="ficha-campo ficha-capa" disabled={travado || postado}>
+        // Travada (Postado, ou Aprovado para quem não aprova) só tira a EDIÇÃO (soltar, ×, barrinha); a miniatura segue abrindo a capa grande (Lupa 215 r2)
+        <fieldset className="ficha-campo ficha-capa" data-travada={travado || postado || undefined}>
           <legend>Capa do Reels</legend>
           {/* Capa própria: 1 imagem 9:16 que eles fazem (Vitral sobe para o Drive); trocar substitui a antiga */}
           <Anexos valor={capa ? [capa] : []} aoMudar={aoMudarCapa} papel="capa" empresaId={t.empresaId} />
-          {capa ? <p className="ficha-dica">Com capa própria, ela vence o quadro do vídeo. No Facebook sai o quadro que a Meta escolher.</p>
+          {capa ? <p className="ficha-dica">{postado ? "Capa própria usada no post." : "Com capa própria, ela vence o quadro do vídeo. No Facebook sai o quadro que a Meta escolher."}</p>
             : video ? <CapaQuadro key={video.id ?? video.url} video={video} valor={t.capaQuadroMs} travado={travado || postado} aoMudar={(ms) => mudar("capaQuadroMs", ms)} />
             : postado ? <p className="ficha-dica">Post publicado. O vídeo não está nos anexos desta ficha.</p>
             : <p className="ficha-dica">Anexe o vídeo para escolher o quadro da capa (sem escolha, vai o primeiro quadro).</p>}

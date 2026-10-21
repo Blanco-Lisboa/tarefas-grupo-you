@@ -1,0 +1,21 @@
+   1440 dois às 09:00: [{"titulo":"Carrossel: prazo do MEI","tamanho":23,"visiveis":20,"largura":158,"topo":395},{"titulo":"Depoimento de cliente","tamanho":21,"visiveis":19,"largura":158,"topo":419}]
+OK depois: 1440 dois no mesmo horário: título inteiro ou ≥ 18 caracteres (20/23, 19/21)
+   1440 três às 09:00: [{"titulo":"Carrossel: prazo do MEI","tamanho":23,"visiveis":20,"largura":158,"topo":395}] mais: +2 tarefas
+OK depois: 1440 três no mesmo horário: os visíveis legíveis e um "+N" (20/23; +2 tarefas)
+OK depois: 1440 lista do "+N" com hora e nome inteiro (09:00
+Depoimento de cliente | 09:00
+Reels: dica de pró-labore)
+OK depois: 1440 clicar na lista abre a ficha
+OK depois: 1440 Postado com capa própria: miniatura ligada, sem soltar nem × ({"mini":1,"desligada":false,"soltar":false,"tirar":false,"texto":"Capa própria usada no post."})
+OK depois: 1440 clicar na miniatura abre a capa grande
+   1903 dois às 09:00: [{"titulo":"Carrossel: prazo do MEI","tamanho":23,"visiveis":23,"largura":224,"topo":395},{"titulo":"Depoimento de cliente","tamanho":21,"visiveis":21,"largura":224,"topo":419}]
+OK depois: 1903 dois no mesmo horário: título inteiro ou ≥ 18 caracteres (23/23, 21/21)
+   1903 três às 09:00: [{"titulo":"Carrossel: prazo do MEI","tamanho":23,"visiveis":23,"largura":224,"topo":395}] mais: +2 tarefas
+OK depois: 1903 três no mesmo horário: os visíveis legíveis e um "+N" (23/23; +2 tarefas)
+OK depois: 1903 lista do "+N" com hora e nome inteiro (09:00
+Depoimento de cliente | 09:00
+Reels: dica de pró-labore)
+OK depois: 1903 clicar na lista abre a ficha
+OK depois: 1903 Postado com capa própria: miniatura ligada, sem soltar nem × ({"mini":1,"desligada":false,"soltar":false,"tirar":false,"texto":"Capa própria usada no post."})
+OK depois: 1903 clicar na miniatura abre a capa grande
+TUDO OK

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { agendaPorDia, andar, diasCobertos, eventoNoTopo, ultimoDia, diasDoMes, esperarFimDoArraste, faixas, inicioSemana, mover, paraDia, tituloPeriodo, vaiProGoogle } from "./logica";
+import { agendaPorDia, andar, diasCobertos, eventoNoTopo, ultimoDia, diasDoMes, empilhar, esperarFimDoArraste, faixas, inicioSemana, mover, paraDia, tituloPeriodo, vaiProGoogle } from "./logica";
 
 const base: Tarefa = {
   id: "x", titulo: "Gravar", tipo: "gravacao", empresaId: "beec", responsavel: "matheus",
@@ -41,6 +41,19 @@ describe("calendário", () => {
     expect(diasCobertos({ ...base, fim: "2026-10-11T12:00" })).toEqual(["2026-10-09", "2026-10-10", "2026-10-11"]);
     const r = faixas([{ ini: 0, fim: 60 }, { ini: 30, fim: 90 }, { ini: 120, fim: 150 }]);
     expect(r.map((x) => [x.faixa, x.total])).toEqual([[0, 2], [1, 2], [0, 1]]);
+  });
+
+  it("semana: curtas no mesmo horário empilham na largura toda; o que não cabe até a próxima vira +N (Régua 215 v2)", () => {
+    const como = (ps: ReturnType<typeof empilhar>) => ps.map((p) => ("mais" in p ? `+${p.mais.length}@${p.topo}` : `${p.topo}:${p.faixa}/${p.total}`));
+    // 09:00 duas de 30 min, nada depois: duas linhas (09:00 e 09:30), cada uma com a largura toda
+    expect(como(empilhar(faixas([{ ini: 540, fim: 570 }, { ini: 540, fim: 570 }]), true))).toEqual(["540:0/1", "570:0/1"]);
+    // três às 09:00: cabem 2 linhas em 1 h -> uma tarefa e "+2"
+    expect(como(empilhar(faixas([{ ini: 540, fim: 570 }, { ini: 540, fim: 570 }, { ini: 540, fim: 570 }]), true))).toEqual(["540:0/1", "+2@570"]);
+    // outra tarefa às 09:30: só 1 linha livre -> "+2" no lugar das duas
+    expect(como(empilhar(faixas([{ ini: 540, fim: 570 }, { ini: 540, fim: 570 }, { ini: 570, fim: 600 }]), true))).toEqual(["+2@540", "570:0/1"]);
+    // longa (1 h) junto, ou visão Dia (desligado): continua lado a lado
+    expect(como(empilhar(faixas([{ ini: 540, fim: 600 }, { ini: 540, fim: 570 }]), true))).toEqual(["540:0/2", "540:1/2"]);
+    expect(como(empilhar(faixas([{ ini: 540, fim: 570 }, { ini: 540, fim: 570 }]), false))).toEqual(["540:0/2", "540:1/2"]);
   });
 
   it("fim do arraste: chama uma vez só e, parado (tela saiu), não chama mais", () => {

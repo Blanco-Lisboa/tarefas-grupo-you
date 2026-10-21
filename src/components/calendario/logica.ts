@@ -135,6 +135,30 @@ export function faixas<T extends { ini: number; fim: number }>(itens: T[]) {
   return saida;
 }
 
+/** Régua 215 v2: na semana (coluna estreita), tarefas curtas (até 45 min) que dividem o horário não ficam lado a lado (o
+    nome não cabia): viram uma pilha na largura toda do dia, uma por linha de 30 min, até a próxima tarefa ou 1 h. O que não
+    cabe vira a linha "+N" (`mais`), que abre a lista. Fora disso, cada item fica na faixa de `faixas`. Tudo em minutos. */
+export type Posto<T> = { it: T; topo: number; altura: number; faixa: number; total: number } | { mais: T[]; topo: number; altura: number };
+export function empilhar<T extends { ini: number; fim: number; faixa: number; total: number }>(itens: T[], ligado: boolean): Posto<T>[] {
+  const normal = (it: T): Posto<T> => ({ it, topo: it.ini, altura: it.fim - it.ini, faixa: it.faixa, total: it.total });
+  if (!ligado) return itens.map(normal);
+  const grupos: T[][] = [];
+  let fim = -1;
+  for (const it of [...itens].sort((a, b) => a.ini - b.ini || b.fim - a.fim)) {
+    if (it.ini >= fim) grupos.push([it]);
+    else grupos.at(-1)!.push(it);
+    fim = Math.max(it.ini >= fim ? it.fim : fim, it.fim);
+  }
+  return grupos.flatMap((g, i) => {
+    if (g.length < 2 || g.some((it) => it.fim - it.ini > 45)) return g.map(normal);
+    const ini = g[0].ini, proxima = grupos[i + 1]?.[0].ini ?? Infinity;
+    const linhas = Math.max(1, Math.floor(Math.min(60, proxima - ini) / 30));
+    const cabem = g.length <= linhas ? g.length : linhas - 1;
+    const postos: Posto<T>[] = g.slice(0, cabem).map((it, k) => ({ it, topo: ini + k * 30, altura: 30, faixa: 0, total: 1 }));
+    return cabem < g.length ? [...postos, { mais: g.slice(cabem), topo: ini + cabem * 30, altura: 30 }] : postos;
+  });
+}
+
 /** Espera o fim de um arraste (drop ou dragend, os dois chegam na janela) e chama `fim` uma vez só. Devolve como parar
     de esperar, para quem sai da tela no meio do arraste: sem isso os ouvintes ficavam presos na janela. */
 export function esperarFimDoArraste(janela: EventTarget, fim: () => void) {

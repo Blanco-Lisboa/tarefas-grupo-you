@@ -1,12 +1,13 @@
 "use client";
-import { useEffect, useRef, type CSSProperties, type DragEvent, type MouseEvent } from "react";
+import { useEffect, useId, useRef, type CSSProperties, type DragEvent, type MouseEvent } from "react";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
 import { Compromisso } from "./Compromisso";
 import { CriarAqui, Evento, useSoltar, type Acoes } from "./Evento";
-import { comMinuto, eventoNoTopo, faixas, minutoDoDia, nomeSemana, variosDias } from "./logica";
+import { comMinuto, empilhar, eventoNoTopo, faixas, horaCurta, minutoDoDia, nomeSemana, variosDias } from "./logica";
 
 // Visões DIA e SEMANA: grade de horários (1 hora = 48px), tarefas de dia inteiro no topo. Os compromissos do Google
-// (item 190) entram na mesma grade, lado a lado com as tarefas quando o horário cruza.
+// (item 190) entram na mesma grade, lado a lado com as tarefas quando o horário cruza. Na semana, as curtas do mesmo
+// horário empilham na largura do dia (empilhar, Régua 215 v2) e o que não cabe vira "+N" com a lista.
 const HORA = 48;
 const PX = HORA / 60;
 const HORAS = Array.from({ length: 24 }, (_, h) => h);
@@ -92,15 +93,16 @@ export function Grade({ dias, mapa, agenda, agora, acoes }: Props) {
                   })}
                 >
                   <CriarAqui destino={{ dia, minuto: 9 * 60 }} criar={acoes.criar} style={{ top: 9 * HORA + 4 }} />
-                  {itens.map((it) => {
-                    const { ini, fim, faixa, total } = it;
+                  {empilhar(itens, dias.length > 1).map((p) => {
                     const style = {
-                      top: ini * PX, height: (fim - ini) * PX - 2,
-                      left: `calc(${(faixa / total) * 100}% + 2px)`, width: `calc(${100 / total}% - 4px)`,
+                      top: p.topo * PX, height: p.altura * PX - 2,
+                      left: "mais" in p ? "2px" : `calc(${(p.faixa / p.total) * 100}% + 2px)`, width: "mais" in p ? "calc(100% - 4px)" : `calc(${100 / p.total}% - 4px)`,
                     };
+                    if ("mais" in p) return <Mais key={`mais-${p.topo}`} itens={p.mais} abrir={acoes.abrir} style={style} />;
+                    const { it } = p, curto = it.fim - it.ini <= 45;
                     return "e" in it
-                      ? <Compromisso key={`g-${it.e.id}`} e={it.e} modo="bloco" curto={fim - ini <= 45} style={style} />
-                      : <Evento key={it.t.id} t={it.t} modo="bloco" curto={fim - ini <= 45} abrir={acoes.abrir} style={style} />;
+                      ? <Compromisso key={`g-${it.e.id}`} e={it.e} modo="bloco" curto={curto} style={style} />
+                      : <Evento key={it.t.id} t={it.t} modo="bloco" curto={curto} abrir={acoes.abrir} style={style} />;
                   })}
                   {fantasma !== null && (
                     <div className="grade-fantasma" style={{ top: fantasma * PX, height: HORA }}>{comMinuto(dia, fantasma).slice(11)}</div>
@@ -113,5 +115,28 @@ export function Grade({ dias, mapa, agenda, agora, acoes }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+/** "+N" das curtas do mesmo horário que não couberam na pilha: abre a lista com hora e nome inteiro; tarefa abre a ficha. */
+function Mais({ itens, abrir, style }: { itens: ({ t: Tarefa } | { e: EventoAgenda })[]; abrir: Acoes["abrir"]; style: CSSProperties }) {
+  const id = useId().replace(/[^\w-]/g, "");
+  const lista = useRef<HTMLDivElement>(null);
+  const nome = (x: { t: Tarefa } | { e: EventoAgenda }) => ("t" in x ? x.t.titulo : x.e.titulo);
+  const hora = (x: { t: Tarefa } | { e: EventoAgenda }) => horaCurta("t" in x ? x.t.inicio! : x.e.inicio);
+  return (
+    <>
+      <button type="button" className="grade-mais" popoverTarget={`mais-${id}`} aria-label={`Mais ${itens.length} às ${hora(itens[0])}`}
+        style={{ ...style, anchorName: `--mais-${id}` } as CSSProperties} onClick={(e) => e.stopPropagation()}>
+        +{itens.length} {itens.length === 1 ? "tarefa" : "tarefas"}
+      </button>
+      <div ref={lista} id={`mais-${id}`} popover="auto" className="selecao-pop" style={{ positionAnchor: `--mais-${id}` } as CSSProperties}>
+        <div className="selecao-lista" role="group" aria-label={`Às ${hora(itens[0])}`}>
+          {itens.map((x) => "t" in x
+            ? <button key={x.t.id} type="button" className="selecao-opcao" onClick={() => { lista.current?.hidePopover(); abrir(x.t); }}><b>{hora(x)}</b> {nome(x)}</button>
+            : <span key={x.e.id} className="selecao-opcao" title="Compromisso do Google (só leitura)"><b>{hora(x)}</b> {nome(x)}</span>)}
+        </div>
+      </div>
+    </>
   );
 }

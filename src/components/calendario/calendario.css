@@ -83,12 +83,13 @@
 .evento-bloco.evento-curto .evento-titulo { display: block; white-space: nowrap; }
 .evento-curto .evento-titulo { min-width: 2.5em; }
 /* Bloco curto (uma linha só), medido pela largura DELE (Régua 215, achado 2): o título é o que fica.
-   Até 200px: a hora sai (a posição na grade já diz a hora) e a etapa vira uma bolinha da cor dela.
+   Até 240px (a semana em 1440 e 1903): a hora sai (a posição na grade já diz a hora) e a etapa vira um filete da cor dela na
+   borda esquerda, que não ocupa largura do título.
    Até 120px (dois ou mais lado a lado): saem também a foto e a bolinha; o nome inteiro está no title do bloco. */
 .evento-bloco.evento-curto { container-type: inline-size; }
-@container (max-width: 200px) {
+@container (max-width: 240px) {
   .evento-curto .evento-hora { display: none; }
-  .evento-curto .etapa { align-self: center; width: 8px; height: 8px; padding: 0; border-radius: 50%; font-size: 0; }
+  .evento-curto .etapa { position: absolute; inset: 0 auto 0 0; width: 3px; padding: 0; border-radius: 6px 0 0 6px; box-shadow: none; font-size: 0; }
 }
 @container (max-width: 120px) {
   .evento-curto :is(.pessoa, .etapa, .selo) { display: none; }
@@ -277,3 +278,10 @@
 .aviso-info { background: var(--texto); color: var(--sup); }
 /* Com o aviso de falha também na tela (ex.: anexo que não subiu), este sobe para cima dele (cabe o de falha com até 3 linhas) */
 body:has(.aviso-erro:not(.aviso-info)) .aviso-info { bottom: calc(var(--s-16) + 88px); }
+/* "+N" das curtas do mesmo horário que não couberam na pilha (Régua 215 v2): linha neutra com a altura de um bloco curto */
+.grade-mais {
+  position: absolute; z-index: 1; display: flex; align-items: center; padding: 3px 6px; border: 1px dashed var(--borda); border-radius: 6px;
+  background: var(--sup); color: var(--texto); font: 600 var(--t-12) / 1.3 var(--fonte); text-align: left; cursor: pointer;
+}
+.grade-mais:hover { background: var(--sup-2); }
+.grade-mais:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
