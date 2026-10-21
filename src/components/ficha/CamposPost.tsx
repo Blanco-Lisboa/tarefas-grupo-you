@@ -1,5 +1,5 @@
 "use client";
-// Campos de Postagem na ficha (196): Legenda (vai junto do post no Instagram e no Facebook) e, em Reels, a Capa do Reels.
+// Campos de Postagem na ficha (196): Descrição do post (item 211; no banco, `legenda`; vai junto do post no Instagram e no Facebook) e, em Reels, a Capa do Reels.
 // Capa: capa própria (anexo com papel "capa") vence; sem ela, o quadro escolhido na barrinha; sem nada, o primeiro quadro.
 // `travado`: card Aprovado/Postado para quem não aprova (019); a ficha passa.
 import type { Arquivo, NovaTarefa } from "@/lib/dados";
@@ -14,7 +14,7 @@ export function CamposPost({ t, arquivos, travado, mudar, aoMudarCapa }: {
   return (
     <>
       <label className="ficha-campo">
-        <span className="ficha-legenda ficha-legenda-post">Legenda<small>{(t.legenda ?? "").length}/2200</small></span>
+        <span className="ficha-legenda ficha-legenda-post">Descrição do post<small>{(t.legenda ?? "").length}/2200</small></span>
         <textarea className="ficha-legenda-texto" rows={5} maxLength={2200} value={t.legenda ?? ""} readOnly={travado} onChange={(e) => mudar("legenda", e.target.value)}
           placeholder="O texto que vai junto do post no Instagram e no Facebook" />
       </label>

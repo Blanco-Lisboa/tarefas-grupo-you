@@ -43,9 +43,12 @@
 .aprovacao-link:hover { text-decoration: underline; }
 .aprovacao-links { gap: var(--s-12); }
 .aprovacao-redes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); flex-basis: 100%; }
-.aprovacao-rede { min-height: 28px; padding: 2px; border: 0; border-radius: 7px; background: var(--sup-2); box-shadow: inset 0 0 0 1px var(--linha); color: var(--texto); font: 600 11px var(--fonte); cursor: pointer; }
+/* Redes (item 209): desligada = botão claro com contorno; escolhida = a cor da rede, cheia, com ✓. Altura e cantos dos botões do bloco */
+.aprovacao-rede { --rede: var(--azul); display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 4px var(--s-12); border: 0; border-radius: 8px; background: var(--sup); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 0 0 0 1px var(--borda); color: var(--texto); font: 600 var(--t-14) var(--fonte); cursor: pointer; }
+.aprovacao-rede[data-rede="instagram"] { --rede: #C13584; }
+.aprovacao-rede[data-rede="facebook"] { --rede: #1877F2; }
 .aprovacao-rede:hover:not(:disabled) { background: var(--realce); }
-.aprovacao-rede[aria-pressed="true"] { background: var(--azul); box-shadow: none; color: #fff; }
+.aprovacao-rede[aria-pressed="true"] { background: var(--rede); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1); color: #fff; }
 .aprovacao-rede:disabled { opacity: .45; cursor: not-allowed; }
 .aprovacao-rede:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
 .aprovacao-nota, .aprovacao-aviso { grid-column: 1 / -1; flex-basis: 100%; margin: 0; color: var(--fraco); font: 500 11px/1.35 var(--fonte); }
@@ -65,14 +68,19 @@
 .aprovacao-erro .aprovacao-incerto { color: var(--texto); font-weight: 500; }
 /* Card Aprovado: uma linha só de estado (os botões foram para a ficha). Erro e programação cancelada em vermelho. */
 .aprovacao-situacao[data-tipo="erro"] { color: var(--atrasado); }
-/* Bloco "Publicação" na ficha: estado, redes, data e hora e os botões, embaixo da Legenda/Capa */
-.publicacao { --aprovar: #2C6B49; /* o verde do Aprovar/Programar mora em .aprovacao, que não envolve este bloco */ display: grid; gap: var(--s-12); min-width: 0; margin: 0; padding: var(--s-16); border: 1px solid var(--linha); border-radius: var(--raio-b); background: var(--sup-2); }
-.publicacao legend { padding: 0 var(--s-4); }
-.publicacao .aprovacao-redes { max-width: 360px; }
+/* Bloco "Publicação" na ficha: estado, redes, data e hora e os botões, embaixo da Descrição do post/Capa */
+/* Item 210: o título fica fora, como os outros da ficha; a caixa ocupa a largura dos campos e tudo dentro dela fecha nas mesmas margens */
+.publicacao { --aprovar: #2C6B49; /* o verde do Aprovar/Programar mora em .aprovacao, que não envolve este bloco */ }
+.publicacao-caixa { display: grid; gap: var(--s-12); min-width: 0; padding: var(--s-16); border: 1px solid var(--linha); border-radius: var(--raio-b); background: var(--sup-2); }
 .publicacao-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); }
-.publicacao-acoes .aprovacao-botao { flex: 0 0 auto; min-height: 36px; padding: 6px var(--s-16); font-size: var(--t-14); }
-.publicacao-acoes .campo-data-botao { min-height: 36px; }
+.publicacao-acoes > button { flex: 1 1 auto; }
+.publicacao-acoes .aprovacao-botao { min-height: 36px; padding: 6px var(--s-16); font-size: var(--t-14); }
+.publicacao-acoes .campo-data-botao { height: 36px; min-height: 36px; border-radius: 8px; }
 .publicacao-links { display: flex; flex-wrap: wrap; gap: var(--s-16); }
 .publicacao .aprovacao-erro { padding: var(--s-12); }
-/* Rede acesa com o mouse em cima: continua azul (o cinza do hover com texto branco ficava ilegível) */
-.aprovacao-rede[aria-pressed="true"]:hover:not(:disabled) { background: var(--azul-hover); }
+/* Rede acesa com o mouse em cima: continua na cor dela, um pouco mais escura (o cinza do hover com texto branco ficava ilegível) */
+.aprovacao-rede[aria-pressed="true"]:hover:not(:disabled) { background: color-mix(in srgb, var(--rede) 86%, #000); }
+/* Aprovar e Consertar no topo da ficha (item 208): a forma de Começar/Fechar (32px, cantos de 8px), verde e vermelho do card */
+.ficha-decidir { --aprovar: #2C6B49; display: flex; flex: none; gap: var(--s-8); }
+.ficha-decidir .aprovacao-botao { flex: none; padding: 4px var(--s-12); }
+@media (max-width: 520px) { .ficha-decidir { order: 4; flex-basis: 100%; justify-content: flex-end; } }

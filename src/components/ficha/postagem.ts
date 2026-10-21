@@ -28,7 +28,7 @@ export function faltaParaPostar(t: Base, formato: Formato | undefined, redes: re
   if (!formato) falta.push("Escolha o formato.");
   if (!redes.length) falta.push("Escolha pelo menos uma rede.");
   if (carrosselSoFacebook(t, formato, redes)) falta.push(SO_FACEBOOK);
-  if (formato && formato !== "story" && !t.legenda?.trim()) falta.push("Falta a legenda: escreva na ficha do card.");
+  if (formato && formato !== "story" && !t.legenda?.trim()) falta.push("Falta a descrição do post: escreva na ficha do card.");
   const m = midias(t), videos = m.filter((a) => a.tipo === "video").length;
   if (formato === "post" && (m.length !== 1 || videos)) falta.push("Post leva 1 imagem.");
   if (formato === "reels" && (m.length !== 1 || !videos)) falta.push("Reels leva 1 vídeo.");

@@ -1,0 +1,29 @@
+$ grep -rn "egenda" src/
+src/components/calendario/Ano.tsx:53:      <p className="ano-legenda" aria-hidden>
+src/components/calendario/calendario.css:246:.ano-legenda { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin: var(--s-24) 0 0; font-size: var(--t-12); color: var(--fraco); }
+src/components/calendario/calendario.css:247:.ano-legenda .ano-dia { width: 14px; height: 14px; cursor: default; }
+src/components/ficha/CamposPost.tsx:2:// Campos de Postagem na ficha (196): Descrição do post (item 211; no banco, `legenda`; vai junto do post no Instagram e no Facebook) e, em Reels, a Capa do Reels.
+src/components/ficha/CamposPost.tsx:17:        <span className="ficha-legenda ficha-legenda-post">Descrição do post<small>{(t.legenda ?? "").length}/2200</small></span>
+src/components/ficha/CamposPost.tsx:18:        <textarea className="ficha-legenda-texto" rows={5} maxLength={2200} value={t.legenda ?? ""} readOnly={travado} onChange={(e) => mudar("legenda", e.target.value)}
+src/components/ficha/ficha.css:41:.ficha-campo legend, .ficha-legenda { padding: 0; margin-bottom: var(--s-8); color: var(--texto); font-size: var(--t-14); font-weight: 600; }
+src/components/ficha/ficha.css:42:.ficha-legenda { margin-bottom: 0; }
+src/components/ficha/ficha.css:174:.ficha-legenda-post { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--s-8); }
+src/components/ficha/ficha.css:175:.ficha-legenda-post small { color: var(--fraco); font: 500 var(--t-12) var(--fonte); font-variant-numeric: tabular-nums; }
+src/components/ficha/ficha.css:186:.ficha .ficha-campo textarea.ficha-legenda-texto { flex: none; height: auto; min-height: calc(5lh + 2 * var(--s-8) + 2px); max-height: calc(14lh + 2 * var(--s-8) + 2px); field-sizing: content; resize: vertical; }
+src/components/ficha/Ficha.tsx:291:            <label className="ficha-legenda" htmlFor="ficha-notas">Notas</label>
+src/components/ficha/Ficha.tsx:323:  return <label className="ficha-campo"><span className="ficha-legenda">{rotulo}</span>{children}</label>;
+src/components/ficha/postagem.test.ts:6:const card = (arquivos: Arquivo[], legenda = "Texto") => ({ arquivos, legenda, empresaId: "you" });
+src/components/ficha/postagem.ts:9:type Base = Pick<Tarefa, "arquivos" | "legenda" | "empresaId">;
+src/components/ficha/postagem.ts:31:  if (formato && formato !== "story" && !t.legenda?.trim()) falta.push("Falta a descrição do post: escreva na ficha do card.");
+src/components/pastas/PastaDeVidro.tsx:29:  legenda?: string;
+src/components/pastas/PastaDeVidro.tsx:47:export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes, aoNovaFolha }: Props) {
+src/components/pastas/PastaDeVidro.tsx:147:  const meta = legenda ?? (n === 0 ? "Pasta vazia" : n === 1 ? "1 peça" : `${n} peças`);
+src/components/pastas/TelaPastas.tsx:49:                  legenda={nIdeias(ideias.length)}
+src/components/pastas/TelaPastas.tsx:90:                legenda={daOcasiao.length === 1 ? "1 card" : `${daOcasiao.length} cards`}
+src/lib/dados/ideias.ts:24:    ex(e, 9, perfis, "Referência de edição", "Perfil com cortes rápidos e legenda grande, bom modelo para os reels.", TT),
+src/lib/dados/repositorio.test.ts:72:    expect([motivoDoBanco({ code: "23514", message: "tarefas_legenda_ok" }, "x"), motivoDoBanco(null, "x")]).toEqual(["x", "x"]);
+src/lib/dados/repositorio.ts:15:  legenda?: string | null; postar_redes?: Tarefa["postarRedes"] | null; capa_quadro_ms?: number | null; ocasiao_id?: string | null;
+src/lib/dados/repositorio.ts:68:    legenda: l.legenda ?? undefined, postarRedes: l.postar_redes ?? undefined, capaQuadroMs: l.capa_quadro_ms ?? undefined, ocasiaoId: l.ocasiao_id ?? undefined,
+src/lib/dados/repositorio.ts:160:      legenda: tarefa.legenda?.trim() || null, postar_redes: tarefa.postarRedes ?? null, capa_quadro_ms: tarefa.capaQuadroMs ?? null,
+src/lib/dados/tipos.ts:66:  /** Postagem automática (196). Depois de Aprovado, legenda, formato, redes e quadro da capa só mudam pelo Natham ou pelo aprovador (019). */
+src/lib/dados/tipos.ts:67:  legenda?: string;

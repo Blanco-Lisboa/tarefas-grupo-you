@@ -32,7 +32,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
     const links = (salvo.postagens ?? []).filter((p) => p.link);
     return links.length ? (
       <fieldset className="ficha-campo publicacao"><legend>Publicação</legend>
-        <div className="publicacao-links">{links.map((p) => <a key={p.rede} className="aprovacao-link" href={p.link} target="_blank" rel="noopener noreferrer">Ver no {NOME_REDE[p.rede]}</a>)}</div>
+        <div className="publicacao-caixa"><div className="publicacao-links">{links.map((p) => <a key={p.rede} className="aprovacao-link" href={p.link} target="_blank" rel="noopener noreferrer">Ver no {NOME_REDE[p.rede]}</a>)}</div></div>
       </fieldset>
     ) : null;
   }
@@ -57,7 +57,8 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const postar = async () => { setConfirmando(false); if (await gravar({ postarRedes: valem })) void postarAgora(salvo.id); };
 
   return (
-    <fieldset className="ficha-campo publicacao"><legend>Publicação</legend>
+    // Título como os outros da ficha (Capa do Reels, Notas) e a caixa embaixo, na mesma margem dos campos (item 210)
+    <fieldset className="ficha-campo publicacao"><legend>Publicação</legend><div className="publicacao-caixa">
       {salvo.empresaId !== "you" ? <p className="ficha-dica ficha-dica-fica">Postagem automática só para a You (por enquanto).</p> : <>
         {sit?.tipo === "postando" && <p className="aprovacao-situacao" data-tipo="postando" role="status">Postando…</p>}
         {sit?.tipo === "programado" && !ajuste && <p className="aprovacao-situacao">{sit.texto}</p>}
@@ -75,8 +76,12 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
           <div className="aprovacao-redes publicacao-redes" role="group" aria-label="Onde postar">
             {REDES_POST.map((r) => {
               const fora = r === "facebook" && soInstagram && redes.includes("instagram");
-              return <button key={r} type="button" className="aprovacao-rede" aria-pressed={!fora && redes.includes(r)} disabled={fora}
-                onClick={() => mudar("postarRedes", redes.includes(r) ? redes.filter((x) => x !== r) : REDES_POST.filter((x) => x === r || redes.includes(x)))}>{NOME_REDE[r]}</button>;
+              const ligada = !fora && redes.includes(r);
+              // Item 209: escolhida = cor da rede + ✓; desligada = botão claro com contorno
+              return <button key={r} type="button" className="aprovacao-rede" data-rede={r} aria-pressed={ligada} disabled={fora}
+                onClick={() => mudar("postarRedes", redes.includes(r) ? redes.filter((x) => x !== r) : REDES_POST.filter((x) => x === r || redes.includes(x)))}>
+                {ligada && <span aria-hidden>✓</span>}{NOME_REDE[r]}
+              </button>;
             })}
             {soInstagram && <small className="aprovacao-nota">Carrossel com vídeo vai só para o Instagram: o Facebook não aceita foto e vídeo no mesmo post.</small>}
           </div>
@@ -100,6 +105,6 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
       </>}
       {confirmando && <Confirmar titulo={`Postar agora no ${textoRedes(valem)} da You?`} texto={`"${rascunho.titulo}" vai para o ar agora. Não dá para desfazer.`} acao="Postar"
         aoCancelar={() => setConfirmando(false)} aoConfirmar={() => void postar()} />}
-    </fieldset>
+    </div></fieldset>
   );
 }

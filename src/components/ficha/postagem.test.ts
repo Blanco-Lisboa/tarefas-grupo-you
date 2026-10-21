@@ -11,11 +11,11 @@ describe("o que falta para postar (196)", () => {
     expect(faltaParaPostar(card([vid, capa]), "reels", ["instagram"])).toEqual([]);
     expect(faltaParaPostar(card([img]), "reels", ["instagram"])).toEqual(["Reels leva 1 vídeo."]);
     expect(faltaParaPostar(card([img]), "carrossel", ["instagram"])).toEqual(["Carrossel leva de 2 a 10 imagens ou vídeos."]);
-    expect(faltaParaPostar(card([vid], ""), "story", ["instagram", "facebook"])).toEqual([]); // story não leva legenda
+    expect(faltaParaPostar(card([vid], ""), "story", ["instagram", "facebook"])).toEqual([]); // story não leva descrição do post
     expect(faltaParaPostar(card([{ ...img, pendente: {} as File }]), "post", ["instagram"])).toEqual(["Post leva 1 imagem."]); // não subiu: não conta
   });
-  it("sem legenda, sem rede, sem formato e empresa que não é a You", () => {
-    expect(faltaParaPostar(card([img], " "), "post", [])).toEqual(["Escolha pelo menos uma rede.", "Falta a legenda: escreva na ficha do card."]);
+  it("sem descrição do post, sem rede, sem formato e empresa que não é a You", () => {
+    expect(faltaParaPostar(card([img], " "), "post", [])).toEqual(["Escolha pelo menos uma rede.", "Falta a descrição do post: escreva na ficha do card."]);
     expect(faltaParaPostar(card([img]), undefined, ["instagram"])).toEqual(["Escolha o formato."]);
     expect(faltaParaPostar({ ...card([img]), empresaId: "beec" }, "post", ["instagram"])).toEqual(["A Beec ainda não está ligada à postagem automática."]);
   });

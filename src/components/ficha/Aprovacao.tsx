@@ -5,13 +5,13 @@
 //   <Aprovacao tarefa={tarefa} />      // o pé do card, conforme o tipo e a etapa (abaixo)
 //
 // - Card que NÃO é Postagem: "Concluir" em qualquer etapa (Natham, Matheus ou o dono), que pede confirmação e APAGA o card (decisão de 23/10).
-// - Postagem em "Em análise": Aprovar (vai para Aprovado) e Consertar (volta para Edição com a etiqueta).
+// - Postagem em "Em análise": nada no pé; Aprovar e Consertar ficam no topo da ficha (item 208, pedido do Natham).
 // - Postagem em "Aprovado": UMA linha de estado (Programado · data · redes / Postando… / Erro ao postar: abra o card / Sem programação).
 //   Programar, Postar agora, Tentar de novo e as redes ficam na ficha, no bloco Publicação (pedido do Natham: o card fica baixo).
 // - Postagem em "Postado": nada no pé; os links do post ficam na ficha e no Mapa.
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
-import { podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEu, type Responsavel, type Tarefa } from "@/lib/dados";
+import { podeAlterar, podeApagar, removerTarefa, useEu, type Responsavel, type Tarefa } from "@/lib/dados";
 import { ehQuemAprova } from "./arrumar";
 import { Confirmar } from "./Confirmar";
 import { estadoDoCard } from "./postagem";
@@ -42,12 +42,6 @@ export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
       {concluindo && <Confirmar titulo="Concluir e apagar este card?" texto={`"${tarefa.titulo}" sai do sistema, com os anexos. Não dá para desfazer.`} acao="Concluir" perigo
         aoCancelar={() => setConcluindo(false)} aoConfirmar={() => { setConcluindo(false); void removerTarefa(tarefa.id); }} />}
     </>);
-  }
-  if (tarefa.etapa === "analise") {
-    return podeAprovar(tarefa, eu) ? pe(<>
-      <button type="button" className="aprovacao-botao" data-acao="aprovar" onClick={() => void salvarTarefa({ ...tarefa, etapa: "aprovado" })}>Aprovar</button>
-      <button type="button" className="aprovacao-botao" data-acao="consertar" onClick={() => void salvarTarefa({ ...tarefa, etapa: "edicao", conserto: true })}>Consertar</button>
-    </>) : null;
   }
   if (tarefa.etapa !== "aprovado") return null;
   const estado = estadoDoCard(tarefa);

@@ -11,6 +11,8 @@
 // - soLer: só para olhar (Caderno de outra pessoa): campos travados, sem Salvar nem lixeira; links do Drive e das notas seguem abrindo.
 //   Lixeira no pé (item 179) só para quem podeApagar: clicar troca o pé por Apagar (vermelho) e Cancelar; Esc também cancela.
 // - Fazendo agora (item 170): tarefa já salva mostra Começar/Parar no topo e quem está nela desde quando (todos veem de todos).
+// - Postagem em "Em análise" (item 208): Aprovar e Consertar no topo, ao lado de Começar/Fechar, para quem aprova. Gravam na hora
+//   (como faziam no card) e a ficha continua aberta já no novo estado.
 // - tipos: limita o menu Tipo (a Esteira passa só os tipos que são colunas, item 194); sem ele, todos.
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
 "use client";
@@ -27,6 +29,7 @@ import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { Agora } from "./Agora";
+import { podeAprovar } from "./Aprovacao";
 import { Anexos } from "./Anexos";
 import { CamposPost } from "./CamposPost";
 import { Publicacao } from "./Publicacao";
@@ -73,6 +76,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
   const [arquivos, setArquivos] = useState(tarefa.arquivos);
   const [editandoNotas, setEditandoNotas] = useState(false);
   const [apagando, setApagando] = useState(false);
+  const [recusa, setRecusa] = useState(""); // Aprovar/Consertar que o banco recusou
   // Só fecha depois que o banco aceitou: se recusar, a ficha fica aberta com o aviso e nada do que foi escrito se perde.
   // (O aviso geral da casca fica atrás da ficha, então o erro aparece também no pé dela.)
   const erro = useErroDados();
@@ -89,13 +93,24 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
   const aprovadorTravado = !nova && !ehQuemAprova(tarefa.aprovador, eu);
-  // 019: depois de Aprovado, o que vai para a rede (legenda, formato, arquivos, capa) só muda pelo Natham ou por quem aprova.
+  // 019: depois de Aprovado, o que vai para a rede (descrição do post, formato, arquivos, capa) só muda pelo Natham ou por quem aprova.
   const postTravado = !nova && (tarefa.etapa === "aprovado" || tarefa.etapa === "postado") && !(podeAlterar(tarefa as Tarefa, eu) && ehQuemAprova(tarefa.aprovador, eu));
   const capas = arquivos.filter((a) => a.papel === "capa");
   const viva = todas.find((x) => x.id === tarefa.id); // a ficha nasce de uma cópia; a Publicação lê o card vivo (postando, erro, links)
   const temEmpresa = empresas.some((x) => x.id === t.empresaId);
   const empresaOk = !t.empresaId || temEmpresa; // "" = sem empresa
   const mudar = <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => setT((x) => ({ ...x, [campo]: valor }));
+  const decide = !soLer && viva?.tipo === "postagem" && viva.etapa === "analise" && podeAprovar(viva, eu);
+  // Grava só a etapa no card salvo (o mesmo que o card fazia); a ficha passa a mostrar a nova etapa, e um Salvar depois não a desfaz.
+  async function decidir(mudanca: Pick<NovaTarefa, "etapa" | "conserto">) {
+    if (!viva) return;
+    limparErro();
+    setRecusa("");
+    await salvarTarefa({ ...viva, ...mudanca });
+    const e = lerErro();
+    if (e) setRecusa(e);
+    else setT((x) => ({ ...x, ...mudanca }));
+  }
 
   // Mudou o início: o fim anda junto e a duração fica igual (senão o fim fica antes do início e trava o formulário).
   // A última duração válida fica guardada para o caminho "limpa a data e escolhe outra" (sem data não dá para medir).
@@ -173,6 +188,12 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
               )}
             </span>
             {!nova && <Agora tarefaId={tarefa.id!} soLer={soLer} nomes={NOMES.responsavel} />}
+            {decide && (
+              <div className="ficha-decidir">
+                <button type="button" className="aprovacao-botao" data-acao="aprovar" onClick={() => void decidir({ etapa: "aprovado" })}>Aprovar</button>
+                <button type="button" className="aprovacao-botao" data-acao="consertar" onClick={() => void decidir({ etapa: "edicao", conserto: true })}>Consertar</button>
+              </div>
+            )}
             <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>
           </div>
           <textarea
@@ -264,7 +285,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
 
           <LinksDrive links={links} aoMudar={setLinks} />
           <div inert={postTravado}><Anexos valor={arquivos.filter((a) => a.papel !== "capa")} aoMudar={(v) => setArquivos([...v, ...capas])} empresaId={t.empresaId} carrossel={t.formato === "carrossel"} /></div>
-          {postTravado && <p className="ficha-dica ficha-dica-fica">Aprovado: legenda, formato, arquivos e capa só mudam pelo Natham ou por quem aprova.</p>}
+          {postTravado && <p className="ficha-dica ficha-dica-fica">Aprovado: descrição do post, formato, arquivos e capa só mudam pelo Natham ou por quem aprova.</p>}
 
           <div className="ficha-campo ficha-notas">
             <label className="ficha-legenda" htmlFor="ficha-notas">Notas</label>
@@ -289,7 +310,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
           ) : lixeira && (
             <button type="button" className="ficha-lixeira" aria-label="Apagar tarefa" title="Apagar tarefa" onClick={() => setApagando(true)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4" /></svg></button>
           )}
-          {enviou && erro && <p className="ficha-erro" role="alert">{erro}</p>}
+          {((enviou && erro) || recusa) && <p className="ficha-erro" role="alert">{recusa || erro}</p>}
           {!apagando && <button type="button" className="btn btn-2" onClick={() => dialogo.current?.close()}>{soLer ? "Fechar" : "Cancelar"}</button>}
           {!soLer && !apagando && <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>}
         </footer>

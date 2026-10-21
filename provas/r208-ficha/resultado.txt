@@ -1,0 +1,24 @@
+OK 208: card Em análise sem Aprovar/Consertar
+OK 208: Aprovar e Consertar no topo da ficha
+OK 208: mesma altura e linha de Começar/Fechar (32px)
+OK 208: nada encosta no título
+OK 208: Fechar inteiro (61px) e separado
+   cores: rgb(44, 107, 73) / rgb(255, 255, 255) | rgba(0, 0, 0, 0) / rgb(179, 38, 30)
+OK 208: Aprovar grava etapa = aprovado
+OK 208: ficha aberta mostra Aprovado e o bloco Publicação
+OK 208: card foi para Aprovado (linha de estado)
+OK 208: Consertar grava etapa = edição com a etiqueta Conserto
+OK 208: ficha aberta mostra Edição
+OK 208: Salvar depois do Consertar mantém Edição + Conserto
+OK 208: card em Edição com a etiqueta Conserto
+OK 209: as duas redes escolhidas
+   desligado: {"fundo":"rgb(255, 255, 255)","borda":"rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgb(210, 210, 215) 0px 0px 0px 1px inset","texto":"Instagram","alto":36} 
+   ligado: {"fundo":"rgb(24, 119, 242)","borda":"rgba(0, 0, 0, 0.1) 0px 1px 3px 0px","texto":"✓\nFacebook","alto":36}
+OK 209: escolhido com cor própria e ✓; o outro sem
+   esquerda/direita: [["textarea.ficha-legenda-texto",385,1055],[".ficha-capa .ficha-anexo-solta",385,1055],[".ficha-capa-quadro",385,1055],[".publicacao-caixa",385,1055],[".ficha-tags",385,1055],["#ficha-notas, .ficha-notas-ver",385,1055],["Anexos",385,1055]]
+OK 210: todos os campos e blocos na mesma margem esquerda e direita
+   dentro da Publicação: [["aprovacao-situacao",17,17],["aprovacao-redes publicacao-redes",17,17],["publicacao-acoes",17,17]]
+OK 210: linha de estado, redes e data/botões com a mesma margem dentro da Publicação
+OK 210: redes e data/botões fecham na mesma esquerda e direita ([1038,1038,402,402,[36]])
+OK 211: rótulo "Descrição do post", nenhuma "Legenda" na ficha
+TUDO OK

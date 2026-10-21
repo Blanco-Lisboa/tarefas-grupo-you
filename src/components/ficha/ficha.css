@@ -64,6 +64,9 @@
 .ficha-anexos { flex: none; display: flex; align-items: center; gap: var(--s-8); min-width: 0; padding-top: 6px; overflow-x: auto; scrollbar-width: none; }
 .ficha-anexo-solta { display: inline-flex; flex: none; align-items: center; gap: var(--s-8); height: 44px; padding: 0 var(--s-12); border: 1px dashed var(--borda); border-radius: var(--raio-b); background: transparent; color: var(--azul); font: 500 var(--t-14) var(--fonte); cursor: pointer; }
 .ficha-anexo-solta svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+/* Na ficha, a área de soltar enche a linha (item 210: mesma largura dos campos); os 6px à direita são do × da última miniatura */
+.ficha .ficha-anexos { padding-right: 6px; margin-right: -6px; }
+.ficha .ficha-anexo-solta { flex: 1 0 auto; }
 .ficha-anexo-solta:hover, .ficha-anexo-solta[data-sobre="true"] { border-color: var(--azul); background: var(--azul-claro); }
 .ficha-anexo { position: relative; flex: none; }
 .ficha-anexo-mini { display: block; width: 44px; height: 44px; padding: 0; overflow: hidden; border: 1px solid var(--borda); border-radius: var(--raio-b); background: var(--sup-2); cursor: zoom-in; }
@@ -167,7 +170,7 @@
 
 .ficha-anexo-aviso { flex-basis: 100%; font-size: var(--app-t-rotulo); color: var(--fraco); }
 .ficha-escolha[inert] { opacity: .6; } /* Quem aprova travado para quem não aprova (015) */
-/* Postagem automática (196): contador da legenda e a capa do Reels (vídeo em pé + barrinha do quadro) */
+/* Postagem automática (196): contador da descrição do post e a capa do Reels (vídeo em pé + barrinha do quadro) */
 .ficha-legenda-post { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--s-8); }
 .ficha-legenda-post small { color: var(--fraco); font: 500 var(--t-12) var(--fonte); font-variant-numeric: tabular-nums; }
 .ficha-capa { border: 0; padding: 0; margin: 0; min-width: 0; }
@@ -175,9 +178,9 @@
 .ficha-capa-quadro video, .ficha-capa-vazio { flex: none; width: 96px; aspect-ratio: 9 / 16; border-radius: 8px; background: #000; object-fit: cover; }
 .ficha-capa-vazio { display: grid; place-items: center; padding: var(--s-8); background: var(--sup-2); color: var(--fraco); font-size: var(--t-12); text-align: center; }
 .ficha-capa-controles { flex: 1; min-width: 0; display: grid; gap: var(--s-8); }
-.ficha-capa-controles input[type="range"] { width: 100%; accent-color: var(--azul); }
+.ficha-capa-controles input[type="range"] { width: 100%; margin: 0; accent-color: var(--azul); }
 .ficha-capa-texto { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-4) var(--s-12); margin: 0; color: var(--texto); font-size: var(--t-14); }
 .ficha-capa-fb { color: var(--fraco); font-size: var(--t-12); }
 .ficha-capa-texto .ficha-texto-botao { padding: 0; font-size: var(--t-12); }
-/* Legenda (até 2200 caracteres): caixa de várias linhas que cresce com o texto, ao contrário dos outros campos de texto da ficha (48px) */
+/* Descrição do post (até 2200 caracteres): caixa de várias linhas que cresce com o texto, ao contrário dos outros campos de texto da ficha (48px) */
 .ficha .ficha-campo textarea.ficha-legenda-texto { flex: none; height: auto; min-height: calc(5lh + 2 * var(--s-8) + 2px); max-height: calc(14lh + 2 * var(--s-8) + 2px); field-sizing: content; resize: vertical; }
