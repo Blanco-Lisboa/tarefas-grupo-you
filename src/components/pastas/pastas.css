@@ -127,6 +127,20 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .gf-title { font-size: var(--t-20); font-weight: var(--titulo-peso); line-height: 1.15; letter-spacing: var(--titulo-espaco); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gf-meta { font-size: 13px; letter-spacing: .02em; color: var(--gf-ink-soft); white-space: nowrap; }
 
+/* ---- Mapa (213): folhas brancas com texto preto, e pasta pequena com letras maiores (opções do componente; sem elas nada muda) ---- */
+.gf-brancas[data-open] { --gf-stack: 34px; --gf-fan: 1.6deg; --gf-spread: 6px; } /* folhas brancas não têm arte para distinguir: mais faixa de cada uma e menos giro, para o título ler inteiro */
+.gf-brancas .gf-sheet { background: #fff; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .06), 0 12px 28px -8px var(--gf-sombra, rgb(0 60 140 / .5)); }
+.gf-brancas .gf-sheet::after { display: none; }
+.gf-brancas .gf-sheet-name, .gf-brancas .gf-sheet-meta { color: #000; }
+.gf-brancas .gf-sheet-head { align-items: center; }
+.gf-brancas .gf-sheet-detalhe { flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: .02em; color: #000; }
+.gf-sheet-corpo { position: absolute; left: 14px; right: 14px; top: 40px; z-index: 1; font-size: 12px; font-weight: 500; color: #000; }
+.gf-brancas .gf-sheet-slot:not(:last-child) .gf-sheet-corpo { display: none; } /* só a folha da frente aparece inteira */
+.gf-title .marca-logo { display: inline-block; vertical-align: -.18em; margin-right: .3em; }
+.gf-mini .gf-label { left: 24px; bottom: 28px; gap: 6px; max-width: 300px; }
+.gf-mini .gf-title { font-size: 34px; }
+.gf-mini .gf-meta { font-size: 25px; }
+
 /* ---- entrada: a pasta se monta ---- */
 .gf-root:not([data-entered]) .gf-back,
 .gf-root:not([data-entered]) .gf-back-rim { translate: 0 22px; opacity: 0; }

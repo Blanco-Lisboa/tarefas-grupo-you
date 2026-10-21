@@ -9,8 +9,14 @@ import "./pastas.css";
 // Formato e movimento do original: cantos redondos de 22 e um leve quique ao abrir.
 
 export type ArquivoPasta = {
+  /** Chave da folha; sem ela vale o nome (nomes repetidos na mesma pasta precisam de id). */
+  id?: string;
   nome: string;
   meta?: string;
+  /** No lugar do `meta` na folha (a lista "Ver todas" segue usando o `meta`). */
+  detalhe?: ReactNode;
+  /** Texto na parte de baixo da folha (só a folha da frente aparece inteira). */
+  corpo?: ReactNode;
   arte: ArtRecipe;
 };
 
@@ -33,6 +39,18 @@ type Props = {
   acoes?: ReactNode;
   /** Com a pasta aberta (ou a lista "Ver todas"), mostra "+ Nova folha". */
   aoNovaFolha?: () => void;
+  /** Mapa (213): folhas brancas com texto preto, sem a arte colorida. */
+  folhasBrancas?: boolean;
+  /** Mapa (213): pasta pequena de linha do tempo, com letras maiores para ler em tamanho reduzido. */
+  miniatura?: boolean;
+  /** Largura máxima da pasta em px (padrão 340, o tamanho das Pastas). */
+  tamanhoMax?: number;
+  /** Logo ao lado do nome, no rótulo. */
+  selo?: ReactNode;
+  /** Se dado, o clique na pasta chama isto em vez de abrir/fechar no lugar. */
+  aoClicar?: () => void;
+  /** Avisa quando a pasta abre ou fecha. */
+  aoMudar?: (aberta: boolean) => void;
 };
 
 // Geometria nas unidades da pasta: palco de 340 x 272, escalado até `largura`.
@@ -44,7 +62,7 @@ const FRENTE = `M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 
 
 const leque = (i: number, n: number) => (n <= 1 ? 0 : (i / (n - 1)) * 2 - 1);
 
-export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes, aoNovaFolha }: Props) {
+export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = false, atraso = 0, onSelecionar, tom, legenda, vazio, acoes, aoNovaFolha, folhasBrancas, miniatura, tamanhoMax = W, selo, aoClicar, aoMudar }: Props) {
   const uid = useId().replace(/:/g, "");
   const raiz = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
@@ -61,12 +79,12 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
     if (!el) return;
     const medir = () => {
       setDpr(window.devicePixelRatio || 1);
-      setLargura(Math.max(150, Math.min(340, Math.floor(el.clientWidth))));
+      setLargura(Math.max(120, Math.min(tamanhoMax, Math.floor(el.clientWidth))));
     };
     const ro = new ResizeObserver(medir);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [tamanhoMax]);
 
   // Entrada: a pasta se monta quando aparece na tela pela primeira vez.
   useEffect(() => {
@@ -127,11 +145,12 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
     const tecla = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || document.querySelector("dialog[open]")) return; // com o card aberto, o Esc fecha só o card
       setAberta(false);
+      aoMudar?.(false);
       botao.current?.focus();
     };
     const fora = (e: PointerEvent) => {
       const alvo = e.target as Element;
-      if (!raiz.current?.contains(alvo) && !alvo.closest("dialog, .gf-nova")) setAberta(false);
+      if (!raiz.current?.contains(alvo) && !alvo.closest("dialog, .gf-nova")) { setAberta(false); aoMudar?.(false); }
     };
     document.addEventListener("keydown", tecla);
     document.addEventListener("pointerdown", fora);
@@ -139,7 +158,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
       document.removeEventListener("keydown", tecla);
       document.removeEventListener("pointerdown", fora);
     };
-  }, [aberta]);
+  }, [aberta, aoMudar]);
 
   // As mais novas ficam na frente da pilha, perto do vidro.
   const visiveis = arquivos.slice(Math.max(0, arquivos.length - VISIVEIS));
@@ -151,7 +170,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
     <>
     <div
       ref={raiz}
-      className="gf-root"
+      className={`gf-root${folhasBrancas ? " gf-brancas" : ""}${miniatura ? " gf-mini" : ""}`}
       data-open={aberta || undefined}
       data-entered={entrou || undefined}
       style={{ width: largura, height: (H + ALTURA_ABA) * k, ...(tom && { "--gf-base": tom.base, "--gf-sombra": tom.sombra }) } as CSSProperties}
@@ -187,10 +206,10 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
               className="gf-hit"
               aria-expanded={aberta}
               aria-label={`${aberta ? "Fechar" : "Abrir"} ${rotulo}, ${meta}`}
-              onClick={() => setAberta(!aberta)}
+              onClick={aoClicar ?? (() => { setAberta(!aberta); aoMudar?.(!aberta); })}
             />
             <div className="gf-label">
-              <span className="gf-title">{rotulo}</span>
+              <span className="gf-title">{selo}{rotulo}</span>
               <span className="gf-meta">{meta}</span>
             </div>
           </div>
@@ -201,7 +220,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
             {visiveis.map((f, v) => {
               const jitter = rng(hashString(f.nome));
               return (
-                <div key={f.nome} role="listitem" className="gf-sheet-slot">
+                <div key={f.id ?? f.nome} role="listitem" className="gf-sheet-slot">
                   <button
                     type="button"
                     className="gf-sheet"
@@ -214,11 +233,12 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
                   zIndex: v + 1,
                     } as CSSProperties}
                   >
-                  <ArtCanvas className="gf-sheet-art" art={f.arte} seed={hashString(f.nome) % 997} w={FOLHA_W} h={FOLHA_H} density={Math.min(densidade, 1.25)} priority={1} />
+                  {!folhasBrancas && <ArtCanvas className="gf-sheet-art" art={f.arte} seed={hashString(f.nome) % 997} w={FOLHA_W} h={FOLHA_H} density={Math.min(densidade, 1.25)} priority={1} />}
                   <span className="gf-sheet-head">
                     <span className="gf-sheet-name">{f.nome}</span>
-                    {f.meta ? <span className="gf-sheet-meta">{f.meta}</span> : null}
+                    {f.detalhe ?? (f.meta ? <span className="gf-sheet-meta">{f.meta}</span> : null)}
                   </span>
+                  {f.corpo && <span className="gf-sheet-corpo">{f.corpo}</span>}
                   </button>
                 </div>
               );
@@ -243,7 +263,7 @@ export function PastaDeVidro({ rotulo, arquivos, arte, seed = 3, defaultOpen = f
         {lista && (
           <ul className="gf-lista" aria-label={`Todas as peças de ${rotulo}`}>
             {arquivos.map((f) => (
-              <li key={f.nome}>
+              <li key={f.id ?? f.nome}>
                 <button type="button" onClick={() => onSelecionar?.(f)}>{f.nome}<small>{f.meta}</small></button>
               </li>
             ))}

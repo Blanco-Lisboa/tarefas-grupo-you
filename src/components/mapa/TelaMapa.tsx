@@ -1,16 +1,15 @@
 "use client";
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { useEmpresas, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
-import { SeloEmpresa, IconeRede } from "@/components/ui/Marca";
-import { BordaAnimada } from "@/components/ui/BordaAnimada";
-import { Ficha, NOMES } from "@/components/ficha/Ficha";
+import { Ficha } from "@/components/ficha/Ficha";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
 import { conteudos, diaDe, hoje, diasDoPeriodo, filaPorDia, foiPostado, semData, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { PastaDoDia } from "./PastaDoDia";
 import { EmOrdem, type Formato } from "./EmOrdem";
 import "./mapa.css";
 
@@ -235,62 +234,21 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
   );
 }
 
-const REDE_NOME = { instagram: "Instagram", facebook: "Facebook" } as const;
-/** Card Postado (204): formato, redes, data e os links do post, sem arquivo. Fica logo abaixo do card (os links não podem morar dentro do botão); na pilha só aparece com a pilha aberta. */
-function PostadoNasRedes({ t }: { t: Tarefa }) {
-  const postadas = (t.postagens ?? []).filter((p) => p.status === "postado");
-  if (!postadas.length) return null;
-  const quando = postadas.map((p) => p.postadoEm).filter(Boolean).sort()[0];
-  const data = quando ? new Date(quando).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" }) : "";
-  return (
-    <div className="mapa-postado">
-      <span>{[t.formato && NOMES.formato[t.formato], postadas.map((p) => REDE_NOME[p.rede]).join(" + "), data].filter(Boolean).join(" · ")}</span>
-      {postadas.filter((p) => p.link).map((p) => <a key={p.rede} href={p.link} target="_blank" rel="noopener noreferrer">Ver no {REDE_NOME[p.rede]}</a>)}
-    </div>
-  );
-}
-
+/** Item 213: um marco por dia; dentro dele, uma pasta por empresa (na ordem do cadastro), lado a lado sem encostar. */
 function Marco({ dia, ts, coluna, lado, abrir }: { dia: string; ts: Tarefa[]; coluna: number; lado: "cima" | "baixo"; abrir: (t: Tarefa) => void }) {
   const empresas = useEmpresas();
   const tudoPostado = ts.every(foiPostado);
-  const raiz = useRef<HTMLDivElement>(null);
-  // Celular: o 1º toque abre o leque da pilha, o 2º abre a ficha. Com mouse o leque abre ao passar (CSS) e o clique já abre a ficha.
-  const [leque, setLeque] = useState(false);
-  useEffect(() => {
-    if (!leque) return;
-    const fora = (e: PointerEvent) => { if (!raiz.current?.contains(e.target as Node)) setLeque(false); };
-    document.addEventListener("pointerdown", fora);
-    return () => document.removeEventListener("pointerdown", fora);
-  }, [leque]);
-  const clicar = (t: Tarefa) => {
-    if (ts.length > 1 && !leque && matchMedia("(hover: none)").matches) return setLeque(true);
-    setLeque(false);
-    abrir(t);
-  };
+  // a You vem primeiro, como nas Pastas; as outras seguem a ordem do cadastro
+  const posicao = (id: string) => (id === "you" ? -1 : empresas.findIndex((e) => e.id === id) + 1 || empresas.length + 1);
+  const pastas = [...Map.groupBy(ts, (t) => t.empresaId)].sort(([a], [b]) => posicao(a) - posicao(b));
   return (
-    <div ref={raiz} className="mapa-marco" data-marco data-dia={dia} data-lado={lado} data-postado={tudoPostado} style={{ left: `calc((${coluna} + 0.5) * var(--dia-w))` }}>
+    <div className="mapa-marco" data-marco data-dia={dia} data-lado={lado} data-postado={tudoPostado} style={{ left: `calc((${coluna} + 0.5) * var(--dia-w))` }}>
       <span className="mapa-haste" aria-hidden />
       <span className="mapa-bolinha" aria-hidden />
       <div className="mapa-bloco">
         <span className="mapa-data" data-alvo>{nomeSemana(dia)}, {diaCurto(dia)}</span>
-        <div className="mapa-pilha" data-n={ts.length} data-aberta={leque} style={{ "--n": ts.length } as CSSProperties}>
-          {ts.map((t, i) => {
-            const postado = foiPostado(t);
-            const empresa = empresas.find((e) => e.id === t.empresaId)?.nome ?? "Sem empresa";
-            const botao = (
-              <button key={t.id} type="button" className="mapa-card" aria-label={`${tituloDe(t)}, ${empresa}, ${postado ? "postado" : t.etapa ? NOMES.etapa[t.etapa] : "a postar"}`} data-postado={postado} onClick={() => clicar(t)}>
-                <span className="mapa-faixa-titulo" aria-hidden>{tituloDe(t)}</span>
-                {ts.length > 1 && <span className="mapa-folha-contagem" aria-hidden>{i + 1}/{ts.length}</span>}
-                <span className="mapa-objetivo" data-alvo>{tituloDe(t)}</span>
-                <span className="mapa-info">
-                  <span className="mapa-tag"><SeloEmpresa empresaId={t.empresaId} nome={empresa} tamanho={16} comNome /></span>
-                  {t.rede && <span className="mapa-meta"><IconeRede rede={t.rede} tamanho={16} /></span>}
-                  <span className="mapa-estado" data-alvo>{postado ? "Postado" : t.etapa ? NOMES.etapa[t.etapa] : "A postar"}</span>
-                </span>
-              </button>
-            );
-            return <Fragment key={t.id}><BordaAnimada style={{ "--i": i } as CSSProperties}>{botao}</BordaAnimada>{postado && <PostadoNasRedes t={t} />}</Fragment>;
-          })}
+        <div className="mapa-pastas">
+          {pastas.map(([empresaId, doDia]) => <PastaDoDia key={empresaId} empresaId={empresaId} ts={doDia} abrir={abrir} />)}
         </div>
       </div>
     </div>
