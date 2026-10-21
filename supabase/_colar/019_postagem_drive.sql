@@ -1,4 +1,16 @@
+-- ANTES DE COLAR (so leitura): esta consulta tem de voltar VAZIA. Se listar algo, ha video guardado no Supabase (o 019 so aceita video no Drive):
+--   select a.id, a.nome, t.titulo as card, a.tamanho from public.arquivos a left join public.tarefas t on t.id = a.tarefa_id where a.tipo = 'video' and a.caminho is not null;
+-- Se o 019 for colado assim mesmo, ele PARA no primeiro bloco com a lista dos cards e nao muda nada (a transacao desfaz tudo).
 begin;
+do $$
+declare v_lista text; v_n int;
+begin
+  select count(*), string_agg(coalesce(t.titulo, 'sem card') || ' (' || a.nome || ')', '; ' order by t.titulo)
+    into v_n, v_lista from public.arquivos a left join public.tarefas t on t.id = a.tarefa_id where a.tipo = 'video' and a.caminho is not null;
+  if v_n > 0 then
+    raise exception '019 NAO APLICADO: % video(s) guardado(s) no Supabase, e o 019 so aceita video no Drive. Cards: %. Baixe/anexe de novo cada video (ja com o Drive ligado) e apague o antigo, depois cole o 019 outra vez.', v_n, v_lista using errcode = 'P0001';
+  end if;
+end $$;
 -- 019 · contrato do 196 (postagem IG/FB) + 203 (arquivo no Drive) + Concluir/lixeira/trava depois de Aprovado.
 -- Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Idempotente. Depende do 002, 006, 009, 015, 016.
 
