@@ -10,6 +10,7 @@ import { useState } from "react";
 import { REDES_POST, postarAgora, tentarDeNovo, useEu, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { paraDia, paraHora } from "@/components/calendario/logica";
 import { CampoData } from "@/components/ui/CampoData";
+import Image from "next/image";
 import { podeAprovar } from "./Aprovacao";
 import { Confirmar } from "./Confirmar";
 import { CANCELADA, NOME_REDE, SO_FACEBOOK, carrosselComVideo, carrosselSoFacebook, faltaParaPostar, programacaoCancelada, redesDe, redesValidas, situacao, textoRedes } from "./postagem";
@@ -77,10 +78,10 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
             {REDES_POST.map((r) => {
               const fora = r === "facebook" && soInstagram && redes.includes("instagram");
               const ligada = !fora && redes.includes(r);
-              // Item 209: escolhida = cor da rede + ✓; desligada = botão claro com contorno
+              // Item 226: escolhida = cheia na cor da rede + ✓; desligada = vidro do menu lateral com o logo e um tom da rede
               return <button key={r} type="button" className="aprovacao-rede" data-rede={r} aria-pressed={ligada} disabled={fora}
                 onClick={() => mudar("postarRedes", redes.includes(r) ? redes.filter((x) => x !== r) : REDES_POST.filter((x) => x === r || redes.includes(x)))}>
-                {ligada && <span aria-hidden>✓</span>}{NOME_REDE[r]}
+                <Image className="marca-rede" src={`/marca/redes/${r}.svg`} alt="" width={18} height={18} />{NOME_REDE[r]}{ligada && <span aria-hidden>✓</span>}
               </button>;
             })}
             {soInstagram && <small className="aprovacao-nota">Carrossel com vídeo vai só para o Instagram: o Facebook não aceita foto e vídeo no mesmo post.</small>}

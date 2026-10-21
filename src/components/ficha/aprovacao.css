@@ -43,14 +43,28 @@
 .aprovacao-link:hover { text-decoration: underline; }
 .aprovacao-links { gap: var(--s-12); }
 .aprovacao-redes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); flex-basis: 100%; }
-/* Redes (item 209): desligada = botão claro com contorno; escolhida = a cor da rede, cheia, com ✓. Altura e cantos dos botões do bloco */
-.aprovacao-rede { --rede: var(--azul); display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 4px var(--s-12); border: 0; border-radius: 8px; background: var(--sup); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 0 0 0 1px var(--borda); color: var(--texto); font: 600 var(--t-14) var(--fonte); cursor: pointer; }
+/* Redes (item 226, refaz o 209): NÃO escolhida = o item ativo do menu lateral (vidro branco levantado, com o brilho que corre), com o logo
+   e um leve tom da rede; ESCOLHIDA = cheia na cor da rede, texto e logo brancos e ✓. Altura e cantos dos botões do bloco. */
+.aprovacao-rede {
+  --rede: var(--azul); display: inline-flex; align-items: center; justify-content: center; gap: var(--s-8); min-height: 36px; padding: 4px var(--s-12);
+  border: 0; border-radius: 8px; color: var(--texto); font: 600 var(--t-14) var(--fonte); cursor: pointer;
+  background: linear-gradient(110deg, transparent 40%, color-mix(in srgb, var(--rede) 16%, transparent) 50%, transparent 60%) 0 0 / 200% 100%,
+    color-mix(in srgb, var(--rede) 6%, var(--sup));
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 0 0 0 1px color-mix(in srgb, var(--rede) 28%, transparent);
+  animation: menu-brilho 2.4s linear infinite;
+  transition: background-color var(--dur-rapida) var(--curva), box-shadow var(--dur-rapida) var(--curva), color var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva);
+}
 .aprovacao-rede[data-rede="instagram"] { --rede: #C13584; }
 .aprovacao-rede[data-rede="facebook"] { --rede: #1877F2; }
-.aprovacao-rede:hover:not(:disabled) { background: var(--realce); }
-.aprovacao-rede[aria-pressed="true"] { background: var(--rede); box-shadow: 0 1px 3px rgb(0 0 0 / 0.1); color: #fff; }
-.aprovacao-rede:disabled { opacity: .45; cursor: not-allowed; }
+.aprovacao-rede .marca-rede { transition: filter var(--dur-rapida) var(--curva); }
+.aprovacao-rede:hover:not(:disabled) { background-color: color-mix(in srgb, var(--rede) 12%, var(--sup)); }
+.aprovacao-rede:active:not(:disabled) { transform: translateY(1px); }
+.aprovacao-rede[aria-pressed="true"] { background: var(--rede); box-shadow: 0 2px 6px color-mix(in srgb, var(--rede) 45%, transparent); color: #fff; animation: none; }
+.aprovacao-rede[aria-pressed="true"]:hover:not(:disabled) { background: color-mix(in srgb, var(--rede) 86%, #000); }
+.aprovacao-rede[aria-pressed="true"] .marca-rede { filter: brightness(0) invert(1); }
+.aprovacao-rede:disabled { opacity: .45; cursor: not-allowed; animation: none; }
 .aprovacao-rede:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .aprovacao-rede { animation: none; transition: none; } }
 .aprovacao-nota, .aprovacao-aviso { grid-column: 1 / -1; flex-basis: 100%; margin: 0; color: var(--fraco); font: 500 11px/1.35 var(--fonte); }
 .aprovacao-falta { flex-basis: 100%; margin: 0; padding-left: 16px; color: var(--atrasado); font: 600 11px/1.45 var(--fonte); }
 /* Confirmação (Concluir, Postar agora): mesmo desenho da de "Postado" da Esteira */
@@ -78,8 +92,6 @@
 .publicacao-acoes .campo-data-botao { height: 36px; min-height: 36px; border-radius: 8px; }
 .publicacao-links { display: flex; flex-wrap: wrap; gap: var(--s-16); }
 .publicacao .aprovacao-erro { padding: var(--s-12); }
-/* Rede acesa com o mouse em cima: continua na cor dela, um pouco mais escura (o cinza do hover com texto branco ficava ilegível) */
-.aprovacao-rede[aria-pressed="true"]:hover:not(:disabled) { background: color-mix(in srgb, var(--rede) 86%, #000); }
 /* Consertar e Aprovar no fim da ficha, acima do pé (item 219): metade cada, nas bordas dos campos; tamanho dos botões da Publicação */
 .ficha-decidir { --aprovar: #2C6B49; display: grid; grid-template-columns: 1fr 1fr; flex: none; gap: var(--s-12); }
 .ficha-decidir .aprovacao-botao { min-height: 36px; padding: 6px var(--s-16); font-size: var(--t-14); }
