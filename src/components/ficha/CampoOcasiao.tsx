@@ -4,7 +4,7 @@ import { criarOcasiao, renomearOcasiao, useOcasioes } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import "./anexos.css";
 
-// Ocasião (item 203) = a pasta do Drive do card dentro da empresa (Tarefas · Conteúdos > Empresa > Ocasião).
+// Ocasião (item 203; na tela "Tema", item 220) = a pasta do Drive do card dentro da empresa (Tarefas · Conteúdos > Empresa > Ocasião).
 // Escolher não mexe no Drive; "Nova ocasião" e "Renomear" chamam a função `drive`, que cria e renomeia a pasta de verdade.
 // Card sem ocasião ganha uma sozinha (com o título dele) na primeira vez que recebe um anexo.
 export function CampoOcasiao({ empresaId, valor, aoMudar }: { tarefaId?: string; empresaId: string; valor?: string; aoMudar: (ocasiaoId: string | undefined) => void }) {
@@ -28,7 +28,7 @@ export function CampoOcasiao({ empresaId, valor, aoMudar }: { tarefaId?: string;
       setModo(null);
       setNome("");
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Não consegui salvar a ocasião.");
+      setErro(e instanceof Error ? e.message : "Não consegui salvar o tema.");
     } finally {
       setOcupado(false);
     }
@@ -37,23 +37,24 @@ export function CampoOcasiao({ empresaId, valor, aoMudar }: { tarefaId?: string;
   return (
     <div className="ficha-campo ficha-escolha">
       <Selecao
-        rotulo="Ocasião"
+        rotulo="Tema (pasta no Drive)"
         opcoes={daEmpresa.map((o) => ({ valor: o.id, rotulo: o.nome }))}
         valor={atual ? [atual.id] : []}
         multipla={false}
-        rotuloTodos="Sem ocasião"
+        rotuloTodos="Sem tema"
         vazio="Escolher"
         aoMudar={([v]) => aoMudar(v)}
-        acao={{ rotulo: "Nova ocasião", aoClicar: () => { setModo("nova"); setNome(""); setErro(""); } }}
+        acao={{ rotulo: "Novo tema", aoClicar: () => { setModo("nova"); setNome(""); setErro(""); } }}
       />
       {atual && !modo && <button type="button" className="ficha-texto-botao" onClick={() => { setModo("renomear"); setNome(atual.nome); setErro(""); }}>Renomear a pasta</button>}
       {modo && (
         <div className="ficha-tag-nova">
-          <input value={nome} maxLength={120} autoFocus aria-label={modo === "nova" ? "Nome da nova ocasião" : "Novo nome da ocasião"} placeholder={modo === "nova" ? "Ex.: Dia das Mães" : ""} onChange={(e) => setNome(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void confirmar(); } }} />
+          <input value={nome} maxLength={120} autoFocus aria-label={modo === "nova" ? "Nome do novo tema" : "Novo nome do tema"} placeholder={modo === "nova" ? "Ex.: Dia das Mães" : ""} onChange={(e) => setNome(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void confirmar(); } }} />
           <button type="button" className="ficha-texto-botao" disabled={ocupado} onClick={() => void confirmar()}>{modo === "nova" ? "Criar" : "Renomear"}</button>
           <button type="button" className="ficha-texto-botao" onClick={() => setModo(null)}>Cancelar</button>
         </div>
       )}
+      <p className="ficha-dica">Agrupa os vídeos numa pasta do Drive, ex.: Dia das Mães. Sem tema, vai direto na pasta da empresa.</p>
       {erro && <small className="ficha-anexo-recusa" role="alert">{erro}</small>}
     </div>
   );

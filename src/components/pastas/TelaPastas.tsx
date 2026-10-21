@@ -88,7 +88,7 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
               <PastaDeVidro
                 rotulo={o.nome}
                 legenda={daOcasiao.length === 1 ? "1 card" : `${daOcasiao.length} cards`}
-                vazio="Nenhum card nesta ocasião."
+                vazio="Nenhum card neste tema."
                 tom={tom}
                 arte={arte}
                 seed={31 + i * 4}
@@ -102,7 +102,7 @@ function Faixa({ empresa, pecas }: { empresa: Empresa; pecas: Peca[] }) {
       </div>
       {renomeando && (
         <CardNome
-          titulo="Renomear ocasião"
+          titulo="Renomear tema"
           inicial={ocasioes.find((o) => o.id === renomeando)?.nome ?? ""}
           emUso={(n) => ocasioes.some((o) => o.id !== renomeando && o.nome.trim().toLowerCase() === n.toLowerCase())}
           aoSalvar={async (n) => { await renomearOcasiao(renomeando, n); setRenomeando(null); }}

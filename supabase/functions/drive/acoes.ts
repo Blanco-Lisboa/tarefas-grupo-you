@@ -80,7 +80,7 @@ export function criarManipulador(d: Deps) {
   async function novaOcasiao(empresaId: string, nome: string, pessoaId: string, reusar: boolean): Promise<Linha> {
     const s = servico();
     const igual = (await s.ler("ocasioes", { empresa_id: empresaId })).find((o) => String(o.nome).trim().toLowerCase() === nome.toLowerCase());
-    if (igual) { if (reusar) return igual; throw new Recusa(409, "Já existe uma ocasião com esse nome."); }
+    if (igual) { if (reusar) return igual; throw new Recusa(409, "Já existe um tema com esse nome."); }
     const pasta = await d.api.criarPasta(nome, await pastaEmpresa(empresaId));
     try {
       return (await s.inserir("ocasioes", { empresa_id: empresaId, nome, drive_pasta_id: pasta, criado_por: pessoaId }))[0];
@@ -88,7 +88,7 @@ export function criarManipulador(d: Deps) {
       await d.api.lixeira(pasta).catch(() => {});
       if (e instanceof ErroRest && e.status === 409) {
         if (reusar) return (await s.ler("ocasioes", { empresa_id: empresaId })).find((o) => String(o.nome).trim().toLowerCase() === nome.toLowerCase())!;
-        throw new Recusa(409, "Já existe uma ocasião com esse nome.");
+        throw new Recusa(409, "Já existe um tema com esse nome.");
       }
       throw e;
     }
@@ -104,7 +104,7 @@ export function criarManipulador(d: Deps) {
     if (!t.empresa_id) throw new Recusa(400, "Escolha a empresa para anexar arquivo.");
     const s = servico();
     let oc = t.ocasiao_id ? (await s.ler("ocasioes", { id: t.ocasiao_id }))[0] : undefined;
-    if (oc && oc.empresa_id !== t.empresa_id) throw new Recusa(409, "A ocasião deste card é de outra empresa. Escolha uma ocasião da empresa do card.");
+    if (oc && oc.empresa_id !== t.empresa_id) throw new Recusa(409, "O tema deste card é de outra empresa. Escolha um tema da empresa do card.");
     if (!oc) {
       oc = await novaOcasiao(t.empresa_id, nomeOk(t.titulo) ?? "Sem título", pessoaId, true);
       await s.atualizar("tarefas", { id: t.id }, { ocasiao_id: oc.id as string });
@@ -188,7 +188,7 @@ export function criarManipulador(d: Deps) {
       }
       case "criar_ocasiao": {
         const empresa = texto(c.empresa_id), nome = nomeOk(c.nome);
-        if (!empresa || !nome) throw new Recusa(400, "Escreva o nome da ocasião.");
+        if (!empresa || !nome) throw new Recusa(400, "Escreva o nome do tema.");
         const visivel = await eu.ler("empresas", { id: empresa }, "id");
         if (!visivel.length) throw new Recusa(403, "Empresa não encontrada.");
         const o = await novaOcasiao(empresa, nome, pessoa.id, false);
@@ -196,12 +196,12 @@ export function criarManipulador(d: Deps) {
       }
       case "renomear_ocasiao": {
         const id = texto(c.ocasiao_id), nome = nomeOk(c.nome);
-        if (!id || !nome) throw new Recusa(400, "Escreva o nome da ocasião.");
-        if (!(await eu.ler("ocasioes", { id }, "id")).length) throw new Recusa(404, "Ocasião não encontrada."); // a trava de leitura do banco decide se a pessoa a enxerga
+        if (!id || !nome) throw new Recusa(400, "Escreva o nome do tema.");
+        if (!(await eu.ler("ocasioes", { id }, "id")).length) throw new Recusa(404, "Tema não encontrado."); // a trava de leitura do banco decide se a pessoa a enxerga
         const s = servico();
         const [o] = await s.ler<{ id: string; empresa_id: string; drive_pasta_id: string | null }>("ocasioes", { id });
-        if (!o) throw new Recusa(404, "Ocasião não encontrada.");
-        if ((await s.ler("ocasioes", { empresa_id: o.empresa_id })).some((x) => x.id !== id && String(x.nome).trim().toLowerCase() === nome.toLowerCase())) throw new Recusa(409, "Já existe uma ocasião com esse nome.");
+        if (!o) throw new Recusa(404, "Tema não encontrado.");
+        if ((await s.ler("ocasioes", { empresa_id: o.empresa_id })).some((x) => x.id !== id && String(x.nome).trim().toLowerCase() === nome.toLowerCase())) throw new Recusa(409, "Já existe um tema com esse nome.");
         if (o.drive_pasta_id) await d.api.renomear(o.drive_pasta_id, nome); // acha pelo id, não pelo nome
         await s.atualizar("ocasioes", { id }, { nome });
         return { ok: true };
