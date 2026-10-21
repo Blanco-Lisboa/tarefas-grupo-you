@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NovaTarefa } from "@/lib/dados";
-import { arrumar, ehQuemAprova, etapaAoSalvar } from "./arrumar";
+import { arrumar, ehQuemAprova, etapaAoSalvar, podeTrocarAprovador } from "./arrumar";
 
 describe("ficha: o que vai para o banco ao salvar (Lupa R6-1)", () => {
   const t: NovaTarefa = {
@@ -15,6 +15,19 @@ describe("ficha: o que vai para o banco ao salvar (Lupa R6-1)", () => {
   });
   it("com a tag, o aprovador fica; fora de postagem o objetivo sai; notas só de espaços somem", () => {
     expect(arrumar({ ...t, tipo: "outro", notas: "   " }, true)).toMatchObject({ aprovador: "Natham", objetivo: undefined, notas: undefined });
+  });
+});
+
+describe("podeTrocarAprovador (223)", () => {
+  it("o Matheus escolhe quem aprova em card do Natham, de outro ou sem aprovador; Natham sempre; os outros só se forem o aprovador", () => {
+    expect(podeTrocarAprovador("Natham", "matheus")).toBe(true);
+    expect(podeTrocarAprovador(undefined, "matheus")).toBe(true);
+    expect(podeTrocarAprovador("Adrian", "matheus")).toBe(true);
+    expect(podeTrocarAprovador(undefined, "natham")).toBe(true);
+    expect(podeTrocarAprovador("Adrian", "adrian")).toBe(true);
+    expect(podeTrocarAprovador("Natham", "adrian")).toBe(false);
+    expect(podeTrocarAprovador(undefined, "lucas")).toBe(false);
+    expect(podeTrocarAprovador("Natham", null)).toBe(false);
   });
 });
 

@@ -135,6 +135,18 @@ drop trigger if exists tarefas_apagar_com_drive on public.tarefas;
 create trigger tarefas_apagar_com_drive before delete on public.tarefas for each row execute function private.tarefas_apagar_com_drive();
 
 -- 6. Gatilho de aprovação (015) + Aprovado/Postado só para Tipo Postagem + trava de legenda, formato e redes depois de Aprovado.
+-- Quem aprova (223, igual ao 021): troca pela mão do Natham, do Matheus ou do aprovador atual.
+create or replace function private.pode_trocar_aprovador(aprovador text) returns boolean
+language sql stable security definer set search_path = ''
+as $$
+  select (select auth.uid()) is null or exists (
+    select 1 from public.pessoas p
+    where p.user_id = (select auth.uid()) and (p.slug in ('natham', 'matheus') or lower(p.nome) = lower(btrim(aprovador)))
+  )
+$$;
+revoke all on function private.pode_trocar_aprovador(text) from public, anon;
+grant execute on function private.pode_trocar_aprovador(text) to authenticated;
+
 create or replace function private.tarefas_aprovacao() returns trigger
 language plpgsql set search_path = ''
 as $$
@@ -150,11 +162,13 @@ begin
   v_entra_aprovado := new.etapa = 'aprovado' and (tg_op = 'INSERT' or old.etapa is distinct from 'aprovado');
   v_entra_postado := new.etapa = 'postado' and (tg_op = 'INSERT' or coalesce(old.etapa, '') not in ('aprovado', 'postado'));
   if tg_op = 'UPDATE' then
+    if new.aprovador is distinct from old.aprovador and not (select private.pode_trocar_aprovador(old.aprovador)) then
+      raise exception 'so o Natham, o Matheus ou o aprovador do card troca quem aprova' using errcode = '42501';
+    end if;
     -- Sair de Aprovado (para Postado a mão, Edição ou qualquer etapa) também é do Natham/aprovador: senão um editor "posta" no papel, ou volta o card para Edição
     -- e escapa da trava de legenda/redes/capa/anexos, e o alarme se cancela.
     if (new.conserto and not old.conserto) or v_entra_aprovado or v_entra_postado
        or (old.etapa = 'aprovado' and new.etapa is distinct from 'aprovado')
-       or new.aprovador is distinct from old.aprovador
        or (old.etapa in ('aprovado', 'postado') and new.etapa in ('aprovado', 'postado') and (
             new.postar_em is distinct from old.postar_em or new.legenda is distinct from old.legenda
             or new.formato is distinct from old.formato or new.postar_redes is distinct from old.postar_redes

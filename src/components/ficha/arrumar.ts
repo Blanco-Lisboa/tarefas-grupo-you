@@ -21,6 +21,10 @@ export const etapaAoSalvar = (t: NovaTarefa): Etapa | undefined => t.etapa ?? (!
 export const ehQuemAprova = (aprovador: string | undefined, eu: Responsavel | null) =>
   eu === "natham" || (!!eu && eu === aprovador?.trim().toLowerCase());
 
+/** Espelha private.pode_trocar_aprovador (021, item 223): quem escolhe "Quem aprova" num card que já existe é o Natham, o Matheus
+    ou quem aprova hoje. Antes era só ehQuemAprova, e o Matheus não escolhia nada em card do Natham ou sem aprovador. */
+export const podeTrocarAprovador = (aprovador: string | undefined, eu: Responsavel | null) => eu === "matheus" || ehQuemAprova(aprovador, eu);
+
 // Fim só vale se vier depois do início; senão a tarefa fica sem fim (vira um ponto no horário).
 export function fimValido(dia: string, ini: string, diaFim: string, fim: string) {
   if (!fim) return undefined;

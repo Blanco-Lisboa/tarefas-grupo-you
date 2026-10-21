@@ -4,6 +4,8 @@
 // (o vídeo enviado toca na barrinha da capa) e faz o papel da função postar-meta: fila -> enviando -> postado, com link de exemplo,
 // e posta sozinho o card Aprovado quando a hora marcada chega. Nada sai do PC. Sem PREVIA, é o banco da prova (fotos.mjs).
 // Regras copiadas do 019 que a prova precisa ver: só Natham/aprovador leva Aprovado -> Postado (42501); Aprovado/Postado só para Postagem (23514).
+// E do 021 (item 223): só Natham, Matheus ou o aprovador atual troca "Quem aprova" (42501). APROVACAO=1: o card Em análise já vem
+// com a tag "Esperando aprovação", que mostra o campo Quem aprova na ficha.
 import { createServer } from "node:http";
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 
@@ -61,7 +63,12 @@ const postagens = [
   { tarefa_id: id("Depoimento de cliente"), rede: "facebook", status: "postado", link: "https://www.facebook.com/EXEMPLO3", erro: null, postado_em: "2026-10-15T21:00:00Z" },
 ];
 export const chamadas = [];
-const tabelas = { pessoas, empresas, tags: [], tarefas, arquivos, postagens, fazendo_agora: [], ocasioes: [{ id: "o1", empresa_id: "you", nome: "Bastidores de outubro" }] };
+const tags = [];
+if (process.env.APROVACAO === "1") {
+  tags.push({ id: "g-aprovacao", nome: "Esperando aprovação", cor: "etiqueta-3", aprovacao: true });
+  tarefas[0].tarefa_tags = [{ tag_id: "g-aprovacao" }];
+}
+const tabelas = { pessoas, empresas, tags, tarefas, arquivos, postagens, fazendo_agora: [], ocasioes: [{ id: "o1", empresa_id: "you", nome: "Bastidores de outubro" }] };
 
 // Prévia: o Mapa desenha pela data do card (inicio) e a partir de hoje; o card programado ganha a data do post e o postado de exemplo é de hoje.
 if (PREVIA) {
@@ -188,6 +195,7 @@ createServer(async (req, res) => {
       const aprova = eu?.slug === "natham" || eu?.slug === (atual?.aprovador ?? "").toLowerCase();
       if (["aprovado", "postado"].includes(c.p.etapa) && c.p.tipo !== "postagem") return json(res, 400, { code: "23514", message: "so card do tipo Postagem vai para Aprovado ou Postado; os outros terminam em Concluir" });
       if (atual?.etapa === "aprovado" && c.p.etapa === "postado" && !aprova) return json(res, 403, { code: "42501", message: "so o Natham ou o aprovador" });
+      if (atual && (c.p.aprovador ?? null) !== (atual.aprovador ?? null) && !aprova && eu?.slug !== "matheus") return json(res, 403, { code: "42501", message: "so o Natham, o Matheus ou o aprovador troca quem aprova" });
       // Como o salvar_tarefa do banco: numa edição, dono, criado_por e enviada_por não mudam.
       if (atual) { const { dono_id: _d, criado_por: _c, enviada_por: _e, ...resto } = c.p; Object.assign(atual, resto); } else tarefas.push({ ...c.p, tarefa_tags: [] });
       return res.writeHead(204).end();

@@ -37,7 +37,7 @@ import { CamposPost } from "./CamposPost";
 import { Publicacao } from "./Publicacao";
 import { TagsFicha } from "./TagsFicha";
 import { LINK_VALIDO, LinksDrive } from "./LinksDrive";
-import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido } from "./arrumar";
+import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido, podeTrocarAprovador } from "./arrumar";
 import { CampoOcasiao } from "./CampoOcasiao";
 import { TextoComLinks } from "@/components/pastas/links";
 import { CampoData } from "@/components/ui/CampoData";
@@ -99,7 +99,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
   const lixeira = !nova && podeApagar({ ...tarefa, id: tarefa.id! }, eu); // vale o que está no banco, não o que foi mudado na ficha
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
-  const aprovadorTravado = !nova && !ehQuemAprova(tarefa.aprovador, eu);
+  const aprovadorTravado = !nova && !podeTrocarAprovador(tarefa.aprovador, eu);
   // 019: depois de Aprovado, o que vai para a rede (descrição do post, formato, arquivos, capa) só muda pelo Natham ou por quem aprova.
   const postTravado = !nova && (tarefa.etapa === "aprovado" || tarefa.etapa === "postado") && !(podeAlterar(tarefa as Tarefa, eu) && ehQuemAprova(tarefa.aprovador, eu));
   const capas = arquivos.filter((a) => a.papel === "capa");
@@ -163,7 +163,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
       vaiProGoogle: nova ? vai : tarefa.vaiProGoogle, // só liga na criação e se pode ir (R5-5)
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
-    const salva = { ...(aprovadorTravado ? { ...pronta, aprovador: tarefa.aprovador } : pronta), ...extra }; // só quem aprova muda o aprovador (015), mesmo tirando a tag
+    const salva = { ...(aprovadorTravado ? { ...pronta, aprovador: tarefa.aprovador } : pronta), ...extra }; // só Natham, Matheus ou quem aprova muda o aprovador (015, 223), mesmo tirando a tag
     const gravada = await salvarTarefa(salva);
     gravando.current = false;
     setSalvando(false);

@@ -1,7 +1,7 @@
 "use client";
 // Tags e "Quem aprova" da ficha (saíram da Ficha.tsx para ela caber no limite de linhas; comportamento igual).
 // "Nova tag" troca a linha por nome + cores; "Novo nome" (de quem aprova) troca por um campo de nome. Esc cancela sem fechar a ficha.
-// `aprovadorTravado`: só o Natham ou quem aprova muda o aprovador (015).
+// `aprovadorTravado`: só o Natham, o Matheus ou quem aprova muda o aprovador (015, 223).
 import { useState } from "react";
 import { APROVADORES, ETIQUETAS, salvarTag, useTags, useTarefas, type Etiqueta, type NovaTarefa } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
@@ -55,7 +55,7 @@ export function TagsFicha({ t, mudar, pedeAprovador, aprovadorTravado }: {
             <Selecao rotulo="Tags" opcoes={tags.map((g) => ({ valor: g.id, rotulo: g.nome, antes: <span className="ficha-ponto" style={{ background: `var(--${g.cor})` }} />, chip: <TagChip tag={g} /> }))} valor={marcadas} aoMudar={(v) => mudar("tags", v)} acao={{ rotulo: "Nova tag", aoClicar: () => setNovaTag({ nome: "", cor: "etiqueta-3" }) }} />
           </div>
           {pedeAprovador && (
-            <div className="ficha-campo ficha-escolha" inert={aprovadorTravado} title={aprovadorTravado ? "Só o Natham ou quem aprova muda" : undefined}>
+            <div className="ficha-campo ficha-escolha" inert={aprovadorTravado} title={aprovadorTravado ? "Só o Natham, o Matheus ou quem aprova muda" : undefined}>
               <Selecao rotulo="Quem aprova" opcoes={aprovadores.map((nome) => ({ valor: nome, rotulo: nome, antes: <Aprovador nome={nome} tamanho={18} /> }))} valor={t.aprovador ? [t.aprovador] : []} multipla={false} rotuloTodos="Ninguém" aoMudar={([v]) => mudar("aprovador", v)} acao={{ rotulo: "Novo nome", aoClicar: () => setNovoNome("") }} />
             </div>
           )}
