@@ -1,0 +1,103 @@
+"use client";
+// Bloco "Publicação" na ficha de um card de Postagem (196; pedido do Natham: programar e postar DENTRO do card, onde ele vê o conteúdo).
+//   <Publicacao salvo={tarefa} rascunho={{ ...t, arquivos }} mudar={mudar} gravar={gravar} />
+// - Postado: links "Ver no Instagram" / "Ver no Facebook" (para todos).
+// - Aprovado: a situação (Programado, Postando…, erro, Programação cancelada) para todos; para o Natham e quem aprova, as redes,
+//   a data e hora, "Programar postagem"/"Reprogramar postagem" e "Postar agora" (com confirmação); com erro, "Tentar de novo" + as redes.
+// - Toda ação passa pela checagem (o que falta) e grava a FICHA INTEIRA (gravar) antes, para não perder o que foi mudado nela.
+// - Só a You está ligada: em outra empresa fica só o aviso.
+import { useState } from "react";
+import { REDES_POST, postarAgora, tentarDeNovo, useEu, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { paraDia, paraHora } from "@/components/calendario/logica";
+import { CampoData } from "@/components/ui/CampoData";
+import { podeAprovar } from "./Aprovacao";
+import { Confirmar } from "./Confirmar";
+import { CANCELADA, NOME_REDE, carrosselComVideo, faltaParaPostar, programacaoCancelada, redesDe, redesValidas, situacao, textoRedes } from "./postagem";
+
+type Props = {
+  salvo: Tarefa; rascunho: NovaTarefa;
+  mudar: <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => void;
+  /** Grava a ficha com `extra` por cima; devolve true se o banco aceitou. */
+  gravar: (extra: Partial<NovaTarefa>) => Promise<boolean>;
+};
+
+export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
+  const eu = useEu();
+  const [quando, setQuando] = useState(salvo.postarEm ?? "");
+  const [falta, setFalta] = useState<string[]>([]);
+  const [confirmando, setConfirmando] = useState(false);
+  if (salvo.tipo !== "postagem" || (salvo.etapa !== "aprovado" && salvo.etapa !== "postado")) return null;
+
+  if (salvo.etapa === "postado") {
+    const links = (salvo.postagens ?? []).filter((p) => p.link);
+    return links.length ? (
+      <fieldset className="ficha-campo publicacao"><legend>Publicação</legend>
+        <div className="publicacao-links">{links.map((p) => <a key={p.rede} className="aprovacao-link" href={p.link} target="_blank" rel="noopener noreferrer">Ver no {NOME_REDE[p.rede]}</a>)}</div>
+      </fieldset>
+    ) : null;
+  }
+
+  const aprova = podeAprovar(salvo, eu);
+  const sit = situacao(salvo);
+  const cancelada = programacaoCancelada(salvo);
+  const redes = redesDe(rascunho);
+  const soInstagram = carrosselComVideo(rascunho, rascunho.formato);
+  const valem = redesValidas(rascunho, rascunho.formato, redes);
+  // O que ainda não subiu não está guardado: a função não acharia.
+  const checar = (extra: string[] = []) => {
+    const f = [...faltaParaPostar(rascunho, rascunho.formato, valem), ...(rascunho.arquivos.some((a) => a.pendente) ? ["Salve a ficha antes: há arquivo que ainda não subiu."] : []), ...extra];
+    setFalta(f);
+    return !f.length;
+  };
+  const programar = () => {
+    if (checar(!quando ? ["Escolha a data e a hora."] : quando < paraHora(new Date()) ? ["Escolha um horário que ainda não passou."] : [])) void gravar({ postarRedes: valem, postarEm: quando });
+  };
+  const tentar = async () => { if (checar() && (await gravar({ postarRedes: valem }))) void tentarDeNovo(salvo.id); };
+  const postar = async () => { setConfirmando(false); if (await gravar({ postarRedes: valem })) void postarAgora(salvo.id); };
+
+  return (
+    <fieldset className="ficha-campo publicacao"><legend>Publicação</legend>
+      {salvo.empresaId !== "you" ? <p className="ficha-dica ficha-dica-fica">Postagem automática só para a You (por enquanto).</p> : <>
+        {sit?.tipo === "postando" && <p className="aprovacao-situacao" data-tipo="postando" role="status">Postando…</p>}
+        {sit?.tipo === "programado" && <p className="aprovacao-situacao">{sit.texto}</p>}
+        {!sit && !cancelada && <p className="aprovacao-situacao">Sem programação.</p>}
+        {cancelada && <div className="aprovacao-erro" role="alert"><p>{CANCELADA}</p></div>}
+        {sit?.tipo === "erro" && (
+          <div className="aprovacao-erro" role="alert">
+            <p>{sit.texto}</p>
+            {sit.incerto && <p className="aprovacao-incerto">Pode ter saído. Olhe o perfil da You no {sit.refazer.map((r) => NOME_REDE[r]).join(" e ")} antes de tentar de novo, senão o post pode sair duas vezes.</p>}
+            {sit.saiu?.link && <a className="aprovacao-link" href={sit.saiu.link} target="_blank" rel="noopener noreferrer">Ver no {NOME_REDE[sit.saiu.rede]}</a>}
+          </div>
+        )}
+        {aprova && sit?.tipo !== "postando" && <>
+          <div className="aprovacao-redes publicacao-redes" role="group" aria-label="Onde postar">
+            {REDES_POST.map((r) => {
+              const fora = r === "facebook" && soInstagram && redes.includes("instagram");
+              return <button key={r} type="button" className="aprovacao-rede" aria-pressed={!fora && redes.includes(r)} disabled={fora}
+                onClick={() => mudar("postarRedes", redes.includes(r) ? redes.filter((x) => x !== r) : REDES_POST.filter((x) => x === r || redes.includes(x)))}>{NOME_REDE[r]}</button>;
+            })}
+            {soInstagram && <small className="aprovacao-nota">Carrossel com vídeo vai só para o Instagram: o Facebook não aceita foto e vídeo no mesmo post.</small>}
+          </div>
+          {sit?.tipo === "erro" ? (
+            // Com erro, o caminho é "Tentar de novo" (019: postar_agora não mexe em rede que deu erro); as redes acima valem para a nova tentativa.
+            <div className="publicacao-acoes">
+              <button type="button" className="aprovacao-botao" data-acao="tentar" onClick={() => void tentar()}>
+                {sit.incerto ? "Já olhei o perfil: tentar de novo" : sit.saiu && sit.refazer.length === 1 ? `Tentar de novo só no ${NOME_REDE[sit.refazer[0]]}` : "Tentar de novo"}
+              </button>
+            </div>
+          ) : (
+            <div className="publicacao-acoes">
+              <CampoData rotulo="Data e hora do post" valor={quando.slice(0, 10)} hora={quando.slice(11, 16)} min={paraDia(new Date())} semLimpar vazio="Quando?"
+                aoMudar={(dia, hora) => setQuando(dia ? `${dia}T${hora || "00:00"}` : "")} />
+              <button type="button" className="aprovacao-botao" data-acao={salvo.postarEm ? "reprogramar" : "aprovar"} onClick={programar}>{salvo.postarEm ? "Reprogramar postagem" : "Programar postagem"}</button>
+              <button type="button" className="aprovacao-botao" data-acao="postar" onClick={() => { if (checar()) setConfirmando(true); }}>Postar agora</button>
+            </div>
+          )}
+          {falta.length > 0 && <ul className="aprovacao-falta" role="alert">{falta.map((f) => <li key={f}>{f}</li>)}</ul>}
+        </>}
+      </>}
+      {confirmando && <Confirmar titulo={`Postar agora no ${textoRedes(valem)} da You?`} texto={`"${rascunho.titulo}" vai para o ar agora. Não dá para desfazer.`} acao="Postar"
+        aoCancelar={() => setConfirmando(false)} aoConfirmar={() => void postar()} />}
+    </fieldset>
+  );
+}

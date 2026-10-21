@@ -63,3 +63,14 @@
 .selo-conserto svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
 @media (prefers-reduced-motion: reduce) { .aprovacao-situacao[data-tipo="postando"]::before { animation: none; } }
 .aprovacao-erro .aprovacao-incerto { color: var(--texto); font-weight: 500; }
+/* Card Aprovado: uma linha só de estado (os botões foram para a ficha). Erro e programação cancelada em vermelho. */
+.aprovacao-situacao[data-tipo="erro"] { color: var(--atrasado); }
+/* Bloco "Publicação" na ficha: estado, redes, data e hora e os botões, embaixo da Legenda/Capa */
+.publicacao { display: grid; gap: var(--s-12); min-width: 0; margin: 0; padding: var(--s-16); border: 1px solid var(--linha); border-radius: var(--raio-b); background: var(--sup-2); }
+.publicacao legend { padding: 0 var(--s-4); }
+.publicacao .aprovacao-redes { max-width: 360px; }
+.publicacao-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); }
+.publicacao-acoes .aprovacao-botao { flex: 0 0 auto; min-height: 36px; padding: 6px var(--s-16); font-size: var(--t-14); }
+.publicacao-acoes .campo-data-botao { min-height: 36px; }
+.publicacao-links { display: flex; flex-wrap: wrap; gap: var(--s-16); }
+.publicacao .aprovacao-erro { padding: var(--s-12); }

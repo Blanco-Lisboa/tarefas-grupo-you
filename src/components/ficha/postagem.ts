@@ -61,3 +61,18 @@ export function situacao(t: Pick<Tarefa, "postagens" | "postarEm" | "postarRedes
   }
   return t.postarEm ? { tipo: "programado", texto: `Programado · ${quando(t.postarEm)} · ${textoRedes(redesDe(t))}` } : null;
 }
+
+export const CANCELADA = "Programação cancelada: carrossel com vídeo não vai para o Facebook. Acenda o Instagram ou tire o vídeo e programe de novo.";
+/** O salvar tirou a programação (carrossel com vídeo só para o Facebook, achado 6 da Lupa): sem data, e a ficha mostra CANCELADA. */
+export const programacaoCancelada = (t: Pick<Tarefa, "arquivos" | "formato" | "postarEm" | "postarRedes">) =>
+  !t.postarEm && carrosselSoFacebook(t, t.formato, redesDe(t));
+
+/** A linha única do card Aprovado na Esteira (pedido do Natham: os botões ficam na ficha, o card fica baixo). */
+export function estadoDoCard(t: Pick<Tarefa, "empresaId" | "postagens" | "postarEm" | "postarRedes" | "arquivos" | "formato">): { texto: string; tom: "normal" | "postando" | "erro" } {
+  if (t.empresaId !== "you") return { texto: "Postagem automática só para a You (por enquanto)", tom: "normal" };
+  const sit = situacao(t);
+  if (sit?.tipo === "postando") return { texto: "Postando…", tom: "postando" };
+  if (sit?.tipo === "erro") return { texto: "Erro ao postar: abra o card", tom: "erro" };
+  if (programacaoCancelada(t)) return { texto: "Programação cancelada: abra o card", tom: "erro" };
+  return sit ? { texto: sit.texto, tom: "normal" } : { texto: "Sem programação", tom: "normal" };
+}

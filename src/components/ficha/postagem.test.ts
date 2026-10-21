@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Arquivo } from "@/lib/dados";
-import { faltaParaPostar, redesValidas, situacao } from "./postagem";
+import { estadoDoCard, faltaParaPostar, redesValidas, situacao } from "./postagem";
 
 const img: Arquivo = { nome: "a.png", tipo: "imagem" }, vid: Arquivo = { nome: "b.mp4", tipo: "video" }, capa: Arquivo = { nome: "c.jpg", tipo: "imagem", papel: "capa" };
 const card = (arquivos: Arquivo[], legenda = "Texto") => ({ arquivos, legenda, empresaId: "you" });
@@ -41,5 +41,19 @@ describe("situação do card Aprovado", () => {
   it("programado mostra data e redes; sem data e sem postagem, nada", () => {
     expect(situacao({ postarEm: "2026-10-25T18:00", postarRedes: ["instagram"] })).toEqual({ tipo: "programado", texto: "Programado · 25/10 18:00 · Instagram" });
     expect(situacao({})).toBeNull();
+  });
+});
+
+describe("linha única do card Aprovado (botões na ficha)", () => {
+  const you = { empresaId: "you", arquivos: [img] };
+  it("um texto curto por estado; Beec não mostra Programado", () => {
+    expect(estadoDoCard({ ...you, postarEm: "2026-10-27T10:00", postarRedes: ["instagram", "facebook"] }).texto).toBe("Programado · 27/10 10:00 · Instagram + Facebook");
+    expect(estadoDoCard({ ...you, postagens: [{ rede: "instagram", status: "enviando" }] })).toEqual({ texto: "Postando…", tom: "postando" });
+    expect(estadoDoCard({ ...you, postagens: [{ rede: "facebook", status: "erro", erro: "x" }] })).toEqual({ texto: "Erro ao postar: abra o card", tom: "erro" });
+    expect(estadoDoCard(you).texto).toBe("Sem programação");
+    expect(estadoDoCard({ ...you, empresaId: "beec", postarEm: "2026-10-27T12:00" }).texto).toBe("Postagem automática só para a You (por enquanto)");
+  });
+  it("carrossel com vídeo só para o Facebook e sem data = programação cancelada (achado 6, 3ª volta)", () => {
+    expect(estadoDoCard({ empresaId: "you", formato: "carrossel", arquivos: [img, vid], postarRedes: ["facebook"] })).toEqual({ texto: "Programação cancelada: abra o card", tom: "erro" });
   });
 });

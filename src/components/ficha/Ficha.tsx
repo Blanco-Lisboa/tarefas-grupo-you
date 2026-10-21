@@ -14,11 +14,11 @@
 // - tipos: limita o menu Tipo (a Esteira passa só os tipos que são colunas, item 194); sem ele, todos.
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
 "use client";
-import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ehConteudo } from "@/components/tarefas/grade";
 import {
-  APROVADORES, ETAPAS, ETIQUETAS, FORMATOS, REDES, RESPONSAVEIS, TIPOS, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTag, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
-  type Etapa, type Etiqueta, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type Tarefa, type TipoTarefa,
+  ETAPAS, FORMATOS, REDES, RESPONSAVEIS, TIPOS, lerErro, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
+  type Etapa, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type Tarefa, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
 import { deTexto, paraHora, vaiProGoogle } from "@/components/calendario/logica";
@@ -26,10 +26,11 @@ import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
 import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
-import { Aprovador, TagChip } from "@/components/ui/Tag";
 import { Agora } from "./Agora";
 import { Anexos } from "./Anexos";
 import { CamposPost } from "./CamposPost";
+import { Publicacao } from "./Publicacao";
+import { TagsFicha } from "./TagsFicha";
 import { LINK_VALIDO, LinksDrive } from "./LinksDrive";
 import { arrumar, ehQuemAprova, fimValido } from "./arrumar";
 import { CampoOcasiao } from "./CampoOcasiao";
@@ -61,8 +62,6 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
   const tags = useTags();
   const todas = useTarefas();
   const eu = useEu();
-  const [novaTag, setNovaTag] = useState<{ nome: string; cor: Etiqueta } | null>(null);
-  const [novoNome, setNovoNome] = useState<string | null>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
   const [t, setT] = useState<NovaTarefa>(() => ({ ...tarefa, empresaId: tarefa.id ? tarefa.empresaId : tarefa.empresaId || empresas[0]?.id || "" })); // tarefa já existente sem empresa continua sem empresa (item 125)
   const [data, setData] = useState(tarefa.inicio?.slice(0, 10) ?? "");
@@ -93,13 +92,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
   // 019: depois de Aprovado, o que vai para a rede (legenda, formato, arquivos, capa) só muda pelo Natham ou por quem aprova.
   const postTravado = !nova && (tarefa.etapa === "aprovado" || tarefa.etapa === "postado") && !(podeAlterar(tarefa as Tarefa, eu) && ehQuemAprova(tarefa.aprovador, eu));
   const capas = arquivos.filter((a) => a.papel === "capa");
-  const aprovadores = [...new Set<string>([...APROVADORES, ...todas.flatMap((x) => (x.aprovador ? [x.aprovador] : [])), ...(t.aprovador ? [t.aprovador] : [])])];
-  async function criarTag() {
-    if (!novaTag?.nome.trim()) return;
-    const g = await salvarTag({ nome: novaTag.nome.trim(), cor: novaTag.cor });
-    mudar("tags", [...marcadas, g.id]);
-    setNovaTag(null);
-  }
+  const viva = todas.find((x) => x.id === tarefa.id); // a ficha nasce de uma cópia; a Publicação lê o card vivo (postando, erro, links)
   const temEmpresa = empresas.some((x) => x.id === t.empresaId);
   const empresaOk = !t.empresaId || temEmpresa; // "" = sem empresa
   const mudar = <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => setT((x) => ({ ...x, [campo]: valor }));
@@ -126,9 +119,9 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
     if (d && !d.open) d.showModal();
   }, []);
 
-  async function salvar(e: FormEvent) {
-    e.preventDefault();
-    if (soLer || !t.titulo.trim() || !empresaOk || salvando) return; // salvando: dois cliques em Salvar criavam a tarefa duas vezes
+  /** Salva a ficha inteira (`extra` por cima: a Publicação manda redes e data); true = o banco aceitou. */
+  async function gravar(extra: Partial<NovaTarefa> = {}): Promise<boolean> {
+    if (soLer || !t.titulo.trim() || !empresaOk || salvando) return false; // salvando: dois cliques em Salvar criavam a tarefa duas vezes
     const quando: Pick<NovaTarefa, "inicio" | "fim" | "diaInteiro"> = !data
       ? { inicio: undefined, fim: undefined, diaInteiro: false }
       : t.diaInteiro
@@ -144,9 +137,10 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
       vaiProGoogle: nova ? vai : tarefa.vaiProGoogle, // só liga na criação e se pode ir (R5-5)
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });
-    await salvarTarefa(aprovadorTravado ? { ...pronta, aprovador: tarefa.aprovador } : pronta); // só quem aprova muda o aprovador (015), mesmo tirando a tag
+    await salvarTarefa({ ...(aprovadorTravado ? { ...pronta, aprovador: tarefa.aprovador } : pronta), ...extra }); // só quem aprova muda o aprovador (015), mesmo tirando a tag
     setSalvando(false);
     setEnviou(true);
+    return !lerErro();
   }
 
   async function excluir() {
@@ -167,7 +161,7 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
       onClose={aoFechar} onCancel={(e) => { if (apagando) { e.preventDefault(); setApagando(false); } }}
       onClick={(e) => e.target === e.currentTarget && dialogo.current?.close()}
     >
-      <form className="ficha-cartao" onSubmit={salvar} style={corAtual}>
+      <form className="ficha-cartao" onSubmit={(e) => { e.preventDefault(); void gravar(); }} style={corAtual}>
         <header className="ficha-faixa">
           <div className="ficha-faixa-topo">
             <span className="ficha-rotulo"><span className="ficha-cor-marca" aria-hidden />{nova ? "Nova tarefa" : NOMES.tipo[t.tipo]}
@@ -263,46 +257,10 @@ export function Ficha({ tarefa, aoFechar, soLer, tipos = TIPOS }: { tarefa: Nova
             </Campo>
           )}
           {t.tipo === "postagem" && <CamposPost t={t} arquivos={arquivos} travado={postTravado} mudar={mudar} aoMudarCapa={(v) => setArquivos([...arquivos.filter((a) => a.papel !== "capa"), ...v])} />}
+          {viva && <Publicacao salvo={viva} rascunho={{ ...t, arquivos }} mudar={mudar} gravar={gravar} />}
 
           <div className="ficha-opcional" aria-hidden>Opcional</div>
-          <div className="ficha-tags">
-            {novaTag ? (
-              <div className="ficha-campo ficha-tag-nova">
-                <input aria-label="Nome da nova tag" placeholder="Nome da nova tag" value={novaTag.nome} autoFocus
-                  onChange={(e) => setNovaTag({ ...novaTag, nome: e.target.value })}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void criarTag(); } if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setNovaTag(null); } }} />
-                <div className="ficha-cores">
-                  {[...ETIQUETAS.slice(0, 6), ...ETIQUETAS.slice(10, 16)].map((c) => (
-                    <button key={c} type="button" className="ficha-cor" aria-label={`Cor ${c.slice(9)}`} aria-pressed={novaTag.cor === c} style={{ background: `var(--${c})` }} onClick={() => setNovaTag({ ...novaTag, cor: c })} />
-                  ))}
-                </div>
-                <button type="button" className="ficha-texto-botao" onClick={() => void criarTag()}>Criar</button>
-                <button type="button" className="ficha-mais" aria-label="Cancelar" onClick={() => setNovaTag(null)}>×</button>
-              </div>
-            ) : novoNome !== null ? (
-              <div className="ficha-campo ficha-tag-nova">
-                <input aria-label="Nome de quem aprova" placeholder="Nome de quem aprova" value={novoNome} autoFocus
-                  onChange={(e) => setNovoNome(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") { e.preventDefault(); if (novoNome.trim()) mudar("aprovador", novoNome.trim()); setNovoNome(null); }
-                    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setNovoNome(null); }
-                  }} />
-                <button type="button" className="ficha-texto-botao" onClick={() => { if (novoNome.trim()) mudar("aprovador", novoNome.trim()); setNovoNome(null); }}>Adicionar</button>
-                <button type="button" className="ficha-mais" aria-label="Cancelar" onClick={() => setNovoNome(null)}>×</button>
-              </div>
-            ) : (
-              <>
-                <div className="ficha-campo ficha-escolha">
-                  <Selecao rotulo="Tags" opcoes={tags.map((g) => ({ valor: g.id, rotulo: g.nome, antes: <span className="ficha-ponto" style={{ background: `var(--${g.cor})` }} />, chip: <TagChip tag={g} /> }))} valor={marcadas} aoMudar={(v) => mudar("tags", v)} acao={{ rotulo: "Nova tag", aoClicar: () => setNovaTag({ nome: "", cor: "etiqueta-3" }) }} />
-                </div>
-                {pedeAprovador && (
-                  <div className="ficha-campo ficha-escolha" inert={aprovadorTravado} title={aprovadorTravado ? "Só o Natham ou quem aprova muda" : undefined}>
-                    <Selecao rotulo="Quem aprova" opcoes={aprovadores.map((nome) => ({ valor: nome, rotulo: nome, antes: <Aprovador nome={nome} tamanho={18} /> }))} valor={t.aprovador ? [t.aprovador] : []} multipla={false} rotuloTodos="Ninguém" aoMudar={([v]) => mudar("aprovador", v)} acao={{ rotulo: "Novo nome", aoClicar: () => setNovoNome("") }} />
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          <TagsFicha t={t} mudar={mudar} pedeAprovador={pedeAprovador} aprovadorTravado={aprovadorTravado} />
 
           <LinksDrive links={links} aoMudar={setLinks} />
           <div inert={postTravado}><Anexos valor={arquivos.filter((a) => a.papel !== "capa")} aoMudar={(v) => setArquivos([...v, ...capas])} empresaId={t.empresaId} carrossel={t.formato === "carrossel"} /></div>
