@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
   ({ id, titulo: id, tipo: "outro", empresaId: "e", responsavel: "natham", inicio, diaInteiro, cor: "etiqueta-1", links: [], arquivos: [] }) as Tarefa;
@@ -44,6 +44,15 @@ describe("de quem é o caderno", () => {
     expect([doCaderno(enviada, "matheus"), doCaderno(enviada, "natham"), doCaderno(enviada, "adrian")]).toEqual([true, true, false]);
     expect([enviadaPorMim(enviada, "matheus"), enviadaPorMim(enviada, "natham")]).toEqual([true, false]);
     expect(daMinhaLista(enviada, "matheus")).toBe(true);
+  });
+  it("263: o que o Natham envia sai do caderno dele e fica só no de quem recebeu; Matheus segue como antes", () => {
+    const deNatham = { ...priv, dono: "matheus", enviadaPor: "natham", responsavel: "matheus" } as Tarefa;
+    const deMatheus = { ...priv, dono: "natham", enviadaPor: "matheus", responsavel: "natham" } as Tarefa;
+    expect(somenteNoDeQuemRecebeu(deNatham, "natham", "natham")).toBe(true);
+    expect(doCaderno(deNatham, "matheus")).toBe(true); // visto pelo Natham no "Caderno de Matheus"
+    expect(somenteNoDeQuemRecebeu(deNatham, "matheus", "natham")).toBe(false);
+    expect(somenteNoDeQuemRecebeu(deMatheus, "matheus", "matheus")).toBe(false);
+    expect(somenteNoDeQuemRecebeu(priv, "natham", "natham")).toBe(false);
   });
   it("sem dono cai no responsável; sem `de` mostra tudo", () => {
     expect(doCaderno({ ...priv, dono: undefined }, "matheus")).toBe(true);

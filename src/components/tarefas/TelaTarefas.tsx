@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { doCaderno, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { doCaderno, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -75,7 +75,7 @@ export function TelaTarefas() {
   // Só pela data/hora: a ordenação é estável, então quem não tem horário (mesmo início) fica na ordem em que foi criado, igual à Fila do Mapa.
   const porHora = (a: Tarefa, b: Tarefa) => (a.inicio ?? "").localeCompare(b.inicio ?? "");
   // Tarefa sem empresa aparece sempre: o filtro de empresa não a esconde. De quem é = o responsável.
-  const visiveis = tarefas.filter((t) => doCaderno(t, de) && (!t.empresaId || aplicar([t]).length));
+  const visiveis = tarefas.filter((t) => doCaderno(t, de) && !somenteNoDeQuemRecebeu(t, de, eu) && (!t.empresaId || aplicar([t]).length));
   const doDia = visiveis.filter((t) => t.inicio?.slice(0, 10) === dia).sort(porHora);
   const doDiaSeguinte = visiveis.filter((t) => t.inicio?.slice(0, 10) === somarDias(dia, 1)).sort(porHora);
   const mostradas = aba === "dia" ? doDia : visiveis.filter((t) => !t.inicio);

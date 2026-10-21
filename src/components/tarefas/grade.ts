@@ -60,6 +60,11 @@ export const enviadaPorMim = (t: Tarefa, de: string | null | undefined) =>
 export const doCaderno = (t: Tarefa, de: string | null | undefined) =>
   !de || (ehConteudo(t) ? t.responsavel === de : (t.dono ?? t.responsavel) === de || enviadaPorMim(t, de));
 
+/** Item 263: o Natham vê o caderno de quem recebe, então a tarefa que ele envia sai do caderno DELE e vive só no de quem recebeu
+    (onde ele ainda edita). Só regra de exibição; Matheus e Adrian continuam vendo o que enviaram (ninguém abre o caderno do Natham). */
+export const somenteNoDeQuemRecebeu = (t: Tarefa, de: string | null | undefined, eu: string | null | undefined) =>
+  eu === "natham" && de === eu && enviadaPorMim(t, de);
+
 /** Nas listas pessoais, conteúdo com empresa aparece para todos; o restante segue o dono do Caderno. */
 export const daMinhaLista = (t: Tarefa, eu: string | null | undefined) =>
   ehConteudo(t) || (!!eu && doCaderno(t, eu));
