@@ -143,7 +143,7 @@ export function criarManipulador(d: Deps) {
           || (tipo === "imagem" && !mime.startsWith("image/")) || (tipo === "video" && !mime.startsWith("video/"))) throw new Recusa(400, "Pedido de envio inválido.");
         await podeMexer(tarefaId);
         const pasta = await pastaDoCard(await cardDe(tarefaId), pessoa.id);
-        return { sessao_url: await d.api.abrirSessao(pasta, nome, mime, tamanho, origem) };
+        return { sessao_url: await d.api.abrirSessao(pasta, nome, mime, tamanho, origem, tarefaId) };
       }
       case "confirmar_envio": {
         const driveId = texto(c.drive_id), nome = nomeOk(c.nome, 200), tipo = texto(c.tipo), papel = texto(c.papel) ?? "anexo", tamanho = Number(c.tamanho), ordem = Number(c.ordem ?? 0);
@@ -162,9 +162,8 @@ export function criarManipulador(d: Deps) {
           throw e;
         });
         if (f.trashed) throw new Recusa(410, "O arquivo foi para a lixeira do Drive.");
-        // Só é envio nosso se está numa pasta de ocasião que o app criou (a sessão de envio sempre abre o arquivo lá). Fora disso não é nosso: só recusa, nunca mexe nele.
-        const pastasNossas = new Set((await s.ler<{ drive_pasta_id: string | null }>("ocasioes", {}, "drive_pasta_id")).flatMap((o) => (o.drive_pasta_id ? [o.drive_pasta_id] : [])));
-        if (f.mimeType === "application/vnd.google-apps.folder" || !f.parents?.some((p) => pastasNossas.has(p))) throw new Recusa(422, "O arquivo não está numa pasta deste sistema.");
+        // Só confirma o envio que a sessão abriu PARA ESTE card (a etiqueta `tarefa` vai no arquivo na abertura da sessão). Outro card, outra empresa ou arquivo que não é nosso: só recusa, nunca mexe nele.
+        if (f.mimeType === "application/vnd.google-apps.folder" || f.appProperties?.tarefa !== tarefaId) throw new Recusa(422, "Este arquivo não foi enviado para este card.");
         if (Number(f.size) !== tamanho) {
           await d.api.lixeira(driveId).catch(() => {}); // é um envio nosso que ficou pela metade: não serve, vai para a lixeira em vez de ficar solto
           throw new Recusa(422, "O arquivo não chegou inteiro ao Drive. Tente de novo.");

@@ -1,7 +1,7 @@
 // Chamadas ao Google Drive v3. Recebe o token e a base por injeção: no teste a base é o Google falso.
 type Busca = typeof fetch;
 export type Contexto = { api: string; token: () => Promise<string>; fetch?: Busca };
-export type ArquivoDrive = { id: string; parents?: string[]; size?: string; mimeType?: string; trashed?: boolean };
+export type ArquivoDrive = { id: string; parents?: string[]; size?: string; mimeType?: string; trashed?: boolean; appProperties?: Record<string, string> };
 
 export class ErroDrive extends Error {
   constructor(public status: number) {
@@ -30,18 +30,18 @@ export function criarDriveApi(c: Contexto) {
       await chamar(`${arq(id)}/permissions?sendNotificationEmail=false`, { method: "POST", body: JSON.stringify({ role: "writer", type: "user", emailAddress: email }) });
     },
     /** Abre a sessão de envio retomável com Origin do app: é o endereço (Location) que o navegador usa para mandar as partes direto ao Drive. */
-    async abrirSessao(pasta: string, nome: string, tipoMime: string, tamanho: number, origem: string): Promise<string> {
+    async abrirSessao(pasta: string, nome: string, tipoMime: string, tamanho: number, origem: string, tarefaId: string): Promise<string> {
       const r = await chamar(`${c.api}/upload/drive/v3/files?uploadType=resumable&fields=id`, {
         method: "POST",
         headers: { "x-upload-content-type": tipoMime, "x-upload-content-length": String(tamanho), origin: origem },
-        body: JSON.stringify({ name: nome, parents: [pasta] }),
+        body: JSON.stringify({ name: nome, parents: [pasta], appProperties: { tarefa: tarefaId } }), // etiqueta posta só por aqui: diz para qual card é o envio
       });
       const url = r.headers.get("location");
       if (!url) throw new ErroDrive(502);
       return url;
     },
     async ver(id: string): Promise<ArquivoDrive> {
-      return (await (await chamar(`${arq(id)}?fields=id,parents,size,mimeType,trashed`)).json()) as ArquivoDrive;
+      return (await (await chamar(`${arq(id)}?fields=id,parents,size,mimeType,trashed,appProperties`)).json()) as ArquivoDrive;
     },
     /** Muda o arquivo de pasta (addParents/removeParents), sem copiar nada. */
     async mover(id: string, para: string, de: string[]) {

@@ -4,7 +4,7 @@
 
 export const BASE_FALSA = "https://google.falso";
 
-export type ArquivoFalso = { id: string; name: string; mimeType: string; parents: string[]; bytes: Uint8Array; trashed: boolean; folder: boolean };
+export type ArquivoFalso = { id: string; name: string; mimeType: string; parents: string[]; bytes: Uint8Array; trashed: boolean; folder: boolean; appProperties?: Record<string, string> };
 export type Sessao = { id: string; arquivo: ArquivoFalso; recebido: number; total: number; origem?: string };
 
 export function criarGoogleFalso(opcoes: { clientId?: string; clientSecret?: string } = {}) {
@@ -69,9 +69,9 @@ export function criarGoogleFalso(opcoes: { clientId?: string; clientSecret?: str
     if (!/^Bearer tok-\d+$/.test(req.headers.get("authorization") ?? "")) return json({ error: "sem acesso" }, 401);
 
     if (caminho === "/upload/drive/v3/files" && req.method === "POST") {
-      const corpo = (await req.json()) as { name: string; parents?: string[] };
+      const corpo = (await req.json()) as { name: string; parents?: string[]; appProperties?: Record<string, string> };
       const total = Number(req.headers.get("x-upload-content-length"));
-      const a: ArquivoFalso = { id: novoId("arq"), name: corpo.name, mimeType: req.headers.get("x-upload-content-type") ?? "", parents: corpo.parents ?? [], bytes: new Uint8Array(0), trashed: false, folder: false };
+      const a: ArquivoFalso = { id: novoId("arq"), name: corpo.name, mimeType: req.headers.get("x-upload-content-type") ?? "", parents: corpo.parents ?? [], bytes: new Uint8Array(0), trashed: false, folder: false, appProperties: corpo.appProperties };
       arquivos.set(a.id, a);
       const id = novoId("s");
       sessoes.set(id, { id, arquivo: a, recebido: 0, total, origem: req.headers.get("origin") ?? undefined });
@@ -111,7 +111,7 @@ export function criarGoogleFalso(opcoes: { clientId?: string; clientSecret?: str
         if (ini >= tam) return new Response(null, { status: 416, headers: { "content-range": `bytes */${tam}` } });
         return new Response(a.bytes.slice(ini, fim + 1), { status: 206, headers: { "content-type": a.mimeType, "content-length": String(fim - ini + 1), "content-range": `bytes ${ini}-${fim}/${tam}` } });
       }
-      return json({ id: a.id, parents: a.parents, size: String(a.bytes.length), mimeType: a.mimeType, trashed: a.trashed });
+      return json({ id: a.id, parents: a.parents, size: String(a.bytes.length), mimeType: a.mimeType, trashed: a.trashed, appProperties: a.appProperties });
     }
     return json({ error: "rota desconhecida" }, 404);
   }
