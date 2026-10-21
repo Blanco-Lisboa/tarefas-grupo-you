@@ -43,3 +43,10 @@ Print: `docs/referencias/2026-10-20-item-208/4-legenda.png`. Palavras dele: "Nã
 - Trocar o rótulo "Legenda" por "Descrição do post" em TODA a tela (ficha, checagem do que falta no Programar, avisos, textos de ajuda). Contador 2200 continua.
 - Só texto visível: nome de coluna/variável no banco NÃO muda.
 - Prova: `grep -rn "egenda" src/` mostrando que não sobrou nenhum texto visível com "Legenda".
+
+---
+# Acréscimo · item 212
+Print: `docs/referencias/2026-10-20-item-208/5-rolagem.png`. Palavras dele: "quando eu uso scroll do mouse com o card flutuante aberto, ele scrola pra baixo na aba normal da esteira. Quando o card flutuante estiver aberto, o scroll deve descer apenas do card flutuante".
+- Com a ficha aberta: roda do mouse rola SÓ a ficha. A Esteira por trás (página e colunas) não se mexe, nem quando a ficha chega ao fim, nem com o mouse em cima do fundo escurecido.
+- Ao fechar a ficha, a Esteira volta a rolar normal, na mesma posição em que estava.
+- Prova: no navegador, abrir a ficha, disparar wheel na ficha (até o fim) e no fundo, e mostrar que o scrollTop/scrollLeft da Esteira e das colunas não mudou; depois fechar e mostrar que rola de novo.
