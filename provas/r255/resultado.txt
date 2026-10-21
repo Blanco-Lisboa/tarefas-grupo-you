@@ -1,0 +1,5 @@
+Esteira 1903: 6 cabeçalhos, medidas e pixels dos cabeçalhos IGUAIS
+Esteira 1440: 6 cabeçalhos, medidas e pixels dos cabeçalhos IGUAIS
+Mural 1903: título 'Formatos de conteúdo' scrollWidth 194 clientWidth 194 scrollHeight 46 clientHeight 46 (sem corte se iguais)
+Mural 1440: título 'Formatos de conteúdo' scrollWidth 194 clientWidth 194 scrollHeight 46 clientHeight 46 (sem corte se iguais)
+Mural: borda direita do título 284 | borda esquerda da lixeira 292 | folga 8px

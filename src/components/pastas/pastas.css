@@ -279,12 +279,16 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .mural-barra { display: flex; align-items: center; gap: var(--s-16); }
 .mural-busca { font: 400 var(--app-t-texto) var(--fonte); color: var(--texto); height: var(--app-controle); width: min(380px, 100%); padding: 0 var(--s-12); background: var(--sup); border: 1px solid var(--borda); border-radius: var(--raio-b); }
 .mural-conta { font-size: var(--app-t-rotulo); color: var(--fraco); }
+.mural-col .cab-coluna h2 { white-space: normal; line-height: 1.15; overflow-wrap: anywhere; } /* título longo quebra de linha, não corta (item 255) */
+.mural-col .cab-coluna { min-height: 56px; }
 .mural-quadro { overscroll-behavior: contain; display: flex; gap: var(--s-12); align-items: flex-start; overflow: auto; min-height: 0; padding-bottom: var(--s-8); scrollbar-color: var(--borda) transparent; }
 .mural-col { --etapa: var(--mural-tom, var(--azul)); container-type: inline-size; flex: none; width: 320px; max-height: 100%; display: flex; flex-direction: column; gap: 0; padding: 0; overflow: hidden; background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra); }
 .mural-folhas { overscroll-behavior: contain; display: grid; gap: var(--s-8); overflow-y: auto; min-height: 0; padding: var(--s-8); scrollbar-width: thin; scrollbar-color: var(--borda) transparent; }
-.mural-folha { position: relative; display: grid; gap: var(--s-4); padding: var(--s-12) var(--s-12) var(--s-8); background: linear-gradient(180deg, #fff, var(--sup-2)); border: 1px solid var(--vidro-linha); border-left: 3px solid color-mix(in srgb, var(--mural-tom, var(--azul)) 70%, #fff); border-radius: var(--raio-b); box-shadow: var(--sombra); transition: box-shadow var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva); }
+.mural-folha { position: relative; display: grid; gap: var(--s-4); padding: var(--s-16) var(--s-16) var(--s-12); background: linear-gradient(180deg, #fff, var(--sup-2)); border: 1px solid var(--vidro-linha); border-left: 3px solid color-mix(in srgb, var(--mural-tom, var(--azul)) 70%, #fff); border-radius: var(--raio-b); box-shadow: var(--sombra); transition: box-shadow var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva); }
 .mural-folha:hover, .mural-folha:focus-within { box-shadow: var(--sombra-alta); transform: translateY(-1px); }
-.mural-apagar { all: unset; box-sizing: border-box; position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: var(--raio-b); cursor: pointer; opacity: 0; transition: opacity var(--dur-rapida) var(--curva), background var(--dur-rapida) var(--curva); }
+.mural-folha-topo { display: flex; align-items: flex-start; gap: var(--s-8); } /* canto da lixeira reservado: o contorno do título termina antes dela (item 255) */
+.mural-folha-topo .mural-titulo { flex: 1; width: auto; margin-right: 0; }
+.mural-apagar { all: unset; box-sizing: border-box; flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--raio-b); cursor: pointer; opacity: 0; transition: opacity var(--dur-rapida) var(--curva), background var(--dur-rapida) var(--curva); }
 .mural-folha:hover .mural-apagar, .mural-apagar:focus-visible { opacity: 1; }
 .mural-apagar:hover { background: var(--azul-claro); }
 .mural-apagar:focus-visible, .mural-trocar:focus-visible { outline: 1px solid var(--azul); outline-offset: 1px; }
@@ -292,7 +296,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .mural-folha input, .mural-folha textarea { font: 400 var(--app-t-texto) var(--fonte); color: var(--texto); width: 100%; min-width: 0; padding: 4px 6px; margin: 0 -6px; background: transparent; border: 1px solid transparent; border-radius: 6px; resize: none; transition: background var(--dur-rapida) var(--curva), border-color var(--dur-rapida) var(--curva); }
 .mural-folha input:hover, .mural-folha textarea:hover { background: rgb(0 0 0 / .03); }
 .mural-folha input:focus, .mural-folha textarea:focus { outline: none; background: var(--sup); border-color: var(--azul); }
-.mural-titulo { font-weight: 600 !important; field-sizing: content; min-height: 1.5em; line-height: 1.3; padding-right: 26px !important; overflow-wrap: anywhere; letter-spacing: var(--titulo-espaco); }
+.mural-titulo { font-weight: 600 !important; field-sizing: content; min-height: 1.5em; line-height: 1.3; overflow-wrap: anywhere; letter-spacing: var(--titulo-espaco); }
 .mural-detalhe { field-sizing: content; min-height: 2.6em; max-height: 14em; line-height: var(--texto-entrelinha); color: var(--fraco) !important; }
 .mural-detalhe:focus { color: var(--texto) !important; }
 .mural-rodape { display: flex; align-items: center; justify-content: space-between; gap: var(--s-8); min-height: 28px; margin-top: var(--s-4); padding-top: var(--s-8); border-top: 1px solid var(--linha); }
