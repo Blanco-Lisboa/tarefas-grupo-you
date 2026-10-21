@@ -7,7 +7,7 @@
 // - Toda ação passa pela checagem (o que falta) e grava a FICHA INTEIRA (gravar) antes, para não perder o que foi mudado nela.
 // - Só a You está ligada: em outra empresa fica só o aviso.
 import { useState } from "react";
-import { REDES_POST, postarAgora, tentarDeNovo, useEu, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { REDES_POST, postarAgora, tentarDeNovo, useEu, type NovaTarefa, type RedePost, type Tarefa } from "@/lib/dados";
 import { paraDia, paraHora } from "@/components/calendario/logica";
 import { CampoData } from "@/components/ui/CampoData";
 import Image from "next/image";
@@ -27,6 +27,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const [quando, setQuando] = useState(salvo.postarEm ?? "");
   const [falta, setFalta] = useState<string[]>([]);
   const [confirmando, setConfirmando] = useState(false);
+  const [clicadas, setClicadas] = useState<RedePost[] | null>(null); // item 230: redes clicadas nesta ficha (null = ainda nenhum clique)
   if (salvo.tipo !== "postagem" || (salvo.etapa !== "aprovado" && salvo.etapa !== "postado")) return null;
 
   if (salvo.etapa === "postado") {
@@ -42,7 +43,10 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const sit = situacao(salvo);
   const cancelada = programacaoCancelada(salvo);
   const ajuste = !!salvo.postarEm && carrosselSoFacebook(salvo, salvo.formato, redesDe(salvo)); // programado assim antes do conserto: o próximo salvar cancela
-  const redes = redesDe(rascunho);
+  // Item 230: o post que já foi programado (ou postado, ou teve a programação cancelada) abre com as redes dele; o que nunca foi abre SEM
+  // nenhuma: o banco guarda as duas por padrão (019), mas isso não é escolha de ninguém. Daí em diante vale o que a pessoa clicou aqui.
+  const jaProgramado = !!salvo.postarEm || !!salvo.postagens?.length || cancelada;
+  const redes = clicadas ?? (jaProgramado ? redesDe(rascunho) : []);
   const soInstagram = carrosselComVideo(rascunho, rascunho.formato);
   const valem = redesValidas(rascunho, rascunho.formato, redes);
   // O que ainda não subiu não está guardado: a função não acharia.
@@ -80,7 +84,11 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
               const ligada = !fora && redes.includes(r);
               // Item 226: escolhida = cheia na cor da rede + ✓; desligada = vidro do menu lateral com o logo e um tom da rede
               return <button key={r} type="button" className="aprovacao-rede" data-rede={r} aria-pressed={ligada} disabled={fora}
-                onClick={() => mudar("postarRedes", redes.includes(r) ? redes.filter((x) => x !== r) : REDES_POST.filter((x) => x === r || redes.includes(x)))}>
+                onClick={() => {
+                  const novas = redes.includes(r) ? redes.filter((x) => x !== r) : REDES_POST.filter((x) => x === r || redes.includes(x));
+                  setClicadas(novas);
+                  mudar("postarRedes", novas.length ? novas : undefined); // o banco não guarda lista vazia (019): sem rede, a tela é que segura
+                }}>
                 <Image className="marca-rede" src={`/marca/redes/${r}.svg`} alt="" width={18} height={18} />{NOME_REDE[r]}{ligada && <span aria-hidden>✓</span>}
               </button>;
             })}
@@ -95,7 +103,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
             </div>
           ) : (
             <div className="publicacao-acoes">
-              <CampoData rotulo="Data e hora do post" valor={quando.slice(0, 10)} hora={quando.slice(11, 16)} min={paraDia(new Date())} semLimpar vazio="Quando?"
+              <CampoData rotulo="Data e hora do post" valor={quando.slice(0, 10)} hora={quando.slice(11, 16)} min={paraDia(new Date())} semLimpar vazio="Quando?" anoCurto
                 aoMudar={(dia, hora) => setQuando(dia ? `${dia}T${hora || "00:00"}` : "")} />
               <button type="button" className="aprovacao-botao" data-acao={salvo.postarEm ? "reprogramar" : "aprovar"} onClick={programar}>{salvo.postarEm ? "Reprogramar postagem" : "Programar postagem"}</button>
               <button type="button" className="aprovacao-botao" data-acao="postar" onClick={() => { if (checar()) setConfirmando(true); }}>Postar agora</button>

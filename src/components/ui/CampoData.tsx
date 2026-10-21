@@ -31,6 +31,8 @@ type Props = {
   hora?: string;
   /** No lugar do botão de vidro, um texto clicável (o título do Calendário, item 224); o painel é o mesmo. */
   titulo?: ReactNode;
+  /** Ano com 2 dígitos no botão: 26/10/26 (item 232, Publicação). O leitor de tela segue com a data por extenso. */
+  anoCurto?: boolean;
 };
 
 const SEMANA = ["D", "S", "T", "Q", "Q", "S", "S"];
@@ -56,7 +58,7 @@ function mesmoDia(dia: string, passo: 1 | -1) {
   return `${alvo.slice(0, 8)}${String(Math.min(Number(dia.slice(8, 10)), ultimo)).padStart(2, "0")}`;
 }
 
-export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem data", hora, titulo }: Props) {
+export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem data", hora, titulo, anoCurto }: Props) {
   const id = useId();
   const painel = useRef<HTMLDivElement>(null);
   const grade = useRef<HTMLDivElement>(null);
@@ -99,7 +101,7 @@ export function CampoData({ rotulo, valor, aoMudar, min, semLimpar, vazio = "Sem
   const escolhido = comHora ? rascunho.dia : valor;
   const dias = Array.from({ length: 42 }, (_, i) => somarDias(inicioSemana(mes), i));
   const tabulavel = foco.startsWith(mes.slice(0, 7)) ? foco : mes;
-  const texto = valor ? `${curta(valor)}${hora ? ` · ${hora}` : ""}` : vazio;
+  const texto = valor ? `${anoCurto ? `${curta(valor).slice(0, 6)}${valor.slice(2, 4)}` : curta(valor)}${hora ? ` · ${hora}` : ""}` : vazio;
   // Minuto fora do passo de 5 (dado antigo, ex.: 09:07) entra na roda para não ser arredondado sem pedir
   const minutos = hora && !MINUTOS.includes(hora.slice(3)) ? [...MINUTOS, hora.slice(3)].sort() : MINUTOS;
 

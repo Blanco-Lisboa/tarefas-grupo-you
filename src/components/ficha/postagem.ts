@@ -26,7 +26,7 @@ export function faltaParaPostar(t: Base, formato: Formato | undefined, redes: re
   if (t.empresaId !== "you") return [t.empresaId === "beec" ? "A Beec ainda não está ligada à postagem automática." : "Só a You está ligada à postagem automática."];
   const falta: string[] = [];
   if (!formato) falta.push("Escolha o formato.");
-  if (!redes.length) falta.push("Escolha pelo menos uma rede.");
+  if (!redes.length) falta.push("Escolha ao menos uma rede.");
   if (carrosselSoFacebook(t, formato, redes)) falta.push(SO_FACEBOOK);
   if (formato && formato !== "story" && !t.legenda?.trim()) falta.push("Falta a descrição do post: escreva na ficha do card.");
   const m = midias(t), videos = m.filter((a) => a.tipo === "video").length;

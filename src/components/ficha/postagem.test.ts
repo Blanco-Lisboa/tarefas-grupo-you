@@ -15,7 +15,7 @@ describe("o que falta para postar (196)", () => {
     expect(faltaParaPostar(card([{ ...img, pendente: {} as File }]), "post", ["instagram"])).toEqual(["Post leva 1 imagem."]); // não subiu: não conta
   });
   it("sem descrição do post, sem rede, sem formato e empresa que não é a You", () => {
-    expect(faltaParaPostar(card([img], " "), "post", [])).toEqual(["Escolha pelo menos uma rede.", "Falta a descrição do post: escreva na ficha do card."]);
+    expect(faltaParaPostar(card([img], " "), "post", [])).toEqual(["Escolha ao menos uma rede.", "Falta a descrição do post: escreva na ficha do card."]);
     expect(faltaParaPostar(card([img]), undefined, ["instagram"])).toEqual(["Escolha o formato."]);
     expect(faltaParaPostar({ ...card([img]), empresaId: "beec" }, "post", ["instagram"])).toEqual(["A Beec ainda não está ligada à postagem automática."]);
   });
