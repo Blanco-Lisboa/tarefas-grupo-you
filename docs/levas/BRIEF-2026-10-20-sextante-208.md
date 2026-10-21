@@ -19,3 +19,20 @@
 ## Território
 Só ficha e card (os seus arquivos). Nada de banco, nada de publicar.
 Responda SÓ na mensagem final: o que mudou, sha, caminho das fotos.
+
+---
+# Acréscimo · itens 209 e 210 (mesma ficha, mesma leva)
+Print: `docs/referencias/2026-10-20-item-208/3-publicacao-redes.png` (ficha "Adrian Reels - Calculo do Simples Nacional", bloco Publicação).
+
+## 209 · Instagram/Facebook
+Palavras dele: "Preciso ver qual opção eu escolho do instagram e facebook, quando eu clico parece que ele fica com a cor do fundo, fiquei confuso. Deixe ele com outra cor quando eu clico pra postar..."
+- Hoje o escolhido fica azul cheio e o não escolhido fica cinza claro, quase da cor do fundo do bloco: ele não sabe qual vale.
+- Fazer: escolhido = cor própria forte e inconfundível + sinal de marcado (ex.: ✓ e/ou logo da rede); não escolhido = botão claro com contorno visível, claramente "clicável e desligado". Os dois podem estar escolhidos ao mesmo tempo: tem que dar para ver isso de relance.
+- Mesma altura e raio dos outros botões do bloco.
+
+## 210 · "Deixe tudo alinhado e enquadrado!"
+Pente fino da ficha inteira, olhando o print:
+- Bloco Publicação: o título "Publicação" sobre a borda, a linha "Programado…", os botões das redes (largura diferente da linha de baixo) e a linha data/Reprogramar/Postar agora: tudo na mesma margem esquerda e com larguras que fecham na mesma direita.
+- Capa do Reels: miniatura, barrinha e textos alinhados com o resto; "Capa própria" e "Anexos" com a mesma largura/margem dos campos.
+- Mesma margem esquerda e direita em todos os campos e blocos da ficha; espaçamento igual entre seções; nada encostando.
+- Prova: foto da ficha inteira (rolando) antes/depois em 1440, olhada por você.
