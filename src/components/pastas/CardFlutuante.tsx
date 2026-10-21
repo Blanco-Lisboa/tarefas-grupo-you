@@ -3,7 +3,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 // Janela flutuante da Névoa (vidro, cantos, sombra). Usa o <dialog> do navegador: ele já fecha com Esc, prende o foco
 // dentro e fica por cima de tudo. Aqui só somamos o X e o clique fora.
-export function CardFlutuante({ titulo, aoFechar, voltar, children }: { titulo: string; aoFechar: () => void; voltar?: () => void; children: ReactNode }) {
+export function CardFlutuante({ titulo, aoFechar, voltar, classe, children }: { titulo: string; aoFechar: () => void; voltar?: () => void; classe?: string; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     ref.current?.showModal();
@@ -12,7 +12,7 @@ export function CardFlutuante({ titulo, aoFechar, voltar, children }: { titulo: 
   return (
     <dialog
       ref={ref}
-      className="card-flut"
+      className={classe ? `card-flut ${classe}` : "card-flut"}
       aria-label={titulo}
       onClose={aoFechar}
       onClick={(e) => e.target === ref.current && ref.current.close()}

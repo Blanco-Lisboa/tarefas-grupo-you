@@ -47,12 +47,7 @@ const ler = (txt: string): Mapa => {
   }
 };
 
-/** Cria (sem id) ou edita (com id existente) e avisa quem está na tela. Exportada para o teste da falha de gravação. */
-export function gravarIdeia(empresaId: string, nova: Omit<Ideia, "id" | "empresaId"> & { id?: string }): Ideia {
-  const todas = ler(bruto());
-  const lista = todas[empresaId] ?? semente(empresaId);
-  const ideia: Ideia = { ...nova, id: nova.id ?? crypto.randomUUID(), empresaId };
-  todas[empresaId] = lista.some((i) => i.id === ideia.id) ? lista.map((i) => (i.id === ideia.id ? ideia : i)) : [...lista, ideia];
+const guardar = (todas: Mapa) => {
   memoria = JSON.stringify(todas);
   try {
     localStorage.setItem(CHAVE, memoria);
@@ -60,7 +55,23 @@ export function gravarIdeia(empresaId: string, nova: Omit<Ideia, "id" | "empresa
     /* sem armazenamento: fica na memória */
   }
   ouvintes.forEach((f) => f());
+};
+
+/** Cria (sem id) ou edita (com id existente) e avisa quem está na tela. Exportada para o teste da falha de gravação. */
+export function gravarIdeia(empresaId: string, nova: Omit<Ideia, "id" | "empresaId"> & { id?: string }): Ideia {
+  const todas = ler(bruto());
+  const lista = todas[empresaId] ?? semente(empresaId);
+  const ideia: Ideia = { ...nova, id: nova.id ?? crypto.randomUUID(), empresaId };
+  todas[empresaId] = lista.some((i) => i.id === ideia.id) ? lista.map((i) => (i.id === ideia.id ? ideia : i)) : [...lista, ideia];
+  guardar(todas);
   return ideia;
+}
+
+/** Apaga uma ideia (Mural de folhas). */
+export function apagarIdeia(empresaId: string, id: string) {
+  const todas = ler(bruto());
+  todas[empresaId] = (todas[empresaId] ?? semente(empresaId)).filter((i) => i.id !== id);
+  guardar(todas);
 }
 export const lerIdeias = (empresaId: string): Ideia[] => ler(bruto())[empresaId] ?? semente(empresaId);
 
@@ -69,5 +80,6 @@ export function useIdeias(empresaId: string) {
   const txt = useSyncExternalStore(assinar, bruto, () => "");
   const ideias = useMemo(() => ler(txt)[empresaId] ?? semente(empresaId), [txt, empresaId]);
   const salvar = useCallback((nova: Parameters<typeof gravarIdeia>[1]) => gravarIdeia(empresaId, nova), [empresaId]);
-  return { ideias, salvar };
+  const apagar = useCallback((id: string) => apagarIdeia(empresaId, id), [empresaId]);
+  return { ideias, salvar, apagar };
 }

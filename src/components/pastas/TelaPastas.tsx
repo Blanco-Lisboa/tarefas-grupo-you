@@ -10,7 +10,7 @@ import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { Ficha, NOMES } from "@/components/ficha/Ficha";
 import { SeloEmpresa } from "@/components/ui/Marca";
 import { receitaDaEmpresa, tomDaEmpresa } from "./cores";
-import { CardIdeias } from "./CardIdeias";
+import { MuralIdeias } from "./MuralIdeias";
 import { CardFlutuante } from "./CardFlutuante";
 import { CardDocumento, CardNome, CardSubir, mensagem, type Destino } from "./CardsPasta";
 import { MenuPasta } from "./MenuPasta";
@@ -31,7 +31,7 @@ const Cadeado = () => (
   <svg className="pasta-cadeado" viewBox="0 0 20 20" width="18" height="18" aria-label="Permanente" role="img"><rect x="4" y="9" width="12" height="8" rx="2.4" /><path d="M7 9V6.5a3 3 0 0 1 6 0V9" /></svg>
 );
 
-type Aberto = { conteudo: Tarefa } | { documento: DocumentoSolto } | { ideias: string | undefined };
+type Aberto = { conteudo: Tarefa } | { documento: DocumentoSolto } | { ideias: true };
 
 function Faixa({ empresa }: { empresa: Empresa }) {
   const eu = useEu();
@@ -132,7 +132,8 @@ function Faixa({ empresa }: { empresa: Empresa }) {
             seed={19}
             atraso={(arvore.length + livres.length) * 120}
             arquivos={categorias.map((c) => ({ nome: c, meta: nIdeias(ideias.filter((x) => x.categoria === c).length), arte: receitaDaEmpresa("story", empresa.id) }))}
-            onSelecionar={(a) => setAberto({ ideias: a.nome })}
+            aoClicar={() => setAberto({ ideias: true })}
+            onSelecionar={() => setAberto({ ideias: true })}
           />
         </div>
       </div>
@@ -253,7 +254,7 @@ function Faixa({ empresa }: { empresa: Empresa }) {
       )}
       {aberto && "conteudo" in aberto && <Ficha key={aberto.conteudo.id} tarefa={aberto.conteudo} aoFechar={() => setAberto(null)} />}
       {aberto && "documento" in aberto && <CardDocumento doc={aberto.documento} aoFechar={() => setAberto(null)} />}
-      {aberto && "ideias" in aberto && <CardIdeias empresaId={empresa.id} inicio={aberto.ideias} aoFechar={() => setAberto(null)} />}
+      {aberto && "ideias" in aberto && <MuralIdeias empresaId={empresa.id} nome={empresa.nome} tom={t.r} aoFechar={() => setAberto(null)} />}
     </div>
   );
 }

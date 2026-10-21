@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { gravarIdeia, lerIdeias } from "./ideias";
+import { apagarIdeia, gravarIdeia, lerIdeias } from "./ideias";
 
 describe("ideias quando o navegador não grava", () => {
   it("a ideia nova continua visível e a próxima edição parte dela", () => {
@@ -16,6 +16,21 @@ describe("ideias quando o navegador não grava", () => {
     const titulos = lerIdeias("beec").map((i) => i.titulo);
     expect(titulos).toEqual(expect.arrayContaining(["Ideia A", "Ideia B"]));
     expect(titulos.length).toBe(antes + 2);
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("mural: mover de categoria e apagar", () => {
+  it("muda a categoria da ideia e apaga só a escolhida", () => {
+    const guardado = new Map<string, string>();
+    vi.stubGlobal("localStorage", { getItem: (k: string) => guardado.get(k) ?? null, setItem: (k: string, v: string) => void guardado.set(k, v) });
+    const a = gravarIdeia("you", { categoria: "Ganchos", titulo: "Mover", texto: "" });
+    gravarIdeia("you", { ...a, categoria: "Datas e sazonais" });
+    expect(lerIdeias("you").find((i) => i.id === a.id)?.categoria).toBe("Datas e sazonais");
+    const antes = lerIdeias("you").length;
+    apagarIdeia("you", a.id);
+    expect(lerIdeias("you").length).toBe(antes - 1);
+    expect(lerIdeias("you").some((i) => i.id === a.id)).toBe(false);
     vi.unstubAllGlobals();
   });
 });
