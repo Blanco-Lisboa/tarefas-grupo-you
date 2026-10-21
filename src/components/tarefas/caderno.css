@@ -177,7 +177,7 @@
 .confirmar .confirmar-sim { color: var(--texto); font-weight: 700; }
 
 .campo { flex: 1; min-width: 0; height: var(--passo); background: none; border: 0; padding: 0 6px; margin-left: -6px; font: inherit; font-size: calc(22px * var(--escala)); border-radius: 4px; } /* folga de 6px para o contorno de foco não encostar no texto, sem mover o texto */
-.campo::placeholder { color: var(--fraco); opacity: .7; }
+.campo::placeholder { color: var(--fraco); opacity: 1; }
 .linha-vazia { align-items: flex-start; font-size: calc(20px * var(--escala)); line-height: var(--passo); }
 
 /* ===== Página direita: agenda do dia ===== */
@@ -211,7 +211,7 @@
   width: calc(100% + 12px); margin-inline: -6px; resize: none; border: 0; border-radius: 4px; padding: 0 6px; background: transparent; font: inherit; font-size: calc(20px * var(--escala)); line-height: 28px;
   background-image: linear-gradient(to bottom, transparent 27px, var(--borda) 27px); background-size: 100% 28px; background-attachment: local;
 }
-.ag-texto::placeholder { color: var(--fraco); opacity: .7; }
+.ag-texto::placeholder { color: var(--fraco); opacity: 1; }
 .ag-amanha { list-style: none; margin: 0; padding: 0; font-size: calc(20px * var(--escala)); line-height: 28px; }
 .ag-amanha li { position: relative; padding-left: var(--s-16); }
 .ag-amanha li::before { content: "›"; position: absolute; left: 0; color: var(--azul); font-weight: 700; }
