@@ -11,10 +11,11 @@ const nIdeias = (n: number) => (n === 1 ? "1 ideia" : `${n} ideias`);
 const sem = (t: string) => t.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 const linkValido = (l?: string) => !!l && /^https?:\/\//i.test(l);
 // Rede do link, só para mostrar o ícone: Instagram, TikTok ou YouTube. Outro endereço fica sem ícone.
-const redeDoLink = (l: string) => {
+export const redeDoLink = (l: string) => {
   try {
     const h = new URL(l).hostname.replace(/^(www|m|vm)\./, "");
-    return h.endsWith("instagram.com") ? "instagram" : h.endsWith("tiktok.com") ? "tiktok" : h.endsWith("youtube.com") || h === "youtu.be" ? "youtube" : null;
+    const de = (d: string) => h === d || h.endsWith(`.${d}`); // domínio exato ou subdomínio: evilinstagram.com não vale
+    return de("instagram.com") ? "instagram" : de("tiktok.com") ? "tiktok" : de("youtube.com") || h === "youtu.be" ? "youtube" : null;
   } catch {
     return null;
   }
