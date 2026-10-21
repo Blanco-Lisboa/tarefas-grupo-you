@@ -168,7 +168,13 @@ export function criarManipulador(d: Deps) {
           const [l] = await s.inserir<{ id: string }>("arquivos", { tarefa_id: tarefaId, drive_id: driveId, nome, tipo, tamanho, papel, ordem, criado_por: pessoa.id });
           return { arquivo_id: l.id };
         } catch (e) {
-          await d.api.lixeira(driveId).catch(() => {}); // sem linha no banco o arquivo ficaria solto no Drive
+          // Perdeu a corrida contra a mesma confirmação? Então a linha existe: é o MESMO arquivo, não se apaga nada.
+          const [agora] = await s.ler<{ id: string; tarefa_id: string }>("arquivos", { drive_id: driveId }, "id,tarefa_id").catch(() => []);
+          if (agora) {
+            if (agora.tarefa_id !== tarefaId) throw new Recusa(409, "Este arquivo já pertence a outro card.");
+            return { arquivo_id: agora.id };
+          }
+          await d.api.lixeira(driveId).catch(() => {}); // sem linha para esse arquivo ele ficaria solto no Drive
           if (e instanceof ErroRest && e.status === 409) throw new Recusa(409, "Este card já tem capa. Tire a atual antes.");
           throw e;
         }

@@ -42,9 +42,9 @@ async function ondeParou(sessao: string, total: number, buscar: typeof fetch): P
 }
 
 /** Manda o arquivo em partes de 8 MB para o endereço da sessão; refaz a parte que falhou (até 3 vezes) e segue o Range que o Drive devolve. Devolve o id do arquivo no Drive. */
-export async function enviarEmPartes(sessao: string, arquivo: Blob, aoProgredir?: (fracao: number) => void, buscar: typeof fetch = (...a) => fetch(...a), parte = PARTE): Promise<string> {
+export async function enviarEmPartes(sessao: string, arquivo: Blob, aoProgredir?: (fracao: number) => void, buscar: typeof fetch = (...a) => fetch(...a), parte = PARTE, desde = 0): Promise<string> {
   const total = arquivo.size;
-  let inicio = 0, falhas = 0;
+  let inicio = desde, falhas = 0;
   while (inicio < total) {
     const fim = Math.min(inicio + parte, total);
     try {
@@ -67,12 +67,44 @@ export async function enviarEmPartes(sessao: string, arquivo: Blob, aoProgredir?
   throw new Error("O Drive não confirmou o envio. Tente de novo.");
 }
 
+// Anotação do envio em andamento (por card, papel, nome, tamanho e data do arquivo): se a conexão cair depois de o arquivo chegar ao Drive e antes
+// de o servidor registrá-lo, a nova tentativa continua a MESMA sessão e confirma o MESMO arquivo, em vez de subir outro e deixar o primeiro solto.
+type Anotacao = { sessao: string; driveId?: string };
+const chaveEnvio = (tarefaId: string, a: File, papel: string) => `grade:envio:${tarefaId}:${papel}:${a.name}:${a.size}:${a.lastModified}`;
+function anotacao(chave: string, nova?: Anotacao | null): Anotacao | undefined {
+  try {
+    if (nova === null) localStorage.removeItem(chave);
+    else if (nova) localStorage.setItem(chave, JSON.stringify(nova));
+    else return JSON.parse(localStorage.getItem(chave) ?? "null") ?? undefined;
+  } catch { /* sem armazenamento: funciona como antes, sem retomar */ }
+}
+
 /** Anexa um arquivo ao card: abre a sessão, sobe direto ao Drive e registra. Devolve o arquivo já no formato da ficha. */
 export async function enviarParaDrive(tarefaId: string, arquivo: File, papel: "anexo" | "capa", ordem: number, aoProgredir?: (fracao: number) => void): Promise<Arquivo> {
   const tipo = tipoDe(arquivo), mime = arquivo.type || "application/octet-stream";
-  const { sessao_url } = await chamar<{ sessao_url: string }>({ acao: "sessao_envio", tarefa_id: tarefaId, nome: arquivo.name, tipo, mime, tamanho: arquivo.size, papel });
-  const driveId = await enviarEmPartes(sessao_url, arquivo, aoProgredir);
-  const { arquivo_id } = await chamar<{ arquivo_id: string }>({ acao: "confirmar_envio", tarefa_id: tarefaId, drive_id: driveId, nome: arquivo.name, tipo, tamanho: arquivo.size, papel, ordem });
+  const chave = chaveEnvio(tarefaId, arquivo, papel);
+  let nota = anotacao(chave);
+  let driveId = nota?.driveId; // já chegou ao Drive numa tentativa anterior: só falta confirmar
+  if (!driveId && nota) {
+    try { // sessão aberta antes: pergunta até onde chegou e continua dali
+      const ret = await ondeParou(nota.sessao, arquivo.size, (...a) => fetch(...a));
+      driveId = "id" in ret ? ret.id : await enviarEmPartes(nota.sessao, arquivo, aoProgredir, undefined, undefined, ret.recebido);
+    } catch { nota = undefined; anotacao(chave, null); } // sessão vencida ou perdida: começa uma nova
+  }
+  if (!driveId) {
+    const { sessao_url } = await chamar<{ sessao_url: string }>({ acao: "sessao_envio", tarefa_id: tarefaId, nome: arquivo.name, tipo, mime, tamanho: arquivo.size, papel });
+    anotacao(chave, { sessao: sessao_url });
+    driveId = await enviarEmPartes(sessao_url, arquivo, aoProgredir);
+  }
+  anotacao(chave, { sessao: nota?.sessao ?? "", driveId });
+  let arquivo_id: string;
+  try {
+    ({ arquivo_id } = await chamar<{ arquivo_id: string }>({ acao: "confirmar_envio", tarefa_id: tarefaId, drive_id: driveId, nome: arquivo.name, tipo, tamanho: arquivo.size, papel, ordem }));
+  } catch (e) {
+    if (anotacao(chave)?.driveId && nota?.driveId) anotacao(chave, null); // a anotada já falhou uma vez aqui: não prende a pessoa nela, a próxima tentativa sobe de novo
+    throw e;
+  }
+  anotacao(chave, null);
   return { id: arquivo_id, nome: arquivo.name, tipo, driveId, ordem, papel };
 }
 

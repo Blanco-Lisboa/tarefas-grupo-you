@@ -73,7 +73,7 @@ describe("achados da Lupa #2", () => {
   it("2: apagar_tarefa com falha no segundo arquivo: o primeiro já saiu do banco e o segundo continua lá (dá para repetir)", async () => {
     const m = montar();
     const a = m.g.estado.semear("a.mp4", new Uint8Array(2));
-    const b = m.g.estado.semear("b.mp4", new Uint8Array(2));
+    m.g.estado.semear("b.mp4", new Uint8Array(2));
     m.b.estado.rpcs.pode_apagar_tarefa = () => true;
     m.b.estado.tabelas.arquivos.push({ id: "la", tarefa_id: "t1", drive_id: a.id }, { id: "lb", tarefa_id: "t1", drive_id: "inexistente-erro" });
     // "inexistente-erro" dá 404 no Drive = já apagado: conta como feito; para forçar falha trocamos a rota por 500
