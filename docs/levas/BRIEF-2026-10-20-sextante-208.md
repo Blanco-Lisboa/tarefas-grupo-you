@@ -50,3 +50,12 @@ Print: `docs/referencias/2026-10-20-item-208/5-rolagem.png`. Palavras dele: "qua
 - Com a ficha aberta: roda do mouse rola SÓ a ficha. A Esteira por trás (página e colunas) não se mexe, nem quando a ficha chega ao fim, nem com o mouse em cima do fundo escurecido.
 - Ao fechar a ficha, a Esteira volta a rolar normal, na mesma posição em que estava.
 - Prova: no navegador, abrir a ficha, disparar wheel na ficha (até o fim) e no fundo, e mostrar que o scrollTop/scrollLeft da Esteira e das colunas não mudou; depois fechar e mostrar que rola de novo.
+
+---
+# Acréscimo · item 205 (tirar o campo Etapa da ficha) — DECIDIDO pelo Natham em 20/10
+Print: `docs/referencias/2026-10-20-item-208/6-etapa.png`. Ele cobrou de novo: "Botão de etapa já falei que não precisa... ou tem algum motivo dele ficar aqui no card?"
+- Tirar o campo **Etapa** da ficha (o arraste na Esteira continua sendo o jeito de mudar de etapa).
+- Decisão dele sobre como o card entra na Esteira sem o campo: **todo card com Empresa que NÃO é tarefa do Caderno entra sozinho na coluna Roteiro** (ao salvar, se não tem etapa). Card criado pelo + de uma coluna continua nascendo naquela coluna. Tarefa do Caderno NUNCA vira card na Esteira (regra antiga, não quebrar).
+- Card que já tem etapa não muda. Tirar a empresa de um card não mexe na etapa sozinho.
+- Se isso precisar de mudança no BANCO (gatilho/padrão), NÃO faça: descreva o que precisa e me reporte (território da Alvenaria). Se der para fazer só na tela ao salvar, faça.
+- Prova: criar um card com empresa no Calendário (banco falso) e mostrar que ele aparece em Roteiro na Esteira; tarefa do Caderno com empresa NÃO aparece.
