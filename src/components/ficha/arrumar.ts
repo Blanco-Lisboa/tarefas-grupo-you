@@ -25,6 +25,21 @@ export const ehQuemAprova = (aprovador: string | undefined, eu: Responsavel | nu
     ou quem aprova hoje. Antes era só ehQuemAprova, e o Matheus não escolhia nada em card do Natham ou sem aprovador. */
 export const podeTrocarAprovador = (aprovador: string | undefined, eu: Responsavel | null) => eu === "matheus" || ehQuemAprova(aprovador, eu);
 
+/** 243: só as tags que ainda existem vão para o banco (uma tag excluída por outra pessoa faria o salvar inteiro falhar). */
+export const soTagsQueExistem = (ids: readonly string[] | undefined, existem: readonly string[]) => {
+  const ficam = ids?.filter((id) => existem.includes(id));
+  return ficam?.length ? ficam : undefined;
+};
+
+/** 243 · Texto da confirmação de excluir tag. `total` = todos os cards (função do banco, 022); null = a função falhou: conta só os que a pessoa vê e diz isso. */
+export function textoExcluirTag(total: number | null, visiveis: number) {
+  const cards = (n: number) => `${n} ${n === 1 ? "card" : "cards"}`;
+  if (total !== null) return total ? `Ela sai de ${cards(total)}.` : "Nenhum card usa esta tag.";
+  return visiveis
+    ? `Ela sai de ${cards(visiveis)} que você vê (e de outros que só o dono vê).`
+    : "Nenhum card que você vê usa esta tag (ela sai também dos que só o dono vê).";
+}
+
 /** 239: o Tema é da Empresa. Trocar a Empresa tira o Tema (o salvar manda null: campoOcasiao), senão o card da Beec guardaria um Tema da You. */
 export const trocarEmpresa = (t: NovaTarefa, empresaId: string): NovaTarefa => (empresaId === t.empresaId ? t : { ...t, empresaId, ocasiaoId: undefined });
 

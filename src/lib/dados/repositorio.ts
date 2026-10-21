@@ -100,6 +100,8 @@ function iniciar() {
   document.addEventListener("visibilitychange", () => { if (!document.hidden) void carregar(); });
 }
 
+const daTag = (x: Tag): Tag => ({ id: x.id, nome: x.nome, cor: x.cor, ...(x.aprovacao && { aprovacao: true as const }) });
+
 async function carregar() {
   const sb = supabase();
   const [p, e, t, g, f, sessao] = await Promise.all([
@@ -117,7 +119,7 @@ async function carregar() {
   if (!eu) falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham.");
   const [anexos, postagens] = await Promise.all([carregarAnexos(sb), carregarPostagens(sb)]);
   empresas = e.data as Empresa[];
-  tags = (g.data as Tag[]).map((x) => ({ id: x.id, nome: x.nome, cor: x.cor, ...(x.aprovacao && { aprovacao: true as const }) }));
+  tags = (g.data as Tag[]).map(daTag);
   tarefas = (t.data as LinhaTarefa[]).map((l) => daLinha(l, anexos.get(l.id) ?? tarefas.find((x) => x.id === l.id)?.arquivos.filter((a) => a.pendente), slugDe, postagens.get(l.id)))
     .map((x) => (cancelados.has(x.id) && !x.postarEm ? { ...x, programacaoCancelada: true } : x));
   fazendo = doBanco(f.data as LinhaFazendo[]);
@@ -286,11 +288,13 @@ export async function editarTag(id: string, mudou: Pick<Tag, "nome" | "cor">): P
   if (error) { tags = tags.map((t) => (t.id === id ? antes : t)); falhou("Não consegui mudar a tag. Tente de novo."); }
 }
 
-/** 242 · Apaga a tag; o banco a tira de todos os cards sozinho (tarefa_tags com on delete cascade). Otimista; volta se o banco recusar. */
-export async function excluirTag(id: string): Promise<void> {
+/** 242 · Apaga a tag; o banco a tira de todos os cards sozinho (tarefa_tags com on delete cascade).
+    243: NÃO é otimista: a tag só sai da tela (e dos rascunhos, que filtram ao salvar) DEPOIS que o banco confirma. true = apagou. */
+export async function excluirTag(id: string): Promise<boolean> {
   const antes = tags.find((t) => t.id === id);
-  if (!antes || antes.aprovacao) return;
-  const tagsAntes = tags, tarefasAntes = tarefas;
+  if (!antes || antes.aprovacao) return false;
+  const { error } = await supabase().from("tags").delete().eq("id", id);
+  if (error) { falhou("Não consegui excluir a tag. Tente de novo."); return false; }
   tags = tags.filter((t) => t.id !== id);
   tarefas = tarefas.map((t) => {
     if (!t.tags?.includes(id)) return t;
@@ -298,8 +302,22 @@ export async function excluirTag(id: string): Promise<void> {
     return { ...t, tags: resto.length ? resto : undefined };
   });
   avisar();
-  const { error } = await supabase().from("tags").delete().eq("id", id);
-  if (error) { tags = tagsAntes; tarefas = tarefasAntes; falhou("Não consegui excluir a tag. Tente de novo."); }
+  return true;
+}
+
+/** 243 · Quantos cards usam a tag, contando TODOS (inclusive os que só o dono vê): public.contar_cards_da_tag (022). null = a função falhou
+    (antes do 022 colado, ou sem rede): quem chama cai na contagem dos cards que a pessoa vê. */
+export async function contarCardsDaTag(id: string): Promise<number | null> {
+  const { data, error } = await supabase().rpc("contar_cards_da_tag", { p_tag: id });
+  return !error && typeof data === "number" ? data : null;
+}
+
+/** 243 · Lê as tags de novo do banco e devolve os ids que existem. A ficha chama antes de salvar: outra pessoa pode ter excluído
+    uma tag marcada no rascunho, e o id apagado faria o salvar inteiro falhar (chave estrangeira em tarefa_tags). Falhou a leitura: fica a lista atual. */
+export async function recarregarTags(): Promise<string[]> {
+  const { data, error } = await supabase().from("tags").select("id, nome, cor, aprovacao").order("nome");
+  if (!error && data) { tags = (data as Tag[]).map(daTag); avisar(); }
+  return tags.map((t) => t.id);
 }
 
 /** Marca a tarefa em que `eu` está agora (troca a anterior, se houver). Otimista; volta se o banco recusar. */

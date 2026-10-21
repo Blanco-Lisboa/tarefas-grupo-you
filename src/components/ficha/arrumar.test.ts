@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NovaTarefa } from "@/lib/dados";
-import { arrumar, ehQuemAprova, etapaAoSalvar, mudouPasta, podeTrocarAprovador, trocarEmpresa } from "./arrumar";
+import { arrumar, ehQuemAprova, etapaAoSalvar, mudouPasta, podeTrocarAprovador, soTagsQueExistem, textoExcluirTag, trocarEmpresa } from "./arrumar";
 
 describe("ficha: o que vai para o banco ao salvar (Lupa R6-1)", () => {
   const t: NovaTarefa = {
@@ -69,5 +69,23 @@ describe("trocarEmpresa (239)", () => {
     expect(trocarEmpresa(card, "beec")).toMatchObject({ empresaId: "beec", ocasiaoId: undefined });
     expect(trocarEmpresa(card, "")).toMatchObject({ empresaId: "", ocasiaoId: undefined });
     expect(trocarEmpresa(card, "you")).toBe(card);
+  });
+});
+
+describe("soTagsQueExistem (243)", () => {
+  it("tira do rascunho o id de tag que não existe mais; sem nenhuma, fica sem tags", () => {
+    expect(soTagsQueExistem(["a", "x", "b"], ["a", "b", "c"])).toEqual(["a", "b"]);
+    expect(soTagsQueExistem(["x"], ["a"])).toBeUndefined();
+    expect(soTagsQueExistem(undefined, ["a"])).toBeUndefined();
+  });
+});
+
+describe("textoExcluirTag (243)", () => {
+  it("com a contagem do banco: todos os cards; sem ela (função falhou): os que você vê, dizendo isso", () => {
+    expect(textoExcluirTag(5, 2)).toBe("Ela sai de 5 cards.");
+    expect(textoExcluirTag(1, 0)).toBe("Ela sai de 1 card.");
+    expect(textoExcluirTag(0, 0)).toBe("Nenhum card usa esta tag.");
+    expect(textoExcluirTag(null, 3)).toBe("Ela sai de 3 cards que você vê (e de outros que só o dono vê).");
+    expect(textoExcluirTag(null, 0)).toBe("Nenhum card que você vê usa esta tag (ela sai também dos que só o dono vê).");
   });
 });

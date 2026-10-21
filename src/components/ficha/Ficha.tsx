@@ -21,7 +21,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ehConteudo } from "@/components/tarefas/grade";
 import {
-  FORMATOS, REDES, RESPONSAVEIS, TIPOS, arquivosDoDrive, lerErro, organizarCard, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
+  FORMATOS, REDES, RESPONSAVEIS, TIPOS, arquivosDoDrive, lerErro, organizarCard, recarregarTags, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
   type Etapa, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type Tarefa, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
@@ -37,7 +37,7 @@ import { CamposPost } from "./CamposPost";
 import { Publicacao } from "./Publicacao";
 import { TagsFicha } from "./TagsFicha";
 import { LINK_VALIDO, LinksDrive } from "./LinksDrive";
-import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido, mudouPasta, podeTrocarAprovador, trocarEmpresa } from "./arrumar";
+import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido, mudouPasta, podeTrocarAprovador, soTagsQueExistem, trocarEmpresa } from "./arrumar";
 import { CampoOcasiao, PrazoDrive } from "./CampoOcasiao";
 import { TextoComLinks } from "@/components/pastas/links";
 import { CampoData } from "@/components/ui/CampoData";
@@ -158,8 +158,9 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
     // Tarefa nova para outra pessoa vai para o caderno dela (achado 2, igual ao Caderno). Conteúdo com empresa todos já veem: fica de quem criou.
     const etapa = etapaAoSalvar(t);
     const enviarPara = nova && t.responsavel !== eu && !ehConteudo({ ...t, etapa }) ? t.responsavel : undefined;
+    const existem = t.tags?.length ? await recarregarTags() : []; // 243: tag excluída enquanto a ficha estava aberta não vai
     const pronta = arrumar(t, pedeAprovador, {
-      ...quando, etapa, enviarPara, arquivos,
+      ...quando, etapa, enviarPara, arquivos, tags: soTagsQueExistem(t.tags, existem),
       vaiProGoogle: nova ? vai : tarefa.vaiProGoogle, // só liga na criação e se pode ir (R5-5)
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
     });

@@ -75,7 +75,7 @@ await lista.locator(".selecao-linha").filter({ hasText: "Drive conferido" }).hov
 await lista.getByRole("button", { name: "Excluir a tag Drive conferido" }).click();
 const dialogo = pg.locator("dialog.confirmar[open]");
 const texto = (await dialogo.innerText()).replace(/\s+/g, " ");
-confere(texto.includes("Excluir a tag Drive conferido?") && texto.includes("Ela sai de 3 cards."), `242: confirmação "${texto}"`);
+confere(texto.includes("Excluir a tag Drive conferido?") && texto.includes("Ela sai de 3 cards que você vê (e de outros que só o dono vê)."), `242: confirmação "${texto}"`);
 await pg.screenshot({ path: join(pasta, "242-tag-excluir-confirmacao-1440.png") });
 await dialogo.getByRole("button", { name: "Excluir" }).click();
 await pg.waitForTimeout(500);
