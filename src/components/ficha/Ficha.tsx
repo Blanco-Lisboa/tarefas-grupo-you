@@ -21,7 +21,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ehConteudo } from "@/components/tarefas/grade";
 import {
-  FORMATOS, REDES, RESPONSAVEIS, TIPOS, lerErro, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
+  FORMATOS, REDES, RESPONSAVEIS, TIPOS, arquivosDoDrive, lerErro, organizarCard, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
   type Etapa, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type Tarefa, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
@@ -37,8 +37,8 @@ import { CamposPost } from "./CamposPost";
 import { Publicacao } from "./Publicacao";
 import { TagsFicha } from "./TagsFicha";
 import { LINK_VALIDO, LinksDrive } from "./LinksDrive";
-import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido, podeTrocarAprovador } from "./arrumar";
-import { CampoOcasiao } from "./CampoOcasiao";
+import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido, mudouPasta, podeTrocarAprovador } from "./arrumar";
+import { CampoOcasiao, PrazoDrive } from "./CampoOcasiao";
 import { TextoComLinks } from "@/components/pastas/links";
 import { CampoData } from "@/components/ui/CampoData";
 import "./ficha.css";
@@ -171,7 +171,11 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
       setT((x) => ({ ...x, ...extra, id: gravada.id, etapa: gravada.etapa, conserto: gravada.conserto })); // etapa como ficou (Roteiro do 205, decisão)
       aoSalvar?.(salva);
     }
-    if (fechar) setEnviou(true);
+    // 229: a pasta do conteúdo no Drive acompanha título, formato, tema e empresa. Se o Drive falhar, a ficha fica aberta com o aviso (o salvar vale).
+    const aviso = gravada && viva && arquivosDoDrive(viva).length && mudouPasta(tarefa, salva)
+      ? await organizarCard(gravada.id).then(() => "", (e) => `Salvo, mas a pasta no Drive não mudou: ${e instanceof Error ? e.message : "salve de novo."}`) : "";
+    if (aviso) setRecusa(aviso);
+    if (fechar && !aviso) setEnviou(true);
     return !!gravada && !lerErro();
   }
 
@@ -250,7 +254,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
               </div>
             )}
             {/* Ocasião = pasta do Drive dentro da empresa (203, Vitral); sem empresa não existe */}
-            {t.empresaId && <div className="ficha-campo ficha-escolha ficha-tema"><CampoOcasiao tarefaId={tarefa.id} empresaId={t.empresaId} valor={t.ocasiaoId} aoMudar={(id) => mudar("ocasiaoId", id)} /></div>}
+            {t.empresaId && <div className="ficha-campo ficha-escolha ficha-tema"><CampoOcasiao empresaId={t.empresaId} formato={t.formato} valor={t.ocasiaoId} aoMudar={(id) => mudar("ocasiaoId", id)} /></div>}
           </div>
 
           <div className="ficha-quem-quando">
@@ -293,6 +297,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
 
           <LinksDrive links={links} aoMudar={setLinks} />
           <div inert={postTravado}><Anexos valor={arquivos.filter((a) => a.papel !== "capa")} aoMudar={(v) => setArquivos([...v, ...capas])} empresaId={t.empresaId} carrossel={t.formato === "carrossel"} /></div>
+          {viva && <PrazoDrive t={viva} />}
           {postTravado && <p className="ficha-dica ficha-dica-fica">Aprovado: descrição do post, formato, arquivos e capa só mudam pelo Natham ou por quem aprova.</p>}
 
           <div className="ficha-campo ficha-notas">

@@ -6,3 +6,17 @@
 .ficha-anexo-ordem { position: absolute; left: -4px; bottom: -4px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--azul); color: #fff; font: 600 10px/16px var(--fonte); text-align: center; }
 .ficha-grande iframe { display: block; width: min(960px, calc(100vw - 48px)); height: min(600px, calc(100dvh - 96px)); border: 0; border-radius: var(--raio-b); background: var(--sup-2); }
 .ficha-anexo-recusa { flex-basis: 100%; font-size: var(--app-t-rotulo); color: var(--atrasado, #c0392b); }
+/* Tema (229): cadeado do permanente, interruptor "Permanente" ao criar (seletor longo: a regra do input da linha de criar, em ficha.css, vence por ordem de carga), caminho no Drive e prazo perto dos anexos */
+.ficha-cadeado { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -2px; }
+.ficha-interruptor { display: inline-flex; align-items: center; gap: 6px; flex: none; font: 500 var(--t-14) var(--fonte); color: var(--texto); cursor: pointer; white-space: nowrap; }
+.ficha .ficha-tag-nova .ficha-interruptor input { appearance: none; position: relative; flex: none; width: 32px; min-width: 32px; height: 18px; margin: 0; border-radius: 9px; background: var(--borda); cursor: pointer; transition: background-color var(--dur-rapida) var(--curva); }
+.ficha .ficha-tag-nova .ficha-interruptor input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .2); transition: transform var(--dur-rapida) var(--curva); }
+.ficha .ficha-tag-nova .ficha-interruptor input:checked { background: var(--azul); }
+.ficha .ficha-tag-nova .ficha-interruptor input:checked::after { transform: translateX(14px); }
+.ficha-interruptor input:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.ficha-caminho { color: var(--texto); font-weight: 600; }
+/* Campo fechado com tema permanente: o cadeado vai colado no nome (à direita), não junto do rótulo */
+.ficha-tema .selecao-botao .selecao-antes { margin-left: auto; }
+.ficha-tema .selecao-botao .selecao-antes + .selecao-escolha { margin-left: 0; }
+.ficha-prazo { display: flex; align-items: center; gap: 6px; margin: 0; }
+@media (prefers-reduced-motion: reduce) { .ficha-interruptor input, .ficha-interruptor input::after { transition: none; } }

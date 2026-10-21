@@ -25,6 +25,9 @@ export const ehQuemAprova = (aprovador: string | undefined, eu: Responsavel | nu
     ou quem aprova hoje. Antes era só ehQuemAprova, e o Matheus não escolhia nada em card do Natham ou sem aprovador. */
 export const podeTrocarAprovador = (aprovador: string | undefined, eu: Responsavel | null) => eu === "matheus" || ehQuemAprova(aprovador, eu);
 
+/** 229: título, formato, tema ou empresa mudou → a pasta do conteúdo no Drive muda de lugar e de nome (organizarCard, se já tem arquivo lá). */
+export const mudouPasta = (antes: NovaTarefa, depois: NovaTarefa) => (["titulo", "formato", "ocasiaoId", "empresaId"] as const).some((k) => (antes[k] ?? "") !== (depois[k] ?? ""));
+
 // Fim só vale se vier depois do início; senão a tarefa fica sem fim (vira um ponto no horário).
 export function fimValido(dia: string, ini: string, diaFim: string, fim: string) {
   if (!fim) return undefined;

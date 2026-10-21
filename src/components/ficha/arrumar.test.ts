@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NovaTarefa } from "@/lib/dados";
-import { arrumar, ehQuemAprova, etapaAoSalvar, podeTrocarAprovador } from "./arrumar";
+import { arrumar, ehQuemAprova, etapaAoSalvar, mudouPasta, podeTrocarAprovador } from "./arrumar";
 
 describe("ficha: o que vai para o banco ao salvar (Lupa R6-1)", () => {
   const t: NovaTarefa = {
@@ -48,5 +48,17 @@ describe("ficha: etapa ao salvar sem o campo Etapa (item 205)", () => {
   });
   it("sem empresa, reunião ou tarefa que já existe (do Caderno): continua sem etapa", () => {
     expect([etapaAoSalvar({ ...nova, empresaId: "" }), etapaAoSalvar({ ...nova, titulo: "Reunião com cliente" }), etapaAoSalvar({ ...nova, id: "t1" })]).toEqual([undefined, undefined, undefined]);
+  });
+});
+
+describe("mudouPasta (229)", () => {
+  const card: NovaTarefa = { titulo: "Reels", tipo: "postagem", empresaId: "you", responsavel: "natham", diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], formato: "reels", ocasiaoId: "o1" };
+  it("título, formato, tema ou empresa mudou: reorganiza; o resto (notas) ou tema vazio igual a nenhum, não", () => {
+    expect(mudouPasta(card, { ...card, titulo: "Reels novo" })).toBe(true);
+    expect(mudouPasta(card, { ...card, formato: "post" })).toBe(true);
+    expect(mudouPasta(card, { ...card, ocasiaoId: undefined })).toBe(true);
+    expect(mudouPasta(card, { ...card, empresaId: "beec" })).toBe(true);
+    expect(mudouPasta(card, { ...card, notas: "x" })).toBe(false);
+    expect(mudouPasta({ ...card, ocasiaoId: undefined }, { ...card, ocasiaoId: "" })).toBe(false);
   });
 });
