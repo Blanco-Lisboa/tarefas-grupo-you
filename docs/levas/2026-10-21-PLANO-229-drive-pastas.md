@@ -215,3 +215,9 @@ Junto: a camada de dados exporta `NOME_FORMATO`, `SEM_FORMATO`, `SEM_TEMA`, `nom
 - **Achado 4 (alto, futuro):** o 019b agenda cards e tira o relógio antigo na mesma transação, e `now()` fica fixo no começo dela; uma colagem que atravesse a virada de minuto pode deixar um card sem alarme (o cron não tem ano). Antes de colar o 019b: corrigir (por exemplo, agendar cada card a partir do relógio real `clock_timestamp()` e só tirar o relógio antigo depois de conferir que todo Aprovado de Postagem tem alarme) e provar a virada de minuto. A primeira execução da prova falhou exatamente aí; hoje o script já devolve erro quando há falha.
 - O 019b NÃO está no guia de ligar o Drive e não deve ser colado até as duas pendências estarem fechadas e revisadas.
 
+### 13e. 243 · Trava das tags no banco (`supabase/_colar/022-tags-trava.sql`, NÃO aplicado)
+- Conferido em produção só com SELECT (24/10): `tags_todos` deixa qualquer login de pessoa fazer tudo em `tags`; nenhum gatilho em `tags`.
+- **022:** gatilho `tags_trava` recusa UPDATE e DELETE da tag de aprovação (`aprovacao = true` ou id `tag-esperando-aprovacao`) para TODOS (inclusive Natham, Matheus e a chave de serviço; para mexer um dia, apagar o gatilho de propósito) e, nas demais tags, só Natham e Matheus editam/apagam (ler e criar seguem como hoje). Mensagens em português.
+- **Contagem para a confirmação de apagar (Sextante):** `public.contar_cards_da_tag(p_tag text) returns integer`, `security definer`, só para pessoa com login (anônimo e login sem pessoa recebem erro 42501); conta todos os cards, inclusive os privados de outro; tag inexistente = 0. Chamada: `supabase.rpc("contar_cards_da_tag", { p_tag: id })` → número.
+- Prova: `sh supabase/prova_local/prova_243.sh` (27 conferências, 0 falhas; sai com erro se falhar).
+
