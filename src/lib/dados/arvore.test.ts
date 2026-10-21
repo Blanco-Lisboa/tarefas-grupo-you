@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { arvoreDePastas, venceEm } from "./arvore";
-import type { DocumentoSolto, Ocasiao } from "./drive";
+import { arvoreDePastas, pastasLivresDaEmpresa, venceEm } from "./arvore";
+import type { DocumentoSolto, Ocasiao, PastaLivre } from "./drive";
 import type { Tarefa } from "./tipos";
 
 const drive = (id: string) => ({ id, nome: `${id}.pdf`, tipo: "documento" as const, driveId: `d-${id}` });
@@ -84,3 +84,25 @@ describe("arvoreDePastas: o que aparece e onde", () => {
     expect(formato(a, "Reels").temas[1].conteudos.map((c) => c.tarefa.id)).toEqual(["a", "b"]);
   });
 });
+
+describe("pastas livres (234)", () => {
+  const pasta = (id: string, nome: string, extra: Partial<PastaLivre> = {}): PastaLivre => ({ id, empresaId: "you", nome, permanente: false, ...extra });
+  const doc = (id: string, extra: Partial<DocumentoSolto> = {}): DocumentoSolto => ({ id, nome: `${id}.pdf`, tipo: "documento", driveId: `d-${id}`, empresaId: "you", ...extra });
+  it("lista por nome (pt-BR), só da empresa, com os arquivos de cada uma; com cadeado ou sem, nenhum arquivo tem data de sumir", () => {
+    const r = pastasLivresDaEmpresa({
+      empresaId: "you",
+      pastas: [pasta("p2", "Referências"), pasta("p1", "Logos e marca", { permanente: true }), { ...pasta("p3", "Da Beec"), empresaId: "beec" }, pasta("p4", "Álbum")],
+      documentos: [doc("a", { pastaLivreId: "p1" }), doc("b", { pastaLivreId: "p2" }), doc("c", { pastaLivreId: "p1" }), doc("d", { pastaLivreId: "p3", empresaId: "beec" })],
+    });
+    expect(r.map((x) => x.pasta.nome)).toEqual(["Álbum", "Logos e marca", "Referências"]);
+    expect(r[1].pasta.permanente).toBe(true);
+    expect(r[1].documentos.map((d) => d.id)).toEqual(["a", "c"]);
+    expect(r[0].documentos).toEqual([]); // pasta vazia aparece
+  });
+  it("arquivo de pasta livre NÃO cai em 'Sem formato / Sem tema' da árvore dos posts", () => {
+    const a = arvore([], [], [doc("a", { pastaLivreId: "p1" })]);
+    expect(a.map((f) => f.nome)).toEqual(["Reels", "Carrossel", "Post", "Stories"]);
+    expect(a.flatMap((f) => f.temas)).toHaveLength(0);
+  });
+});
+

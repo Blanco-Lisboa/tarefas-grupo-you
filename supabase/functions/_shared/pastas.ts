@@ -22,7 +22,12 @@ export const chaves = {
   formato: (empresa: string, formato: unknown) => `formato:${empresa}:${chaveFormato(formato)}`,
   tema: (tema: string | null | undefined, empresa: string, formato: unknown) => `tema:${tema || "sem"}:${empresa}:${chaveFormato(formato)}`,
   conteudo: (tarefa: string) => `card:${tarefa}`,
+  /** Pasta livre (234): mora na empresa, ao lado das pastas de formato. */
+  livre: (pasta: string) => `livre:${pasta}`,
 };
+
+/** Nomes que uma pasta livre não pode ter: já são pastas da empresa no Drive (os formatos). */
+export const nomeReservado = (nome: string) => [...Object.values(NOME_FORMATO), SEM_FORMATO].some((n) => n.toLowerCase() === nome.trim().toLowerCase());
 
 const limpo = (s: string) => s.replace(/\s+/g, " ").trim();
 /** "<Formato> <tema> - <título>". Sem tema: "<Formato> - <título>". Sem formato, o formato some do nome. Cabe no limite de nome do Drive. */

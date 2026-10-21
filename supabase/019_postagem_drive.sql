@@ -12,7 +12,7 @@ begin
   end if;
 end $$;
 -- 019 v2 (item 229) · contrato do 196 (postagem IG/FB) + 203 (arquivo no Drive) + Concluir/lixeira/trava depois de Aprovado.
--- v2 = o 019 que a Lupa liberou + 3 mudanças do 229, todas marcadas com "229": (a) ocasioes ganha permanente/desligado_em e perde drive_pasta_id,
+-- v2 = o 019 que a Lupa liberou + 3 mudanças do 229 + a PASTA LIVRE do 234 (marcada com "234"), todas marcadas com "229": (a) ocasioes ganha permanente/desligado_em e perde drive_pasta_id,
 --   (b) arquivos aceita documento SOLTO de pasta (empresa/formato/tema, sem card), (c) funções definir_permanente e pode_mexer_pastas. O resto não mudou.
 -- Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM. Idempotente. Depende do 002, 006, 009, 015, 016.
 
@@ -74,6 +74,63 @@ language sql security invoker set search_path = '' as $$ select private.definir_
 revoke all on function public.definir_permanente(uuid, boolean) from public, anon;
 grant execute on function public.definir_permanente(uuid, boolean) to authenticated;
 
+-- 2c. 234 · PASTA LIVRE: a "+ Nova pasta" da tela Pastas. Mora na empresa, ao lado das pastas de formato (Tarefas · Conteúdos → Empresa → <nome>); NÃO é Tema.
+--     Nada sai sozinho de dentro dela. Permanente (cadeado) = a pasta não pode ser apagada (renomear pode); só o Natham desliga. Só a função drive escreve.
+create table if not exists public.pastas_livres (
+  id uuid primary key default gen_random_uuid(),
+  empresa_id text not null references public.empresas(id),
+  nome text not null check (btrim(nome) <> ''),
+  permanente boolean not null default false,
+  criado_por uuid references public.pessoas(id),
+  created_at timestamptz not null default now()
+);
+create unique index if not exists pastas_livres_nome_unico on public.pastas_livres (empresa_id, lower(btrim(nome)));
+alter table public.pastas_livres enable row level security;
+drop policy if exists pastas_livres_le on public.pastas_livres;
+create policy pastas_livres_le on public.pastas_livres for select to authenticated using ((select private.minha_pessoa()) is not null);
+revoke all on public.pastas_livres from anon, authenticated;
+grant select on public.pastas_livres to authenticated;
+grant all on public.pastas_livres to service_role;
+-- Pasta com cadeado não se apaga NUNCA, nem pela chave de serviço (a função drive confere antes, mas o banco é quem garante).
+create or replace function private.pasta_livre_cadeado() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  if old.permanente then raise exception 'pasta com cadeado nao se apaga' using errcode = '42501'; end if;
+  return old;
+end $$;
+drop trigger if exists pastas_livres_cadeado on public.pastas_livres;
+create trigger pastas_livres_cadeado before delete on public.pastas_livres for each row execute function private.pasta_livre_cadeado();
+-- Mesma regra do Tema: Natham e Matheus ligam; só o Natham desliga (o banco recusa o Matheus com 42501).
+create or replace function private.definir_permanente_livre(p_pasta uuid, p_ligado boolean) returns void
+language plpgsql security definer set search_path = ''
+as $$
+declare v_slug text; v_atual boolean;
+begin
+  select slug into v_slug from public.pessoas where id = (select private.minha_pessoa());
+  if v_slug is null or v_slug not in ('natham', 'matheus') then raise exception 'sem permissao' using errcode = '42501'; end if;
+  select permanente into v_atual from public.pastas_livres where id = p_pasta for update;
+  if not found then raise exception 'pasta nao existe' using errcode = 'P0002'; end if;
+  if v_atual and not p_ligado and v_slug <> 'natham' then raise exception 'so o Natham desliga o Permanente' using errcode = '42501'; end if;
+  update public.pastas_livres set permanente = p_ligado where id = p_pasta;
+end $$;
+revoke all on function private.definir_permanente_livre(uuid, boolean) from public, anon;
+grant execute on function private.definir_permanente_livre(uuid, boolean) to authenticated;
+create or replace function public.definir_permanente_livre(p_pasta uuid, p_ligado boolean) returns void
+language sql security invoker set search_path = '' as $$ select private.definir_permanente_livre(p_pasta, p_ligado) $$;
+revoke all on function public.definir_permanente_livre(uuid, boolean) from public, anon;
+grant execute on function public.definir_permanente_livre(uuid, boolean) to authenticated;
+-- A função drive pergunta ao BANCO (com a chave de quem clicou) se pode apagar: pessoa com login e pasta sem cadeado.
+create or replace function private.pode_apagar_pasta_livre(p_pasta uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select (select private.minha_pessoa()) is not null and exists (select 1 from public.pastas_livres where id = p_pasta and not permanente)
+$$;
+revoke all on function private.pode_apagar_pasta_livre(uuid) from public, anon;
+grant execute on function private.pode_apagar_pasta_livre(uuid) to authenticated;
+create or replace function public.pode_apagar_pasta_livre(p_pasta uuid) returns boolean
+language sql stable security invoker set search_path = '' as $$ select private.pode_apagar_pasta_livre(p_pasta) $$;
+revoke all on function public.pode_apagar_pasta_livre(uuid) from public, anon;
+grant execute on function public.pode_apagar_pasta_livre(uuid) to authenticated;
+
 -- 229 · Quem pode pôr e tirar documento solto nas pastas da tela Pastas: qualquer pessoa com login (hoje Natham e Matheus).
 create or replace function private.pode_mexer_pastas() returns boolean
 language sql stable security definer set search_path = '' as $$ select (select private.minha_pessoa()) is not null $$;
@@ -103,7 +160,8 @@ create unique index if not exists arquivos_uma_capa on public.arquivos (tarefa_i
 alter table public.arquivos
   add column if not exists empresa_id text references public.empresas(id),
   add column if not exists formato text,
-  add column if not exists ocasiao_id uuid references public.ocasioes(id) on delete restrict;
+  add column if not exists ocasiao_id uuid references public.ocasioes(id) on delete restrict,
+  add column if not exists pasta_livre_id uuid references public.pastas_livres(id) on delete restrict;  -- 234: documento da pasta livre (a função apaga as linhas antes da pasta)
 do $$ declare r record; begin  -- o check do 001 (exatamente um entre tarefa e peça) não vale mais para documento solto
   for r in select conname from pg_constraint where conrelid = 'public.arquivos'::regclass and contype = 'c' and conname <> 'arquivos_solto_ok'
       and pg_get_constraintdef(oid) like '%tarefa_id%' and pg_get_constraintdef(oid) like '%peca_id%' and pg_get_constraintdef(oid) not like '%caminho%' loop
@@ -116,6 +174,7 @@ alter table public.arquivos add constraint arquivos_solto_ok check (
   and (empresa_id is null or (tarefa_id is null and peca_id is null))                                  -- solto não é de card nem de peça
   and (formato is null or formato in ('reels', 'post', 'carrossel', 'story'))
   and (ocasiao_id is null or empresa_id is not null)
+  and (pasta_livre_id is null or (empresa_id is not null and formato is null and ocasiao_id is null))                  -- 234: pasta livre não tem formato nem tema
 );
 drop policy if exists arquivos_le on public.arquivos;
 create policy arquivos_le on public.arquivos for select to authenticated using (

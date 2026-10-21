@@ -160,7 +160,7 @@ async function carregarOcasioes() {
 }
 const assinar = (f: () => void) => {
   ouvintes.add(f);
-  if (!carregou && typeof window !== "undefined") { carregou = true; void carregarOcasioes(); void carregarDocumentos(); }
+  if (!carregou && typeof window !== "undefined") { carregou = true; void carregarOcasioes(); void carregarDocumentos(); void carregarPastasLivres(); }
   return () => void ouvintes.delete(f);
 };
 const NADA: Ocasiao[] = [];
@@ -193,26 +193,71 @@ export const organizarCard = (tarefaId: string) => chamar<{ movida: boolean }>({
 /** Recarrega a lista de temas. */
 export const recarregarOcasioes = () => carregarOcasioes();
 
-// ---- Documentos soltos: arquivo posto direto numa pasta de Tema (ou "Sem tema"), sem card. Moram no Drive, não vencem em 7 dias, só saem quando alguém apaga ----
-export type DocumentoSolto = { id: string; nome: string; tipo: NonNullable<Arquivo["tipo"]>; driveId: string; empresaId: string; formato?: Formato; ocasiaoId?: string; tamanho?: number; criadoEm?: string };
-export type DestinoPasta = { empresaId: string; formato?: Formato; ocasiaoId?: string };
-let documentos: DocumentoSolto[] = [];
-type LinhaSolta = { id: string; nome: string; tipo: DocumentoSolto["tipo"]; drive_id: string; empresa_id: string; formato: Formato | null; ocasiao_id: string | null; tamanho: number | null; created_at: string };
-async function carregarDocumentos() {
-  const { data, error } = await supabase().from("arquivos").select("id, nome, tipo, drive_id, empresa_id, formato, ocasiao_id, tamanho, created_at").not("empresa_id", "is", null).order("created_at");
+// ---- Pastas livres (item 234): a "+ Nova pasta". Ficam na empresa, ao lado das pastas de formato; NÃO são Tema; qualquer arquivo; nada sai sozinho ----
+/** `permanente` = cadeado: a pasta não se apaga (renomear pode). Só o Natham desliga (o banco recusa o Matheus). */
+export type PastaLivre = { id: string; empresaId: string; nome: string; permanente: boolean };
+let pastasLivres: PastaLivre[] = [];
+type LinhaLivre = { id: string; empresa_id: string; nome: string; permanente?: boolean };
+const livreDoBanco = (p: LinhaLivre): PastaLivre => ({ id: p.id, empresaId: p.empresa_id, nome: p.nome, permanente: p.permanente === true });
+async function carregarPastasLivres() {
+  const { data, error } = await supabase().from("pastas_livres").select("id, empresa_id, nome, permanente").order("nome");
   if (error || !data) return;
-  documentos = (data as LinhaSolta[]).map((a) => ({ id: a.id, nome: a.nome, tipo: a.tipo, driveId: a.drive_id, empresaId: a.empresa_id, formato: a.formato ?? undefined, ocasiaoId: a.ocasiao_id ?? undefined, tamanho: a.tamanho ?? undefined, criadoEm: a.created_at }));
+  pastasLivres = (data as LinhaLivre[]).map(livreDoBanco);
+  avisar();
+}
+const SEM_PASTAS: PastaLivre[] = [];
+/** Pastas livres de todas as empresas (reativo). */
+export const usePastasLivres = () => useSyncExternalStore(assinar, () => pastasLivres, () => SEM_PASTAS);
+/** "+ Nova pasta": nome + Permanente (padrão desligado). Natham e Matheus podem. Lança Error com a mensagem da tela (nome repetido, nome de formato...). */
+export async function criarPastaLivre(empresaId: string, nome: string, permanente = false): Promise<PastaLivre> {
+  const { pasta } = await chamar<{ pasta: LinhaLivre }>({ acao: "criar_pasta_livre", empresa_id: empresaId, nome, permanente });
+  const nova = livreDoBanco(pasta);
+  pastasLivres = [...pastasLivres, nova];
+  avisar();
+  return nova;
+}
+/** Renomear vale também com cadeado. */
+export async function renomearPastaLivre(id: string, nome: string): Promise<void> {
+  await chamar({ acao: "renomear_pasta_livre", pasta_id: id, nome });
+  pastasLivres = pastasLivres.map((p) => (p.id === id ? { ...p, nome: nome.trim() } : p));
+  avisar();
+}
+/** Cadeado da pasta livre. Natham liga e desliga; o Matheus só liga (Error "Só o Natham desliga o Permanente." quando o banco recusa). */
+export async function ligarPermanentePastaLivre(id: string, ligado: boolean): Promise<void> {
+  await chamar({ acao: "permanente_pasta_livre", pasta_id: id, ligado });
+  pastasLivres = pastasLivres.map((p) => (p.id === id ? { ...p, permanente: ligado } : p));
+  avisar();
+}
+/** Apaga a pasta e tudo que tem nela (vai para a lixeira do Drive). A tela confirma antes. Com cadeado: Error "Esta pasta tem cadeado. Desligue o Permanente para apagar.". */
+export async function apagarPastaLivre(id: string): Promise<void> {
+  await chamar({ acao: "apagar_pasta_livre", pasta_id: id });
+  pastasLivres = pastasLivres.filter((p) => p.id !== id);
+  documentos = documentos.filter((d) => d.pastaLivreId !== id);
+  avisar();
+}
+
+// ---- Documentos soltos: arquivo posto direto numa pasta de Tema (ou "Sem tema"), sem card. Moram no Drive, não vencem em 7 dias, só saem quando alguém apaga ----
+export type DocumentoSolto = { id: string; nome: string; tipo: NonNullable<Arquivo["tipo"]>; driveId: string; empresaId: string; formato?: Formato; ocasiaoId?: string; pastaLivreId?: string; tamanho?: number; criadoEm?: string };
+/** Com `pastaLivreId` o documento vai para a pasta livre (formato e tema são ignorados). Sem ele, para a pasta do Tema/Formato (como no 229). */
+export type DestinoPasta = { empresaId: string; formato?: Formato; ocasiaoId?: string; pastaLivreId?: string };
+let documentos: DocumentoSolto[] = [];
+type LinhaSolta = { id: string; nome: string; tipo: DocumentoSolto["tipo"]; drive_id: string; empresa_id: string; formato: Formato | null; ocasiao_id: string | null; pasta_livre_id?: string | null; tamanho: number | null; created_at: string };
+async function carregarDocumentos() {
+  const { data, error } = await supabase().from("arquivos").select("id, nome, tipo, drive_id, empresa_id, formato, ocasiao_id, pasta_livre_id, tamanho, created_at").not("empresa_id", "is", null).order("created_at");
+  if (error || !data) return;
+  documentos = (data as LinhaSolta[]).map((a) => ({ id: a.id, nome: a.nome, tipo: a.tipo, driveId: a.drive_id, empresaId: a.empresa_id, formato: a.formato ?? undefined, ocasiaoId: a.ocasiao_id ?? undefined, pastaLivreId: a.pasta_livre_id ?? undefined, tamanho: a.tamanho ?? undefined, criadoEm: a.created_at }));
   avisar();
 }
 const SEM_DOCUMENTOS: DocumentoSolto[] = [];
 /** Documentos soltos de todas as pastas (reativo). */
 export const useDocumentosSoltos = () => useSyncExternalStore(assinar, () => documentos, () => SEM_DOCUMENTOS);
-const corpoDestino = (d: DestinoPasta) => ({ empresa_id: d.empresaId, formato: d.formato ?? null, ocasiao_id: d.ocasiaoId ?? null });
+const corpoDestino = (d: DestinoPasta) => (d.pastaLivreId ? { pasta_id: d.pastaLivreId } : { empresa_id: d.empresaId, formato: d.formato ?? null, ocasiao_id: d.ocasiaoId ?? null });
+const acaoDestino = (d: DestinoPasta, nome: "sessao" | "confirmar") => `${nome === "sessao" ? "sessao_envio" : "confirmar_envio"}_${d.pastaLivreId ? "livre" : "pasta"}`;
 
 /** Sobe um documento (imagem, vídeo ou documento) para a pasta do tema, direto ao Drive. Natham e Matheus podem. Devolve o documento já na lista da tela. */
 export async function enviarDocumentoNaPasta(destino: DestinoPasta, arquivo: File, aoProgredir?: (fracao: number) => void): Promise<DocumentoSolto> {
   const tipo = tipoDe(arquivo), mime = arquivo.type || "application/octet-stream";
-  const chave = `grade:envio-pasta:${destino.empresaId}:${destino.formato ?? ""}:${destino.ocasiaoId ?? ""}:${arquivo.name}:${arquivo.size}:${arquivo.lastModified}`;
+  const chave = `grade:envio-pasta:${destino.pastaLivreId ?? destino.empresaId}:${destino.formato ?? ""}:${destino.ocasiaoId ?? ""}:${arquivo.name}:${arquivo.size}:${arquivo.lastModified}`;
   let nota = anotacao(chave);
   let driveId = nota?.driveId; // já chegou ao Drive numa tentativa anterior: só falta confirmar
   if (!driveId && nota) {
@@ -222,20 +267,20 @@ export async function enviarDocumentoNaPasta(destino: DestinoPasta, arquivo: Fil
     } catch { nota = undefined; anotacao(chave, null); }
   }
   if (!driveId) {
-    const { sessao_url } = await chamar<{ sessao_url: string }>({ acao: "sessao_envio_pasta", ...corpoDestino(destino), nome: arquivo.name, tipo, mime, tamanho: arquivo.size });
+    const { sessao_url } = await chamar<{ sessao_url: string }>({ acao: acaoDestino(destino, "sessao"), ...corpoDestino(destino), nome: arquivo.name, tipo, mime, tamanho: arquivo.size });
     anotacao(chave, { sessao: sessao_url });
     driveId = await enviarEmPartes(sessao_url, arquivo, aoProgredir);
   }
   anotacao(chave, { sessao: nota?.sessao ?? "", driveId });
   let arquivo_id: string;
   try {
-    ({ arquivo_id } = await chamar<{ arquivo_id: string }>({ acao: "confirmar_envio_pasta", ...corpoDestino(destino), drive_id: driveId, nome: arquivo.name, tipo, tamanho: arquivo.size }));
+    ({ arquivo_id } = await chamar<{ arquivo_id: string }>({ acao: acaoDestino(destino, "confirmar"), ...corpoDestino(destino), drive_id: driveId, nome: arquivo.name, tipo, tamanho: arquivo.size }));
   } catch (e) {
     if (e instanceof ErroServidor && (e.status === 410 || e.status === 422)) { anotacao(chave, null); throw e; }
     throw new Error("Não deu para confirmar o envio, tente de novo.", { cause: e });
   }
   anotacao(chave, null);
-  const novo: DocumentoSolto = { id: arquivo_id, nome: arquivo.name, tipo, driveId, empresaId: destino.empresaId, formato: destino.formato, ocasiaoId: destino.ocasiaoId, tamanho: arquivo.size };
+  const novo: DocumentoSolto = { id: arquivo_id, nome: arquivo.name, tipo, driveId, empresaId: destino.empresaId, formato: destino.pastaLivreId ? undefined : destino.formato, ocasiaoId: destino.pastaLivreId ? undefined : destino.ocasiaoId, pastaLivreId: destino.pastaLivreId, tamanho: arquivo.size };
   documentos = [...documentos.filter((x) => x.id !== novo.id), novo];
   avisar();
   return novo;

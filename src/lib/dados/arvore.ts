@@ -2,7 +2,7 @@
 // Um conteúdo aparece quando o card tem Empresa e arquivo no Drive; some quando a limpeza dos 7 dias apaga as linhas de `arquivos`.
 // A tela só desenha o que esta função devolve. Nome da pasta e contagem dos 7 dias vêm de `supabase/functions/_shared/pastas` (a função `drive` usa o mesmo arquivo).
 import { DIAS_PARA_LIMPAR, FORMATOS, nomeFormato, nomePastaConteudo, SEM_TEMA } from "../../../supabase/functions/_shared/pastas";
-import type { DocumentoSolto, Ocasiao } from "./drive";
+import type { DocumentoSolto, Ocasiao, PastaLivre } from "./drive";
 import type { Arquivo, Formato, Tarefa } from "./tipos";
 
 export type PastaConteudo = {
@@ -57,7 +57,7 @@ export function arvoreDePastas(e: { empresaId: string; tarefas: Tarefa[]; ocasio
     .filter((t) => t.empresaId === e.empresaId && arquivosDoDrive(t).length)
     .map((t) => ({ tarefa: t, nome: nomePastaConteudo(t.formato, tema(t.ocasiaoId)?.nome, t.titulo), arquivos: arquivosDoDrive(t), venceEm: venceEm(t, tema(t.ocasiaoId)) }))
     .sort((a, b) => (a.tarefa.postarEm ?? a.tarefa.inicio ?? "").localeCompare(b.tarefa.postarEm ?? b.tarefa.inicio ?? "") || a.tarefa.titulo.localeCompare(b.tarefa.titulo, "pt-BR"));
-  const docs = e.documentos.filter((d) => d.empresaId === e.empresaId);
+  const docs = e.documentos.filter((d) => d.empresaId === e.empresaId && !d.pastaLivreId); // os da pasta livre têm lista própria (pastasLivresDaEmpresa)
   const usado = new Set([...conteudos.map((c) => c.tarefa.ocasiaoId), ...docs.map((d) => d.ocasiaoId)].filter(Boolean));
 
   const doFormato = (formato?: Formato): PastaFormato => {
@@ -75,4 +75,13 @@ export function arvoreDePastas(e: { empresaId: string; tarefas: Tarefa[]; ocasio
   const reais = FORMATOS.map((f) => doFormato(f));
   const sem = doFormato(undefined);
   return sem.temas.length ? [...reais, sem] : reais;
+}
+
+export type PastaLivreCheia = { pasta: PastaLivre; documentos: DocumentoSolto[] };
+/** Pastas livres da empresa (ao lado das pastas de formato), por nome, cada uma com seus arquivos. Nenhum arquivo daqui some sozinho. */
+export function pastasLivresDaEmpresa(e: { empresaId: string; pastas: PastaLivre[]; documentos: DocumentoSolto[] }): PastaLivreCheia[] {
+  return e.pastas
+    .filter((p) => p.empresaId === e.empresaId)
+    .map((pasta) => ({ pasta, documentos: e.documentos.filter((d) => d.pastaLivreId === pasta.id) }))
+    .sort((a, b) => a.pasta.nome.localeCompare(b.pasta.nome, "pt-BR"));
 }

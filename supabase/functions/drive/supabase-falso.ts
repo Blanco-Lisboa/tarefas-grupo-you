@@ -4,11 +4,12 @@ export const URL_FALSA = "https://banco.falso";
 type Linha = Record<string, unknown>;
 
 export function criarBancoFalso() {
-  const tabelas: Record<string, Linha[]> = { pessoas: [], empresas: [], tarefas: [], ocasioes: [], arquivos: [], drive_pastas: [] };
+  const tabelas: Record<string, Linha[]> = { pessoas: [], empresas: [], tarefas: [], ocasioes: [], pastas_livres: [], arquivos: [], drive_pastas: [] };
   const usuarios = new Map<string, string>(); // token -> user id (auth)
   const unicos: Record<string, (l: Linha) => string> = {
     drive_pastas: (l) => String(l.chave),
     ocasioes: (l) => `${l.empresa_id}|${String(l.nome).trim().toLowerCase()}`,
+    pastas_livres: (l) => `${l.empresa_id}|${String(l.nome).trim().toLowerCase()}`,
     arquivos: (l) => `d:${l.drive_id}`,
   };
   const estado = {
@@ -89,6 +90,7 @@ export function criarBancoFalso() {
         tabelas[t] = tabelas[t].filter((l) => !ok.includes(l));
         return json(ok);
       }
+      if (t === "pastas_livres" && alvo.some((l) => l.permanente)) return json({ code: "42501" }, 403); // gatilho do banco: pasta com cadeado não se apaga
       tabelas[t] = tabelas[t].filter((l) => !alvo.includes(l));
       return json(alvo);
     }

@@ -5,6 +5,7 @@
 import { createReadStream, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
+import { funcaoDrive } from "./exemplo-funcao-drive.mjs";
 
 export const PORTA_BANCO = Number(process.env.EXEMPLO_PORTA_BANCO ?? 3201);
 const PORTA_APP = Number(process.env.EXEMPLO_PORTA_APP ?? 3101);
@@ -40,6 +41,11 @@ const ocasioes = [
   { id: "tema-mei", empresa_id: "you", nome: "Dia do MEI", permanente: false, desligado_em: null, criado_por: P.natham },
   { id: "tema-natal", empresa_id: "you", nome: "Natal", permanente: false, desligado_em: null, criado_por: P.matheus },
   { id: "tema-beec", empresa_id: "beec", nome: "Lançamento da Beec", permanente: false, desligado_em: null, criado_por: P.natham },
+];
+// Pastas livres (item 234, a "+ Nova pasta"): ficam na empresa ao lado das de formato; "Logos e marca" tem cadeado.
+const pastasLivres = [
+  { id: "livre-logos", empresa_id: "you", nome: "Logos e marca", permanente: true, criado_por: P.natham },
+  { id: "livre-referencias", empresa_id: "you", nome: "Referências", permanente: false, criado_por: P.matheus },
 ];
 let n = 0;
 const tarefa = (titulo, extra = {}) => ({
@@ -157,8 +163,14 @@ arquivos.push(
 const solto = (nome, tipo, empresa_id, formato, ocasiao_id) => ({ id: `a${++n}`, tarefa_id: null, caminho: null, drive_id: `drive-${n}`, ordem: 0, papel: "anexo", nome, tipo, tamanho: 300_000, empresa_id, formato, ocasiao_id, criado_por: P.matheus, created_at: "2026-10-19T09:00:00Z" });
 arquivos.push(
   solto("ata-da-reuniao.pdf", "documento", "you", "reels", "tema-reuniao"), solto("referencias.pdf", "documento", "you", "reels", "tema-reuniao"),
-  solto("paleta-de-cores.png", "imagem", "you", "carrossel", "tema-mei"), solto("manual-da-marca.pdf", "documento", "you", null, null),
+  solto("paleta-de-cores.png", "imagem", "you", "carrossel", "tema-mei"),
   solto("briefing-lancamento.pdf", "documento", "beec", "post", "tema-beec"),
+);
+// Arquivos das pastas livres (qualquer tipo; nada sai sozinho, com ou sem cadeado)
+const naLivre = (nome, tipo, pasta, empresa = "you") => ({ ...solto(nome, tipo, empresa, null, null), pasta_livre_id: pasta });
+arquivos.push(
+  naLivre("logo-you.png", "imagem", "livre-logos"), naLivre("logo-you-branca.png", "imagem", "livre-logos"), naLivre("manual-da-marca.pdf", "documento", "livre-logos"),
+  naLivre("referencias-instagram.pdf", "documento", "livre-referencias"), naLivre("video-de-inspiracao.mp4", "video", "livre-referencias"),
 );
 const postagens = ["Reels: cliente da You conta como foi", "Reels: depoimento da Maria", "Carrossel: 5 dicas de MEI", "Post: aviso de feriado", "TikTok: o que é pró-labore", "Reels: MEI em 1 minuto"].flatMap((titulo, i) =>
   IG_FB.map((rede) => ({ tarefa_id: idDe(titulo), rede, status: "postado", link: `https://www.${rede}.com/exemplo/${i}`, erro: null, postado_em: new Date(`${tarefas.find((t) => t.id === idDe(titulo)).inicio}:00-03:00`).toISOString() })));
@@ -167,7 +179,7 @@ const hojeTexto = em(diaHoje);
 const anotacoesDia = [{ dono_id: P.natham, dia: hojeTexto, texto: "Gravar o Reels das 11h com o Matheus.\nConferir a legenda do carrossel do pró-labore." }];
 const naoEsquecer = [{ dono_id: P.natham, dia: hojeTexto, texto: "Ligar para o contador antes das 10h." }];
 
-const tabelas = { ocasioes, pessoas, empresas, tags, tarefas, fazendo_agora: fazendoAgora, arquivos, postagens, anotacoes_dia: anotacoesDia, nao_esquecer: naoEsquecer };
+const tabelas = { pastas_livres: pastasLivres, ocasioes, pessoas, empresas, tags, tarefas, fazendo_agora: fazendoAgora, arquivos, postagens, anotacoes_dia: anotacoesDia, nao_esquecer: naoEsquecer };
 
 // ---- imagem de mentira (SVG colorido com o nome do arquivo)
 const imagem = (caminho) => {
@@ -228,58 +240,9 @@ createServer(async (req, res) => {
   // Envio "para o Drive" de mentira: a sessão é este endereço mesmo; aceita as partes e devolve um id (nada sai do PC).
   const sessao = url.pathname.match(/^\/upload\/sessao\/(\w+)$/)?.[1];
   if (sessao && req.method === "PUT") { req.resume(); return req.on("end", () => res.writeHead(200).end(JSON.stringify({ id: `drive-up-${sessao}` }))); }
-  // Função `drive` de mentira (item 229): o bastante para a tela Pastas e a ficha funcionarem; guarda só na memória.
+  // Função `drive` de mentira (item 229/234), em exemplo-funcao-drive.mjs
   if (url.pathname === "/functions/v1/drive" && req.method === "POST") {
-    const c = await corpoDe(req), erro = (status, msg) => res.writeHead(status).end(JSON.stringify({ erro: msg }));
-    const linhaTema = (o) => ({ id: o.id, empresa_id: o.empresa_id, nome: o.nome, permanente: o.permanente, desligado_em: o.desligado_em });
-    const duplicado = (empresa, nome, ignorar) => ocasioes.some((o) => o.empresa_id === empresa && o.id !== ignorar && o.nome.trim().toLowerCase() === String(nome).trim().toLowerCase());
-    switch (c.acao) {
-      case "criar_ocasiao": {
-        if (duplicado(c.empresa_id, c.nome)) return erro(409, "Já existe um tema com esse nome.");
-        const o = { id: `tema-${++n}`, empresa_id: c.empresa_id, nome: String(c.nome).trim(), permanente: c.permanente === true, desligado_em: null, criado_por: P.natham };
-        ocasioes.push(o);
-        return res.writeHead(200).end(JSON.stringify({ ocasiao: linhaTema(o) }));
-      }
-      case "renomear_ocasiao": {
-        const o = ocasioes.find((x) => x.id === c.ocasiao_id);
-        if (!o) return erro(404, "Tema não encontrado.");
-        if (duplicado(o.empresa_id, c.nome, o.id)) return erro(409, "Já existe um tema com esse nome.");
-        o.nome = String(c.nome).trim();
-        return res.writeHead(200).end(JSON.stringify({ ok: true, restantes: 0 }));
-      }
-      case "permanente_ocasiao": { // quem entra aqui é sempre o Natham (o banco de verdade também deixa o Matheus ligar mas não desligar)
-        const o = ocasioes.find((x) => x.id === c.ocasiao_id);
-        if (!o) return erro(404, "Tema não encontrado.");
-        o.desligado_em = c.ligado ? null : o.permanente ? new Date().toISOString() : o.desligado_em;
-        o.permanente = c.ligado === true;
-        return res.writeHead(200).end(JSON.stringify({ ok: true, rearmados: 0 }));
-      }
-      case "organizar_card": return res.writeHead(200).end(JSON.stringify({ ok: true, movida: false }));
-      case "link_video": {
-        const a = arquivos.find((x) => x.id === c.arquivo_id);
-        if (!a?.caminho?.endsWith(".mp4")) return erro(404, "Vídeo de exemplo não disponível (só os dois Reels com vídeo tocam).");
-        return res.writeHead(200).end(JSON.stringify({ url: `http://127.0.0.1:${PORTA_BANCO}/storage/v1/object/sign/arquivos/${a.caminho}?token=exemplo` }));
-      }
-      case "apagar_anexo": {
-        const i = arquivos.findIndex((x) => x.id === c.arquivo_id);
-        if (i >= 0) arquivos.splice(i, 1);
-        return res.writeHead(200).end(JSON.stringify({ ok: true }));
-      }
-      case "apagar_tarefa": {
-        const i = tarefas.findIndex((x) => x.id === c.tarefa_id);
-        if (i >= 0) tarefas.splice(i, 1);
-        for (let j = arquivos.length; j--;) if (arquivos[j].tarefa_id === c.tarefa_id) arquivos.splice(j, 1);
-        return res.writeHead(200).end(JSON.stringify({ ok: true }));
-      }
-      case "sessao_envio": case "sessao_envio_pasta":
-        return res.writeHead(200).end(JSON.stringify({ sessao_url: `http://127.0.0.1:${PORTA_BANCO}/upload/sessao/${++n}` }));
-      case "confirmar_envio": case "confirmar_envio_pasta": {
-        const base = { id: `a${++n}`, caminho: null, drive_id: c.drive_id, ordem: Number(c.ordem ?? 0), papel: c.papel ?? "anexo", nome: c.nome, tipo: c.tipo, tamanho: c.tamanho, criado_por: P.natham, created_at: new Date().toISOString() };
-        arquivos.push(c.acao === "confirmar_envio" ? { ...base, tarefa_id: c.tarefa_id } : { ...base, tarefa_id: null, empresa_id: c.empresa_id, formato: c.formato ?? null, ocasiao_id: c.ocasiao_id ?? null });
-        return res.writeHead(200).end(JSON.stringify({ arquivo_id: base.id }));
-      }
-      default: return erro(400, "Esta ação não existe na cópia de exemplo.");
-    }
+    return funcaoDrive(await corpoDe(req), { res, ocasioes, pastasLivres, arquivos, tarefas, P, porta: PORTA_BANCO, novoId: () => ++n });
   }
 
   const rpc = url.pathname.match(/^\/rest\/v1\/rpc\/(\w+)/)?.[1];

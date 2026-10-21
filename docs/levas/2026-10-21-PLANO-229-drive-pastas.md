@@ -129,6 +129,20 @@ Nenhuma outra linha muda (gatilho, alarme, sentinela, alarmes de serviço, trava
 **Vitral (tela Pastas, `components/pastas/`):** Empresa → Formato → Tema → conteúdos, com cadeado no Tema permanente, ⋮ do Tema (Renomear, Permanente), "+ Novo tema" (nome + Permanente), subir e apagar documento solto dentro da pasta do Tema, "Ideias de conteúdo" como cartão único. Aviso ao desligar o Permanente: "Os conteúdos já postados deste tema serão apagados do Drive 7 dias depois de agora." Remove o que sobrou: `pastas.ts`, `pecas.ts` e a UI de peça solta e de pasta avulsa (a Alvenaria não apagou para não quebrar a tela atual antes de a nova existir).
 **Sextante (ficha, `components/ficha/`):** campo Tema com "Criar tema" e interruptor Permanente (o Natham e o Matheus ligam); chamar `organizarCard` depois de salvar; texto de ajuda do Tema.
 
+### 10b. Mudança do 234: PASTA LIVRE (só acrescenta ao contrato acima)
+
+**O que é:** a "+ Nova pasta" da tela Pastas. Uma pasta por empresa, com nome + Permanente (padrão desligado), no Drive em `Tarefas · Conteúdos → Empresa → <nome>`, ao lado das pastas de formato. NÃO é Tema (Tema continua só de post, com a regra dos 7 dias e o Permanente dele como está). Qualquer arquivo; nada sai sozinho, com ou sem cadeado.
+**Regras (do banco, não da tela):** cadeado = a pasta não se apaga (gatilho do banco barra até a chave de serviço); renomear pode com cadeado; só o Natham desliga (Matheus liga, o banco recusa o resto). Nome repetido na empresa ou nome de formato ("Reels", "Carrossel", "Post", "Stories", "Sem formato") é recusado. Apagar sem cadeado manda a pasta e o que tem nela para a lixeira do Drive.
+**Tipos/funções novos em `@/lib/dados`:**
+- `PastaLivre = { id, empresaId, nome, permanente }`, `usePastasLivres()`.
+- `criarPastaLivre(empresaId, nome, permanente = false)`, `renomearPastaLivre(id, nome)`, `ligarPermanentePastaLivre(id, ligado)`, `apagarPastaLivre(id)` (a tela confirma antes; com cadeado: Error "Esta pasta tem cadeado. Desligue o Permanente para apagar.").
+- `pastasLivresDaEmpresa({ empresaId, pastas, documentos }): { pasta, documentos }[]` (por nome; pasta vazia aparece).
+- `DocumentoSolto` ganha `pastaLivreId?`; `DestinoPasta` ganha `pastaLivreId?`. `enviarDocumentoNaPasta({ empresaId, pastaLivreId }, file)` sobe para a pasta livre; `apagarDocumentoSolto(id)` apaga arquivo dela.
+**Decisão sobre documentos soltos (a mais simples):** a tela usa SÓ a pasta livre. O destino Formato/Tema do 229 continua funcionando na função e em `enviarDocumentoNaPasta`, mas a tela Pastas não precisa mais oferecer subir arquivo dentro de pasta de Tema (some do contrato de uso; pode ser removido depois sem migração, pois não há dado em produção).
+**Árvore dos posts:** `arvoreDePastas` ignora os documentos da pasta livre (eles não caem em "Sem formato / Sem tema").
+**SQL (no mesmo `_colar/019_postagem_drive.sql` v2, marcas "234"):** tabela `pastas_livres`, gatilho do cadeado, `definir_permanente_livre`, `pode_apagar_pasta_livre`, e `arquivos.pasta_livre_id` (a constraint `arquivos_solto_ok` ganha o ramo da pasta livre). Chave no Drive: `livre:<id>` em `drive_pastas`.
+**Banco falso da 3101:** 2 pastas livres na You ("Logos e marca", com cadeado, e "Referências") com arquivos de vários tipos.
+
 ## 11. Documento solto numa pasta de Tema (sem card)
 
 - **Onde entra:** direto na pasta do Tema DENTRO do Formato em que a pessoa está: `Tarefas · Conteúdos → Empresa → Formato → Tema` (ou "Sem tema"; "Sem formato" se a pasta é essa). Não cria pasta de conteúdo.

@@ -4,7 +4,8 @@ import { assinar, conferir, iguais } from "../_shared/google.ts";
 import { chaves, FORMATOS, formatoValido } from "../_shared/pastas.ts";
 import type { DriveApi } from "./drive-api.ts";
 import { ErroDrive } from "./drive-api.ts";
-import { Recusa } from "./comum.ts";
+import { MAX_BYTES, nomeOk, Recusa, texto, TIPOS } from "./comum.ts";
+import { criarPastaLivre } from "./pasta-livre.ts";
 import { COLUNAS_CARD, criarPastas, type Card, type Tema } from "./pastas-drive.ts";
 import { criarRest, ErroRest, type Rest } from "./rest.ts";
 
@@ -24,12 +25,8 @@ const CORS = {
   "access-control-expose-headers": "content-range, accept-ranges, content-length",
 };
 const json = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status, headers: { ...CORS, "content-type": "application/json" } });
-const TIPOS = ["imagem", "video", "documento"];
 const FORMATOS_E_SEM = [...FORMATOS, null];
 const LIMITE_RENOMEAR = 40; // pastas de conteúdo renomeadas por chamada (uma ida ao Drive cada)
-const MAX_BYTES = 5 * 1024 ** 3;
-const nomeOk = (n: unknown, max = 120) => (typeof n === "string" && n.trim() && n.trim().length <= max ? n.trim() : undefined);
-const texto = (v: unknown) => (typeof v === "string" ? v : undefined);
 
 export function criarManipulador(d: Deps) {
   const agora = d.agora ?? Date.now;
@@ -54,7 +51,8 @@ export function criarManipulador(d: Deps) {
   }
   const exigir = (ok: unknown, status: number, msg: string) => { if (ok !== true) throw new Recusa(status, msg); };
 
-  const { temaDe, novoTema, pastaDeTema, cardDe, pastaDoConteudo, rearmarLimpeza, tirarPastaDoConteudo } = criarPastas(d, servico);
+  const { pastaEmpresa, temaDe, novoTema, pastaDeTema, cardDe, pastaDoConteudo, rearmarLimpeza, tirarPastaDoConteudo } = criarPastas(d, servico);
+  const livres = criarPastaLivre(d, servico, pastaEmpresa);
 
   // ---- apagar arquivos de um card (Drive + Supabase + linhas) ----
   async function esvaziar(tarefaId: string) {
@@ -277,8 +275,11 @@ export function criarManipulador(d: Deps) {
         const ate = agora() + 10 * 60_000;
         return { url: `${url()}/functions/v1/drive?ver=${a.id}&ate=${ate}&sig=${await assinar(await segredo(), `${a.id}.${ate}`)}` };
       }
-      default:
-        throw new Recusa(400, "Ação desconhecida.");
+      default: {
+        const r = await livres.acao(acao, c, { eu, pessoaId: pessoa.id, origem }); // pasta livre (234)
+        if (r === undefined) throw new Recusa(400, "Ação desconhecida.");
+        return r;
+      }
     }
   }
 
