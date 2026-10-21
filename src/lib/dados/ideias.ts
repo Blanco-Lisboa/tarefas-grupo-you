@@ -5,9 +5,9 @@ import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabase/cliente";
 import { falhou } from "./repositorio";
 
-export type Ideia = { id: string; empresaId: string; categoria: string; titulo: string; texto: string; link?: string };
+export type Ideia = { id: string; empresaId: string; categoria: string; titulo: string; texto: string; links: string[] };
 type Estado = { ideias: Ideia[]; categorias: string[] };
-type Linha = { id: string; empresa_id: string; categoria: string; titulo: string; texto: string; link: string | null };
+type Linha = { id: string; empresa_id: string; categoria: string; titulo: string; texto: string; link: string | null; links?: string[] | null };
 
 const VAZIO: Estado = { ideias: [], categorias: [] };
 const CHAVE = "grade-conteudo:ideias:v1"; // onde ficavam, no navegador, antes do banco
@@ -28,8 +28,14 @@ const assinar = (f: () => void) => {
 const trocar = (e: string, f: (s: Estado) => Estado) => { estado = new Map(estado).set(e, f(estado.get(e) ?? VAZIO)); ouvintes.forEach((o) => o()); };
 const com = (cats: string[], c: string) => (cats.includes(c) ? cats : [...cats, c]);
 
-const daLinha = (l: Linha): Ideia => ({ id: l.id, empresaId: l.empresa_id, categoria: l.categoria, titulo: l.titulo, texto: l.texto, link: l.link ?? undefined });
-const paraBanco = (i: Ideia) => ({ id: i.id, empresa_id: i.empresaId, categoria: i.categoria, titulo: i.titulo, texto: i.texto, link: i.link || null });
+// Item 257: várias referências por ideia. Antes do 025 (coluna "links") só existe o link único; o código serve aos dois casos,
+// para o mural nunca quebrar no meio da colagem. A coluna "link" continua sendo o 1º da lista (cópia para quem ainda lê só ela).
+let comLista = true; // o banco já tem a coluna "links"? (descoberto a cada leitura)
+const daLinha = (l: Linha): Ideia => ({ id: l.id, empresaId: l.empresa_id, categoria: l.categoria, titulo: l.titulo, texto: l.texto, links: l.links?.length ? l.links : l.link ? [l.link] : [] });
+const paraBanco = (i: Omit<Ideia, "links"> & { links?: string[]; link?: string }) => {
+  const links = i.links ?? (i.link ? [i.link] : []);
+  return { id: i.id, empresa_id: i.empresaId, categoria: i.categoria, titulo: i.titulo, texto: i.texto, link: links[0] ?? null, ...(comLista && { links }) };
+};
 
 // ---- cópia única do navegador para o banco ------------------------------------------------------------------------------
 const GANCHOS = new Set(["you-ideia-5", "you-ideia-6"]); // item 254: voltam para Ganchos ao subir
@@ -54,7 +60,7 @@ export function subirIdeiasDoNavegador(e: string): Promise<boolean> {
 async function subir(e: string): Promise<boolean> {
   try {
     if (localStorage.getItem(marca(e))) return true;
-    const lista = (JSON.parse(localStorage.getItem(CHAVE) || "{}") as Record<string, Ideia[]>)[e];
+    const lista = (JSON.parse(localStorage.getItem(CHAVE) || "{}") as Record<string, (Omit<Ideia, "links"> & { links?: string[]; link?: string })[]>)[e];
     if (!lista?.length) return true;
     const linhas = lista.map((i) => paraBanco({ ...i, id: ehUuid(i.id) ? i.id : idDoExemplo(i.id), empresaId: e, categoria: GANCHOS.has(i.id) ? "Ganchos" : i.categoria, texto: i.texto ?? "" }));
     const cats = [...new Set(linhas.map((l) => l.categoria))].map((nome) => ({ empresa_id: e, nome }));
@@ -75,13 +81,14 @@ async function subir(e: string): Promise<boolean> {
 export async function carregarIdeias(e: string) {
   await subirIdeiasDoNavegador(e);
   const sb = supabase();
-  const [i, c] = await Promise.all([
-    sb.from("ideias").select("id, empresa_id, categoria, titulo, texto, link").eq("empresa_id", e).order("seq"),
-    sb.from("ideias_categorias").select("nome").eq("empresa_id", e).order("seq"),
-  ]);
+  const ler = (cols: string) => sb.from("ideias").select(cols).eq("empresa_id", e).order("seq");
+  const [i0, c] = await Promise.all([ler("id, empresa_id, categoria, titulo, texto, link, links"), sb.from("ideias_categorias").select("nome").eq("empresa_id", e).order("seq")]);
+  let i = i0;
+  comLista = !i.error;
+  if (i.error) i = await ler("id, empresa_id, categoria, titulo, texto, link"); // ainda sem a coluna "links": lê o link único
   if (i.error || c.error) return falhou("Não consegui carregar as ideias. Recarregue a página.");
   if (pendentes) return;
-  const ideias = (i.data as Linha[]).map(daLinha);
+  const ideias = (i.data as unknown as Linha[]).map(daLinha);
   trocar(e, () => ({ ideias, categorias: ideias.reduce((cats, x) => com(cats, x.categoria), (c.data ?? []).map((x) => x.nome as string)) }));
 }
 

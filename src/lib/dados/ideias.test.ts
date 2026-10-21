@@ -5,17 +5,18 @@ type L = Record<string, unknown>;
 let tabelas: Record<string, L[]>;
 let recusar: Set<string>; // operações que o "banco" recusa: "upsert:ideias", "delete:ideias"...
 let seq: number;
+let semColuna = false; // banco antes do 025: não conhece a coluna "links"
 const fake = {
   from(t: string) {
     const filtros: [string, unknown][] = [];
     let fim: () => { data?: L[]; error: unknown } = () => ({ data: [], error: null });
     const q = {
-      select: () => (fim = () => ({ data: tabelas[t].filter((l) => filtros.every(([k, v]) => l[k] === v)).toSorted((a, b) => (a.seq as number) - (b.seq as number)), error: null }), q),
+      select: (cols?: string) => (fim = () => semColuna && cols?.includes("links") ? { error: "42703" } : ({ data: tabelas[t].filter((l) => filtros.every(([k, v]) => l[k] === v)).toSorted((a, b) => (a.seq as number) - (b.seq as number)), error: null }), q),
       eq: (k: string, v: unknown) => (filtros.push([k, v]), q),
       order: () => q,
       delete: () => (fim = () => (recusar.has(`delete:${t}`) ? { error: "x" } : ((tabelas[t] = tabelas[t].filter((l) => !filtros.every(([k, v]) => l[k] === v))), { error: null })), q),
       upsert: (linhas: L | L[], o: { onConflict: string; ignoreDuplicates?: boolean }) => (fim = () => {
-        if (recusar.has(`upsert:${t}`)) return { error: "x" };
+        if (recusar.has(`upsert:${t}`) || (semColuna && [].concat(linhas as never).some((l: L) => "links" in l))) return { error: "x" };
         for (const l of [].concat(linhas as never) as L[]) {
           const i = tabelas[t].findIndex((x) => o.onConflict.split(",").every((k) => x[k] === l[k]));
           if (i < 0) tabelas[t].push({ ...l, seq: ++seq });
@@ -32,7 +33,7 @@ vi.mock("@/lib/supabase/cliente", () => ({ supabase: () => fake }));
 
 let guardado: Map<string, string>;
 const CHAVE = "grade-conteudo:ideias:v1";
-const ex = (e: string, n: number, categoria: string, titulo: string) => ({ id: `${e}-ideia-${n}`, empresaId: e, categoria, titulo, texto: "t" });
+const ex = (e: string, n: number, categoria: string, titulo: string) => ({ id: `${e}-ideia-${n}`, empresaId: e, categoria, titulo, texto: "t", links: [] });
 const doNavegador = {
   you: [ex("you", 1, "Formatos de conteúdo", "A"), ex("you", 5, "Perfis - Contabilidade", "Você está pagando imposto a mais"), ex("you", 6, "Perfis - Contabilidade", "Ninguém te conta isso"), ex("you", 7, "Ganchos", "Erro")],
   beec: [ex("beec", 1, "Formatos na prática", "B"), { id: "11111111-1111-4111-8111-111111111111", empresaId: "beec", categoria: "Perfis - Empresários sellers", titulo: "Minha ideia", texto: "", link: "https://x" }],
@@ -42,6 +43,7 @@ beforeEach(() => {
   vi.resetModules(); // estado novo do módulo = "abrir a página de novo"
   tabelas = { ideias: [], ideias_categorias: [] };
   recusar = new Set();
+  semColuna = false;
   seq = 0;
   guardado = new Map([[CHAVE, JSON.stringify(doNavegador)]]);
   vi.stubGlobal("localStorage", { getItem: (k: string) => guardado.get(k) ?? null, setItem: (k: string, v: string) => void guardado.set(k, v) });
@@ -95,7 +97,7 @@ describe("mural no banco: salvar, mover e apagar", () => {
     guardado.clear();
     const m = await import("./ideias");
     await m.carregarIdeias("you");
-    const a = m.gravarIdeia("you", { categoria: "Ganchos", titulo: "Nova", texto: "" });
+    const a = m.gravarIdeia("you", { categoria: "Ganchos", titulo: "Nova", texto: "", links: [] });
     await vi.waitFor(() => expect(tabelas.ideias).toHaveLength(1));
     m.gravarIdeia("you", { ...a, categoria: "Datas e sazonais" });
     await vi.waitFor(() => expect(tabelas.ideias[0].categoria).toBe("Datas e sazonais"));
@@ -115,5 +117,35 @@ describe("mural no banco: salvar, mover e apagar", () => {
     const m = await import("./ideias");
     m.criarCategoria("beec", "Coluna vazia");
     await vi.waitFor(() => expect(tabelas.ideias_categorias.map((l) => l.nome)).toEqual(["Coluna vazia"]));
+  });
+});
+
+describe("vários links por ideia (257)", () => {
+  it("guarda a lista, o 1º também em link; tirar e acrescentar funcionam; o link único de antes vira o 1º da lista", async () => {
+    guardado.clear();
+    tabelas.ideias.push({ id: "a", empresa_id: "you", categoria: "Ganchos", titulo: "Velha", texto: "", link: "https://um", links: [], seq: 1 });
+    const m = await import("./ideias");
+    await m.carregarIdeias("you");
+    const a = m.gravarIdeia("you", { categoria: "Ganchos", titulo: "Visual", texto: "", links: ["https://a", "https://b", "https://c"] });
+    await vi.waitFor(() => expect(tabelas.ideias).toHaveLength(2));
+    expect(tabelas.ideias[1]).toMatchObject({ link: "https://a", links: ["https://a", "https://b", "https://c"] });
+    m.gravarIdeia("you", { ...a, links: ["https://b", "https://c"] });
+    await vi.waitFor(() => expect(tabelas.ideias[1]).toMatchObject({ link: "https://b", links: ["https://b", "https://c"] }));
+    m.gravarIdeia("you", { ...a, links: [] });
+    await vi.waitFor(() => expect(tabelas.ideias[1]).toMatchObject({ link: null, links: [] }));
+    await m.carregarIdeias("you");
+    expect(tabelas.ideias[0].link).toBe("https://um");
+  });
+
+  it("antes do 025 (sem a coluna) o mural carrega e salva com o link único, sem erro", async () => {
+    guardado.clear();
+    semColuna = true;
+    tabelas.ideias.push({ id: "a", empresa_id: "you", categoria: "Ganchos", titulo: "Velha", texto: "", link: "https://um", seq: 1 });
+    const m = await import("./ideias");
+    await m.carregarIdeias("you");
+    m.gravarIdeia("you", { categoria: "Ganchos", titulo: "Nova", texto: "", links: ["https://x", "https://y"] });
+    await vi.waitFor(() => expect(tabelas.ideias).toHaveLength(2));
+    expect(tabelas.ideias[1]).toMatchObject({ link: "https://x" });
+    expect(tabelas.ideias[1]).not.toHaveProperty("links");
   });
 });

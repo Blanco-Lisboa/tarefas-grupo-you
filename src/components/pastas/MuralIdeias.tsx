@@ -28,7 +28,7 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
   const [foco, setFoco] = useState<string | null>(null);
 
   const q = sem(busca.trim());
-  const acha = (i: Ideia) => !q || sem(`${i.titulo} ${i.texto} ${i.link ?? ""} ${i.categoria}`).includes(q);
+  const acha = (i: Ideia) => !q || sem(`${i.titulo} ${i.texto} ${i.links.join(" ")} ${i.categoria}`).includes(q);
   const colunas = todas.map((cat) => ({ cat, itens: ideias.filter((i) => i.categoria === cat && acha(i)) })).filter((c) => !q || c.itens.length);
   const achadas = colunas.reduce((s, c) => s + c.itens.length, 0);
 
@@ -51,7 +51,7 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
               {itens.map((i) => (
                 <Folha key={i.id} ideia={i} aoSalvar={salvar} aoApagar={() => apagar(i.id)} />
               ))}
-              <Nova categoria={cat} autoFocar={foco === cat} aoCriar={(titulo) => salvar({ categoria: cat, titulo, texto: "" })} />
+              <Nova categoria={cat} autoFocar={foco === cat} aoCriar={(titulo) => salvar({ categoria: cat, titulo, texto: "", links: [] })} />
             </div>
           </section>
         ))}
@@ -64,14 +64,19 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
 
 function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dados) => void; aoApagar: () => void }) {
   const [confirmando, setConfirmando] = useState(false);
-  const [editandoLink, setEditandoLink] = useState(false);
-  const sair = (campo: "titulo" | "texto" | "link") => (e: { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
+  const [acrescentando, setAcrescentando] = useState(false);
+  const sair = (campo: "titulo" | "texto") => (e: { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
     const v = e.currentTarget.value.trim();
     if (campo === "titulo" && !v) { e.currentTarget.value = ideia.titulo; return; } // ideia sem título não existe: volta o que estava
-    if (v !== (ideia[campo] ?? "")) aoSalvar({ ...ideia, [campo]: campo === "link" ? v || undefined : v });
+    if (v !== ideia[campo]) aoSalvar({ ...ideia, [campo]: v });
   };
-  const temLink = linkValido(ideia.link);
-  const rede = temLink ? redeDoLink(ideia.link!) : null;
+  const links = ideia.links;
+  const novoLink = (e: { currentTarget: HTMLInputElement }) => {
+    const v = e.currentTarget.value.trim();
+    e.currentTarget.value = "";
+    setAcrescentando(false);
+    if (linkValido(v) && !links.includes(v)) aoSalvar({ ...ideia, links: [...links, v] });
+  };
   return (
     <article className="mural-folha">
       <div className="mural-folha-topo">
@@ -81,27 +86,37 @@ function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dado
         </button>
       </div>
       <textarea className="mural-detalhe" aria-label="Detalhe" rows={2} placeholder="Detalhe" defaultValue={ideia.texto} onBlur={sair("texto")} />
-      <div className="mural-rodape" data-vazio={!temLink && !editandoLink ? true : undefined}>
-        {temLink && !editandoLink && (
-          <a className="lnk mural-ver" href={ideia.link} target="_blank" rel="noopener noreferrer">
-            {rede && <IconeRede rede={rede} tamanho={14} />}Ver referência
-          </a>
+      <div className="mural-rodape" data-vazio={!links.length && !acrescentando ? true : undefined}>
+        {links.map((l) => {
+          const rede = redeDoLink(l);
+          return (
+            <div key={l} className="mural-ref">
+              {linkValido(l) ? (
+                <a className="lnk mural-ver" href={l} target="_blank" rel="noopener noreferrer">
+                  {rede && <IconeRede rede={rede} tamanho={14} />}Ver referência
+                </a>
+              ) : (
+                <span className="mural-ver">{l}</span>
+              )}
+              <button type="button" className="mural-trocar" aria-label={`Tirar o link ${l}`} title="Tirar este link" onClick={() => aoSalvar({ ...ideia, links: links.filter((x) => x !== l) })}>
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>
+              </button>
+            </div>
+          );
+        })}
+        {links.length > 0 && !acrescentando && (
+          <button type="button" className="mural-mais" onClick={() => setAcrescentando(true)}>+ link</button>
         )}
-        {!temLink || editandoLink ? (
+        {(!links.length || acrescentando) && (
           <input
             type="url"
             className="mural-link-campo"
-            aria-label="Link de referência"
-            placeholder="Colar link de referência"
-            defaultValue={ideia.link}
-            autoFocus={editandoLink}
-            onBlur={(e) => { sair("link")(e); setEditandoLink(false); }}
+            aria-label={links.length ? "Outro link de referência" : "Link de referência"}
+            placeholder={links.length ? "Colar outro link" : "Colar link de referência"}
+            autoFocus={acrescentando}
+            onBlur={novoLink}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())}
           />
-        ) : (
-          <button type="button" className="mural-trocar" aria-label="Trocar o link de referência" title="Trocar o link" onClick={() => setEditandoLink(true)}>
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 13.5l.7-3L10.8 3a1.4 1.4 0 012 2l-7.6 7.6-2.7.9zM9.5 4.3l2.2 2.2" /></svg>
-          </button>
         )}
       </div>
       {confirmando && (
