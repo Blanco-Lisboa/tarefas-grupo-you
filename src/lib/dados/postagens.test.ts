@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { redesQueValem } from "./postagens";
+import { postarEmQueVale, redesQueValem } from "./postagens";
 import type { Arquivo } from "./tipos";
 
 const img: Arquivo = { nome: "a.jpg", tipo: "imagem" }, vid: Arquivo = { nome: "b.mp4", tipo: "video" };
@@ -18,5 +18,13 @@ describe("postar_redes gravado (achado 3 da Lupa no Correio)", () => {
   it("programado só para o Facebook e depois ganha vídeo: NUNCA troca a rede sozinho (decisão do Maestro); o card pede ajuste", () => {
     expect(redesQueValem({ formato: "carrossel", arquivos: [img, vid], postarRedes: ["facebook"] })).toEqual(["facebook"]);
     expect(redesQueValem({ formato: "carrossel", arquivos: [img, { ...vid, pendente: {} as File }], postarRedes: ["facebook"] })).toEqual(["facebook"]);
+  });
+  it("Aprovado só Facebook que ganhou vídeo perde a programação (o banco desarma o alarme); o resto mantém a data (achado 6, 3ª volta)", () => {
+    const base = { etapa: "aprovado" as const, formato: "carrossel" as const, postarEm: "2026-10-27T10:00" };
+    expect(postarEmQueVale({ ...base, arquivos: [img, vid], postarRedes: ["facebook"] })).toBeUndefined();
+    expect(postarEmQueVale({ ...base, arquivos: [img, vid], postarRedes: ["instagram"] })).toBe("2026-10-27T10:00");
+    expect(postarEmQueVale({ ...base, arquivos: [img, img], postarRedes: ["facebook"] })).toBe("2026-10-27T10:00");
+    expect(postarEmQueVale({ ...base, etapa: "postado", arquivos: [img, vid], postarRedes: ["facebook"] })).toBe("2026-10-27T10:00"); // postado não se mexe
+    expect(postarEmQueVale({ ...base, etapa: "edicao", arquivos: [img] })).toBeUndefined(); // fora de Aprovado/Postado, sem data (015)
   });
 });

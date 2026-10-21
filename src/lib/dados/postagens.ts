@@ -8,6 +8,13 @@ import type { Postagem, Tarefa } from "./tipos";
     tira só o Facebook (o card avisa); só Facebook fica como está, e o card mostra "Precisa de ajuste" e não posta. */
 export const redesQueValem = (t: Pick<Tarefa, "formato" | "arquivos" | "postarRedes">): Tarefa["postarRedes"] =>
   carrosselComVideoGuardado(t) && (t.postarRedes ?? ["instagram", "facebook"]).includes("instagram") ? ["instagram"] : t.postarRedes;
+/** Carrossel com vídeo marcado só para o Facebook (já depois de redesQueValem): não pode ficar programado. O salvar tira o postar_em
+    (o banco desarma o alarme) e a ficha mostra "Programação cancelada" com as redes e a data para programar de novo (achado 6, 3ª volta da Lupa). */
+export const soFacebookComVideo = (t: Pick<Tarefa, "formato" | "arquivos" | "postarRedes">) =>
+  carrosselComVideoGuardado(t) && !(t.postarRedes ?? ["instagram", "facebook"]).includes("instagram");
+/** postar_em que o salvar grava: só em Aprovado/Postado, e nunca num Aprovado que ficou só Facebook com vídeo. */
+export const postarEmQueVale = (t: Pick<Tarefa, "etapa" | "postarEm" | "formato" | "arquivos" | "postarRedes">) =>
+  t.etapa === "postado" || (t.etapa === "aprovado" && !soFacebookComVideo(t)) ? t.postarEm : undefined;
 /** Carrossel com vídeo (o que já subiu e o que está subindo; capa e arquivo já limpo não contam). */
 export const carrosselComVideoGuardado = (t: Pick<Tarefa, "formato" | "arquivos">) =>
   t.formato === "carrossel" && t.arquivos.some((a) => a.papel !== "capa" && !a.removido && a.tipo === "video");
