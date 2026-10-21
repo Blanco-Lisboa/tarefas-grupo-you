@@ -18,11 +18,20 @@ export const redesValidas = (t: Pick<Tarefa, "arquivos">, formato: Formato | und
   carrosselComVideo(t, formato) && redes.includes("instagram") ? ["instagram" as const] : [...redes];
 /** 238: com a postagem automática DESLIGADA a ficha não promete post real: sem "Postar agora", "Marcar hora" no lugar de "Programar
     postagem" (a mesma ação: grava a hora), "Hora marcada" no lugar de "Programado" e o aviso de que a publicação é à mão. Ligada: como sempre. */
+/** 238: os textos de estado com a postagem automática DESLIGADA: "programado" vira "hora marcada" (ficha e card da Esteira).
+    Ligada: o texto como está. */
+export function comoHoraMarcada(texto: string, ligada: boolean) {
+  if (ligada) return texto;
+  return texto
+    .replace(/^Programado/, "Hora marcada").replace(/^Sem programação/, "Sem hora marcada").replace(/^Programação cancelada/, "Hora marcada cancelada")
+    .replace("programe de novo", "marque a hora de novo").replace("a programação é cancelada", "a hora marcada é cancelada")
+    .replace(/^Postagem automática só para a You \(por enquanto\)/, "Postagem automática ainda desligada"); // card da Beec: nem a You posta sozinha ainda
+}
 export function textosPublicacao(ligada: boolean, programado: boolean) {
   return {
     marcar: ligada ? (programado ? "Reprogramar postagem" : "Programar postagem") : programado ? "Remarcar hora" : "Marcar hora",
     postarAgora: ligada,
-    situacao: (texto: string) => (ligada ? texto : texto.replace(/^Programado/, "Hora marcada")),
+    situacao: (texto: string) => comoHoraMarcada(texto, ligada),
     aviso: ligada ? undefined : "Postagem automática ainda desligada: na hora marcada o card vira Postado e você publica nas redes.",
   };
 }

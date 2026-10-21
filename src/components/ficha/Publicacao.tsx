@@ -13,7 +13,7 @@ import { CampoData } from "@/components/ui/CampoData";
 import Image from "next/image";
 import { podeAprovar } from "./Aprovacao";
 import { Confirmar } from "./Confirmar";
-import { CANCELADA, NOME_REDE, SO_FACEBOOK, carrosselComVideo, carrosselSoFacebook, faltaParaPostar, programacaoCancelada, redesDe, redesValidas, situacao, textoRedes, textosPublicacao } from "./postagem";
+import { CANCELADA, NOME_REDE, SO_FACEBOOK, carrosselComVideo, carrosselSoFacebook, faltaParaPostar, programacaoCancelada, redesDe, redesValidas, situacao, textoRedes, textosPublicacao, comoHoraMarcada } from "./postagem";
 
 type Props = {
   salvo: Tarefa; rascunho: NovaTarefa;
@@ -66,13 +66,13 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   return (
     // Título como os outros da ficha (Capa do Reels, Notas) e a caixa embaixo, na mesma margem dos campos (item 210)
     <fieldset className="ficha-campo publicacao"><legend>Publicação</legend><div className="publicacao-caixa">
-      {salvo.empresaId !== "you" ? <p className="ficha-dica ficha-dica-fica">Postagem automática só para a You (por enquanto).</p> : <>
+      {salvo.empresaId !== "you" ? <p className="ficha-dica ficha-dica-fica">{comoHoraMarcada("Postagem automática só para a You (por enquanto).", ligada)}</p> : <>
         {sit?.tipo === "postando" && <p className="aprovacao-situacao" data-tipo="postando" role="status">Postando…</p>}
         {txt.aviso && <p className="aprovacao-nota publicacao-desligada" role="note">{txt.aviso}</p>}
         {sit?.tipo === "programado" && !ajuste && <p className="aprovacao-situacao">{txt.situacao(sit.texto)}</p>}
-        {ajuste && <div className="aprovacao-erro" role="alert"><p>Precisa de ajuste: {SO_FACEBOOK} Ao salvar, a programação é cancelada.</p></div>}
-        {!sit && !cancelada && <p className="aprovacao-situacao">Sem programação.</p>}
-        {cancelada && <div className="aprovacao-erro" role="alert"><p>{CANCELADA}</p></div>}
+        {ajuste && <div className="aprovacao-erro" role="alert"><p>{txt.situacao(`Precisa de ajuste: ${SO_FACEBOOK} Ao salvar, a programação é cancelada.`)}</p></div>}
+        {!sit && !cancelada && <p className="aprovacao-situacao">{txt.situacao("Sem programação.")}</p>}
+        {cancelada && <div className="aprovacao-erro" role="alert"><p>{txt.situacao(CANCELADA)}</p></div>}
         {sit?.tipo === "erro" && (
           <div className="aprovacao-erro" role="alert">
             <p>{sit.texto}</p>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Arquivo } from "@/lib/dados";
-import { estadoDoCard, faltaParaPostar, redesValidas, situacao, textosPublicacao } from "./postagem";
+import { estadoDoCard, faltaParaPostar, redesValidas, situacao, textosPublicacao, comoHoraMarcada, CANCELADA } from "./postagem";
 
 const img: Arquivo = { nome: "a.png", tipo: "imagem" }, vid: Arquivo = { nome: "b.mp4", tipo: "video" }, capa: Arquivo = { nome: "c.jpg", tipo: "imagem", papel: "capa" };
 const card = (arquivos: Arquivo[], legenda = "Texto") => ({ arquivos, legenda, empresaId: "you" });
@@ -77,5 +77,17 @@ describe("textosPublicacao (238)", () => {
     expect([t.marcar, t.postarAgora, t.situacao("Programado · 26/10 08:00 · Instagram")]).toEqual(["Marcar hora", false, "Hora marcada · 26/10 08:00 · Instagram"]);
     expect(t.aviso).toBe("Postagem automática ainda desligada: na hora marcada o card vira Postado e você publica nas redes.");
     expect(textosPublicacao(false, true).marcar).toBe("Remarcar hora");
+  });
+});
+
+describe("comoHoraMarcada (238)", () => {
+  it("desligada: Programado, Sem programação e Programação cancelada viram hora marcada; ligada: o texto como está", () => {
+    expect(comoHoraMarcada("Programado · 26/10 08:00 · Instagram", false)).toBe("Hora marcada · 26/10 08:00 · Instagram");
+    expect(comoHoraMarcada("Sem programação", false)).toBe("Sem hora marcada");
+    expect(comoHoraMarcada("Programação cancelada: abra o card", false)).toBe("Hora marcada cancelada: abra o card");
+    expect(comoHoraMarcada(CANCELADA, false)).toBe("Hora marcada cancelada: carrossel com vídeo não vai para o Facebook. Acenda o Instagram ou tire o vídeo e marque a hora de novo.");
+    expect(comoHoraMarcada("Programado · 26/10 08:00 · Instagram", true)).toBe("Programado · 26/10 08:00 · Instagram");
+    expect(comoHoraMarcada("Erro ao postar: abra o card", false)).toBe("Erro ao postar: abra o card");
+    expect(comoHoraMarcada("Postagem automática só para a You (por enquanto)", false)).toBe("Postagem automática ainda desligada");
   });
 });

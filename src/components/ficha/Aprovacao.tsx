@@ -7,14 +7,15 @@
 // - Card que NÃO é Postagem: "Concluir" em qualquer etapa (Natham, Matheus ou o dono), que pede confirmação e APAGA o card (decisão de 23/10).
 // - Postagem em "Em análise": nada no pé; Consertar e Aprovar ficam no fim da ficha (itens 208 e 219, pedido do Natham).
 // - Postagem em "Aprovado": UMA linha de estado (Programado · data · redes / Postando… / Erro ao postar: abra o card / Sem programação).
+//   Com a postagem automática desligada (238), "Programado" e "programação" viram "Hora marcada".
 //   Programar, Postar agora, Tentar de novo e as redes ficam na ficha, no bloco Publicação (pedido do Natham: o card fica baixo).
 // - Postagem em "Postado": nada no pé; os links do post ficam na ficha e no Mapa.
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
-import { podeAlterar, podeApagar, removerTarefa, useEu, type Responsavel, type Tarefa } from "@/lib/dados";
+import { podeAlterar, podeApagar, removerTarefa, useEu, usePostagemAutomatica, type Responsavel, type Tarefa } from "@/lib/dados";
 import { ehQuemAprova } from "./arrumar";
 import { Confirmar } from "./Confirmar";
-import { estadoDoCard } from "./postagem";
+import { comoHoraMarcada, estadoDoCard } from "./postagem";
 import "./aprovacao.css";
 
 export const podeAprovar = (t: Tarefa, eu: Responsavel | null) => podeAlterar(t, eu) && ehQuemAprova(t.aprovador, eu);
@@ -31,6 +32,7 @@ export function SeloConserto({ tarefa }: { tarefa: Tarefa }) {
 
 export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
   const eu = useEu();
+  const { ligada } = usePostagemAutomatica();
   const [concluindo, setConcluindo] = useState(false);
   // Sem isto, clicar nos botões "pegava" o card para arrastar.
   const pe = (filhos: ReactNode, classe = "") => <div className={`aprovacao ${classe}`} onPointerDown={(e) => e.stopPropagation()}>{filhos}</div>;
@@ -45,5 +47,5 @@ export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
   }
   if (tarefa.etapa !== "aprovado") return null;
   const estado = estadoDoCard(tarefa);
-  return pe(<p className="aprovacao-situacao" data-tipo={estado.tom} role={estado.tom === "normal" ? undefined : "status"}>{estado.texto}</p>, "aprovacao-postagem");
+  return pe(<p className="aprovacao-situacao" data-tipo={estado.tom} role={estado.tom === "normal" ? undefined : "status"}>{comoHoraMarcada(estado.texto, ligada)}</p>, "aprovacao-postagem");
 }
