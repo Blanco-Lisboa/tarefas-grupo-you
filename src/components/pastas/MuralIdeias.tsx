@@ -89,7 +89,7 @@ function Folha({ ideia, arrastando, aoSalvar, aoApagar, aoArrastar, aoSoltarFora
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8h5.8l.6-8" /></svg>
         </button>
       </div>
-      <input className="mural-titulo" aria-label="Título" maxLength={120} defaultValue={ideia.titulo} onBlur={sair("titulo")} onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()} />
+      <textarea className="mural-titulo" aria-label="Título" rows={1} maxLength={120} defaultValue={ideia.titulo} onBlur={sair("titulo")} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())} />
       <textarea className="mural-detalhe" aria-label="Detalhe" rows={2} placeholder="Detalhe" defaultValue={ideia.texto} onBlur={sair("texto")} />
       <div className="mural-link">
         <input type="url" aria-label="Link de referência" placeholder="Link de referência" defaultValue={ideia.link} onBlur={sair("link")} />

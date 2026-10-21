@@ -298,7 +298,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .mural-folha input, .mural-folha textarea { font: 400 var(--app-t-texto) var(--fonte); color: var(--texto); width: 100%; min-width: 0; padding: 4px 6px; margin: 0 -6px; background: transparent; border: 1px solid transparent; border-radius: 6px; resize: none; }
 .mural-folha input:hover, .mural-folha textarea:hover { background: rgb(0 0 0 / .03); }
 .mural-folha input:focus, .mural-folha textarea:focus { outline: none; background: var(--sup); border-color: var(--azul); }
-.mural-titulo { font-weight: 600 !important; }
+.mural-titulo { font-weight: 600 !important; field-sizing: content; min-height: 1.5em; line-height: 1.35; overflow-wrap: anywhere; }
 .mural-detalhe { field-sizing: content; min-height: 2.6em; max-height: 14em; line-height: var(--texto-entrelinha); }
 .mural-link { display: flex; align-items: center; gap: var(--s-8); }
 .mural-link input { font-size: var(--app-t-rotulo) !important; color: var(--fraco) !important; }
