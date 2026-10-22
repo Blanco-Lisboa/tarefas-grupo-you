@@ -180,7 +180,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
                   <span className="folha-tinta risco">{l.titulo}</span>
                 </button>
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
-                {l.conflito && <span className="linha-conflito" title="O horário gravado passa do começo de outra tarefa. Mude a duração pelo ⋮.">⚠ {l.conflito}</span>}
+                {l.conflito && <span className="linha-conflito" title={l.podeAlterar === false ? "O horário gravado passa do começo de outra tarefa. Só quem é dono da tarefa muda a duração." : "O horário gravado passa do começo de outra tarefa. Mude a duração pelo ⋮."}>⚠ {l.conflito}</span>}
                 {l.enviadaPara ? <span className="linha-selo">enviada → {l.enviadaPara}</span> : l.enviadaPor && <span className="linha-selo">enviada por {l.enviadaPor}</span>}
                 {(() => { const e = ETIQUETAS.find((x) => x.cor && x.valor === l.cor); return e && (
                   <span className="linha-etq" style={{ "--e": `var(--${e.valor})`, "--et": `var(--${e.valor}-texto)` } as CSSProperties}>{e.rotulo}</span>

@@ -19,7 +19,7 @@
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { ehConteudo } from "@/components/tarefas/grade";
+import { cabeNaFicha, ehConteudo, fichaOcupada } from "@/components/tarefas/grade";
 import {
   FORMATOS, REDES, RESPONSAVEIS, TIPOS, arquivosDoDrive, lerErro, organizarCard, recarregarTags, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
   type Etapa, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type Tarefa, type TipoTarefa,
@@ -124,14 +124,14 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
 
   // Mudou o início: o fim anda junto e a duração fica igual (senão o fim fica antes do início e trava o formulário).
   // A última duração válida fica guardada para o caminho "limpa a data e escolhe outra" (sem data não dá para medir).
-  const duracao = useRef(HORA);
+  const duracao = useRef(HORA), daFicha = { ...tarefa, responsavel: t.responsavel, diaInteiro: t.diaInteiro }, horarioOcupado = !!data && fichaOcupada(todas, daFicha, data, horaIni); // item 275: início em linha ocupada é barrado
   function mudarInicio(novaData: string, novaHora: string) {
     if (data && horaFim) {
       const atual = deTexto(`${dataFim || data}T${horaFim}`).getTime() - deTexto(`${data}T${horaIni}`).getTime();
       if (atual > 0) duracao.current = atual;
     }
     if (novaData && horaFim) {
-      const fim = paraHora(new Date(deTexto(`${novaData}T${novaHora}`).getTime() + duracao.current));
+      const fim = paraHora(new Date(deTexto(`${novaData}T${novaHora}`).getTime() + Math.min(duracao.current, cabeNaFicha(todas, daFicha, novaData, novaHora) * 60_000 || duracao.current)));
       setDataFim(fim.slice(0, 10));
       setHoraFim(fim.slice(11, 16));
     }
@@ -148,7 +148,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
       Card gravado com anexo que falhou (Lupa 215 v2) conta como salvo: o rascunho passa a ser o que foi gravado (com id e etapa nova,
       para um Salvar seguinte não criar outra tarefa nem desfazer a decisão) e aoSalvar é chamado; devolve false por causa do anexo. */
   async function gravar(extra: Partial<NovaTarefa> = {}, fechar = true): Promise<boolean> {
-    if (soLer || !t.titulo.trim() || !empresaOk || gravando.current) return false; // dois cliques em Salvar criavam a tarefa duas vezes
+    if (soLer || horarioOcupado || !t.titulo.trim() || !empresaOk || gravando.current) return false; // dois cliques em Salvar criavam a tarefa duas vezes
     gravando.current = true;
     const quando: Pick<NovaTarefa, "inicio" | "fim" | "diaInteiro"> = !data
       ? { inicio: undefined, fim: undefined, diaInteiro: false }
@@ -284,7 +284,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
                     aoMudar={(d, h) => mudarInicio(d, h || horaIni)} />
                 </div>
               </div>
-              {!data && <p className="ficha-dica">Sem data: fica na coluna &quot;Sem data&quot; do calendário.</p>}
+              {horarioOcupado ? <p className="ficha-dica" role="alert">Este horário já tem outra tarefa no caderno. Escolha outro horário para salvar.</p> : !data && <p className="ficha-dica">Sem data: fica na coluna &quot;Sem data&quot; do calendário.</p>}
             </fieldset>
           </div>
 

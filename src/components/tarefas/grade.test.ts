@@ -1,6 +1,7 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, duracaoMaxima, emConflito, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, duracaoLivre, duracaoMaxima, fichaOcupada, emConflito, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
   ({ id, titulo: id, tipo: "outro", empresaId: "e", responsavel: "natham", inicio, diaInteiro, cor: "etiqueta-1", links: [], arquivos: [] }) as Tarefa;
@@ -54,6 +55,30 @@ describe("tarefa longa (item 275)", () => {
     expect(emConflito(g, 4, a)).toBe(true);
     expect(a.fim).toBe("2026-10-20T11:00"); // o gravado não muda
     expect(emConflito(montarGrade([a], true, true), 4, a)).toBe(false);
+  });
+  it("ficha: início em linha de outra tarefa ou dentro do bloco dela dá 0; início livre devolve o que cabe", () => {
+    const a = longa("a", "2026-10-20T09:00", "2026-10-20T11:00"), b = longa("b", "2026-10-20T11:30", "2026-10-20T12:00");
+    expect(duracaoLivre([a, b], "10:00")).toBe(0); // dentro do bloco de a
+    expect(duracaoLivre([a, b], "09:00")).toBe(0); // início de a
+    expect(duracaoLivre([a, b], "11:00")).toBe(30); // só cabe até começar b
+    expect(duracaoLivre([b], "09:00")).toBe(150); // até as 11:30
+  });
+  it("ficha: mudar o início para dentro do bloco de outra é barrado; início que não mudou (sobreposição antiga) segue salvando", () => {
+    const a = longa("a", "2026-10-20T09:00", "2026-10-20T11:00"), b = longa("b", "2026-10-20T14:00", "2026-10-20T14:30");
+    const da = (inicio?: string) => ({ id: "b", responsavel: "natham" as const, inicio, diaInteiro: false });
+    expect(fichaOcupada([a, b], da("2026-10-20T14:00"), "2026-10-20", "10:00")).toBe(true);
+    expect(fichaOcupada([a, b], da("2026-10-20T14:00"), "2026-10-20", "11:00")).toBe(false);
+    expect(fichaOcupada([a, b], da("2026-10-20T10:00"), "2026-10-20", "10:00")).toBe(false); // não mudou
+    expect(fichaOcupada([a], { ...da(undefined), id: undefined }, "2026-10-20", "09:30")).toBe(true); // tarefa nova
+  });
+  it("duas tarefas na mesma hora: o conflito é medido a partir da linha onde a segunda caiu", () => {
+    const a = longa("a", "2026-10-20T09:00", "2026-10-20T09:30"), b = longa("b", "2026-10-20T09:00", "2026-10-20T11:00"), c = longa("c", "2026-10-20T10:00", "2026-10-20T10:30");
+    const g = montarGrade([a, b, c], true, true);
+    expect((g[5] as Tarefa).id).toBe("b"); // desceu para 09:30
+    expect(emConflito(g, 5, b)).toBe(true); // 09:00 às 11:00 não cabe: c está às 10:00
+    expect(linhasDoBloco(g, 5)).toBe(1); // o bloco de b para onde c começa
+    const sem = montarGrade([a, longa("d", "2026-10-20T09:00", "2026-10-20T10:00")], true, true);
+    expect(emConflito(sem, 5, sem[5] as Tarefa)).toBe(false); // 09:00 às 10:00 desceu para 09:30 e cabe
   });
   it("sem o terceiro argumento (Mapa) só vêm tarefas", () => {
     const g = montarGrade([longa("a", "2026-10-20T10:30", "2026-10-20T12:30")], true);
@@ -232,5 +257,20 @@ describe("compromissos do Google nas linhas (item 221)", () => {
     expect(jaTemTarefa(e, [tarefa("Ligar para o contador", `${dia}T11:00`)])).toBe(false);
     expect(jaTemTarefa(ev("Feriado", dia, undefined, { diaInteiro: true }), [tarefa("Feriado", dia)])).toBe(true);
     expect(titulosParecidos("Reunião com a Beec", "Reunião deodato")).toBe(false);
+  });
+});
+
+describe("abrir o Caderno não grava (item 275)", () => {
+  it("em TelaTarefas, salvarTarefa só aparece fora de efeito, exceto na migração antiga do navegador", () => {
+    const fonte = readFileSync(new URL("./TelaTarefas.tsx", import.meta.url), "utf8");
+    const efeitos: string[] = [];
+    for (let i = fonte.indexOf("useEffect("); i >= 0; i = fonte.indexOf("useEffect(", i + 1)) {
+      let nivel = 0, j = i + "useEffect".length;
+      do { if (fonte[j] === "(") nivel++; else if (fonte[j] === ")") nivel--; j++; } while (nivel > 0);
+      efeitos.push(fonte.slice(i, j));
+    }
+    const gravam = efeitos.filter((e) => e.includes("salvarTarefa") || e.includes("removerTarefa"));
+    expect(gravam.length).toBe(1);
+    expect(gravam[0]).toContain("grade:tarefas-feitas"); // a única, a migração única da chave antiga
   });
 });

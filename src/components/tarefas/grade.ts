@@ -39,9 +39,29 @@ export const duracaoMaxima = (grade: readonly unknown[], k: number, hora: string
   const eu = grade[k];
   let n = 1;
   while (k + n < SLOTS && (!grade[k + n] || ((grade[k + n] as Continua).continuaDe && (grade[k + n] as Continua).continuaDe === eu))) n++;
-  const sobra = Math.max(0, minutos(hora) - (PRIMEIRA + k * PASSO)); // 11:15 na linha das 11:00 já gastou 15 min da linha
+  const sobra = minutos(hora) - (PRIMEIRA + k * PASSO); // 11:15 na linha das 11:00 já gastou 15 min; tarefa que desceu de linha (09:00 na linha das 09:30) ganha os 30 que ficou para trás
   return Math.floor((n * PASSO - sobra) / PASSO) * PASSO;
 };
+
+/** As tarefas do caderno de `dono` no `dia`, sem a que está sendo editada (`id`): o que a ficha confere antes de aceitar um horário. */
+export const outrasNoDia = (todas: Tarefa[], dia: string, dono: Responsavel | null | undefined, id?: string) =>
+  todas.filter((x) => x.id !== id && x.inicio?.slice(0, 10) === dia && doCaderno(x, dono));
+
+/** Minutos que cabem a partir de `hora` entre as `outras` tarefas do dia (as do mesmo caderno, sem a que está sendo editada). 0 = a linha
+    do horário já está ocupada por outra tarefa ou pelo bloco dela: a ficha não aceita esse início (mesma regra do arraste). */
+export function duracaoLivre(outras: Tarefa[], hora: string): number {
+  const g = montarGrade(outras, true, true);
+  const k = Math.min(SLOTS - 1, Math.max(0, Math.floor((minutos(hora) - PRIMEIRA) / PASSO)));
+  return g[k] ? 0 : Math.max(PASSO, duracaoMaxima(g, k, hora));
+}
+
+type DaFicha = { id?: string; dono?: Responsavel | null; responsavel: Responsavel; inicio?: string; diaInteiro: boolean };
+/** Para a ficha (item 275): minutos que cabem no `dia` a partir de `hora` no caderno do dono (Infinity = sem limite, dia inteiro; 0 = linha ocupada). */
+export const cabeNaFicha = (todas: Tarefa[], t: DaFicha, dia: string, hora: string) =>
+  !dia || t.diaInteiro ? Infinity : duracaoLivre(outrasNoDia(todas, dia, t.dono ?? t.responsavel, t.id), hora);
+/** A ficha barra o início que cai em linha ocupada. Início que não mudou (sobreposição antiga) segue salvando; só o Caderno avisa. */
+export const fichaOcupada = (todas: Tarefa[], t: DaFicha, dia: string, hora: string) =>
+  (!t.id || `${dia}T${hora}` !== t.inicio) && cabeNaFicha(todas, t, dia, hora) === 0;
 
 /** Sobreposição antiga: a duração gravada passa de onde o bloco cabe (outra tarefa começa antes). Só para mostrar; nada é gravado. */
 export const emConflito = (grade: readonly unknown[], k: number, t: Tarefa) => {
@@ -70,7 +90,9 @@ export function montarGrade(tarefas: Tarefa[], porHora: boolean, blocos = false)
     lugar.set(t, k);
   }
   // Só depois de todas no lugar: o bloco toma as linhas de baixo que sobraram e nunca empurra outra tarefa do seu horário.
-  if (blocos) for (const [t, k] of lugar) for (let j = k + 1; j < Math.min(SLOTS, k + Math.ceil(duracaoDe(t) / PASSO)) && !linhas[j]; j++) linhas[j] = { continuaDe: t };
+  // Quantas linhas o bloco quer: da linha onde ficou até o fim gravado (tarefa que desceu de linha conta do fim, não da duração).
+  const pedidas = (t: Tarefa, k: number) => { const h = minutos(horaDe(t)), topo = PRIMEIRA + k * PASSO; return h >= topo ? Math.ceil(duracaoDe(t) / PASSO) : Math.max(1, Math.ceil((h + duracaoDe(t) - topo) / PASSO)); };
+  if (blocos) for (const [t, k] of lugar) for (let j = k + 1; j < Math.min(SLOTS, k + pedidas(t, k)) && !linhas[j]; j++) linhas[j] = { continuaDe: t };
   for (const t of semHora) {
     let k = 0;
     while (linhas[k]) k++;
