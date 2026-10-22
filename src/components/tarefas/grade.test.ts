@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, duracaoMaxima, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
   ({ id, titulo: id, tipo: "outro", empresaId: "e", responsavel: "natham", inicio, diaInteiro, cor: "etiqueta-1", links: [], arquivos: [] }) as Tarefa;
@@ -32,12 +32,21 @@ describe("tarefa longa (item 275)", () => {
     expect(duracaoDe(longa("b", "2026-10-20T10:30"))).toBe(30);
     expect(duracaoDe(longa("c", "2026-10-20T10:30", "2026-10-21T12:30"))).toBe(30);
   });
-  it("10:30 com 2h toma 4 linhas; outra tarefa na 11:00 desce para depois do bloco", () => {
+  it("10:30 com 2h toma 4 linhas; com outra tarefa já na 11:00 o bloco para antes dela", () => {
     const a = longa("a", "2026-10-20T10:30", "2026-10-20T12:30");
     const g = montarGrade([a, t("b", "2026-10-20T11:00")], true, true);
-    expect(linhasDoBloco(g, 7)).toBe(4);
-    expect((g[8] as { continuaDe: Tarefa }).continuaDe.id).toBe("a");
-    expect((g[11] as Tarefa).id).toBe("b");
+    expect(linhasDoBloco(g, 7)).toBe(1);
+    expect((g[8] as Tarefa).id).toBe("b");
+    const livre = montarGrade([a], true, true);
+    expect(linhasDoBloco(livre, 7)).toBe(4);
+    expect((livre[8] as { continuaDe: Tarefa }).continuaDe.id).toBe("a");
+  });
+  it("achado 7: 09:00 às 11:00 e outra às 10:00: a de 10:00 fica na sua linha e o bloco da primeira para antes dela", () => {
+    const g = montarGrade([longa("a", "2026-10-20T09:00", "2026-10-20T11:00"), longa("b", "2026-10-20T10:00", "2026-10-20T10:30")], true, true);
+    expect((g[6] as Tarefa).id).toBe("b"); // 10:00 = linha 6
+    expect(linhasDoBloco(g, 4)).toBe(2);
+    expect(duracaoMaxima(g, 4, "09:00")).toBe(60); // o menu só oferece até 1h
+    expect(duracaoMaxima(g, 6, "10:00")).toBe(750); // depois dela tudo livre até 22:30
   });
   it("sem o terceiro argumento (Mapa) só vêm tarefas", () => {
     const g = montarGrade([longa("a", "2026-10-20T10:30", "2026-10-20T12:30")], true);

@@ -110,7 +110,7 @@ export function TelaTarefas() {
     podeApagar: podeApagar(t, eu),
     bloco: linhasDoBloco(grade, k),
     duracao: duracaoDe(t),
-    duracaoMax: aba === "dia" && horaDe(t) ? duracaoMaxima(horaDe(t)) : 0,
+    duracaoMax: aba === "dia" && horaDe(t) ? duracaoMaxima(grade, k, horaDe(t)) : 0,
     };
   };
   const linhas = grade.map(linhaDe);
@@ -206,7 +206,14 @@ export function TelaTarefas() {
     const t = tarefas.find((x) => x.id === id);
     if (!t) return;
     const h = horaDoSlot(linha);
-    const dur = t.inicio && t.fim && t.inicio.length > 10 && t.fim.length > 10 ? Math.max(15, minutos(t.fim.slice(11, 16)) - minutos(t.inicio.slice(11, 16))) : 30;
+    // Regra do bloco: não cai em linha ocupada por outra tarefa ou compromisso (as linhas do próprio bloco contam como livres).
+    const ini = grade.indexOf(t), fimBloco = ini + (ini >= 0 ? linhasDoBloco(grade, ini) : 0);
+    const livre = (j: number) => !grade[j] || (j >= ini && j < fimBloco);
+    if (!livre(linha)) return;
+    const quer = t.inicio && t.fim && t.inicio.length > 10 && t.fim.length > 10 ? Math.max(15, minutos(t.fim.slice(11, 16)) - minutos(t.inicio.slice(11, 16))) : 30;
+    let cabe = 1;
+    while (linha + cabe < SLOTS && livre(linha + cabe)) cabe++;
+    const dur = Math.min(quer, Math.max(30, cabe * 30));
     void salvarTarefa({ ...t, inicio: `${dia}T${h}`, fim: `${dia}T${somarMinutos(h, dur)}`, diaInteiro: false });
   };
   // Mesma hora, um dia depois (sem data: vira dia inteiro no dia seguinte ao que está aberto).

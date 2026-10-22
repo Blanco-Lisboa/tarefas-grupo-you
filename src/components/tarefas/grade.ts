@@ -33,8 +33,15 @@ export const linhasDoBloco = (grade: readonly unknown[], k: number): number => {
   return n;
 };
 
-/** Quanto a tarefa das `hora` pode durar sem passar do fim das linhas (22:30). */
-export const duracaoMaxima = (hora: string) => Math.max(0, FIM_GRADE - minutos(hora));
+/** Maior duração (minutos, múltiplo de 30) que a tarefa das `hora`, na linha `k`, pode ter sem cobrir linha já ocupada por outra
+    tarefa ou compromisso (item 275, regra: bloco nunca cobre linha ocupada). Passa `grade` já com os compromissos. */
+export const duracaoMaxima = (grade: readonly unknown[], k: number, hora: string) => {
+  const eu = grade[k];
+  let n = 1;
+  while (k + n < SLOTS && (!grade[k + n] || ((grade[k + n] as Continua).continuaDe && (grade[k + n] as Continua).continuaDe === eu))) n++;
+  const sobra = Math.max(0, minutos(hora) - (PRIMEIRA + k * PASSO)); // 11:15 na linha das 11:00 já gastou 15 min da linha
+  return Math.floor((n * PASSO - sobra) / PASSO) * PASSO;
+};
 
 /**
  * Cada tarefa mora na linha do seu horário (antes das 07:00 vai para 07:00, depois das 22:00 para 22:00).
@@ -47,14 +54,17 @@ export function montarGrade(tarefas: Tarefa[], porHora: boolean, blocos: true): 
 export function montarGrade(tarefas: Tarefa[], porHora: boolean, blocos = false): (Tarefa | Continua | null)[] {
   const linhas: (Tarefa | Continua | undefined)[] = [];
   const semHora: Tarefa[] = [];
+  const lugar = new Map<Tarefa, number>();
   for (const t of tarefas) {
     const h = porHora ? horaDe(t) : "";
     if (!h) { semHora.push(t); continue; }
     let k = Math.min(SLOTS - 1, Math.max(0, Math.floor((minutos(h) - PRIMEIRA) / PASSO)));
     while (linhas[k]) k++;
     linhas[k] = t;
-    if (blocos) for (let j = k + 1; j < Math.min(SLOTS, k + Math.ceil(duracaoDe(t) / PASSO)) && !linhas[j]; j++) linhas[j] = { continuaDe: t };
+    lugar.set(t, k);
   }
+  // Só depois de todas no lugar: o bloco toma as linhas de baixo que sobraram e nunca empurra outra tarefa do seu horário.
+  if (blocos) for (const [t, k] of lugar) for (let j = k + 1; j < Math.min(SLOTS, k + Math.ceil(duracaoDe(t) / PASSO)) && !linhas[j]; j++) linhas[j] = { continuaDe: t };
   for (const t of semHora) {
     let k = 0;
     while (linhas[k]) k++;
