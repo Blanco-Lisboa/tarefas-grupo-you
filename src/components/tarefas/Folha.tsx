@@ -13,6 +13,7 @@ export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: b
   /** Nome de quem mandou a tarefa (selo "enviada por"). Vazio = não foi enviada. */ enviadaPor?: string;
   /** Nome de quem recebeu, no caderno de quem enviou (selo "enviada →"). Vale no lugar de enviadaPor. */ enviadaPara?: string;
   /** Item 275: linhas que o bloco da tarefa ocupa (1 = comum; 2 ou mais = tarefa longa, sem pauta no meio). */ bloco?: number;
+  /** Sobreposição antiga: horário gravado (ex.: "09:00–11:00") que passa do começo de outra tarefa. Só aviso; nada é gravado sozinho. */ conflito?: string;
   /** Linha de baixo de uma tarefa longa: não desenha nada, só reserva o lugar. */ ocupada?: boolean;
   /** Minutos da tarefa e o máximo que cabe até o fim das linhas (0 = sem hora, o menu não oferece duração). */ duracao?: number; duracaoMax?: number;
   /** false = só leitura para quem está olhando (trava do banco). Vazio = pode. */ podeAlterar?: boolean; podeApagar?: boolean };
@@ -179,6 +180,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
                   <span className="folha-tinta risco">{l.titulo}</span>
                 </button>
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
+                {l.conflito && <span className="linha-conflito" title="O horário gravado passa do começo de outra tarefa. Mude a duração pelo ⋮.">⚠ {l.conflito}</span>}
                 {l.enviadaPara ? <span className="linha-selo">enviada → {l.enviadaPara}</span> : l.enviadaPor && <span className="linha-selo">enviada por {l.enviadaPor}</span>}
                 {(() => { const e = ETIQUETAS.find((x) => x.cor && x.valor === l.cor); return e && (
                   <span className="linha-etq" style={{ "--e": `var(--${e.valor})`, "--et": `var(--${e.valor}-texto)` } as CSSProperties}>{e.rotulo}</span>
