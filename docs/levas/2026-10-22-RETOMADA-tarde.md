@@ -20,3 +20,7 @@ O classificador barra `bash scripts/publicar.sh` até para recruta (Production D
 
 ## Relatórios desta rodada
 `2026-10-22-testes-276.md` (Régua, 2 testes), `2026-10-22-lupa-268-275.md` (Lupa Re-revisões 1–2 + Re-revisão 3 cruzada em Sonnet: Codex sem crédito), `2026-10-22-287-recuperacao.md`.
+
+## Depois do fechamento (22/10 ~16h)
+- **288 EM CURSO (Alvenaria):** o aviso "script tag while rendering" continua no modo dev (2627c41 não resolveu). Conferir o resultado dela antes de qualquer coisa.
+- **289 — LIMITE DO SUPABASE (prioridade, pega o CRM):** org YOU Contabilidade (slug `deahdofuahftqpefsslo`, página https://supabase.com/dashboard/org/deahdofuahftqpefsslo/usage) estourou **Egress 321/250 GB (129%)** com spend cap LIGADO → risco de restrição no CRM e no Tarefas até 03/11. Próximo passo: ele troca "All projects" por cada projeto e manda print; decidir spend cap (recomendado desligar). Detalhe no item 289 da leva.
