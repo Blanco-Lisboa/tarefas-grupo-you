@@ -8,7 +8,7 @@ import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { Ficha } from "@/components/ficha/Ficha";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
-import { conteudos, diaDe, marcosDoMapa, inicioDaLinha, hoje, diasDoPeriodo, filaPorDia, foiPostado, semData, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { conteudos, diaDe, marcosDoMapa, inicioDaLinha, postadosFora, hoje, diasDoPeriodo, filaPorDia, foiPostado, semData, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 import { PastaDoDia } from "./PastaDoDia";
 import { EmOrdem, type Formato } from "./EmOrdem";
 import "./mapa.css";
@@ -48,6 +48,7 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
 
   const todos = useMemo(() => conteudos(aplicar(tarefas)), [aplicar, tarefas]);
   const marcos = useMemo(() => marcosDoMapa(todos, INICIO), [todos, INICIO]);
+  const fora = postadosFora(todos, INICIO);
   const PRIMEIRO = inicioDaLinha(marcos, INICIO); // 278: a linha recua até o Postado mais antigo
   const dias = useMemo(() => diasDoPeriodo(PRIMEIRO, ultimoDia(marcos)), [marcos, PRIMEIRO]);
   const aPostar = marcos.filter((t) => !foiPostado(t));
@@ -70,6 +71,7 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
         <p>
           De {diaCurto(PRIMEIRO)} a {diaCurto(dias.at(-1)!)}.{" "}
           {marcos.length ? `${plural(marcos.length, "conteúdo", "conteúdos")} com data de postagem.` : "Nenhum conteúdo com data de postagem neste período."}
+          {fora > 0 && ` ${plural(fora, "postado mais antigo está", "postados mais antigos estão")} só na Esteira.`}
         </p>
       </header>
       <dl className="mapa-resumo">

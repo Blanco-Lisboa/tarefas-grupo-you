@@ -94,8 +94,8 @@ const tarefas = [
   // Item 225: Reels da You com vídeo de verdade (scripts/exemplo-midia/), capa = quadro escolhido
   card("Reels: bastidores da You", "you", "instagram", "reels", "analise", "matheus", diaHoje + 1, "11:00", { cor: "etiqueta-13", objetivo: "Mostrar o dia a dia do time da You", ...esperando, capa_quadro_ms: 4500, legenda: "Um dia com o time da You. Salva para ver de novo!" }),
   card("Reels: cliente da You conta como foi", "you", "instagram", "reels", "postado", "natham", Math.max(diaHoje - 1, 0), "18:00", { cor: "etiqueta-4", concluida: true, capa_quadro_ms: 6000, ...programado(Math.max(diaHoje - 1, 0), "18:00", IG_FB) }),
-  // Item 278: Postado de outro tipo (não Postagem) também aparece no Mapa, com data e sem data
   card("Edição final: vídeo da Black Friday", "you", "youtube", "reels", "postado", "matheus", -2, "10:00", { tipo: "edicao", cor: "etiqueta-9", concluida: true }),
+  card("Post antigo: retrospectiva do trimestre", "you", "instagram", "post", "postado", "natham", -50, "10:00", { cor: "etiqueta-11", concluida: true }), // 278: além do teto do recuo, fica só na Esteira
   card("Roteiro antigo: série de MEI", "beec", "", "reels", "postado", "adrian", null, "", { tipo: "roteiro", cor: "etiqueta-10", concluida: true }),
   // Caderno do Natham (sem etapa): tarefas e 2 reuniões
   tarefa("Ligar para o contador", { inicio: em(diaHoje, "09:00"), cor: "etiqueta-5" }),

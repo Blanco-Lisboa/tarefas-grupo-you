@@ -39,8 +39,12 @@ export const conteudos = (tarefas: readonly Tarefa[]) =>
 export const semData = (tarefas: readonly Tarefa[]) => tarefas.filter((t) => noMapa(t) && !quandoDe(t) && (t.etapa === "postado" || !foiPostado(t)));
 
 /** 278 · O que vira marco na linha: o que vem de hoje em diante e TODO Postado com data, mesmo de dias passados (antes só entrava de hoje em diante). */
-export const marcosDoMapa = (todos: readonly Tarefa[], inicio: string) => todos.filter((t) => t.etapa === "postado" || diaDe(t) >= inicio);
-/** 278 · A linha começa hoje, ou no dia do Postado mais antigo se for antes (para ele ter onde aparecer). ponytail: sem teto; se a linha ficar longa demais, limitar por mês. */
+export const marcosDoMapa = (todos: readonly Tarefa[], inicio: string) => todos.filter((t) => (t.etapa === "postado" && diaDe(t) >= recuoMaximo(inicio)) || diaDe(t) >= inicio);
+/** 278 · Teto do recuo: a linha volta no máximo até o 1º dia do mês anterior ao de hoje (senão ficaria enorme com meses de Postados). */
+export const recuoMaximo = (inicio: string) => { const d = deTexto(inicio); return paraDia(new Date(d.getFullYear(), d.getMonth() - 1, 1)); };
+/** Postados antigos demais para a linha (ficam só na Esteira, coluna Postado). */
+export const postadosFora = (todos: readonly Tarefa[], inicio: string) => todos.filter((t) => t.etapa === "postado" && diaDe(t) < recuoMaximo(inicio)).length;
+/** 278 · A linha começa hoje, ou no dia do Postado mais antigo que couber no teto (para ele ter onde aparecer). */
 export const inicioDaLinha = (marcos: readonly Tarefa[], inicio: string) => marcos.reduce((m, t) => (diaDe(t) < m ? diaDe(t) : m), inicio);
 
 /** Quantos conteúdos já foram postados no mês do início, mesmo antes do período (a linha só mostra o que vem pela frente). */

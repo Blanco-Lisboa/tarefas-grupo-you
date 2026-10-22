@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { ETAPAS_ATE_POSTAR, PASSO, conteudos, diaDe, quandoDe, diasDoPeriodo, filaPorDia, foiPostado, semData, marcosDoMapa, inicioDaLinha, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { ETAPAS_ATE_POSTAR, PASSO, conteudos, diaDe, quandoDe, diasDoPeriodo, filaPorDia, foiPostado, semData, marcosDoMapa, inicioDaLinha, postadosFora, recuoMaximo, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 
 const t = (id: string, tipo: Tarefa["tipo"], inicio?: string, extra: Partial<Tarefa> = {}): Tarefa => ({
   id, titulo: id, tipo, empresaId: "beec", etapa: "roteiro", responsavel: "natham", inicio, diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra,
@@ -99,6 +99,21 @@ describe("278 · todo Postado aparece no Mapa", () => {
     expect(marcos.map((x) => x.id)).toEqual(["velho", "teto", "futuro"]);
     expect(inicioDaLinha(marcos, "2026-10-22")).toBe("2026-10-10");
     expect(inicioDaLinha([futuro], "2026-10-22")).toBe("2026-10-22");
+  });
+});
+
+describe("278 · teto do recuo", () => {
+  it("a linha volta no máximo ao 1º dia do mês anterior; Postado mais antigo fica fora e é contado", () => {
+    const hojeX = "2026-10-22";
+    const noTeto = t("a", "postagem", "2026-09-01T09:00", { etapa: "postado" });
+    const antigo = t("b", "postagem", "2026-08-31T09:00", { etapa: "postado" });
+    const todos = conteudos([noTeto, antigo]);
+    expect(recuoMaximo(hojeX)).toBe("2026-09-01");
+    expect(recuoMaximo("2027-01-10")).toBe("2026-12-01");
+    expect(marcosDoMapa(todos, hojeX).map((x) => x.id)).toEqual(["a"]);
+    expect(postadosFora(todos, hojeX)).toBe(1);
+    expect(inicioDaLinha(marcosDoMapa(todos, hojeX), hojeX)).toBe("2026-09-01");
+    expect(postadosNoMes([antigo, t("c", "postagem", "2026-10-02T09:00", { etapa: "postado" })], hojeX)).toBe(1); // o contador do mês segue certo
   });
 });
 
