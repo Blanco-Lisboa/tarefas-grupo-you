@@ -62,7 +62,7 @@
 .folha-lapis { color: var(--fraco); }
 
 /* ===== Página esquerda: as linhas ===== */
-.folha { --margem-x: 20px; }
+.folha { --margem-x: 8px; } /* item 291: horário e margem encostados na lateral, como no caderno do CRM */
 .folha[data-continua] .pag-miolo { padding-bottom: 0; } /* sem folga no pé: o papel pautado vai até a borda nas duas páginas */
 .folha-quem {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao);
@@ -82,16 +82,13 @@
   transition: background-color var(--dur-rapida) var(--curva);
 }
 .linha:hover { background-color: var(--realce); }
-.linha-hora { padding-right: var(--s-12); text-align: right; font-size: calc(17px * var(--escala)); line-height: var(--passo); color: var(--fraco); }
+.linha-hora { padding-right: var(--s-8); text-align: right; font-size: calc(17px * var(--escala)); line-height: var(--passo); color: var(--fraco); }
 .linha-miolo { display: flex; align-items: flex-start; gap: var(--s-8); min-width: 0; padding-left: var(--s-12); transform-origin: left center; }
 /* Alça de arrastar (itens 69 e 86): no lugar do horário, na margem, ao passar o mouse na linha (como no CRM) */
 .linha-hora { position: relative; }
 .alca { position: absolute; top: 0; right: var(--s-8); width: 28px; height: var(--passo); display: grid; place-items: center; padding: 0; background: none; border: 0; border-radius: 4px; cursor: grab; opacity: 0; touch-action: none; transition: opacity var(--dur-rapida) var(--curva); }
 .alca svg { width: 10px; height: 16px; fill: var(--fraco); }
 .linha-hora-txt { display: block; transition: opacity var(--dur-rapida) var(--curva); }
-/* Item 283: como no Calendário, o horário fica no TRAÇO DE CIMA da faixa (o rótulo 14:30 está no traço onde termina o bloco das 13:30 com 1h) */
-.linha-hora-txt { transform: translateY(calc(var(--passo) / -2)); }
-.linha-hora-dia { transform: none; }
 .linha:hover .alca, .alca:focus-visible, .linha[data-arrastada] .alca { opacity: 1; }
 .linha:has(.alca):hover .linha-hora-txt, .linha:has(.alca:focus-visible) .linha-hora-txt, .linha[data-arrastada] .linha-hora-txt { opacity: 0; }
 @media (hover: none) { .alca { display: none; } } /* no toque: o horário se muda pelo menu ⋮ */
