@@ -73,6 +73,7 @@ begin
     if (new.conserto and not old.conserto) or v_entra_aprovado or v_entra_postado
        or (old.etapa = 'aprovado' and new.etapa is distinct from 'aprovado')
        or new.conserto_texto is distinct from old.conserto_texto  -- 271: só quem aprova escreve o pedido de conserto
+       or new.video_pendente_desde is distinct from old.video_pendente_desde  -- Lupa re-revisão 3: só quem aprova liga ou desliga a marca do vídeo novo (nem direto pela API)
        or (old.etapa in ('aprovado', 'postado') and new.etapa in ('aprovado', 'postado') and (
             new.postar_em is distinct from old.postar_em or new.legenda is distinct from old.legenda
             or new.formato is distinct from old.formato or new.postar_redes is distinct from old.postar_redes
@@ -279,6 +280,31 @@ begin
     timeout_milliseconds := 55000);  -- pg_net padrão é 5 s (memória pgnet-timeout)
 end $$;
 revoke all on function private.alarme_tocou(text, uuid, int) from public, anon, authenticated;
+
+-- 9) Lupa re-revisão 3 (Pena), achado 2: a catraca final também confere a marca. Mesma assinatura do 019; só ganhou "video_pendente_desde is null"
+--    nos dois lugares (criar as linhas das redes e entregar a vez). Mesmo que alguém chegue à função de postagem por outro caminho, com a marca ela não pega nada.
+create or replace function public.pegar_postagens(p_tarefa uuid) returns setof public.postagens
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  insert into public.postagens (tarefa_id, rede)
+  select t.id, r from public.tarefas t, unnest(t.postar_redes) r
+  where t.id = p_tarefa and t.etapa = 'aprovado' and t.tipo = 'postagem' and t.empresa_id = 'you' and t.postar_em is not null and t.video_pendente_desde is null
+    and t.postar_em <= to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD"T"HH24:MI')
+  on conflict (tarefa_id, rede) do nothing;
+  return query
+  -- tentativas conta só envio novo (fila); voltar de 'processando' para conferir o vídeo não gasta tentativa
+  update public.postagens p set status = 'enviando', pego_em = now(), tentativas = p.tentativas + (p.status = 'fila')::int,
+    rodadas = case when p.status = 'fila' then 1 else p.rodadas + 1 end
+  from public.tarefas t
+  where p.tarefa_id = p_tarefa and t.id = p.tarefa_id and t.etapa = 'aprovado' and t.tipo = 'postagem' and t.empresa_id = 'you'
+    and t.postar_em is not null and t.video_pendente_desde is null and t.postar_em <= to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD"T"HH24:MI')
+    and p.rede = any (t.postar_redes)  -- rede tirada do card depois de um erro não volta; pedido velho antes da nova hora não pega nada
+    and (p.status in ('fila', 'processando') or (p.status = 'enviando' and p.pego_em < now() - interval '10 minutes'))
+  returning p.*;
+end $$;
+revoke all on function public.pegar_postagens(uuid) from public, anon, authenticated;
+grant execute on function public.pegar_postagens(uuid) to service_role;
 
 -- 7) Item 272, limpeza única: cards que já estavam em Aprovado ou Postado antes do conserto ainda levavam a tag "Esperando aprovação".
 --    Tira SÓ as tags de aprovação (tags.aprovacao) desses cards; as outras ficam. Mexe só na ligação tarefa_tags: a tag em si

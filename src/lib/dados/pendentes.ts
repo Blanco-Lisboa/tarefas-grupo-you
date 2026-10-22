@@ -1,31 +1,52 @@
 "use client";
-// Cards que esperam um vídeo novo (marca do 027, ver subindo.ts). Relê o banco ao abrir, ao voltar à aba e quando um envio muda de estado.
-import { useEffect, useState } from "react";
+// Cards que esperam um vídeo novo (marca do 027, ver subindo.ts), com o "desde quando" (ISO). UMA consulta por tela: o estado mora aqui fora, e todos os
+// cards e a ficha só leem dele. Relê ao abrir, ao voltar à aba e quando um envio muda de estado (vários pedidos juntos viram um só).
+import { useEffect, useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabase/cliente";
 import { useEnvios } from "./envios";
 
-const VAZIO: ReadonlySet<string> = new Set();
-const RELER = "grade:pendentes";
-/** Pede a todas as telas que releiam a marca (depois de "Postar com o vídeo atual"). */
-export const reler = () => window.dispatchEvent(new Event(RELER));
+const VAZIO: ReadonlyMap<string, string> = new Map();
+let mapa: ReadonlyMap<string, string> = VAZIO;
+let agendado: ReturnType<typeof setTimeout> | undefined;
+const ouvintes = new Set<() => void>();
+export const consultasFeitas = { n: 0 }; // só para o teste conferir "uma consulta"
 
-/** Ids dos cards com vídeo novo pendente. Coluna ainda não colada (027) = ninguém. */
-export function usePendentes(): ReadonlySet<string> {
-  const [ids, setIds] = useState<ReadonlySet<string>>(VAZIO);
+async function ler() {
+  consultasFeitas.n++;
+  let novo: ReadonlyMap<string, string> = VAZIO;
+  try {
+    const { data, error } = await supabase().from("tarefas").select("id, video_pendente_desde").not("video_pendente_desde", "is", null);
+    if (!error) novo = new Map((data ?? []).map((x: { id: string; video_pendente_desde: string }) => [x.id, x.video_pendente_desde]));
+  } catch { /* coluna ainda não colada (027): ninguém pendente */ }
+  const igual = novo.size === mapa.size && [...novo].every(([id, d]) => mapa.get(id) === d);
+  if (!igual) { mapa = novo; ouvintes.forEach((f) => f()); }
+}
+
+/** Pede uma releitura; pedidos no mesmo instante (um por card) viram uma consulta só. */
+export function reler() {
+  clearTimeout(agendado);
+  agendado = setTimeout(() => void ler(), 50);
+}
+
+const assinar = (f: () => void) => { ouvintes.add(f); return () => void ouvintes.delete(f); };
+
+/** Cards com vídeo novo pendente: id -> desde quando (ISO). Coluna ainda não colada (027) = vazio. */
+export function usePendentes(): ReadonlyMap<string, string> {
   const estados = useEnvios().map((e) => e.estado).join();
   useEffect(() => {
-    let vivo = true;
-    const ler = async () => {
-      try {
-        const { data, error } = await supabase().from("tarefas").select("id").not("video_pendente_desde", "is", null);
-        if (vivo) setIds(error ? VAZIO : new Set((data ?? []).map((x: { id: string }) => x.id)));
-      } catch { if (vivo) setIds(VAZIO); }
-    };
-    void ler();
-    const volta = () => { if (!document.hidden) void ler(); };
+    const volta = () => { if (!document.hidden) reler(); };
     document.addEventListener("visibilitychange", volta);
-    window.addEventListener(RELER, volta);
-    return () => { vivo = false; document.removeEventListener("visibilitychange", volta); window.removeEventListener(RELER, volta); };
-  }, [estados]);
-  return ids;
+    return () => { document.removeEventListener("visibilitychange", volta); };
+  }, []);
+  useEffect(() => { reler(); }, [estados]);
+  return useSyncExternalStore(assinar, () => mapa, () => VAZIO);
+}
+
+/** "há 5 min", "há 3 h", "há 2 dias" (para a ficha dizer há quanto tempo o vídeo novo não chega). */
+export function haQuanto(desde: string, agora = Date.now()): string {
+  const min = Math.max(0, Math.round((agora - new Date(desde).getTime()) / 60_000));
+  if (min < 60) return `há ${Math.max(1, min)} min`;
+  if (min < 24 * 60) return `há ${Math.floor(min / 60)} h`;
+  const d = Math.floor(min / (24 * 60));
+  return `há ${d} ${d === 1 ? "dia" : "dias"}`;
 }

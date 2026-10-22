@@ -7,7 +7,7 @@
 // - Toda ação passa pela checagem (o que falta) e grava a FICHA INTEIRA (gravar) antes, para não perder o que foi mudado nela.
 // - Só a You está ligada: em outra empresa fica só o aviso.
 import { useState } from "react";
-import { REDES_POST, postarAgora, tentarDeNovo, descartarEnvio, liberarPendente, relerPendentes, useEnvios, useEu, usePendentes, usePostagemAutomatica, videoPendente, type NovaTarefa, type RedePost, type Tarefa } from "@/lib/dados";
+import { REDES_POST, postarAgora, tentarDeNovo, descartarEnvio, haQuanto, liberarPendente, relerPendentes, useEnvios, useEu, usePendentes, usePostagemAutomatica, videoPendente, type NovaTarefa, type RedePost, type Tarefa } from "@/lib/dados";
 import { paraDia, paraHora } from "@/components/calendario/logica";
 import { CampoData } from "@/components/ui/CampoData";
 import Image from "next/image";
@@ -25,8 +25,9 @@ type Props = {
 export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const eu = useEu();
   // Lupa 5: vídeo novo subindo (nesta aba) ou pendente no BANCO (não subiu, outra aba, aba fechada): a postagem espera. Só sai com o vídeo novo ou com "Postar com o vídeo atual".
-  const SUBINDO = "Vídeo novo não subiu ou ainda está subindo. Suba de novo, ou use Postar com o vídeo atual.";
-  const noBanco = usePendentes().has(salvo.id);
+  const SUBINDO = "Vídeo novo não subiu ou ainda está subindo. Suba de novo; quem aprova também pode usar Postar com o vídeo atual.";
+  const desde = usePendentes().get(salvo.id);
+  const noBanco = !!desde;
   const doCard = useEnvios().filter((e) => e.tarefaId === salvo.id && e.estado !== "enviado");
   const subindo = doCard.length > 0 || noBanco;
   const [liberando, setLiberando] = useState(false);
@@ -84,7 +85,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
     <fieldset className="ficha-campo publicacao"><legend>Publicação</legend><div className="publicacao-caixa">
       {salvo.empresaId !== "you" ? <p className="ficha-dica ficha-dica-fica">{comoHoraMarcada("Postagem automática só para a You (por enquanto).", ligada)}</p> : <>
         {sit?.tipo === "postando" && <p className="aprovacao-situacao" data-tipo="postando" role="status">Postando…</p>}
-        {subindo && <div className="aprovacao-erro" role="alert"><p><strong>Vídeo novo não subiu.</strong> A postagem está bloqueada para não sair o vídeo sem legenda.</p>
+        {subindo && <div className="aprovacao-erro" role="alert"><p><strong>Vídeo novo não subiu.</strong> A postagem está bloqueada para não sair o vídeo sem legenda{desde ? ` (desde ${haQuanto(desde)})` : ""}.{!aprova && " Suba o vídeo de novo, ou peça a quem aprova para liberar."}</p>
           {aprova && <button type="button" className="aprovacao-botao" data-acao="liberar" onClick={() => { setRecusaLiberar(""); setLiberando(true); }}>Postar com o vídeo atual</button>}
           {recusaLiberar && <p>{recusaLiberar}</p>}</div>}
         {txt.aviso && <p className="aprovacao-nota publicacao-desligada" role="note">{txt.aviso}</p>}

@@ -57,13 +57,13 @@ begin
     elsif modo = 'agenda' then chaves := chaves || ('agenda:' || (l->>'fonte'));
     else -- 'tarefa' (a própria) ou 'filha' (tarefa_tags, arquivos, postagens: olha a tarefa a que pertence)
       if modo = 'filha' then
-        if l->>'tarefa_id' is null then chaves := chaves || 'pastas'; continue; end if; -- arquivo solto numa pasta
+        if l->>'tarefa_id' is null then chaves := chaves || 'pastas'::text; continue; end if; -- arquivo solto numa pasta
         select to_jsonb(x) into t from public.tarefas x where x.id = (l->>'tarefa_id')::uuid;
         continue when t is null; -- a tarefa já foi apagada: o gatilho dela avisou
       else t := l;
       end if;
       -- card de conteúdo com empresa é de todos; senão, só do dono e de quem enviou (e o Natham lendo o Matheus)
-      if t->>'etapa' is not null and t->>'empresa_id' is not null then chaves := chaves || 'esteira'; end if;
+      if t->>'etapa' is not null and t->>'empresa_id' is not null then chaves := chaves || 'esteira'::text; end if;
       chaves := chaves || ('cartao:' || (t->>'dono_id'));
       if t->>'enviada_por' is not null then chaves := chaves || ('cartao:' || (t->>'enviada_por')); end if;
     end if;
