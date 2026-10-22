@@ -1,5 +1,6 @@
 -- 027 · Rodada 268-277, itens 269, 270, 271, 272, 273 (Alvenaria, 22/10). Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM.
--- Idempotente (pode colar de novo). Depende do 002, 006, 015, 019 e 026. NÃO aplicado: o Natham cola no SQL Editor.
+-- Idempotente (pode colar de novo). Depende do 002, 006, 015 e 019. ORDEM: 026 e depois 027 (o 026 também já traz o Matheus em pode_aprovar,
+-- então qualquer ordem mantém Natham + Adrian + Matheus; o 027 sozinho também os mantém). NÃO aplicado: o Natham cola no SQL Editor.
 -- O código funciona ANTES e DEPOIS da colagem (antes: o Matheus ainda não aprova no banco e o campo Conserto nem aparece).
 --
 --  269  O Matheus aprova, programa e posta (aprovação presencial): entra ao lado do Natham e do Adrian em private.pode_aprovar.
@@ -133,6 +134,40 @@ begin
 end $$;
 revoke all on function public.salvar_tarefa(jsonb, text[]) from public, anon;
 grant execute on function public.salvar_tarefa(jsonb, text[]) to authenticated;
+
+-- 6) Lupa #2, achado 3: postar_agora e tentar_de_novo rodam com privilégio do dono da função; agora também exigem que QUEM CHAMA possa alterar o card
+--    (private.pode_alterar com o login de quem chamou), antes de qualquer escrita. Sem login (despertador, SQL Editor) segue livre.
+--    Antes só valia pode_aprovar, que com o Matheus virou "true" para qualquer card, até card privado de outra pessoa cujo id ele conhecesse.
+create or replace function public.postar_agora(p_tarefa uuid) returns void
+language plpgsql security definer set search_path = ''
+as $$
+declare v_antes text; v_agora text := to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD"T"HH24:MI');
+begin
+  select postar_em into v_antes from public.tarefas t
+  where t.id = p_tarefa and t.etapa = 'aprovado' and t.tipo = 'postagem' and (select private.pode_aprovar(t.aprovador))
+    and ((select auth.uid()) is null or (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id)));
+  if not found then raise exception 'so o Natham ou o aprovador posta agora, e so card de Postagem em Aprovado' using errcode = '42501'; end if;
+  update public.tarefas set postar_em = v_agora where id = p_tarefa;
+  if v_antes is not distinct from v_agora then perform private.alarme_tocou('postar', p_tarefa, 0); end if;
+end $$;
+revoke all on function public.postar_agora(uuid) from public, anon;
+grant execute on function public.postar_agora(uuid) to authenticated;
+
+create or replace function public.tentar_de_novo(p_tarefa uuid) returns void
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  if not exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'aprovado' and (select private.pode_aprovar(t.aprovador))
+      and ((select auth.uid()) is null or (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id)))) then
+    raise exception 'so o Natham ou o aprovador tenta de novo' using errcode = '42501';
+  end if;
+  delete from public.postagens p using public.tarefas t where t.id = p_tarefa and p.tarefa_id = t.id and p.status in ('fila', 'erro') and not p.rede = any (t.postar_redes);
+  update public.postagens p set status = 'fila', erro = null from public.tarefas t
+    where p.tarefa_id = p_tarefa and t.id = p.tarefa_id and p.status = 'erro' and p.rede = any (t.postar_redes);
+  perform private.alarme_tocou('postar', p_tarefa, 0);
+end $$;
+revoke all on function public.tentar_de_novo(uuid) from public, anon;
+grant execute on function public.tentar_de_novo(uuid) to authenticated;
 
 notify pgrst, 'reload schema';
 commit;

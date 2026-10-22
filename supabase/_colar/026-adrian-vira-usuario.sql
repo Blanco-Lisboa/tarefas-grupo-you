@@ -17,13 +17,13 @@ update public.pessoas p set user_id = u.id
 from auth.users u
 where p.slug = 'adrian' and lower(u.email) = 'adrian@youcontabilidade.com' and p.user_id is null;
 
--- 2) Aprovar: Natham, Adrian, ou a pessoa cujo nome é o aprovador do card. Sem login (auth.uid nulo) = true: despertador e SQL Editor.
+-- 2) Aprovar: Natham, Adrian, Matheus (269: já vem aqui para o 026 colado DEPOIS do 027 não tirar a permissão dele), ou a pessoa cujo nome é o aprovador do card. Sem login (auth.uid nulo) = true: despertador e SQL Editor.
 create or replace function private.pode_aprovar(aprovador text) returns boolean
 language sql stable security definer set search_path = ''
 as $$
   select (select auth.uid()) is null or exists (
     select 1 from public.pessoas p
-    where p.user_id = (select auth.uid()) and (p.slug in ('natham', 'adrian') or lower(p.nome) = lower(btrim(aprovador)))
+    where p.user_id = (select auth.uid()) and (p.slug in ('natham', 'adrian', 'matheus') or lower(p.nome) = lower(btrim(aprovador)))
   )
 $$;
 
