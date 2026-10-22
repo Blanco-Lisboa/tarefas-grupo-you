@@ -108,6 +108,8 @@
   box-shadow: inset 3px 0 0 color-mix(in srgb, var(--azul) 55%, transparent);
 }
 .linha[data-bloco] .linha-hora-txt { display: block; }
+.mt-duracoes .selecao-opcao:disabled { opacity: .45; cursor: not-allowed; }
+.mt-ocupado { margin-left: auto; padding-left: var(--s-12); font-size: var(--t-12); color: var(--fraco); }
 .mt-duracoes { display: flex; flex-direction: column; gap: 2px; max-height: 240px; overflow-y: auto; }
 /* Uma tarefa = uma linha do papel (item 164): logo · título · responsável · prioridade colada à direita. O título encurta com "…" antes de empurrar a prioridade */
 .linha-texto { flex: 1; min-width: 0; display: flex; align-items: center; column-gap: var(--s-8); height: var(--passo); font-size: calc(22px * var(--escala)); line-height: var(--passo); }

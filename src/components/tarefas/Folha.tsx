@@ -15,7 +15,7 @@ export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: b
   /** Item 275: linhas que o bloco da tarefa ocupa (1 = comum; 2 ou mais = tarefa longa, sem pauta no meio). */ bloco?: number;
   /** Sobreposição antiga: horário gravado (ex.: "09:00–11:00") que passa do começo de outra tarefa. Só aviso; nada é gravado sozinho. */ conflito?: string;
   /** Linha de baixo de uma tarefa longa: não desenha nada, só reserva o lugar. */ ocupada?: boolean;
-  /** Minutos da tarefa e o máximo que cabe até o fim das linhas (0 = sem hora, o menu não oferece duração). */ duracao?: number; duracaoMax?: number;
+  /** Minutos da tarefa e o máximo que cabe até o fim das linhas (0 = sem hora, o menu não oferece duração). */ duracao?: number; duracaoMax?: number; /** Item 279: maior duração oferecida (até 6h, até o fim do dia) e onde começa o que bloqueia as maiores que cabem. */ duracaoLimite?: number; ocupadoAs?: string;
   /** false = só leitura para quem está olhando (trava do banco). Vazio = pode. */ podeAlterar?: boolean; podeApagar?: boolean };
 export type Opcao = { id: string; nome: string };
 const NENHUMA = "nenhuma"; // valor do seletor; a tarefa sem empresa guarda empresaId ""
@@ -193,7 +193,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
                   <button type="button" className="confirmar-nao" autoFocus onClick={() => setConfirmando(null)}>Manter</button>
                 </span>
               ) : acoes ? (
-                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} duracao={l.duracao ?? 30} duracaoMax={l.duracaoMax ?? 0} ocupadas={new Set(linhas.flatMap((x, j) => (x && x.id !== l.id && !x.id.startsWith(`${l.id}#`) ? [j] : [])))} acoes={acoes} aoExcluir={() => aoApagar(l.id)} semExcluir={l.podeApagar === false} />
+                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} duracao={l.duracao ?? 30} duracaoMax={l.duracaoMax ?? 0} duracaoLimite={l.duracaoLimite ?? 0} ocupadoAs={l.ocupadoAs} ocupadas={new Set(linhas.flatMap((x, j) => (x && x.id !== l.id && !x.id.startsWith(`${l.id}#`) ? [j] : [])))} acoes={acoes} aoExcluir={() => aoApagar(l.id)} semExcluir={l.podeApagar === false} />
               ) : l.podeApagar === false ? null : (
                 <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => setConfirmando(l.id)}>
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>

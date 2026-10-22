@@ -47,6 +47,9 @@ type Props = {
   /** Duração atual e a maior que cabe (minutos). Máximo 0 = sem horário: o menu não oferece duração. */
   duracao: number;
   duracaoMax: number;
+  /** Item 279: maior duração listada (até 6h e o fim do dia). As que passam de `duracaoMax` ficam apagadas, com `ocupadoAs`. */
+  duracaoLimite: number;
+  ocupadoAs?: string;
   /** Linhas de horário já ocupadas por outra tarefa ou bloco (aparecem desligadas em "Marcar horário"). */
   ocupadas?: ReadonlySet<number>;
   acoes: Acoes;
@@ -55,7 +58,7 @@ type Props = {
   semExcluir?: boolean;
 };
 
-export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, duracao, duracaoMax, ocupadas, acoes, aoExcluir, semExcluir }: Props) {
+export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, duracao, duracaoMax, duracaoLimite, ocupadoAs, ocupadas, acoes, aoExcluir, semExcluir }: Props) {
   const uid = useId();
   const pop = useRef<HTMLDivElement>(null);
   const [vista, setVista] = useState<"menu" | "hora" | "duracao" | "criar" | "pessoa" | "empresa" | "excluir">("menu");
@@ -97,7 +100,7 @@ export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, 
                 <Icone><circle cx="10" cy="10" r="7" /><path d="M10 6v4l2.5 2" /></Icone>
                 <span className="selecao-opcao-rotulo">Marcar horário…</span>
               </button>
-              {duracaoMax >= 60 && (
+              {duracaoLimite >= 60 && (
                 <button type="button" className="selecao-opcao" onClick={() => setVista("duracao")}>
                   <Icone><path d="M10 3v14M6 5.5l4-2.5 4 2.5M6 14.5l4 2.5 4-2.5" /></Icone>
                   <span className="selecao-opcao-rotulo">Duração: {rotuloDuracao(duracao)}…</span>
@@ -148,9 +151,14 @@ export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, 
             <>
               <button type="button" className="selecao-opcao mt-voltar" onClick={() => setVista("menu")}>‹ Voltar</button>
               <div className="mt-duracoes">
-                {Array.from({ length: Math.floor(duracaoMax / 30) }, (_, j) => (j + 1) * 30).map((m) => (
-                  <button key={m} type="button" className="selecao-opcao" aria-pressed={duracao === m || undefined} onClick={feito(() => acoes.duracao(id, m))}>{rotuloDuracao(m)}</button>
-                ))}
+                {Array.from({ length: Math.floor(duracaoLimite / 30) }, (_, j) => (j + 1) * 30).map((m) => {
+                  const cabe = m <= duracaoMax;
+                  return (
+                    <button key={m} type="button" className="selecao-opcao" disabled={!cabe} aria-pressed={duracao === m || undefined} onClick={feito(() => acoes.duracao(id, m))}>
+                      {rotuloDuracao(m)}{!cabe && ocupadoAs && <span className="mt-ocupado">ocupado às {ocupadoAs}</span>}
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}

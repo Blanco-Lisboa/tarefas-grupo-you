@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, duracaoLivre, duracaoMaxima, fichaOcupada, emConflito, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, DURACAO_MAXIMA, duracaoLimite, duracaoLivre, duracaoMaxima, ocupadoAs, cabeNaFicha, fichaOcupada, emConflito, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
   ({ id, titulo: id, tipo: "outro", empresaId: "e", responsavel: "natham", inicio, diaInteiro, cor: "etiqueta-1", links: [], arquivos: [] }) as Tarefa;
@@ -70,6 +70,19 @@ describe("tarefa longa (item 275)", () => {
     expect(fichaOcupada([a, b], da("2026-10-20T14:00"), "2026-10-20", "11:00")).toBe(false);
     expect(fichaOcupada([a, b], da("2026-10-20T10:00"), "2026-10-20", "10:00")).toBe(false); // não mudou
     expect(fichaOcupada([a], { ...da(undefined), id: undefined }, "2026-10-20", "09:30")).toBe(true); // tarefa nova
+  });
+  it("279: o menu lista de 30 min até 6h, nunca depois do fim das linhas; as que cobririam outra tarefa ficam apagadas com a hora dela", () => {
+    expect(DURACAO_MAXIMA).toBe(360);
+    expect(duracaoLimite("08:00")).toBe(360);
+    expect(duracaoLimite("20:00")).toBe(150); // 20:00 às 22:30
+    expect(duracaoLimite("22:00")).toBe(30);
+    const ler = longa("ler", "2026-10-20T08:00", "2026-10-20T08:30"), outra = longa("o", "2026-10-20T09:00", "2026-10-20T09:30");
+    const g = montarGrade([ler, outra], true, true);
+    expect(duracaoMaxima(g, 2, "08:00")).toBe(60); // só 30 min e 1h clicáveis
+    expect(ocupadoAs(g, 2)).toBe("09:00"); // o resto fica apagado: "ocupado às 09:00"
+    expect(ocupadoAs(montarGrade([ler], true, true), 2)).toBe(""); // nada bloqueia
+    expect(duracaoLivre([longa("x", "2026-10-20T07:00", "2026-10-20T07:30")], "08:00")).toBe(870); // livre até 22:30
+    expect(cabeNaFicha([], { responsavel: "natham", diaInteiro: false }, "2026-10-20", "08:00")).toBe(360); // a ficha e o arraste cortam em 6h
   });
   it("duas tarefas na mesma hora: o conflito é medido a partir da linha onde a segunda caiu", () => {
     const a = longa("a", "2026-10-20T09:00", "2026-10-20T09:30"), b = longa("b", "2026-10-20T09:00", "2026-10-20T11:00"), c = longa("c", "2026-10-20T10:00", "2026-10-20T10:30");

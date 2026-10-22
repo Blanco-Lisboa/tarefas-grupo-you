@@ -43,6 +43,22 @@ export const duracaoMaxima = (grade: readonly unknown[], k: number, hora: string
   return Math.floor((n * PASSO - sobra) / PASSO) * PASSO;
 };
 
+/** Item 279: a duração vai até 6h. */
+export const DURACAO_MAXIMA = 360;
+
+/** Até onde o menu oferece duração para a tarefa das `hora`: no máximo 6h e nunca depois do fim das linhas (22:30). */
+export const duracaoLimite = (hora: string) => Math.min(DURACAO_MAXIMA, Math.max(0, Math.floor((FIM_GRADE - minutos(hora)) / PASSO) * PASSO));
+
+/** "HH:MM" onde começa o que ocupa a primeira linha que bloqueia a tarefa da linha `k` (tarefa ou compromisso; "" se nada bloqueia até o fim). */
+export const ocupadoAs = (grade: readonly unknown[], k: number): string => {
+  const eu = grade[k];
+  let j = k + 1;
+  while (j < SLOTS && (!grade[j] || (grade[j] as Continua).continuaDe === eu)) j++;
+  const x = grade[j] as (Tarefa & { inicio?: string }) | Encaixe | null | undefined;
+  if (!x || j >= SLOTS) return "";
+  return "evento" in x ? x.inicio : horaDe(x as Tarefa) || rotuloSlot(j);
+};
+
 /** As tarefas do caderno de `dono` no `dia`, sem a que está sendo editada (`id`): o que a ficha confere antes de aceitar um horário. */
 export const outrasNoDia = (todas: Tarefa[], dia: string, dono: Responsavel | null | undefined, id?: string) =>
   todas.filter((x) => x.id !== id && x.inicio?.slice(0, 10) === dia && doCaderno(x, dono));
@@ -58,7 +74,7 @@ export function duracaoLivre(outras: Tarefa[], hora: string): number {
 type DaFicha = { id?: string; dono?: Responsavel | null; responsavel: Responsavel; inicio?: string; diaInteiro: boolean };
 /** Para a ficha (item 275): minutos que cabem no `dia` a partir de `hora` no caderno do dono (Infinity = sem limite, dia inteiro; 0 = linha ocupada). */
 export const cabeNaFicha = (todas: Tarefa[], t: DaFicha, dia: string, hora: string) =>
-  !dia || t.diaInteiro ? Infinity : duracaoLivre(outrasNoDia(todas, dia, t.dono ?? t.responsavel, t.id), hora);
+  !dia || t.diaInteiro ? Infinity : Math.min(DURACAO_MAXIMA, duracaoLivre(outrasNoDia(todas, dia, t.dono ?? t.responsavel, t.id), hora));
 /** A ficha barra o início que cai em linha ocupada. Início que não mudou (sobreposição antiga) segue salvando; só o Caderno avisa. */
 export const fichaOcupada = (todas: Tarefa[], t: DaFicha, dia: string, hora: string) =>
   (!t.id || `${dia}T${hora}` !== t.inicio) && cabeNaFicha(todas, t, dia, hora) === 0;

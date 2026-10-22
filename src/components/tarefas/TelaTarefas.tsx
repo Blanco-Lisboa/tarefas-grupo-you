@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { doCaderno, duracaoDe, duracaoMaxima, emConflito, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { doCaderno, DURACAO_MAXIMA, duracaoDe, duracaoLimite, duracaoMaxima, ocupadoAs, emConflito, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -112,6 +112,8 @@ export function TelaTarefas() {
     duracao: duracaoDe(t),
     conflito: aba === "dia" && emConflito(grade, k, t) ? `${horaDe(t)}–${t.fim!.slice(11, 16)}` : undefined,
     duracaoMax: aba === "dia" && horaDe(t) ? duracaoMaxima(grade, k, horaDe(t)) : 0,
+    duracaoLimite: aba === "dia" && horaDe(t) ? duracaoLimite(horaDe(t)) : 0,
+    ocupadoAs: aba === "dia" && horaDe(t) ? ocupadoAs(grade, k) : undefined,
     };
   };
   const linhas = grade.map(linhaDe);
@@ -214,7 +216,7 @@ export function TelaTarefas() {
     const quer = t.inicio && t.fim && t.inicio.length > 10 && t.fim.length > 10 ? Math.max(15, minutos(t.fim.slice(11, 16)) - minutos(t.inicio.slice(11, 16))) : 30;
     let cabe = 1;
     while (linha + cabe < SLOTS && livre(linha + cabe)) cabe++;
-    const dur = Math.min(quer, Math.max(30, cabe * 30));
+    const dur = Math.min(quer, Math.max(30, cabe * 30), DURACAO_MAXIMA);
     void salvarTarefa({ ...t, inicio: `${dia}T${h}`, fim: `${dia}T${somarMinutos(h, dur)}`, diaInteiro: false });
   };
   // Mesma hora, um dia depois (sem data: vira dia inteiro no dia seguinte ao que está aberto).
