@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { enviarEmPartes } from "../../../src/lib/dados/drive";
 import { BASE_FALSA, criarGoogleFalso } from "../_shared/google-falso.ts";
 import { assinar, criarGoogle } from "../_shared/google.ts";
-import { criarManipulador } from "./acoes.ts";
+import { criarManipulador, limitarRange, PEDACO_VIDEO } from "./acoes.ts";
 import { criarDriveApi } from "./drive-api.ts";
 import { criarBancoFalso, URL_FALSA } from "./supabase-falso.ts";
 
@@ -297,6 +297,14 @@ describe("drive: vídeo por pedaços (S5 com Google falso)", () => {
     expect(fim.status).toBe(206);
     expect((await fim.arrayBuffer()).byteLength).toBe(100);
     expect((await m.tratar(new Request(url, { headers: { range: "bytes=5000-" } }))).status).toBe(416);
+  });
+  it("289: Range aberto ou sem Range nunca pede ao Drive mais que 4 MB (o vídeo inteiro estourava o Egress)", () => {
+    const MB4 = PEDACO_VIDEO - 1;
+    expect(limitarRange("bytes=0-")).toBe(`bytes=0-${MB4}`);
+    expect(limitarRange(null)).toBe(`bytes=0-${MB4}`);
+    expect(limitarRange("bytes=1000-")).toBe(`bytes=1000-${1000 + MB4}`);
+    expect(limitarRange("bytes=0-999999999")).toBe(`bytes=0-${MB4}`);
+    expect(limitarRange("bytes=100-199")).toBe("bytes=100-199");
   });
   it("link adulterado, vencido ou de outro arquivo é recusado", async () => {
     const m = montar(); await anexar(m, new Uint8Array(10));

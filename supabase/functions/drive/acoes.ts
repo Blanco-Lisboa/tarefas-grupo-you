@@ -27,6 +27,16 @@ const CORS = {
 const json = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status, headers: { ...CORS, "content-type": "application/json" } });
 const FORMATOS_E_SEM = [...FORMATOS, null];
 
+// 289 · Range aberto ("bytes=N-", o que o <video> sempre pede) fazia o Drive despejar o vídeo INTEIRO por aqui a cada pulo da
+// barrinha da capa: 130 GB de Egress num dia. Teto de 4 MB por pedido; o navegador recebe 206 e pede o pedaço seguinte se precisar.
+export const PEDACO_VIDEO = 4 * 1024 * 1024;
+export function limitarRange(range: string | null): string {
+  const m = /^bytes=(\d+)-(\d*)$/.exec(range ?? "bytes=0-");
+  if (!m) return range!;
+  const ini = Number(m[1]), teto = ini + PEDACO_VIDEO - 1;
+  return `bytes=${ini}-${m[2] ? Math.min(Number(m[2]), teto) : teto}`;
+}
+
 export function criarManipulador(d: Deps) {
   const agora = d.agora ?? Date.now;
   const url = () => d.env("SUPABASE_URL")!;
@@ -285,7 +295,7 @@ export function criarManipulador(d: Deps) {
     if (!(ate > agora()) || !(await conferir(await segredo(), `${ver}.${ate}`, sig))) return json(403, { erro: "Link vencido." });
     const [a] = await servico().ler<{ drive_id: string | null }>("arquivos", { id: ver }, "drive_id");
     if (!a?.drive_id) return json(404, { erro: "Vídeo não encontrado." });
-    const r = await d.baixar(a.drive_id, req.headers.get("range"));
+    const r = await d.baixar(a.drive_id, limitarRange(req.headers.get("range")));
     const h = new Headers(CORS);
     for (const n of ["content-type", "content-length", "content-range"]) { const v = r.headers.get(n); if (v) h.set(n, v); }
     h.set("accept-ranges", "bytes");
