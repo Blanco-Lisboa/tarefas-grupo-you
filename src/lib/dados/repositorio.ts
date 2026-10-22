@@ -48,6 +48,7 @@ export const assinar = (f: () => void) => {
 };
 
 export const falhou = (mensagem: string) => { erro = mensagem; avisar(); };
+export const recarregarTarefas = () => carregar(); // 268: o envio em segundo plano relê o card ao terminar
 /** Relê as tarefas e anexos do banco (o envio em segundo plano usa ao terminar). */
 export const recarregarTarefas = () => carregar();
 const idDe = (slug: Responsavel) => pessoas.find((p) => p.slug === slug)?.id;

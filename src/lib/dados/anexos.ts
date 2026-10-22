@@ -2,6 +2,7 @@
 // Card SEM empresa: fica no Supabase como antes, mas vídeo não entra (vídeo nunca mora no Supabase).
 import { Upload } from "tus-js-client";
 import { supabase } from "@/lib/supabase/cliente";
+import { enviarEmSegundoPlano } from "./envios";
 import { apagarAnexoDrive, enviarParaDrive, ordenarAnexosDrive, recarregarOcasioes, registrarProgresso } from "./drive";
 import type { Tarefa } from "./tipos";
 
@@ -54,6 +55,8 @@ export async function carregarAnexos(sb: Cliente): Promise<Map<string, Arquivos>
   return porTarefa;
 }
 
+/** "original" só nasce no servidor (270): o que sobe agora é anexo ou capa. */
+const papelNoEnvio = (a: Arquivos[number]) => (a.papel === "capa" ? "capa" : "anexo");
 const chaveDe = (a: Arquivos[number]) => a.id ?? a.caminho ?? a.driveId;
 
 /** Deixa Drive, Storage e tabela iguais ao que a ficha mostra: apaga o que saiu, sobe o que é novo, guarda a ordem do carrossel. Devolve a lista já com id e endereço. */
@@ -71,8 +74,9 @@ export async function sincronizarAnexos(sb: Cliente, tarefaId: string, empresaId
   const guardados: Arquivos = [];
   for (const [i, a] of agora.entries()) {
     if (!a.pendente) { guardados.push(a); continue; }
+    if (empresaId && a.tipo === "video") { enviarEmSegundoPlano(tarefaId, a.pendente, { papel: papelNoEnvio(a), ordem: i }); continue; } // 268: vídeo sobe em segundo plano; o card o recebe ao terminar
     if (empresaId) {
-      const novo = { ...(await enviarParaDrive(tarefaId, a.pendente, a.papel ?? "anexo", i, (f) => { registrarProgresso(a.url, f); aoProgredir?.(a.nome, f); })), url: a.url }; // url local (blob:) vale até recarregar
+      const novo = { ...(await enviarParaDrive(tarefaId, a.pendente, papelNoEnvio(a), i, (f) => { registrarProgresso(a.url, f); aoProgredir?.(a.nome, f); })), url: a.url }; // url local (blob:) vale até recarregar
       Object.assign(a, novo, { pendente: undefined }); // já está no Drive: se um anexo seguinte falhar, salvar de novo não manda este outra vez
       guardados.push(novo);
       continue;

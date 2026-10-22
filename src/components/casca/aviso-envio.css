@@ -1,0 +1,11 @@
+/* Aviso do envio em segundo plano (AvisoEnvio): canto de baixo à direita, acima das telas e abaixo do aviso de erro */
+.aviso-envio { position: fixed; z-index: 85; right: var(--s-16); bottom: var(--s-16); display: grid; gap: var(--s-8); margin: 0; padding: 0; list-style: none; width: min(92vw, 320px); }
+.aviso-envio li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); padding: var(--s-8) var(--s-12); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); font-size: var(--app-t-rotulo); box-shadow: var(--sombra-alta); }
+.aviso-envio-nome { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aviso-envio b { font-weight: 600; }
+.aviso-envio li[data-estado="falhou"] b { color: var(--atrasado); }
+.aviso-envio button { border: 0; background: none; color: var(--azul); font: inherit; cursor: pointer; padding: 0 var(--s-4); }
+.aviso-envio-barra { flex-basis: 100%; height: 4px; border-radius: 2px; background: var(--sup-2); overflow: hidden; }
+.aviso-envio-barra > i { display: block; height: 100%; background: var(--azul); transition: width .2s ease; }
+@media (prefers-reduced-motion: reduce) { .aviso-envio-barra > i { transition: none; } }
+@media (max-width: 480px) { .aviso-envio { right: var(--s-8); bottom: 72px; } }

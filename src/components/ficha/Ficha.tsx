@@ -33,6 +33,7 @@ import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { Agora } from "./Agora";
 import { podeAprovar } from "./Aprovacao";
 import { Anexos } from "./Anexos";
+import { useArquivosQueChegam } from "./anexos-vivos";
 import { CamposPost } from "./CamposPost";
 import { Publicacao } from "./Publicacao";
 import { TagsFicha } from "./TagsFicha";
@@ -105,6 +106,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
   const postTravado = !nova && (tarefa.etapa === "aprovado" || tarefa.etapa === "postado") && !(podeAlterar(tarefa as Tarefa, eu) && ehQuemAprova(tarefa.aprovador, eu));
   const fora = arquivos.filter((a) => a.papel === "capa" || a.papel === "original"); // não entram em Anexos: a capa (campo próprio) e o vídeo sem legenda guardado (270)
   const viva = todas.find((x) => x.id === tarefa.id); // a ficha nasce de uma cópia; a Publicação lê o card vivo (postando, erro, links)
+  useArquivosQueChegam(viva?.arquivos, tarefa.arquivos, setArquivos); // 268
   const temEmpresa = empresas.some((x) => x.id === t.empresaId);
   const empresaOk = !t.empresaId || temEmpresa; // "" = sem empresa
   const mudar = <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => setT((x) => ({ ...x, [campo]: valor }));
@@ -298,7 +300,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
           <TagsFicha t={t} mudar={mudar} pedeAprovador={pedeAprovador} aprovadorTravado={aprovadorTravado} />
 
           <LinksDrive links={links} aoMudar={setLinks} />
-          <div className="ficha-anexos-trava" data-travada={postTravado || undefined}><Anexos valor={arquivos.filter((a) => !fora.includes(a))} aoMudar={(v) => setArquivos([...v, ...fora])} empresaId={t.empresaId} carrossel={t.formato === "carrossel"} /></div>
+          <div className="ficha-anexos-trava" data-travada={postTravado || undefined}><Anexos valor={arquivos.filter((a) => !fora.includes(a))} aoMudar={(v) => setArquivos([...v, ...fora])} empresaId={t.empresaId} tarefaId={t.id} carrossel={t.formato === "carrossel"} /></div>
           {viva && <PrazoDrive t={viva} />}
           <AvisosVideo arquivos={arquivos} viva={viva} travado={postTravado} />
 

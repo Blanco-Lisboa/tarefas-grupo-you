@@ -30,4 +30,5 @@ export * from "./agenda";
 export * from "./anotacoes";
 export * from "./agenda-feitos";
 export * from "./drive";
+export * from "./envios";
 export * from "./arvore";

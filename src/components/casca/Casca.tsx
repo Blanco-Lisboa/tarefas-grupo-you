@@ -3,6 +3,7 @@ import { useSyncExternalStore, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { FiltroEmpresa } from "./FiltroEmpresa";
 import { AvisoErro } from "./AvisoErro";
+import { AvisoEnvio } from "./AvisoEnvio";
 import { Menu } from "./Menu";
 import { assinar, definirRecolhido, lerRecolhido } from "./menu-recolhido";
 import "./casca.css";
@@ -26,6 +27,7 @@ export function Casca({ children }: { children: ReactNode }) {
         )}
         {children}
         <AvisoErro />
+        <AvisoEnvio />
       </main>
     </div>
   );

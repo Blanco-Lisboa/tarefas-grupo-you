@@ -1,19 +1,20 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- o anexo é um endereço temporário do navegador (blob:), next/image não serve */
 import { useEffect, useRef, useState, type DragEvent } from "react";
-import { tipoDe, useProgressoEnvio, type Arquivo } from "@/lib/dados";
+import { enviarEmSegundoPlano, tipoDe, useProgressoEnvio, type Arquivo } from "@/lib/dados";
 import "./anexos.css";
 
 // Anexos da tarefa (itens 129 e 203): imagem, vídeo ou documento, arrastados para cá ou escolhidos no computador.
 // O arquivo escolhido espera em `pendente` (com um blob: só para mostrar); quem sobe (Drive, ou Supabase se o card não tem empresa) é o salvarTarefa, ao salvar a ficha.
+// Vídeo (268) sobe em segundo plano pela fila de envios: na hora, se o card já existe; ao salvar, se é novo.
 // `papel="capa"`: campo da capa do Reels, aceita UMA imagem (a nova troca a antiga). `carrossel`: os anexos se arrastam para mudar a ordem.
 const DOCUMENTO = /^(application\/(pdf|msword|vnd\.ms-excel|vnd\.ms-powerpoint|vnd\.openxmlformats-officedocument\..+)|text\/(plain|csv))$/;
 const CLIPE = "M21 12.5l-8.5 8.5a5.5 5.5 0 01-7.8-7.8L13.2 4.7a3.7 3.7 0 015.2 5.2l-8.5 8.5a1.9 1.9 0 01-2.6-2.6L14.6 7.5";
 const ROTULO = { video: "Vídeo", imagem: "Foto", documento: "Doc" } as const;
 
-type Props = { valor: Arquivo[]; aoMudar: (v: Arquivo[]) => void; papel?: "anexo" | "capa"; carrossel?: boolean; empresaId?: string };
+type Props = { valor: Arquivo[]; aoMudar: (v: Arquivo[]) => void; papel?: "anexo" | "capa"; carrossel?: boolean; empresaId?: string; tarefaId?: string };
 
-export function Anexos({ valor, aoMudar, papel = "anexo", carrossel, empresaId }: Props) {
+export function Anexos({ valor, aoMudar, papel = "anexo", carrossel, empresaId, tarefaId }: Props) {
   const capa = papel === "capa";
   const entrada = useRef<HTMLInputElement>(null);
   const grande = useRef<HTMLDialogElement>(null);
@@ -34,6 +35,10 @@ export function Anexos({ valor, aoMudar, papel = "anexo", carrossel, empresaId }
     if (capa) aceitos = aceitos.slice(0, 1);
     if (empresaId === "" && aceitos.some((f) => f.type.startsWith("video/"))) { // vídeo nunca mora no Supabase: card sem empresa não o aceita
       setRecusa("Escolha a empresa para anexar vídeo");
+      aceitos = aceitos.filter((f) => !f.type.startsWith("video/"));
+    }
+    if (tarefaId && empresaId) { // 268: card que já existe no banco: o vídeo começa a subir já, em segundo plano, mesmo que a ficha feche
+      aceitos.filter((f) => f.type.startsWith("video/")).forEach((f, i) => enviarEmSegundoPlano(tarefaId, f, { papel, ordem: valor.length + i }));
       aceitos = aceitos.filter((f) => !f.type.startsWith("video/"));
     }
     const novos = aceitos.map((f): Arquivo => ({ nome: f.name, url: URL.createObjectURL(f), tipo: tipoDe(f), pendente: f, papel }));
