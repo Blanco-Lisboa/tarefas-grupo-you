@@ -12,7 +12,7 @@ export function CampoConserto({ viva, t, mudar, soLer }: { viva?: Tarefa; t: Nov
   const escreve = (viva.etapa === "analise" || viva.etapa === "edicao") && podeAprovar(viva, eu);
   if (!escreve && !t.consertoTexto) return null;
   return (
-    <label className="ficha-campo"><span className="ficha-legenda">Conserto</span>
+    <label className="ficha-campo ficha-conserto" data-com-texto={t.consertoTexto?.trim() ? "" : undefined}><span className="ficha-legenda">Conserto</span>
       <textarea rows={3} maxLength={2000} value={t.consertoTexto ?? ""} readOnly={!escreve} onChange={(e) => mudar("consertoTexto", e.target.value)} placeholder="O que precisa ser editado neste vídeo?" />
     </label>
   );
