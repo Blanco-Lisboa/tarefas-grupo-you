@@ -4,7 +4,9 @@
 import { supabase } from "@/lib/supabase/cliente";
 import { carregarAnexos, ErroAnexo, sincronizarAnexos } from "./anexos";
 import { apagarTarefaComArquivos } from "./drive";
-import { ligarTempoReal } from "./tempo-real";
+import { AVISOS, ligarTempoReal } from "./tempo-real";
+import { campoOcasiao, paraBanco, podeAlterar, podeApagar, postadoEmDe, trocarFazendo } from "./repositorio-regras";
+export { campoOcasiao, paraBanco, podeAlterar, podeApagar, postadoEmDe, trocarFazendo };
 import { campoConsertoTexto, fecharAprovada } from "./esteira";
 import { carregarPostagens, postando, postarEmQueVale, redesQueValem } from "./postagens";
 import type { Empresa, Fazendo, NovaTarefa, Postagem, Responsavel, Tag, Tarefa } from "./tipos";
@@ -43,7 +45,7 @@ export const assinar = (f: () => void) => {
   ouvintes.add(f);
   iniciar();
   // 274 · Tempo real: enquanto houver tela olhando, o banco avisa quando algo muda. Última tela sai = desliga.
-  desligarTempoReal ??= ligarTempoReal("esteira", ["tarefas", "tarefa_tags", "tags", "empresas", "fazendo_agora", "arquivos", "postagens"], () => void carregar());
+  desligarTempoReal ??= ligarTempoReal("esteira", AVISOS.esteira, () => void carregar());
   return () => { ouvintes.delete(f); if (!ouvintes.size) { desligarTempoReal?.(); desligarTempoReal = undefined; } };
 };
 
@@ -53,11 +55,6 @@ const idDe = (slug: Responsavel) => pessoas.find((p) => p.slug === slug)?.id;
 const slugDe = (id: string | null) => pessoas.find((p) => p.id === id)?.slug;
 
 type LinhaFazendo = { pessoa_id: string; tarefa_id: string; desde: string };
-/** Cada pessoa tem no máximo uma tarefa: tira a linha antiga de `quem` e, se `tarefaId`, põe a nova (começar outra troca sozinho). Se duas pessoas estão na mesma tarefa, o mapa guarda a que começou por último. */
-export function trocarFazendo(mapa: Record<string, Fazendo>, quem: Responsavel, tarefaId: string | null, desde = new Date().toISOString()): Record<string, Fazendo> {
-  const resto = Object.fromEntries(Object.entries(mapa).filter(([, f]) => f.quem !== quem));
-  return tarefaId ? { ...resto, [tarefaId]: { quem, desde } } : resto;
-}
 const doBanco = (ls: LinhaFazendo[]) =>
   ls.toSorted((a, b) => a.desde.localeCompare(b.desde)).reduce((m, l) => { const q = slugDe(l.pessoa_id); return q ? trocarFazendo(m, q, l.tarefa_id, l.desde) : m; }, {} as Record<string, Fazendo>);
 
@@ -76,29 +73,6 @@ export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem:
   };
 }
 
-/** 238 · O que vai em `ocasiao_id` ao salvar. Com tema: manda. SEM tema mas o card tinha um: manda null (a ficha tirou o Tema, ou mudou de empresa).
-    Nunca teve tema: nem manda (a coluna só existe depois do 019). */
-export const campoOcasiao = (atual: string | undefined, antes: string | undefined): { ocasiao_id?: string | null } =>
-  atual ? { ocasiao_id: atual } : antes ? { ocasiao_id: null } : {};
-/** 238 · Quando o card entrou em Postado, do jeito que o gatilho do banco grava: entrar agora = agora; já estava Postado = mantém; saiu = nada.
-    Assim o prazo dos 7 dias mostra a data real logo depois de arrastar, sem esperar recarregar. */
-export const postadoEmDe = (antes: { etapa?: string; postadoEm?: string } | undefined, etapa: string | undefined, agora = new Date()): string | undefined =>
-  etapa !== "postado" ? undefined : antes?.etapa === "postado" && antes.postadoEm ? antes.postadoEm : agora.toISOString();
-
-/** Campos que a pessoa pode mudar depois de criada (dono, criado_por e enviada_por o banco não deixa mudar). */
-export const paraBanco = (t: Tarefa, responsavelId: string | undefined) => ({
-  titulo: t.titulo, tipo: t.tipo, empresa_id: t.empresaId || null, rede: t.rede ?? null, etapa: t.etapa ?? null,
-  responsavel_id: responsavelId, inicio: t.inicio ?? null, fim: t.fim ?? null, dia_inteiro: t.diaInteiro, cor: t.cor,
-  concluida: !!t.concluida, objetivo: t.objetivo ?? null, notas: t.notas ?? null, links: t.links, aprovador: t.aprovador ?? null,
-});
-
-/** Espelha as travas do banco (009). Tarefa ENVIADA: só quem enviou altera; quem recebeu só lê. Não enviada: o dono, ou qualquer um se for conteúdo com empresa. */
-export const podeAlterar = (t: Tarefa, eu: Responsavel | null) =>
-  !!eu && (t.enviadaPor ? t.enviadaPor === eu : t.dono === eu || (!!t.etapa && !!t.empresaId));
-/** Quem pode APAGAR (019): enviada = quem enviou; não enviada = o dono; e conteúdo com empresa, também o Natham e o Matheus (lixeira e Concluir). */
-export const podeApagar = (t: Tarefa, eu: Responsavel | null) =>
-  !!eu && ((t.enviadaPor ?? t.dono) === eu || (!!t.etapa && !!t.empresaId && (eu === "natham" || eu === "matheus")));
-
 function iniciar() {
   if (typeof window === "undefined" || iniciado) return;
   iniciado = carregar();
@@ -108,7 +82,19 @@ function iniciar() {
 
 const daTag = (x: Tag): Tag => ({ id: x.id, nome: x.nome, cor: x.cor, ...(x.aprovacao && { aprovacao: true as const }) });
 
+/** 274 · Leitura x gravação: enquanto alguma gravação está no ar, a leitura espera (relerDepois) e, se uma gravação começou depois dela,
+    a resposta é descartada. Sem isso, o aviso do banco trazia o dado antigo por cima da tela e o card "voltava". */
+let escrevendo = 0, relerDepois = false, leitura = 0;
+const protegida = <A extends unknown[], R>(f: (...a: A) => Promise<R>) => async (...a: A): Promise<R> => {
+  escrevendo++; leitura++;
+  try { return await f(...a); } finally { leitura++; if (--escrevendo === 0 && relerDepois) { relerDepois = false; void carregar(); } }
+};
+
+/** Só para o teste da corrida (repositorio-corrida.test.ts). */
+export const carregarAgora = () => carregar();
 async function carregar() {
+  if (escrevendo) { relerDepois = true; return; }
+  const n = ++leitura;
   const sb = supabase();
   const [p, e, t, g, f, sessao] = await Promise.all([
     sb.from("pessoas").select("id, slug, user_id"),
@@ -120,10 +106,12 @@ async function carregar() {
   ]);
   const problema = p.error ?? e.error ?? t.error ?? g.error ?? f.error;
   if (problema) return falhou("Não consegui carregar os dados. Recarregue a página.");
+  if (n !== leitura || escrevendo) { relerDepois ||= !!escrevendo; return; } // uma gravação começou no meio: esta leitura já nasceu velha
   pessoas = p.data as Pessoa[];
   eu = pessoas.find((x) => x.user_id === sessao.data?.claims.sub)?.slug ?? null;
   if (!eu) falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham.");
   const [anexos, postagens] = await Promise.all([carregarAnexos(sb), carregarPostagens(sb)]);
+  if (n !== leitura || escrevendo) { relerDepois ||= !!escrevendo; return; }
   empresas = e.data as Empresa[];
   tags = (g.data as Tag[]).map(daTag);
   tarefas = (t.data as LinhaTarefa[]).map((l) => daLinha(l, anexos.get(l.id) ?? tarefas.find((x) => x.id === l.id)?.arquivos.filter((a) => a.pendente), slugDe, postagens.get(l.id)))
@@ -156,7 +144,7 @@ export const funcaoAusente = (e: { code?: string } | null) => e?.code === "PGRST
 
 /** Devolve a tarefa gravada, ou null se o banco recusou (nada mudou). Gravada com anexo que não subiu: devolve a tarefa e o aviso
     (lerErro) diz que "a tarefa foi salva, mas..." (Lupa 215 v2: quem chama trata como salva). */
-export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa | null> {
+async function salvarTarefaDireto(nova: NovaTarefa): Promise<Tarefa | null> {
   const id = nova.id ?? crypto.randomUUID();
   const antes = tarefas.find((t) => t.id === id);
   const dono = antes?.dono ?? nova.enviarPara ?? eu ?? undefined;
@@ -222,7 +210,7 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa | null> {
   return tarefa;
 }
 
-export async function removerTarefa(id: string): Promise<void> {
+async function removerTarefaDireto(id: string): Promise<void> {
   const alvo = tarefas.find((t) => t.id === id);
   if (alvo && !podeApagar(alvo, eu)) return falhou(soLeitura);
   const antes = tarefas;
@@ -244,7 +232,7 @@ export async function removerTarefa(id: string): Promise<void> {
 }
 
 /** "Postar agora" (196): só Natham/aprovador, card de Postagem em Aprovado; o banco marca a hora e chama a função. */
-export async function postarAgora(id: string): Promise<void> {
+async function postarAgoraDireto(id: string): Promise<void> {
   const { error } = await supabase().rpc("postar_agora", { p_tarefa: id });
   if (error) return falhou(motivoDoBanco(error, "Não consegui mandar postar. Tente de novo."));
   // Mostra "Postando…" na hora (a rede que já saiu fica como está); a próxima carga traz o que a função gravou.
@@ -255,7 +243,7 @@ export async function postarAgora(id: string): Promise<void> {
 }
 
 /** "Tentar de novo" (196): volta para a fila só as redes que deram erro (a que já saiu não repete). */
-export async function tentarDeNovo(id: string): Promise<void> {
+async function tentarDeNovoDireto(id: string): Promise<void> {
   const { error } = await supabase().rpc("tentar_de_novo", { p_tarefa: id });
   if (error) return falhou(motivoDoBanco(error, "Não consegui tentar de novo. Tente outra vez."));
   tarefas = tarefas.map((t) => (t.id === id ? { ...t, postagens: t.postagens?.map((p) => (p.status === "erro" ? { ...p, status: "fila" as const, erro: undefined } : p)) } : t));
@@ -264,7 +252,7 @@ export async function tentarDeNovo(id: string): Promise<void> {
   espiar();
 }
 
-export async function salvarEmpresa(empresa: Empresa): Promise<Empresa> {
+async function salvarEmpresaDireto(empresa: Empresa): Promise<Empresa> {
   const antes = empresas;
   const nova = !empresas.some((e) => e.id === empresa.id);
   empresas = nova ? [...empresas, empresa] : empresas.map((e) => (e.id === empresa.id ? empresa : e));
@@ -275,7 +263,7 @@ export async function salvarEmpresa(empresa: Empresa): Promise<Empresa> {
   return empresa;
 }
 
-export async function salvarTag(nova: Omit<Tag, "id">): Promise<Tag> {
+async function salvarTagDireto(nova: Omit<Tag, "id">): Promise<Tag> {
   const tag = { ...nova, id: crypto.randomUUID() };
   tags = [...tags, tag];
   avisar();
@@ -285,7 +273,7 @@ export async function salvarTag(nova: Omit<Tag, "id">): Promise<Tag> {
 }
 
 /** 242 · Nome e cor de uma tag (pela lista de Tags da ficha). Otimista; volta se o banco recusar. A tag do sistema (aprovacao) não muda. */
-export async function editarTag(id: string, mudou: Pick<Tag, "nome" | "cor">): Promise<void> {
+async function editarTagDireto(id: string, mudou: Pick<Tag, "nome" | "cor">): Promise<void> {
   const antes = tags.find((t) => t.id === id);
   if (!antes || antes.aprovacao) return;
   tags = tags.map((t) => (t.id === id ? { ...t, ...mudou } : t));
@@ -296,7 +284,7 @@ export async function editarTag(id: string, mudou: Pick<Tag, "nome" | "cor">): P
 
 /** 242 · Apaga a tag; o banco a tira de todos os cards sozinho (tarefa_tags com on delete cascade).
     243: NÃO é otimista: a tag só sai da tela (e dos rascunhos, que filtram ao salvar) DEPOIS que o banco confirma. true = apagou. */
-export async function excluirTag(id: string): Promise<boolean> {
+async function excluirTagDireto(id: string): Promise<boolean> {
   const antes = tags.find((t) => t.id === id);
   if (!antes || antes.aprovacao) return false;
   const { error } = await supabase().from("tags").delete().eq("id", id);
@@ -327,7 +315,7 @@ export async function recarregarTags(): Promise<string[]> {
 }
 
 /** Marca a tarefa em que `eu` está agora (troca a anterior, se houver). Otimista; volta se o banco recusar. */
-export async function comecar(tarefaId: string): Promise<void> {
+async function comecarDireto(tarefaId: string): Promise<void> {
   if (!eu) return falhou("Seu login ainda não está ligado a uma pessoa. Fale com o Natham.");
   const t = tarefas.find((x) => x.id === tarefaId);
   if (!t || !podeAlterar(t, eu)) return falhou("Você só pode marcar tarefa que pode editar.");
@@ -339,7 +327,7 @@ export async function comecar(tarefaId: string): Promise<void> {
 }
 
 /** Tira o selo de `eu`. */
-export async function parar(): Promise<void> {
+async function pararDireto(): Promise<void> {
   if (!eu) return;
   const antes = fazendo;
   fazendo = trocarFazendo(fazendo, eu, null);
@@ -347,3 +335,14 @@ export async function parar(): Promise<void> {
   const { error } = await supabase().from("fazendo_agora").delete().eq("pessoa_id", idDe(eu));
   if (error) { fazendo = antes; falhou("Não consegui tirar a marca. Tente de novo."); }
 }
+
+export const salvarTarefa = protegida(salvarTarefaDireto);
+export const removerTarefa = protegida(removerTarefaDireto);
+export const postarAgora = protegida(postarAgoraDireto);
+export const tentarDeNovo = protegida(tentarDeNovoDireto);
+export const salvarEmpresa = protegida(salvarEmpresaDireto);
+export const salvarTag = protegida(salvarTagDireto);
+export const editarTag = protegida(editarTagDireto);
+export const excluirTag = protegida(excluirTagDireto);
+export const comecar = protegida(comecarDireto);
+export const parar = protegida(pararDireto);

@@ -3,7 +3,7 @@
 "use client";
 import { useEffect, useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabase/cliente";
-import { ligarTempoReal } from "./tempo-real";
+import { AVISOS, ligarTempoReal } from "./tempo-real";
 import type { Responsavel } from "./tipos";
 
 export type CampoNota = "notas" | "lembrar";
@@ -24,7 +24,7 @@ const assinar = (f: () => void) => {
     // ao esconder a aba, grava já o que ainda esperava o atraso (não perde o final da frase)
     document.addEventListener("visibilitychange", () => { if (document.hidden) [...atrasos.keys()].forEach((k) => { clearTimeout(atrasos.get(k)); void gravar(k); }); });
   }
-  desligarTempoReal ??= ligarTempoReal("caderno", ["anotacoes_dia", "nao_esquecer"], () => [...textos.keys()].forEach((k) => { const [c, quem, dia] = k.split("|") as [CampoNota, Responsavel, string]; void carregar(c, quem, dia); })); // 274
+  desligarTempoReal ??= ligarTempoReal("caderno", AVISOS.caderno, () => [...textos.keys()].forEach((k) => { const [c, quem, dia] = k.split("|") as [CampoNota, Responsavel, string]; void carregar(c, quem, dia); })); // 274
   return () => { ouvintes.delete(f); if (!ouvintes.size) { desligarTempoReal?.(); desligarTempoReal = undefined; } };
 };
 const definir = (k: string, v: string) => { textos = new Map(textos).set(k, v); ouvintes.forEach((f) => f()); };

@@ -3,7 +3,7 @@
 "use client";
 import { useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabase/cliente";
-import { ligarTempoReal } from "./tempo-real";
+import { AVISOS, ligarTempoReal } from "./tempo-real";
 
 const NADA: ReadonlySet<string> = new Set();
 let feitos = NADA;
@@ -25,7 +25,7 @@ const assinar = (f: () => void) => {
     void carregar();
     document.addEventListener("visibilitychange", () => { if (!document.hidden) void carregar(); });
   }
-  desligarTempoReal ??= ligarTempoReal("agenda-feitos", ["agenda_feitos"], () => void carregar()); // 274
+  desligarTempoReal ??= ligarTempoReal("agenda-feitos", AVISOS.feitos, () => void carregar()); // 274
   return () => { ouvintes.delete(f); if (!ouvintes.size) { desligarTempoReal?.(); desligarTempoReal = undefined; } };
 };
 

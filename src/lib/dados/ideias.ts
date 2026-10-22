@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabase/cliente";
 import { falhou } from "./repositorio";
-import { ligarTempoReal } from "./tempo-real";
+import { AVISOS, ligarTempoReal } from "./tempo-real";
 
 export type Ideia = { id: string; empresaId: string; categoria: string; titulo: string; texto: string; links: string[] };
 type Estado = { ideias: Ideia[]; categorias: string[] };
@@ -26,7 +26,7 @@ const assinar = (f: () => void) => {
     iniciado = true;
     document.addEventListener("visibilitychange", () => { if (!document.hidden) [...estado.keys()].forEach((e) => void carregarIdeias(e)); });
   }
-  desligarTempoReal ??= ligarTempoReal("ideias", ["ideias", "ideias_categorias"], () => [...estado.keys()].forEach((e) => void carregarIdeias(e))); // 274
+  desligarTempoReal ??= ligarTempoReal("ideias", AVISOS.ideias, () => [...estado.keys()].forEach((e) => void carregarIdeias(e))); // 274
   return () => { ouvintes.delete(f); if (!ouvintes.size) { desligarTempoReal?.(); desligarTempoReal = undefined; } };
 };
 const trocar = (e: string, f: (s: Estado) => Estado) => { estado = new Map(estado).set(e, f(estado.get(e) ?? VAZIO)); ouvintes.forEach((o) => o()); };
