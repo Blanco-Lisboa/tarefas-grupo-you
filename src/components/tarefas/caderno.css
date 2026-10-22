@@ -3,7 +3,7 @@
    Página da esquerda = 31 linhas com o horário na margem (07:00 a 22:00); página da direita = agenda do dia. */
 .tarefas-tela {
   --passo: 36px;
-  --col-hora: 56px;
+  --col-hora: 54px; /* 291 v2: largura do texto "07:00" (~42px) + folga igual dos dois lados */
   /* Verde do check: os mesmos dois verdes do check do CRM (pedido do Natham, item 44). Só neste caderno. */
   --verde: #00b37a;        /* marcado */
   --verde-escuro: #00875a; /* quadro vazio e traço de caneta */
@@ -62,7 +62,7 @@
 .folha-lapis { color: var(--fraco); }
 
 /* ===== Página esquerda: as linhas ===== */
-.folha { --margem-x: 8px; } /* item 291: horário e margem encostados na lateral, como no caderno do CRM */
+.folha { --margem-x: 0px; } /* item 291 v2: a coluna da hora começa na borda da folha; o texto fica centrado entre a borda e a linha azul */
 .folha[data-continua] .pag-miolo { padding-bottom: 0; } /* sem folga no pé: o papel pautado vai até a borda nas duas páginas */
 .folha-quem {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao);
@@ -82,11 +82,11 @@
   transition: background-color var(--dur-rapida) var(--curva);
 }
 .linha:hover { background-color: var(--realce); }
-.linha-hora { padding-right: var(--s-8); text-align: right; font-size: calc(17px * var(--escala)); line-height: var(--passo); color: var(--fraco); }
+.linha-hora { text-align: center; font-size: calc(17px * var(--escala)); line-height: var(--passo); color: var(--fraco); }
 .linha-miolo { display: flex; align-items: flex-start; gap: var(--s-8); min-width: 0; padding-left: var(--s-12); transform-origin: left center; }
 /* Alça de arrastar (itens 69 e 86): no lugar do horário, na margem, ao passar o mouse na linha (como no CRM) */
 .linha-hora { position: relative; }
-.alca { position: absolute; top: 0; right: var(--s-8); width: 28px; height: var(--passo); display: grid; place-items: center; padding: 0; background: none; border: 0; border-radius: 4px; cursor: grab; opacity: 0; touch-action: none; transition: opacity var(--dur-rapida) var(--curva); }
+.alca { position: absolute; top: 0; left: 50%; margin-left: -14px; width: 28px; height: var(--passo); display: grid; place-items: center; padding: 0; background: none; border: 0; border-radius: 4px; cursor: grab; opacity: 0; touch-action: none; transition: opacity var(--dur-rapida) var(--curva); }
 .alca svg { width: 10px; height: 16px; fill: var(--fraco); }
 .linha-hora-txt { display: block; transition: opacity var(--dur-rapida) var(--curva); }
 .linha:hover .alca, .alca:focus-visible, .linha[data-arrastada] .alca { opacity: 1; }
@@ -261,7 +261,7 @@
 
 /* ===== Celular: uma página por vez, escolhida no botão ===== */
 @media (max-width: 767px) {
-  .tarefas-tela { --col-hora: 44px; }
+  .tarefas-tela { --col-hora: 50px; }
   .tarefas-barra { gap: var(--app-vao) var(--app-respiro); }
   .tarefas-lados { display: flex; }
   .tarefas-fim { margin-left: 0; flex-wrap: wrap; }
@@ -272,7 +272,7 @@
   .pag-miolo { overflow: visible; }
   .pag-faixa { padding-inline: var(--s-16); }
   .folha .pag-faixa { padding-left: var(--s-24); }
-  .folha { --margem-x: 8px; }
+  .folha { --margem-x: 0px; }
   .folha-quem { padding-inline: var(--s-12); }
   .linha-miolo { padding-left: var(--s-4); }
   /* celular: logo e título na 1ª linha (o título quebra); responsável e prioridade descem juntas, a prioridade na ponta direita */
