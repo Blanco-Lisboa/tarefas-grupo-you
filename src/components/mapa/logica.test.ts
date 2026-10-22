@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tarefa } from "@/lib/dados";
-import { ETAPAS_ATE_POSTAR, PASSO, conteudos, diaDe, quandoDe, diasDoPeriodo, filaPorDia, foiPostado, semData, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { ETAPAS_ATE_POSTAR, PASSO, conteudos, diaDe, quandoDe, diasDoPeriodo, filaPorDia, foiPostado, semData, marcosDoMapa, inicioDaLinha, hoje, prazo, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 
 const t = (id: string, tipo: Tarefa["tipo"], inicio?: string, extra: Partial<Tarefa> = {}): Tarefa => ({
   id, titulo: id, tipo, empresaId: "beec", etapa: "roteiro", responsavel: "natham", inicio, diaInteiro: false, cor: "etiqueta-1", links: [], arquivos: [], ...extra,
@@ -89,10 +89,23 @@ describe("fila por dia", () => {
   });
 });
 
+describe("278 · todo Postado aparece no Mapa", () => {
+  it("Postado de dia passado vira marco e a linha recua até ele; o que não é Postado e já passou segue fora", () => {
+    const teto = t("teto", "postagem", undefined, { etapa: "postado", postarEm: "2026-10-21T16:30" });
+    const velho = t("velho", "postagem", "2026-10-10T09:00", { etapa: "postado" });
+    const atrasado = t("atrasado", "postagem", "2026-10-15T09:00", { etapa: "edicao" });
+    const futuro = t("futuro", "postagem", "2026-10-25T09:00", { etapa: "aprovado" });
+    const marcos = marcosDoMapa(conteudos([teto, velho, atrasado, futuro]), "2026-10-22");
+    expect(marcos.map((x) => x.id)).toEqual(["velho", "teto", "futuro"]);
+    expect(inicioDaLinha(marcos, "2026-10-22")).toBe("2026-10-10");
+    expect(inicioDaLinha([futuro], "2026-10-22")).toBe("2026-10-22");
+  });
+});
+
 describe("semData (item 198)", () => {
   it("postagem de empresa sem data entra; com data, postada, pessoal e reunião ficam fora", () => {
-    const lista = [t("a", "postagem"), t("b", "postagem", "2026-10-20T09:00"), t("c", "postagem", undefined, { etapa: "postado" }), t("d", "postagem", undefined, { empresaId: "" }), t("e", "roteiro"), t("Reunião de pauta", "postagem")];
-    expect(semData(lista).map((x) => x.id)).toEqual(["a"]);
+    const lista = [t("a", "postagem"), t("b", "postagem", "2026-10-20T09:00"), t("c", "postagem", undefined, { etapa: "postado" }), t("d", "postagem", undefined, { empresaId: "" }), t("e", "roteiro"), t("Reunião de pauta", "postagem"), t("f", "postagem", undefined, { concluida: true })];
+    expect(semData(lista).map((x) => x.id)).toEqual(["a", "c"]); // 278: Postado sem data entra; só concluído sem Postado fica fora
   });
 
   // Bug visto pelo Sextante: o Mapa desenhava só pelo início; card programado sem início caía em "Sem data".

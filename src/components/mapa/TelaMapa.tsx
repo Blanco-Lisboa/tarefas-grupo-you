@@ -8,7 +8,7 @@ import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { Ficha } from "@/components/ficha/Ficha";
 import { diaCurto, nomeMes, nomeSemana } from "@/components/calendario/logica";
-import { conteudos, diaDe, hoje, diasDoPeriodo, filaPorDia, foiPostado, semData, tituloDe, postadosNoMes, ultimoDia } from "./logica";
+import { conteudos, diaDe, marcosDoMapa, inicioDaLinha, hoje, diasDoPeriodo, filaPorDia, foiPostado, semData, tituloDe, postadosNoMes, ultimoDia } from "./logica";
 import { PastaDoDia } from "./PastaDoDia";
 import { EmOrdem, type Formato } from "./EmOrdem";
 import "./mapa.css";
@@ -47,10 +47,11 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
   const [formato, setFormato] = useState<Formato>(formatoSalvo);
 
   const todos = useMemo(() => conteudos(aplicar(tarefas)), [aplicar, tarefas]);
-  const marcos = useMemo(() => todos.filter((t) => diaDe(t) >= INICIO), [todos, INICIO]);
-  const dias = useMemo(() => diasDoPeriodo(INICIO, ultimoDia(marcos)), [marcos, INICIO]);
+  const marcos = useMemo(() => marcosDoMapa(todos, INICIO), [todos, INICIO]);
+  const PRIMEIRO = inicioDaLinha(marcos, INICIO); // 278: a linha recua até o Postado mais antigo
+  const dias = useMemo(() => diasDoPeriodo(PRIMEIRO, ultimoDia(marcos)), [marcos, PRIMEIRO]);
   const aPostar = marcos.filter((t) => !foiPostado(t));
-  const [m1, m2] = [nomeMes(INICIO), nomeMes(dias.at(-1)!)].map((m) => m.toLowerCase());
+  const [m1, m2] = [nomeMes(PRIMEIRO), nomeMes(dias.at(-1)!)].map((m) => m.toLowerCase());
   const meses = m1 === m2 ? m1 : `${m1} e ${m2}`;
   const semDia = useMemo(() => semData(aplicar(tarefas)), [aplicar, tarefas]);
   const fila = useMemo(() => filaPorDia(aplicar(tarefas), INICIO), [aplicar, tarefas, INICIO]);
@@ -67,7 +68,7 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
           <FiltroEmpresa />
         </div>
         <p>
-          De {diaCurto(INICIO)} a {diaCurto(dias.at(-1)!)}.{" "}
+          De {diaCurto(PRIMEIRO)} a {diaCurto(dias.at(-1)!)}.{" "}
           {marcos.length ? `${plural(marcos.length, "conteúdo", "conteúdos")} com data de postagem.` : "Nenhum conteúdo com data de postagem neste período."}
         </p>
       </header>
@@ -90,7 +91,7 @@ function Mapa({ inicio: INICIO }: { inicio: string }) {
       {formato !== "linha"
         ? <>{topo}<EmOrdem grupos={fila} abrir={setAberta} /></>
         : marcos.length
-        ? <Linha dias={dias} inicio={INICIO} marcos={marcos} abrir={setAberta} topo={topo} />
+        ? <Linha dias={dias} inicio={PRIMEIRO} marcos={marcos} abrir={setAberta} topo={topo} />
         : <>{topo}<p className="mapa-vazio">Nada para mostrar com os filtros de agora. Crie uma tarefa do tipo Postagem no calendário e ela aparece aqui.</p></>}
 
       {aberta && <Ficha key={(aberta as Tarefa).id} tarefa={aberta} aoFechar={() => setAberta(null)} />}
