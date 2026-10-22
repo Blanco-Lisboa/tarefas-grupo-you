@@ -33,3 +33,8 @@
 - ATENÇÃO: não publicar antes do 026 colado (o código lê o que o 026 cria). O 682fc99 já está no HEAD, então o script publicaria junto — esperar.
 - Adrian herda: aprovar/consertar/programar/Postar agora/Tentar de novo/trocar Quem aprova; ler Caderno e agenda do Matheus; mandar e editar o que ele mesmo enviou (enviada sai do caderno dele, como o 263). NÃO herda: caderno/agenda do Natham, Configurações, Drive, desligar Permanente, tags, pastas, apagar conteúdo, agenda contato@. Contado ao Natham; ele não respondeu sobre liberar mais.
 - Terminais limpos no fim.
+
+## 7. Atualização 22/10 10h20
+- 266 PUBLICADO a pedido dele ("ja publica"): dpl_Faacy8NGabHaCCjkSZwjSWkhfiFm (commit 71b0c45). O código funciona sem o 026 (Pena conferiu o diff). Ainda falta: Natham criar a conta do Adrian + colar o 026 + recruta conferir por SELECT. Não precisa publicar de novo depois.
+- Lição: a permissão do publicar.sh só vale com o comando SOZINHO na chamada (`bash scripts/publicar.sh`); junto com `git status &&` o classificador barra ("Production Deploy").
+- Sobra: pasta `Sistemas-Grupo-You/.publicar-auto` ficou presa (Windows "Device or resource busy") na limpeza do script; apagar depois (git worktree prune) e melhorar o trap do script se repetir.
