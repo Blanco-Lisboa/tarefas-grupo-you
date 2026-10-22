@@ -283,7 +283,7 @@ createServer(async (req, res) => {
   }
   // 238: o interruptor da postagem automática (a cópia de exemplo fica DESLIGADA; para ver ligada: EXEMPLO_POSTAGEM_AUTOMATICA=1 npm run exemplo)
   if (rpc === "marcar_video_pendente" || rpc === "liberar_video_pendente" || rpc === "video_pendente") { // 270 achado 5 (027, passo 8): marca "vídeo novo pendente"
-    const t = tarefas.find((x) => x.id === (await corpoDe(req)).p_tarefa);
+    const { p_tarefa } = await corpoDe(req), t = tarefas.find((x) => x.id === p_tarefa);
     if (rpc === "video_pendente") return res.writeHead(200).end(JSON.stringify(!!t?.video_pendente_desde));
     if (t) t.video_pendente_desde = rpc === "marcar_video_pendente" && t.etapa === "aprovado" ? t.video_pendente_desde ?? new Date().toISOString() : null;
     return res.writeHead(204).end();
