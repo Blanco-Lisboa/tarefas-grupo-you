@@ -1,0 +1,13 @@
+# Regras comuns da rodada 268–277 (todos os recrutas)
+- Pedido exato do Natham: leva `2026-10-18-grade-de-conteudo-beec.md`, itens 268–277. Leia o seu item lá.
+- Território: mexa SÓ nos arquivos do seu assunto. Arquivo de outro recruta (abaixo) = combine pela mensagem final, não edite.
+  - Vitral: o envio de arquivo/vídeo (componente de upload + aviso de progresso global).
+  - Alvenaria: ficha/esteira (aprovar, permissões, campo Conserto, tags) + SQL `027`.
+  - Sextante: tempo real (assinaturas Supabase Realtime nas telas/hooks de dados) + SQL `028`.
+  - Pena: Caderno (duração da tarefa).
+- SQL: NUNCA aplicar. Escreva `supabase/0NN_<nome>.sql` idempotente + cópia em `supabase/_colar/`. O código tem de funcionar ANTES e DEPOIS do Natham colar (a 3100 roda desta pasta e quebra na tela dele se depender de coluna que ainda não existe).
+- Não mexa em `next.config.ts` (derruba a 3100). Não publique. Não troque de branch.
+- Commit só com os SEUS arquivos (`git add <seus arquivos>` e `git commit` sem caminho). Nunca desfaça commit alheio.
+- Prova: `npm run check` verde + foto na cópia de exemplo (`npm run exemplo` → 127.0.0.1:3101, cards falsos) com o seu item funcionando. Acentuação certa em todo texto de tela.
+- Anote no seu item da leva: `FEITO (sha, foto <caminho>)` e commite a leva junto.
+- Responda SÓ na mensagem final (não use maestri ask para reportar): sha, SQL a colar (sim/não + arquivo), foto, o que ficou de fora.
