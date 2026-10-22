@@ -1,4 +1,5 @@
 -- 026 · Item 266: o Adrian vira usuário. Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM.
+-- ORDEM DE COLAGEM FINAL: 027, depois 026, depois 028 (o 026 já traz o Matheus em pode_aprovar, então colar depois do 027 não tira nada dele).
 -- Idempotente (pode colar de novo). Depende do 002, 006, 011, 015 e 021. NÃO aplicado: o Natham cola no SQL Editor
 -- DEPOIS de criar a conta do Adrian no painel (docs/levas/2026-10-21-ADRIAN-PASSO-A-PASSO.md). Código funciona antes e depois da colagem.
 --

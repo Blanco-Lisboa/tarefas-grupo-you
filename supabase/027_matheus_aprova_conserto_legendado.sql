@@ -1,6 +1,7 @@
 -- 027 · Rodada 268-277, itens 269, 270, 271, 272, 273 (Alvenaria, 22/10). Projeto Tarefas - Grupo You (uruhjlurcxpjhhgvuzwt). NUNCA no CRM.
--- Idempotente (pode colar de novo). Depende do 002, 006, 015 e 019. ORDEM: 026 e depois 027 (o 026 também já traz o Matheus em pode_aprovar,
--- então qualquer ordem mantém Natham + Adrian + Matheus; o 027 sozinho também os mantém). NÃO aplicado: o Natham cola no SQL Editor.
+-- Idempotente (pode colar de novo). Depende do 002, 006, 015 e 019. ORDEM DE COLAGEM FINAL: 027, depois 026, depois 028.
+-- (027 primeiro: ele junta a permissão do Matheus e a trava de postar_agora/tentar_de_novo numa só transação, sem janela de acesso indevido.
+-- O 026 depois mantém Natham + Adrian + Matheus em pode_aprovar; o 028 por último, depois das tabelas que os gatilhos dele observam.) NÃO aplicado: o Natham cola no SQL Editor.
 -- O código funciona ANTES e DEPOIS da colagem (antes: o Matheus ainda não aprova no banco e o campo Conserto nem aparece).
 --
 --  269  O Matheus aprova, programa e posta (aprovação presencial): entra ao lado do Natham e do Adrian em private.pode_aprovar.
@@ -42,6 +43,7 @@ begin
   if new.tarefa_id is not null and new.tipo = 'video' and new.papel = 'anexo'
      and exists (select 1 from public.tarefas t where t.id = new.tarefa_id and t.etapa = 'aprovado') then
     update public.arquivos set papel = 'original' where tarefa_id = new.tarefa_id and tipo = 'video' and papel = 'anexo' and id <> new.id;
+    update public.tarefas set video_subindo_ate = null where id = new.tarefa_id and video_subindo_ate is not null;  -- achado 5: o legendado chegou, a marca sai (coluna criada no passo 8, antes do primeiro envio)
   end if;
   return null;
 end $$;
@@ -147,6 +149,7 @@ begin
   where t.id = p_tarefa and t.etapa = 'aprovado' and t.tipo = 'postagem' and (select private.pode_aprovar(t.aprovador))
     and ((select auth.uid()) is null or (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id)));
   if not found then raise exception 'so o Natham ou o aprovador posta agora, e so card de Postagem em Aprovado' using errcode = '42501'; end if;
+  if (select public.video_subindo(p_tarefa)) then raise exception 'o video legendado ainda esta subindo: espere terminar' using errcode = '55000'; end if;
   update public.tarefas set postar_em = v_agora where id = p_tarefa;
   if v_antes is not distinct from v_agora then perform private.alarme_tocou('postar', p_tarefa, 0); end if;
 end $$;
@@ -161,6 +164,7 @@ begin
       and ((select auth.uid()) is null or (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id)))) then
     raise exception 'so o Natham ou o aprovador tenta de novo' using errcode = '42501';
   end if;
+  if (select public.video_subindo(p_tarefa)) then raise exception 'o video legendado ainda esta subindo: espere terminar' using errcode = '55000'; end if;
   delete from public.postagens p using public.tarefas t where t.id = p_tarefa and p.tarefa_id = t.id and p.status in ('fila', 'erro') and not p.rede = any (t.postar_redes);
   update public.postagens p set status = 'fila', erro = null from public.tarefas t
     where p.tarefa_id = p_tarefa and t.id = p.tarefa_id and p.status = 'erro' and p.rede = any (t.postar_redes);
@@ -168,6 +172,94 @@ begin
 end $$;
 revoke all on function public.tentar_de_novo(uuid) from public, anon;
 grant execute on function public.tentar_de_novo(uuid) to authenticated;
+
+-- 8) Lupa re-revisão 1, achado 5: marca NO BANCO de "vídeo legendado ainda subindo". A tela põe a marca ao começar o envio de um vídeo num card Aprovado
+--    (e a renova a cada 5 min enquanto envia), tira ao terminar ou falhar; a confirmação do envio também tira (gatilho do 3). Vence em 15 min sozinha.
+--    Com a marca valendo: "Postar agora" e "Tentar de novo" recusam (postar_agora/tentar_de_novo, abaixo) e o alarme da hora marcada espera (alarme_tocou, abaixo).
+--    Vale para QUALQUER aba ou pessoa, porque mora no card. Analogia: um aviso "tinta fresca" na porta do correio: ninguém despacha enquanto estiver lá.
+alter table public.tarefas add column if not exists video_subindo_ate timestamptz;
+
+create or replace function public.marcar_video_subindo(p_tarefa uuid, p_subindo boolean) returns void
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  if not (select private.pode_mexer_anexos(p_tarefa)) then raise exception 'sem permissao para mexer nos anexos deste card' using errcode = '42501'; end if;
+  update public.tarefas set video_subindo_ate = case when p_subindo then now() + interval '15 minutes' else null end
+  where id = p_tarefa and etapa = 'aprovado';
+end $$;
+revoke all on function public.marcar_video_subindo(uuid, boolean) from public, anon;
+grant execute on function public.marcar_video_subindo(uuid, boolean) to authenticated;
+
+create or replace function public.video_subindo(p_tarefa uuid) returns boolean
+language sql stable security invoker set search_path = ''
+as $$ select coalesce((select video_subindo_ate > now() from public.tarefas where id = p_tarefa), false) $$;
+revoke all on function public.video_subindo(uuid) from public, anon;
+grant execute on function public.video_subindo(uuid) to authenticated;
+
+create or replace function private.alarme_tocou(p_tipo text, p_tarefa uuid, p_rodada int) returns void
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_nome text := private.alarme_nome(p_tipo, p_tarefa); v_segredo text; v_rodadas int; v_aberto boolean; v_tem boolean;
+  c_teto constant int := 5;  -- combinado com o Correio
+begin
+  -- 236: postagem automática DESLIGADA (função postar-meta ainda não está no ar): o alarme se apaga e não chama nada; o relógio de todo minuto do 015 cuida.
+  if p_tipo = 'postar' and not private.postagem_automatica() then
+    if exists (select 1 from cron.job where jobname = v_nome) then perform cron.unschedule(v_nome); end if;
+    return;
+  end if;
+  -- Toque velho (sentinela que já estava rodando quando o card foi reprogramado, ou card que saiu de Aprovado): não mexe em nada, o gatilho cuida dos jobs.
+  if p_tipo = 'postar' and not exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'aprovado' and t.postar_em is not null
+       and t.postar_em <= to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD"T"HH24:MI')) then return; end if;
+  if p_tipo = 'limpar' and not exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'postado') then return; end if;
+  -- 270 (Lupa re-revisão 1, achado 5): o vídeo legendado ainda está subindo. Não posta o antigo: o alarme se rearma para daqui a 1 minuto, sem gastar rodada.
+  -- A marca vence sozinha (video_subindo_ate), então um envio que morreu não trava a postagem para sempre.
+  if p_tipo = 'postar' and exists (select 1 from public.tarefas t where t.id = p_tarefa and t.video_subindo_ate > now()) then
+    if exists (select 1 from cron.job where jobname = v_nome) then perform cron.unschedule(v_nome); end if;
+    perform private.cron_alarme('postar', p_tarefa, now() + interval '1 minute', p_rodada);
+    return;
+  end if;
+  if exists (select 1 from cron.job where jobname = v_nome) then perform cron.unschedule(v_nome); end if;
+  -- Limpeza sem arquivo restante = serviço feito: o sentinela acaba aqui, sem depender de a função desarmar.
+  -- 236: só conta arquivo do DRIVE; anexo antigo do Supabase (sem drive_id) nunca é limpo, fica só na ficha.
+  if p_tipo = 'limpar' and not exists (select 1 from public.arquivos a where a.tarefa_id = p_tarefa and a.drive_id is not null) then return; end if;
+  if p_tipo = 'postar' then
+    select coalesce(max(p.rodadas) filter (where p.status not in ('postado', 'erro')), 0), coalesce(bool_or(p.status not in ('postado', 'erro')), false), count(*) > 0
+      into v_rodadas, v_aberto, v_tem from public.postagens p join public.tarefas t on t.id = p.tarefa_id
+      where p.tarefa_id = p_tarefa and p.rede = any (t.postar_redes);  -- rede fora do card não conta
+    if v_tem and not v_aberto then
+      -- Todas as redes do card postadas e o card ainda em Aprovado (a função não conseguiu movê-lo): o banco move (o gatilho arma a limpeza).
+      if not exists (select 1 from public.tarefas t, unnest(t.postar_redes) r where t.id = p_tarefa
+           and not exists (select 1 from public.postagens p where p.tarefa_id = t.id and p.rede = r and p.status = 'postado')) then
+        update public.tarefas set etapa = 'postado' where id = p_tarefa and etapa = 'aprovado' and cardinality(postar_redes) > 0;
+      end if;
+      return;  -- senão: nada a fazer, as redes já terminaram (alguma em erro: a tela mostra a faixa)
+    end if;
+  else
+    v_rodadas := 0;
+  end if;
+  if p_rodada >= c_teto or v_rodadas > c_teto then
+    if p_tipo = 'limpar' then  -- função Drive fora do ar: tenta de novo daqui a 1 dia (1 alarme por card, sem relógio de minuto)
+      perform private.cron_alarme('limpar', p_tarefa, now() + interval '1 day', 0);
+    else
+      insert into public.postagens (tarefa_id, rede, status, erro)
+      select t.id, r, 'erro', 'a funcao de postagem nao respondeu depois de varias tentativas'
+      from public.tarefas t, unnest(t.postar_redes) r where t.id = p_tarefa and t.etapa = 'aprovado'
+      on conflict (tarefa_id, rede) do update set status = 'erro',
+        erro = case when public.postagens.status = 'fila' then excluded.erro else 'estado incerto: confira a rede antes de tentar de novo' end
+        where public.postagens.status in ('fila', 'enviando', 'processando');
+    end if;
+    return;
+  end if;
+  perform private.cron_alarme(p_tipo, p_tarefa, now() + interval '12 minutes', p_rodada + 1);
+  select decrypted_secret into v_segredo from vault.decrypted_secrets where name = 'tarefas_funcoes_segredo';
+  perform net.http_post(
+    url := 'https://uruhjlurcxpjhhgvuzwt.supabase.co/functions/v1/' || case p_tipo when 'limpar' then 'drive' else 'postar-meta' end,
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-tarefas-segredo', v_segredo),
+    body := jsonb_build_object('acao', p_tipo, 'tarefa_id', p_tarefa),
+    timeout_milliseconds := 55000);  -- pg_net padrão é 5 s (memória pgnet-timeout)
+end $$;
+revoke all on function private.alarme_tocou(text, uuid, int) from public, anon, authenticated;
 
 -- 7) Item 272, limpeza única: cards que já estavam em Aprovado ou Postado antes do conserto ainda levavam a tag "Esperando aprovação".
 --    Tira SÓ as tags de aprovação (tags.aprovacao) desses cards; as outras ficam. Mexe só na ligação tarefa_tags: a tag em si

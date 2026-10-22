@@ -31,4 +31,5 @@ export * from "./anotacoes";
 export * from "./agenda-feitos";
 export * from "./drive";
 export * from "./envios";
+export { videoSubindo } from "./subindo";
 export * from "./arvore";

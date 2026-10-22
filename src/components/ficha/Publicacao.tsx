@@ -7,7 +7,7 @@
 // - Toda ação passa pela checagem (o que falta) e grava a FICHA INTEIRA (gravar) antes, para não perder o que foi mudado nela.
 // - Só a You está ligada: em outra empresa fica só o aviso.
 import { useState } from "react";
-import { REDES_POST, postarAgora, tentarDeNovo, useEnvios, useEu, usePostagemAutomatica, type NovaTarefa, type RedePost, type Tarefa } from "@/lib/dados";
+import { REDES_POST, postarAgora, tentarDeNovo, useEnvios, useEu, videoSubindo, usePostagemAutomatica, type NovaTarefa, type RedePost, type Tarefa } from "@/lib/dados";
 import { paraDia, paraHora } from "@/components/calendario/logica";
 import { CampoData } from "@/components/ui/CampoData";
 import Image from "next/image";
@@ -24,6 +24,7 @@ type Props = {
 
 export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const eu = useEu();
+  const SUBINDO = "Espere o vídeo terminar de subir (ou tire o que falhou do aviso do canto)."; // Lupa 5
   const subindo = useEnvios().some((e) => e.tarefaId === salvo.id && e.estado !== "enviado"); // Lupa 5: vídeo novo ainda subindo ou falhou
   // 238: desligada (ou carregando) = a ficha não promete post real. 239: ligada sem a postar-meta confirmar que publica de verdade
   // (POSTAR_DE_VERDADE=nao, fora do ar ou sem resposta: deVerdade false) = modo de teste.
@@ -56,7 +57,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const valem = redesValidas(rascunho, rascunho.formato, redes);
   // O que ainda não subiu não está guardado: a função não acharia.
   const checar = (extra: string[] = []) => {
-    const f = [...faltaParaPostar(rascunho, rascunho.formato, valem), ...(rascunho.arquivos.some((a) => a.pendente) ? ["Salve a ficha antes: há arquivo que ainda não subiu."] : []), ...(subindo ? ["Espere o vídeo terminar de subir (ou tire o que falhou do aviso do canto)."] : []), ...extra];
+    const f = [...faltaParaPostar(rascunho, rascunho.formato, valem), ...(rascunho.arquivos.some((a) => a.pendente) ? ["Salve a ficha antes: há arquivo que ainda não subiu."] : []), ...(subindo ? [SUBINDO] : []), ...extra];
     setFalta(f);
     return !f.length;
   };
@@ -65,7 +66,13 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   };
   const tentar = async () => { if (checar() && (await gravar({ postarRedes: valem }))) void tentarDeNovo(salvo.id); };
   const txt = textosPublicacao(ligada, !!salvo.postarEm, teste);
-  const postar = async () => { setConfirmando(false); if (await gravar({ postarRedes: valem })) void postarAgora(salvo.id); };
+  // Achado 5: a confirmação reconfere (a tela e o banco) antes de gravar e mandar postar; o banco também recusa sozinho.
+  const postar = async () => {
+    setConfirmando(false);
+    if (!checar()) return;
+    if (await videoSubindo(salvo.id)) return setFalta([SUBINDO]);
+    if (await gravar({ postarRedes: valem })) void postarAgora(salvo.id);
+  };
 
   return (
     // Título como os outros da ficha (Capa do Reels, Notas) e a caixa embaixo, na mesma margem dos campos (item 210)
