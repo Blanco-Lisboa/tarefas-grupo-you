@@ -18,7 +18,6 @@ const abrir = async () => {
 };
 const marca = () => p.evaluate(() => { const s = document.createElement("div"); s.textContent = `innerWidth ${innerWidth}`; s.style.cssText = "position:fixed;left:6px;bottom:6px;z-index:99999;background:#18131F;color:#FFBF2F;font:700 13px monospace;padding:3px 8px"; document.body.append(s); });
 await abrir();
-const vazias = async () => (await p.locator(".linha").evaluateAll((ls) => ls.map((l, k) => (l.querySelector("input.campo") ? k : -1)).filter((k) => k >= 0)));
 // escreve direto em linhas vazias não seguidas (a partir da 8ª linha, para ficar abaixo das tarefas que já existem)
 for (const [k, nome] of [[8, `Pagar boleto ${sufixo}`], [12, `Ligar para cliente ${sufixo}`], [16, `Ideia de campanha ${sufixo}`]]) {
   const campo = p.locator(".linha").nth(k).locator("input.campo");
