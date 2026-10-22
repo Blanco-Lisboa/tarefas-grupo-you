@@ -14,6 +14,7 @@ export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: b
   /** Nome de quem recebeu, no caderno de quem enviou (selo "enviada →"). Vale no lugar de enviadaPor. */ enviadaPara?: string;
   /** Item 275: linhas que o bloco da tarefa ocupa (1 = comum; 2 ou mais = tarefa longa, sem pauta no meio). */ bloco?: number;
   /** Sobreposição antiga: horário gravado (ex.: "09:00–11:00") que passa do começo de outra tarefa. Só aviso; nada é gravado sozinho. */ conflito?: string;
+  /** Item 283: "13:30–14:30" de todo bloco de mais de 30 min, discreto ao lado do nome. */ intervalo?: string;
   /** Linha de baixo de uma tarefa longa: não desenha nada, só reserva o lugar. */ ocupada?: boolean;
   /** Minutos da tarefa e o máximo que cabe até o fim das linhas (0 = sem hora, o menu não oferece duração). */ duracao?: number; duracaoMax?: number; /** Item 279: maior duração oferecida (até 6h, até o fim do dia) e onde começa o que bloqueia as maiores que cabem. */ duracaoLimite?: number; ocupadoAs?: string;
   /** false = só leitura para quem está olhando (trava do banco). Vazio = pode. */ podeAlterar?: boolean; podeApagar?: boolean };
@@ -180,6 +181,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
                   <span className="folha-tinta risco">{l.titulo}</span>
                 </button>
                 <span className="folha-lapis detalhe">{l.detalhe}</span>
+                {l.intervalo && !l.conflito && <span className="linha-intervalo">{l.intervalo}</span>}
                 {l.conflito && <span className="linha-conflito" title={l.podeAlterar === false ? "O horário gravado passa do começo de outra tarefa. Só quem é dono da tarefa muda a duração." : "O horário gravado passa do começo de outra tarefa. Mude a duração pelo ⋮."}>⚠ {l.conflito}</span>}
                 {l.enviadaPara ? <span className="linha-selo">enviada → {l.enviadaPara}</span> : l.enviadaPor && <span className="linha-selo">enviada por {l.enviadaPor}</span>}
                 {(() => { const e = ETIQUETAS.find((x) => x.cor && x.valor === l.cor); return e && (
@@ -259,7 +261,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
           <ul className="folha-linhas">
             {faixa.map((l) => (
               <li key={l.id} className="linha" data-feita={l.feita} data-faixa={l.reuniao ? "reuniao" : "comum"}>
-                <span className="linha-hora"><span className="linha-hora-txt">dia</span></span>
+                <span className="linha-hora"><span className="linha-hora-txt linha-hora-dia">dia</span></span>
                 <div className="linha-miolo">
                   <Caixa l={l} estourando={estourando === l.id} desabilitada={!aoMarcar} aoClicar={() => marcar(l)} />
                   <span className="linha-texto"><span className="linha-empresa" /><span className="folha-tinta risco">{l.titulo}</span></span>

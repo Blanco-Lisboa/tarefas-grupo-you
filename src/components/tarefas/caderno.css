@@ -88,7 +88,10 @@
 .linha-hora { position: relative; }
 .alca { position: absolute; top: 0; right: var(--s-8); width: 28px; height: var(--passo); display: grid; place-items: center; padding: 0; background: none; border: 0; border-radius: 4px; cursor: grab; opacity: 0; touch-action: none; transition: opacity var(--dur-rapida) var(--curva); }
 .alca svg { width: 10px; height: 16px; fill: var(--fraco); }
-.linha-hora-txt { transition: opacity var(--dur-rapida) var(--curva); }
+.linha-hora-txt { display: block; transition: opacity var(--dur-rapida) var(--curva); }
+/* Item 283: como no Calendário, o horário fica no TRAÇO DE CIMA da faixa (o rótulo 14:30 está no traço onde termina o bloco das 13:30 com 1h) */
+.linha-hora-txt { transform: translateY(calc(var(--passo) / -2)); }
+.linha-hora-dia { transform: none; }
 .linha:hover .alca, .alca:focus-visible, .linha[data-arrastada] .alca { opacity: 1; }
 .linha:has(.alca):hover .linha-hora-txt, .linha:has(.alca:focus-visible) .linha-hora-txt, .linha[data-arrastada] .linha-hora-txt { opacity: 0; }
 @media (hover: none) { .alca { display: none; } } /* no toque: o horário se muda pelo menu ⋮ */
@@ -107,7 +110,6 @@
   background: linear-gradient(to bottom, color-mix(in srgb, var(--azul) 7%, transparent) calc(100% - 1px), var(--borda) 0);
   box-shadow: inset 3px 0 0 color-mix(in srgb, var(--azul) 55%, transparent);
 }
-.linha[data-bloco] .linha-hora-txt { display: block; }
 .mt-duracoes .selecao-opcao:disabled { opacity: .45; cursor: not-allowed; }
 .mt-ocupado { margin-left: auto; padding-left: var(--s-12); font-size: var(--t-12); color: var(--fraco); }
 .mt-duracoes { display: flex; flex-direction: column; gap: 2px; max-height: 240px; overflow-y: auto; }
@@ -118,6 +120,7 @@
 .linha .detalhe { flex: none; font-size: calc(16px * var(--escala)); line-height: 1; margin-left: var(--s-4); white-space: nowrap; }
 /* selo "enviada por X" (item 177): retângulo de cantos suaves, não pílula */
 .linha-selo { flex: none; padding: 2px 8px; border-radius: 8px; background: color-mix(in srgb, var(--azul) 12%, transparent); color: var(--azul); font: 600 var(--t-12) / 1.2 var(--fonte); white-space: nowrap; }
+.linha-intervalo { flex: none; font: 500 var(--t-12) / 1 var(--fonte); color: var(--fraco); white-space: nowrap; font-variant-numeric: tabular-nums; } /* item 283: "13:30–14:30" ao lado do nome do bloco */
 .linha-etq { flex: none; margin-left: auto; padding: 3px 8px; border-radius: var(--raio-b); background: var(--e); color: var(--et); font: 600 var(--t-12) / 1 var(--fonte); }
 
 /* risco de caneta: cresce da esquerda para a direita, sem quique */

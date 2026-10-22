@@ -110,6 +110,7 @@ export function TelaTarefas() {
     podeApagar: podeApagar(t, eu),
     bloco: linhasDoBloco(grade, k),
     duracao: duracaoDe(t),
+    intervalo: aba === "dia" && horaDe(t) && t.fim && duracaoDe(t) > 30 ? `${horaDe(t)}–${t.fim.slice(11, 16)}` : undefined,
     conflito: aba === "dia" && emConflito(grade, k, t) ? `${horaDe(t)}–${t.fim!.slice(11, 16)}` : undefined,
     duracaoMax: aba === "dia" && horaDe(t) ? duracaoMaxima(grade, k, horaDe(t)) : 0,
     duracaoLimite: aba === "dia" && horaDe(t) ? duracaoLimite(horaDe(t)) : 0,
