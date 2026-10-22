@@ -102,6 +102,17 @@ describe("278 · todo Postado aparece no Mapa", () => {
   });
 });
 
+describe("278 · Postado de qualquer tipo", () => {
+  it("card de outro tipo em Postado entra na linha (com data) e na faixa Sem data (sem data); fora de Postado, só Postagem", () => {
+    const edicao = t("ed", "edicao", "2026-10-12T09:00", { etapa: "postado" });
+    const roteiroSem = t("ro", "roteiro", undefined, { etapa: "postado" });
+    const gravacaoAberta = t("gr", "gravacao", "2026-10-30T09:00", { etapa: "gravacao" });
+    const reuniao = t("Reunião de pauta", "reuniao", "2026-10-12T09:00", { etapa: "postado" });
+    expect(conteudos([edicao, gravacaoAberta, reuniao]).map((x) => x.id)).toEqual(["ed"]);
+    expect(semData([roteiroSem, gravacaoAberta]).map((x) => x.id)).toEqual(["ro"]);
+  });
+});
+
 describe("semData (item 198)", () => {
   it("postagem de empresa sem data entra; com data, postada, pessoal e reunião ficam fora", () => {
     const lista = [t("a", "postagem"), t("b", "postagem", "2026-10-20T09:00"), t("c", "postagem", undefined, { etapa: "postado" }), t("d", "postagem", undefined, { empresaId: "" }), t("e", "roteiro"), t("Reunião de pauta", "postagem"), t("f", "postagem", undefined, { concluida: true })];

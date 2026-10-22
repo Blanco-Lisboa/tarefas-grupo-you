@@ -28,12 +28,15 @@ export const diaDe = (t: Tarefa) => quandoDe(t)!.slice(0, 10);
 
 export const ultimoDia = (lista: readonly Tarefa[]) => lista.reduce((m, t) => (diaDe(t) > m ? diaDe(t) : m), "");
 
+/** 278 · Tem lugar no Mapa: Postagem, ou QUALQUER conteúdo que esteja em Postado (a regra é: todo Postado aparece). */
+const noMapa = (t: Tarefa) => ehConteudo(t) && (t.tipo === "postagem" || t.etapa === "postado");
+
 export const conteudos = (tarefas: readonly Tarefa[]) =>
-  tarefas.filter((t) => ehConteudo(t) && t.tipo === "postagem" && quandoDe(t)).sort((a, b) => quandoDe(a)!.localeCompare(quandoDe(b)!));
+  tarefas.filter((t) => noMapa(t) && quandoDe(t)).sort((a, b) => quandoDe(a)!.localeCompare(quandoDe(b)!));
 
 /** Postagem ainda sem data: não tem dia na linha, então o Mapa a mostra numa faixa à parte (item 198).
     278 · Card em Postado entra também (a regra é: todo Postado aparece no Mapa); o sem data fica nesta faixa. Só concluído sem estar em Postado continua fora. */
-export const semData = (tarefas: readonly Tarefa[]) => tarefas.filter((t) => ehConteudo(t) && t.tipo === "postagem" && !quandoDe(t) && (t.etapa === "postado" || !foiPostado(t)));
+export const semData = (tarefas: readonly Tarefa[]) => tarefas.filter((t) => noMapa(t) && !quandoDe(t) && (t.etapa === "postado" || !foiPostado(t)));
 
 /** 278 · O que vira marco na linha: o que vem de hoje em diante e TODO Postado com data, mesmo de dias passados (antes só entrava de hoje em diante). */
 export const marcosDoMapa = (todos: readonly Tarefa[], inicio: string) => todos.filter((t) => t.etapa === "postado" || diaDe(t) >= inicio);
