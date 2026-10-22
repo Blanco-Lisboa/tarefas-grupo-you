@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, duracaoMaxima, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, duracaoMaxima, fimsParaEncurtar, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
   ({ id, titulo: id, tipo: "outro", empresaId: "e", responsavel: "natham", inicio, diaInteiro, cor: "etiqueta-1", links: [], arquivos: [] }) as Tarefa;
@@ -47,6 +47,12 @@ describe("tarefa longa (item 275)", () => {
     expect(linhasDoBloco(g, 4)).toBe(2);
     expect(duracaoMaxima(g, 4, "09:00")).toBe(60); // o menu só oferece até 1h
     expect(duracaoMaxima(g, 6, "10:00")).toBe(750); // depois dela tudo livre até 22:30
+  });
+  it("sobreposição antiga: o fim gravado de 09:00-11:00 é encurtado para 10:00; sem sobreposição não mexe em nada", () => {
+    const a = longa("a", "2026-10-20T09:00", "2026-10-20T11:00");
+    const g = montarGrade([a, longa("b", "2026-10-20T10:00", "2026-10-20T10:30")], true, true);
+    expect(fimsParaEncurtar(g).map((x) => [x.tarefa.id, x.fim])).toEqual([["a", "2026-10-20T10:00"]]);
+    expect(fimsParaEncurtar(montarGrade([a], true, true))).toEqual([]);
   });
   it("sem o terceiro argumento (Mapa) só vêm tarefas", () => {
     const g = montarGrade([longa("a", "2026-10-20T10:30", "2026-10-20T12:30")], true);

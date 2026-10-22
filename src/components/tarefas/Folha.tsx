@@ -151,7 +151,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
       {ls.map((l, i) => { const k = base + i; if (l?.ocupada) return <li key={l.id} hidden />; const n = l?.bloco ?? 1; return (
         <li
           key={l?.id ?? `v${k}`} className="linha" data-feita={l?.feita} data-faixa={l && (l.compromisso || l.reuniao) ? (l.reuniao ? "reuniao" : "comum") : undefined}
-          data-bloco={n > 1 || undefined} data-arrastada={arrasto?.id === l?.id && !!l || undefined} data-alvo={arrasto && arrasto.alvo === k && arrasto.alvo !== arrasto.de || undefined}
+          data-bloco={n > 1 || undefined} data-arrastada={arrasto?.id === l?.id && !!l || undefined} data-alvo={arrasto && arrasto.alvo === k && arrasto.alvo !== arrasto.de ? (linhas[k] && linhas[k]!.id !== arrasto.id ? "ocupado" : "livre") : undefined}
           style={{ ...(n > 1 ? { "--n": n } : null), ...(arrasto && arrasto.id === l?.id ? { transform: `translateY(${arrasto.dy}px)` } : null) } as CSSProperties}
         >
           <span className="linha-hora">
@@ -191,7 +191,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
                   <button type="button" className="confirmar-nao" autoFocus onClick={() => setConfirmando(null)}>Manter</button>
                 </span>
               ) : acoes ? (
-                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} duracao={l.duracao ?? 30} duracaoMax={l.duracaoMax ?? 0} acoes={acoes} aoExcluir={() => aoApagar(l.id)} semExcluir={l.podeApagar === false} />
+                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} duracao={l.duracao ?? 30} duracaoMax={l.duracaoMax ?? 0} ocupadas={new Set(linhas.flatMap((x, j) => (x && x.id !== l.id && !x.id.startsWith(`${l.id}#`) ? [j] : [])))} acoes={acoes} aoExcluir={() => aoApagar(l.id)} semExcluir={l.podeApagar === false} />
               ) : l.podeApagar === false ? null : (
                 <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => setConfirmando(l.id)}>
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>

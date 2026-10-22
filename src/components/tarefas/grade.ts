@@ -43,6 +43,20 @@ export const duracaoMaxima = (grade: readonly unknown[], k: number, hora: string
   return Math.floor((n * PASSO - sobra) / PASSO) * PASSO;
 };
 
+/** Sobreposição antiga: tarefa cuja duração gravada passa de onde o bloco cabe (outra tarefa começa antes do fim). Devolve o fim
+    novo (encurtado até a próxima tarefa) para a tela e o banco dizerem o mesmo. Só tarefa na própria linha de início e com hora. */
+export function fimsParaEncurtar(grade: readonly (Tarefa | Continua | null)[]): { tarefa: Tarefa; fim: string }[] {
+  const saida: { tarefa: Tarefa; fim: string }[] = [];
+  grade.forEach((t, k) => {
+    if (!t || "continuaDe" in t) return;
+    const h = horaDe(t);
+    if (!h || Math.min(SLOTS - 1, Math.max(0, Math.floor((minutos(h) - PRIMEIRA) / PASSO))) !== k) return;
+    const cabe = Math.max(PASSO, duracaoMaxima(grade, k, h));
+    if (duracaoDe(t) > cabe) saida.push({ tarefa: t, fim: `${t.inicio!.slice(0, 10)}T${somarMinutos(h, cabe)}` });
+  });
+  return saida;
+}
+
 /**
  * Cada tarefa mora na linha do seu horário (antes das 07:00 vai para 07:00, depois das 22:00 para 22:00).
  * Linha ocupada: desce para a próxima livre. Sem hora: ocupa as primeiras linhas livres. Sempre sobra uma linha vazia.

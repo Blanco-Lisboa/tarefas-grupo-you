@@ -96,6 +96,8 @@
 .folha-linhas[data-arrastando="true"] .alca { cursor: grabbing; }
 .linha[data-arrastada] { position: relative; z-index: 3; background-color: var(--sup); box-shadow: var(--sombra); cursor: grabbing; }
 .linha[data-alvo] { background-color: color-mix(in srgb, var(--azul) 12%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--azul) 45%, transparent); }
+/* Item 275: alvo do arraste já ocupado por outra tarefa (ou por um bloco): vermelho e "não pode", soltar não faz nada */
+.linha[data-alvo="ocupado"] { background-color: color-mix(in srgb, var(--etiqueta-7) 14%, transparent); box-shadow: inset 0 0 0 1.5px var(--etiqueta-7); cursor: not-allowed; }
 /* Item 275: tarefa de mais de 30 min = um bloco que toma todas as linhas do tempo dela (como no Calendário). A pauta do meio some;
    fica só o texto (primeira linha), com o horário de cada meia hora na margem. Vem antes das regras de reunião: a reunião longa continua âmbar. */
 .linha[data-bloco] {

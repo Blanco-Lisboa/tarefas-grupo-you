@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { doCaderno, duracaoDe, duracaoMaxima, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { doCaderno, duracaoDe, duracaoMaxima, encaixarCompromissos, fimsParaEncurtar, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -36,6 +36,13 @@ const virouODia = (avisar: () => void) => {
 
 const NOMES = { natham: "Natham", matheus: "Matheus", adrian: "Adrian", lucas: "Lucas" } as const;
 const extenso = (dia: string) => paraData(dia).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, (c) => c.toUpperCase());
+
+/** Sobreposição antiga (item 275): grava o fim encurtado até a próxima tarefa, para a tela e o banco dizerem o mesmo. */
+function Aparar({ lista }: { lista: { tarefa: Tarefa; fim: string }[] }) {
+  const chave = lista.map((x) => `${x.tarefa.id}>${x.fim}`).join();
+  useEffect(() => { lista.forEach((x) => void salvarTarefa({ ...x.tarefa, fim: x.fim })); }, [chave]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
 
 export function TelaTarefas() {
   const hoje = useSyncExternalStore(virouODia, hojeLocal, () => "");
@@ -83,7 +90,10 @@ export function TelaTarefas() {
   // Item 221: só no Caderno do próprio Natham, a agenda pessoal dele (fonte natham) entra nas linhas, menos o que ele já digitou.
   const comAgenda = aba === "dia" && !alheio && de === "natham";
   const { faixa, horas } = separarCompromissos(comAgenda ? eventosDoDia(agendaGoogle, dia, "natham").filter((e) => !jaTemTarefa(e, doDia)) : [], dia);
-  const grade = encaixarCompromissos(montarGrade(mostradas, aba === "dia", true), horas, dia);
+  const soTarefas = montarGrade(mostradas, aba === "dia", true);
+  const grade = encaixarCompromissos(soTarefas, horas, dia);
+  // Só o que o próprio usuário pode alterar, no caderno dele (não mexe no de outra pessoa, nem pelo Google)
+  const aparar = aba === "dia" && !alheio ? fimsParaEncurtar(soTarefas).filter((x) => podeAlterar(x.tarefa, eu)) : [];
   const daAgenda = (e: Encaixe["evento"], detalhe: string, k: string, compromisso: "primeira" | "continua"): LinhaFolha => ({
     id: `ev:${e.id}${k}`, titulo: e.titulo, detalhe, feita: eventosFeitos.has(e.id), reuniao: ehReuniao(e), compromisso, podeAlterar: false, podeApagar: false,
   });
@@ -314,6 +324,7 @@ export function TelaTarefas() {
           />}
         </div>
       </div>
+      <Aparar lista={aparar} />
       {aberta && <Ficha tarefa={aberta} aoFechar={() => setAberta(null)} soLer={!podeAlterar(aberta, eu)} />}
     </section>
   );

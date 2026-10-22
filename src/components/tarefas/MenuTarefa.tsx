@@ -47,13 +47,15 @@ type Props = {
   /** Duração atual e a maior que cabe (minutos). Máximo 0 = sem horário: o menu não oferece duração. */
   duracao: number;
   duracaoMax: number;
+  /** Linhas de horário já ocupadas por outra tarefa ou bloco (aparecem desligadas em "Marcar horário"). */
+  ocupadas?: ReadonlySet<number>;
   acoes: Acoes;
   aoExcluir: () => void;
   /** Quem só pode editar (enviou a tarefa, não é dono) não apaga. */
   semExcluir?: boolean;
 };
 
-export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, duracao, duracaoMax, acoes, aoExcluir, semExcluir }: Props) {
+export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, duracao, duracaoMax, ocupadas, acoes, aoExcluir, semExcluir }: Props) {
   const uid = useId();
   const pop = useRef<HTMLDivElement>(null);
   const [vista, setVista] = useState<"menu" | "hora" | "duracao" | "criar" | "pessoa" | "empresa" | "excluir">("menu");
@@ -138,7 +140,7 @@ export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, 
             <>
               <button type="button" className="selecao-opcao mt-voltar" onClick={() => setVista("menu")}>‹ Voltar</button>
               <div className="mt-horas">
-                {horas.map((h, k) => <button key={h} type="button" className="selecao-opcao" onClick={feito(() => acoes.marcarHora(id, k))}>{h}</button>)}
+                {horas.map((h, k) => <button key={h} type="button" className="selecao-opcao" disabled={ocupadas?.has(k)} title={ocupadas?.has(k) ? "Linha ocupada" : undefined} onClick={feito(() => acoes.marcarHora(id, k))}>{h}</button>)}
               </div>
             </>
           )}
