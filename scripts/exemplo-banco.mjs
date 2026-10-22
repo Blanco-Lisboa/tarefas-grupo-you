@@ -141,8 +141,8 @@ const arquivos = [
   anexo("Carrossel: 3 impostos que o MEI paga", "slide-2.png", "anexo", 1),
   anexo("Reels: dica rápida de IR", "capa.png", "capa"),
   anexo("Post: bem-vindo à Beec", "arte.png"),
-  { ...video("Reels: dica rápida de IR", "ir-sem-legenda.mp4"), papel: "original" }, // 270: o sem legenda, guardado
-  video("Reels: dica rápida de IR", "ir-legendado.mp4"),
+  { ...video("Reels: dica rápida de IR", "bastidores.mp4"), nome: "ir-sem-legenda.mp4", papel: "original" }, // 270: o sem legenda, guardado
+  { ...video("Reels: dica rápida de IR", "depoimento.mp4"), nome: "ir-legendado.mp4" },
   anexo("Reels: depoimento da Maria", "capa.png", "capa"),
   anexo("Carrossel: 5 dicas de MEI", "capa.png", "capa"),
   anexo("Carrossel: 5 dicas de MEI", "slide-2.png", "anexo", 1),

@@ -86,8 +86,16 @@ export function funcaoDrive(c, { res, ocasioes, pastasLivres, arquivos, tarefas,
       return res.writeHead(200).end(JSON.stringify({ sessao_url: `http://127.0.0.1:${porta}/upload/sessao/${novoId()}` }));
     case "confirmar_envio": case "confirmar_envio_pasta": {
       const base = { id: `a${novoId()}`, caminho: null, drive_id: c.drive_id, ordem: Number(c.ordem ?? 0), papel: c.papel ?? "anexo", nome: c.nome, tipo: c.tipo, tamanho: c.tamanho, criado_por: P.natham, created_at: new Date().toISOString() };
+            // o gatilho arquivos_video_novo do SQL 027: vídeo NOVO de anexo num card Aprovado manda os vídeos de anexo anteriores para papel "original"
+      if (c.acao === "confirmar_envio" && base.tipo === "video" && base.papel === "anexo" && tarefas.find((x) => x.id === c.tarefa_id)?.etapa === "aprovado") {
+        for (const a of arquivos) if (a.tarefa_id === c.tarefa_id && a.tipo === "video" && a.papel === "anexo") a.papel = "original";
+      }
       arquivos.push(c.acao === "confirmar_envio" ? { ...base, tarefa_id: c.tarefa_id } : { ...base, tarefa_id: null, empresa_id: c.empresa_id, formato: c.formato ?? null, ocasiao_id: c.ocasiao_id ?? null });
       return res.writeHead(200).end(JSON.stringify({ arquivo_id: base.id }));
+    }
+    case "ordenar_anexos": { // igual à função real (acoes.ts): só muda a ordem dos arquivos do card
+      for (const x of c.ordem ?? []) { const a = arquivos.find((y) => y.id === x.id && y.tarefa_id === c.tarefa_id); if (a) a.ordem = x.ordem; }
+      return res.writeHead(200).end(JSON.stringify({ ok: true }));
     }
     default: return erro(400, "Esta ação não existe na cópia de exemplo.");
   }
