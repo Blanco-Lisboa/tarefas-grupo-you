@@ -49,7 +49,7 @@ export function enviarEmSegundoPlano(tarefaId: string, arquivo: File, { papel = 
   enfileirar(id);
   return id;
 }
-/** "Falhou — tentar de novo": volta para o fim da fila. */
+/** "Falhou" + "Tentar de novo": volta para o fim da fila. */
 export function tentarEnvioDeNovo(id: string) {
   if (!entradas.has(id)) return;
   mudar(id, { estado: "fila", fracao: 0, erro: undefined });
