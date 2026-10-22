@@ -3,6 +3,7 @@
 // Escrita otimista: a tela muda na hora; se o banco recusar, volta ao que era e mostra o aviso (ver lerErro).
 import { supabase } from "@/lib/supabase/cliente";
 import { carregarAnexos, ErroAnexo, sincronizarAnexos } from "./anexos";
+import { apagarSemAnexo } from "./apagar-card";
 import { apagarTarefaComArquivos } from "./drive";
 import { AVISOS, ligarTempoReal } from "./tempo-real";
 import { campoOcasiao, paraBanco, podeAlterar, podeApagar, postadoEmDe, trocarFazendo } from "./repositorio-regras";
@@ -224,7 +225,7 @@ async function removerTarefaDireto(id: string): Promise<void> {
     }
     return;
   }
-  const { data, error } = await supabase().from("tarefas").delete().eq("id", id).select("id");
+  const { data, error } = await apagarSemAnexo(alvo, id); // 287: card de conteúdo passa pela função apagar_card (029)
   if (error || !data?.length) {
     tarefas = antes;
     falhou(error ? motivoDoBanco(error, "Não consegui apagar a tarefa. Tente de novo.") : semAcesso);

@@ -30,3 +30,13 @@ describe("campoConsertoTexto (271)", () => {
   it("texto tirado manda null", () => expect(campoConsertoTexto("", "trocar a música")).toEqual({ conserto_texto: null }));
   it("nunca teve: não manda a coluna", () => expect(campoConsertoTexto(undefined, "")).toEqual({}));
 });
+
+import { ehConteudoCard } from "./esteira";
+
+describe("ehConteudoCard (287)", () => {
+  it("empresa e etapa = card da Esteira; o resto é tarefa do Caderno", () => {
+    expect(ehConteudoCard({ empresaId: "you", etapa: "edicao" })).toBe(true);
+    expect(ehConteudoCard({ empresaId: "you" })).toBe(false);
+    expect(ehConteudoCard({ empresaId: "", etapa: "roteiro" })).toBe(false);
+  });
+});

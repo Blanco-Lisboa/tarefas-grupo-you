@@ -16,3 +16,6 @@ export const fecharAprovada = (t: Pick<Tarefa, "etapa" | "tags" | "consertoTexto
 /** 271 · O que vai em `conserto_texto` ao salvar: só quando a coluna existe (027). Texto novo manda; texto tirado manda null; nunca teve, nem manda. */
 export const campoConsertoTexto = (atual: string | undefined, antes: string | undefined): { conserto_texto?: string | null } =>
   atual?.trim() ? { conserto_texto: atual.trim() } : antes ? { conserto_texto: null } : {};
+
+/** 287 · Card de conteúdo da Esteira = tem empresa e etapa. Esses não se apagam direto no banco (029); só pela função apagar_card ou pela função drive. */
+export const ehConteudoCard = (t: Pick<Tarefa, "empresaId" | "etapa">) => !!t.empresaId && !!t.etapa;
