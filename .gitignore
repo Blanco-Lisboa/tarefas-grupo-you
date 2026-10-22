@@ -49,3 +49,6 @@ dev-3100.log
 
 .vercel
 .env*
+
+# cache da CLI do Supabase (criado pelo "functions deploy")
+supabase/.temp/
