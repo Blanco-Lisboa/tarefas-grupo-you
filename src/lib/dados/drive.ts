@@ -2,6 +2,7 @@
 // a função `drive` do servidor só abre a sessão de envio, confere e registra. Vídeo nunca é recomprimido.
 import { useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabase/cliente";
+import { ligarTempoReal } from "./tempo-real";
 import type { Arquivo, Formato } from "./tipos";
 
 const PARTE = 8 * 1024 * 1024; // múltiplo de 256 KB, como o Drive exige
@@ -158,10 +159,12 @@ async function carregarOcasioes() {
   ocasioes = (data as LinhaTema[]).map(doBanco);
   avisar();
 }
+let desligarTempoReal: (() => void) | undefined;
 const assinar = (f: () => void) => {
   ouvintes.add(f);
   if (!carregou && typeof window !== "undefined") { carregou = true; void carregarOcasioes(); void carregarDocumentos(); void carregarPastasLivres(); void carregarPostagemAutomatica(); acompanharPostagemAutomatica(document); }
-  return () => void ouvintes.delete(f);
+  desligarTempoReal ??= ligarTempoReal("pastas", ["ocasioes", "pastas_livres", "arquivos"], () => { void carregarOcasioes(); void carregarDocumentos(); void carregarPastasLivres(); }); // 274
+  return () => { ouvintes.delete(f); if (!ouvintes.size) { desligarTempoReal?.(); desligarTempoReal = undefined; } };
 };
 const NADA: Ocasiao[] = [];
 /** Temas de todas as empresas (reativo). */

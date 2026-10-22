@@ -3,6 +3,7 @@
 "use client";
 import { useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabase/cliente";
+import { ligarTempoReal } from "./tempo-real";
 
 const NADA: ReadonlySet<string> = new Set();
 let feitos = NADA;
@@ -16,6 +17,7 @@ async function carregar() {
   if (!error) trocar(new Set((data ?? []).map((l) => l.evento_id as string)));
 }
 
+let desligarTempoReal: (() => void) | undefined;
 const assinar = (f: () => void) => {
   ouvintes.add(f);
   if (!iniciado && typeof window !== "undefined") {
@@ -23,7 +25,8 @@ const assinar = (f: () => void) => {
     void carregar();
     document.addEventListener("visibilitychange", () => { if (!document.hidden) void carregar(); });
   }
-  return () => void ouvintes.delete(f);
+  desligarTempoReal ??= ligarTempoReal("agenda-feitos", ["agenda_feitos"], () => void carregar()); // 274
+  return () => { ouvintes.delete(f); if (!ouvintes.size) { desligarTempoReal?.(); desligarTempoReal = undefined; } };
 };
 
 /** Ids dos compromissos que a pessoa logada marcou como feitos. */

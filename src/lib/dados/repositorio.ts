@@ -4,6 +4,7 @@
 import { supabase } from "@/lib/supabase/cliente";
 import { carregarAnexos, ErroAnexo, sincronizarAnexos } from "./anexos";
 import { apagarTarefaComArquivos } from "./drive";
+import { ligarTempoReal } from "./tempo-real";
 import { carregarPostagens, postando, postarEmQueVale, redesQueValem } from "./postagens";
 import type { Empresa, Fazendo, NovaTarefa, Postagem, Responsavel, Tag, Tarefa } from "./tipos";
 
@@ -36,13 +37,18 @@ export const lerFazendo = () => fazendo;
 export const lerEu = () => eu;
 export const lerErro = () => erro;
 export const limparErro = () => { erro = ""; avisar(); };
+let desligarTempoReal: (() => void) | undefined;
 export const assinar = (f: () => void) => {
   ouvintes.add(f);
   iniciar();
-  return () => void ouvintes.delete(f);
+  // 274 · Tempo real: enquanto houver tela olhando, o banco avisa quando algo muda. Última tela sai = desliga.
+  desligarTempoReal ??= ligarTempoReal("esteira", ["tarefas", "tarefa_tags", "tags", "empresas", "fazendo_agora", "arquivos", "postagens"], () => void carregar());
+  return () => { ouvintes.delete(f); if (!ouvintes.size) { desligarTempoReal?.(); desligarTempoReal = undefined; } };
 };
 
 export const falhou = (mensagem: string) => { erro = mensagem; avisar(); };
+/** Relê as tarefas e anexos do banco (o envio em segundo plano usa ao terminar). */
+export const recarregarTarefas = () => carregar();
 const idDe = (slug: Responsavel) => pessoas.find((p) => p.slug === slug)?.id;
 const slugDe = (id: string | null) => pessoas.find((p) => p.id === id)?.slug;
 

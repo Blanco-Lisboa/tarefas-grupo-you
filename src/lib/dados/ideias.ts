@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabase/cliente";
 import { falhou } from "./repositorio";
+import { ligarTempoReal } from "./tempo-real";
 
 export type Ideia = { id: string; empresaId: string; categoria: string; titulo: string; texto: string; links: string[] };
 type Estado = { ideias: Ideia[]; categorias: string[] };
@@ -18,13 +19,15 @@ const pendentes = new Map<string, number>(); // por empresa: escritas ainda não
 const versoes = new Map<string, number>(); // por ideia: nº da última gravação; uma falha antiga só desfaz se ainda for a última
 const ouvintes = new Set<() => void>();
 let iniciado = false;
+let desligarTempoReal: (() => void) | undefined;
 const assinar = (f: () => void) => {
   ouvintes.add(f);
   if (!iniciado && typeof window !== "undefined") {
     iniciado = true;
     document.addEventListener("visibilitychange", () => { if (!document.hidden) [...estado.keys()].forEach((e) => void carregarIdeias(e)); });
   }
-  return () => void ouvintes.delete(f);
+  desligarTempoReal ??= ligarTempoReal("ideias", ["ideias", "ideias_categorias"], () => [...estado.keys()].forEach((e) => void carregarIdeias(e))); // 274
+  return () => { ouvintes.delete(f); if (!ouvintes.size) { desligarTempoReal?.(); desligarTempoReal = undefined; } };
 };
 const trocar = (e: string, f: (s: Estado) => Estado) => { estado = new Map(estado).set(e, f(estado.get(e) ?? VAZIO)); ouvintes.forEach((o) => o()); };
 const com = (cats: string[], c: string) => (cats.includes(c) ? cats : [...cats, c]);
