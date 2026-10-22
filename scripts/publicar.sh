@@ -45,6 +45,6 @@ SAIDA="$(mktemp)"
 npx --yes vercel@64.7.0 --prod --yes --scope=you-contabilidade 2>&1 | tee "$SAIDA"
 
 # 5. conferir o apelido e mostrar o id do deploy
-grep -q 'Aliased https://tarefas-grupo-you.vercel.app' "$SAIDA" \
+grep -Eq 'Aliased[[:space:]]+https://tarefas-grupo-you\.vercel\.app' "$SAIDA" \
   || { echo "ERRO: a saída não confirma 'Aliased https://tarefas-grupo-you.vercel.app'." >&2; exit 1; }
 echo "Deploy: $(grep -oE 'dpl_[A-Za-z0-9]+|https://tarefas-grupo-you-[a-z0-9]+-[a-z0-9-]+\.vercel\.app' "$SAIDA" | head -1)"
