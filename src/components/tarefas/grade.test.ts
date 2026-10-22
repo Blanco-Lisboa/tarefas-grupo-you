@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { semDataDoCaderno, doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, DURACAO_MAXIMA, duracaoLimite, duracaoLivre, duracaoMaxima, ocupadoAs, cabeNaFicha, fichaOcupada, emConflito, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { semDataDoCaderno, doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, DURACAO_MAXIMA, duracaoLimite, duracaoLivre, duracaoMaxima, ocupadoAs, cabeNaFicha, fichaOcupada, emConflito, linhasDoBloco, montarGrade, montarSemData, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
   ({ id, titulo: id, tipo: "outro", empresaId: "e", responsavel: "natham", inicio, diaInteiro, cor: "etiqueta-1", links: [], arquivos: [] }) as Tarefa;
@@ -293,5 +293,27 @@ describe("abrir o Caderno não grava (item 275)", () => {
     const gravam = efeitos.filter((e) => e.includes("salvarTarefa") || e.includes("removerTarefa"));
     expect(gravam.length).toBe(1);
     expect(gravam[0]).toContain("grade:tarefas-feitas"); // a única, a migração única da chave antiga
+  });
+});
+
+describe("Sem data em qualquer linha (292)", () => {
+  const com = (id: string, linhaCaderno?: number) => ({ ...t(id), linhaCaderno });
+  it("cada tarefa fica na linha guardada, com vazias entre elas", () => {
+    const g = montarSemData([com("a", 2), com("b", 5)]);
+    expect(g.map((x) => x?.id ?? null).slice(0, 7)).toEqual([null, null, "a", null, null, "b", null]);
+  });
+  it("linha tomada: desce para a próxima livre", () => {
+    const g = montarSemData([com("a", 3), com("b", 3)]);
+    expect([g[3]?.id, g[4]?.id]).toEqual(["a", "b"]);
+  });
+  it("sem linha guardada empilha nas primeiras livres, em volta das que têm linha", () => {
+    const g = montarSemData([com("x"), com("a", 0), com("y")]);
+    expect(g.slice(0, 3).map((q) => q?.id)).toEqual(["a", "x", "y"]);
+  });
+  it("sempre sobra uma linha vazia e no mínimo a folha inteira", () => {
+    expect(montarSemData([]).length).toBe(SLOTS);
+    const g = montarSemData([com("a", 40)]);
+    expect(g.length).toBe(42);
+    expect(g[41]).toBeNull();
   });
 });

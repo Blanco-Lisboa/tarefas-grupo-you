@@ -63,6 +63,7 @@
 
 /* ===== Página esquerda: as linhas ===== */
 .folha { --margem-x: 0px; } /* item 291 v2: a coluna da hora começa na borda da folha; o texto fica centrado entre a borda e a linha azul */
+.folha .pag-miolo { scrollbar-gutter: stable; } /* item 293: Dia e Sem data reservam o mesmo espaço da barra de rolagem, então caixa, título e ⋮ ficam nos mesmos lugares */
 .folha[data-continua] .pag-miolo { padding-bottom: 0; } /* sem folga no pé: o papel pautado vai até a borda nas duas páginas */
 .folha-quem {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--app-vao);

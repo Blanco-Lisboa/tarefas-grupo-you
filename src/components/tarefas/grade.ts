@@ -225,3 +225,13 @@ export function encaixarCompromissos(grade: (Tarefa | Continua | null)[], horas:
   }
   return Array.from({ length: Math.max(SLOTS, linhas.length + 1) }, (_, k) => linhas[k] ?? null);
 }
+
+/** Item 292 · Linhas do Caderno "Sem data": cada tarefa fica na linha que guardou (`linhaCaderno`), com vazias entre elas.
+    Linha já tomada: desce para a próxima livre. Tarefa sem linha guardada (antes do SQL 292) empilha nas primeiras livres, como sempre foi. */
+export function montarSemData(tarefas: Tarefa[]): (Tarefa | null)[] {
+  const linhas: (Tarefa | undefined)[] = [];
+  const livre = (k: number) => { while (linhas[k]) k++; return k; };
+  for (const t of tarefas) if (t.linhaCaderno !== undefined) linhas[livre(Math.max(0, t.linhaCaderno))] = t;
+  for (const t of tarefas) if (t.linhaCaderno === undefined) linhas[livre(0)] = t;
+  return Array.from({ length: Math.max(SLOTS, linhas.length + 1) }, (_, k) => linhas[k] ?? null);
+}

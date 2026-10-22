@@ -129,6 +129,10 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
     if (!arrasto || !lista.current) return;
     // Posição de LAYOUT (offsetTop): a linha arrastada tem transform e o getBoundingClientRect dela anda com o ponteiro,
     // o que fazia o alvo ser sempre ela mesma (item 87).
+    if (continua) { // Sem data (292/294): vale a linha sob o ponteiro nas DUAS páginas; fora de qualquer linha (ou na própria) = fica onde está
+      const sob = document.elementsFromPoint(e.clientX, e.clientY).find((x): x is HTMLElement => x instanceof HTMLElement && x.matches("li.linha[data-k]") && x.dataset.k !== String(arrasto.de));
+      return setArrasto({ ...arrasto, dy: e.clientY - arrasto.y0, alvo: sob ? Number(sob.dataset.k) : arrasto.de });
+    }
     const topo = lista.current.getBoundingClientRect().top, y = e.clientY - topo;
     const linhasLi = [...lista.current.children] as HTMLElement[];
     const i = y < 0 ? 0 : linhasLi.findIndex((li) => y >= li.offsetTop && y < li.offsetTop + li.offsetHeight);
@@ -143,7 +147,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
     const alvo = e.key === "ArrowUp" ? k - 1 : e.key === "ArrowDown" ? k + 1 : -1;
     if (alvo < 0 && e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
     e.preventDefault();
-    if (alvo < 0 || alvo > SLOTS - 1) return;
+    if (alvo < 0 || alvo > (continua ? nEsq + (direita?.length ?? 0) : SLOTS) - 1) return;
     refoco.current = id;
     aoMover?.(id, alvo);
   };
@@ -152,8 +156,8 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
         <ul ref={principal ? lista : undefined} className="folha-linhas" data-arrastando={!!arrasto}>
       {ls.map((l, i) => { const k = base + i; if (l?.ocupada) return <li key={l.id} hidden />; const n = l?.bloco ?? 1; return (
         <li
-          key={l?.id ?? `v${k}`} className="linha" data-feita={l?.feita} data-faixa={l && (l.compromisso || l.reuniao) ? (l.reuniao ? "reuniao" : "comum") : undefined}
-          data-bloco={n > 1 || undefined} data-arrastada={arrasto?.id === l?.id && !!l || undefined} data-alvo={arrasto && arrasto.alvo === k && arrasto.alvo !== arrasto.de ? (linhas[k] && linhas[k]!.id !== arrasto.id ? "ocupado" : "livre") : undefined}
+          key={l?.id ?? `v${k}`} className="linha" data-k={k} data-feita={l?.feita} data-faixa={l && (l.compromisso || l.reuniao) ? (l.reuniao ? "reuniao" : "comum") : undefined}
+          data-bloco={n > 1 || undefined} data-arrastada={arrasto?.id === l?.id && !!l || undefined} data-alvo={arrasto && arrasto.alvo === k && arrasto.alvo !== arrasto.de ? (!continua && linhas[k] && linhas[k]!.id !== arrasto.id ? "ocupado" : "livre") : undefined}
           style={{ ...(n > 1 ? { "--n": n } : null), ...(arrasto && arrasto.id === l?.id ? { transform: `translateY(${arrasto.dy}px)` } : null) } as CSSProperties}
         >
           <span className="linha-hora">

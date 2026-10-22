@@ -51,6 +51,8 @@ export type Tarefa = {
   inicio?: string;
   fim?: string;
   diaInteiro: boolean;
+  /** Item 292: linha do Caderno "Sem data" onde a tarefa fica (0 = primeira). Sem valor = empilha nas primeiras livres. Só vale sem `inicio`. */
+  linhaCaderno?: number;
   cor: Etiqueta;
   /** Feita? Opcional: ausente = não concluída. */
   concluida?: boolean;

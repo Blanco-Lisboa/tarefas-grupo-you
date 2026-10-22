@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { semDataDoCaderno, doCaderno, DURACAO_MAXIMA, duracaoDe, duracaoLimite, duracaoMaxima, ocupadoAs, emConflito, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { semDataDoCaderno, doCaderno, DURACAO_MAXIMA, duracaoDe, duracaoLimite, duracaoMaxima, ocupadoAs, emConflito, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, montarSemData, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -83,7 +83,7 @@ export function TelaTarefas() {
   // Item 221: só no Caderno do próprio Natham, a agenda pessoal dele (fonte natham) entra nas linhas, menos o que ele já digitou.
   const comAgenda = aba === "dia" && !alheio && de === "natham";
   const { faixa, horas } = separarCompromissos(comAgenda ? eventosDoDia(agendaGoogle, dia, "natham").filter((e) => !jaTemTarefa(e, doDia)) : [], dia);
-  const grade = encaixarCompromissos(montarGrade(mostradas, aba === "dia", true), horas, dia);
+  const grade = aba === "dia" ? encaixarCompromissos(montarGrade(mostradas, true, true), horas, dia) : montarSemData(mostradas);
   const daAgenda = (e: Encaixe["evento"], detalhe: string, k: string, compromisso: "primeira" | "continua"): LinhaFolha => ({
     id: `ev:${e.id}${k}`, titulo: e.titulo, detalhe, feita: eventosFeitos.has(e.id), reuniao: ehReuniao(e), compromisso, podeAlterar: false, podeApagar: false,
   });
@@ -206,6 +206,15 @@ export function TelaTarefas() {
     a.ctx.soltar(a.p, destino, fim);
   };
   // A tarefa vai para o horário da linha (neste dia) e mantém a duração (30 min se era dia inteiro ou sem fim).
+  // 292/294: no "Sem data" a tarefa vai para QUALQUER linha, nas duas páginas. Linha ocupada: as duas trocam de lugar.
+  const moverSemData = (id: string, linha: number) => {
+    const t = tarefas.find((x) => x.id === id), de = grade.findIndex((x) => x === t);
+    if (!t || de < 0 || de === linha) return;
+    const outra = grade[linha] as Tarefa | null;
+    if (outra && !podeAlterar(outra, eu)) return; // tarefa só de leitura não troca de lugar
+    void salvarTarefa({ ...t, linhaCaderno: linha });
+    if (outra) void salvarTarefa({ ...outra, linhaCaderno: de });
+  };
   const moverPara = (id: string, linha: number) => {
     const t = tarefas.find((x) => x.id === id);
     if (!t) return;
@@ -296,12 +305,12 @@ export function TelaTarefas() {
             aoMarcar={(id) => { if (id.startsWith("ev:")) { const ev = id.slice(3); return void marcarEventoFeito(ev, !eventosFeitos.has(ev)); } const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
             aoApagar={(id) => { if (!ehConteudo(tarefas.find((x) => x.id === id) ?? ({} as Tarefa))) void removerTarefa(id); }}
             continua={aba === "semdata"}
-            aoMover={aba === "dia" ? moverPara : undefined}
+            aoMover={aba === "dia" ? moverPara : moverSemData}
             acoes={acoes}
             responsavelPadrao={eu ?? undefined}
             aoEscrever={alheio ? undefined : (t, empresaId, responsavel, linha) => {
               const base = { titulo: t, tipo: "outro" as const, empresaId, responsavel, enviarPara: responsavel, cor: "etiqueta-5" as const, links: [], arquivos: [] };
-              if (aba === "semdata") return void salvarTarefa({ ...base, diaInteiro: false });
+              if (aba === "semdata") return void salvarTarefa({ ...base, diaInteiro: false, linhaCaderno: linha });
               // Escrever numa linha de horário marca esse horário (30 min); depois das 22:00, dia inteiro.
               if (linha >= SLOTS) return void salvarTarefa({ ...base, inicio: dia, diaInteiro: true });
               const h = horaDoSlot(linha);
