@@ -24,6 +24,9 @@ export type Etapa = (typeof ETAPAS)[number];
 export type Responsavel = (typeof RESPONSAVEIS)[number];
 export type Formato = (typeof FORMATOS)[number];
 export type RedePost = (typeof REDES_POST)[number];
+/** Item 296: cor da LINHA inteira no Caderno (mesmo efeito da reunião, outro tom). Sem valor = sem cor (a reunião é dourada por padrão). */
+export const CORES_LINHA = ["azul", "roxo", "dourado", "vermelho", "verde", "rosa"] as const;
+export type CorLinha = (typeof CORES_LINHA)[number];
 export type Etiqueta = (typeof ETIQUETAS)[number]; // usa var(--etiqueta-N) e var(--etiqueta-N-texto)
 
 export type Link = { rotulo: string; url: string }; // vídeo = link do Google Drive
@@ -53,6 +56,7 @@ export type Tarefa = {
   diaInteiro: boolean;
   /** Item 292: linha do Caderno "Sem data" onde a tarefa fica (0 = primeira). Sem valor = empilha nas primeiras livres. Só vale sem `inicio`. */
   linhaCaderno?: number;
+  corLinha?: CorLinha;
   cor: Etiqueta;
   /** Feita? Opcional: ausente = não concluída. */
   concluida?: boolean;

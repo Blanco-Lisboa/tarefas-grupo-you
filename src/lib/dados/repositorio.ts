@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase/cliente";
 import { carregarAnexos, ErroAnexo, sincronizarAnexos } from "./anexos";
 import { apagarSemAnexo } from "./apagar-card";
 import { apagarTarefaComArquivos } from "./drive";
-import { AVISOS, ligarTempoReal } from "./tempo-real"; import { gravarLinhaCaderno } from "./linha-caderno";
+import { AVISOS, ligarTempoReal } from "./tempo-real"; import { gravarExtras } from "./linha-caderno";
 import { campoOcasiao, paraBanco, podeAlterar, podeApagar, postadoEmDe, trocarFazendo } from "./repositorio-regras";
 export { campoOcasiao, paraBanco, podeAlterar, podeApagar, postadoEmDe, trocarFazendo };
 import { campoConsertoTexto, fecharAprovada } from "./esteira";
@@ -18,7 +18,7 @@ type LinhaTarefa = {
   objetivo: string | null; notas: string | null; links: Tarefa["links"]; aprovador: string | null;
   dono_id: string; criado_por: string; enviada_por: string | null; vai_pro_google?: boolean; postar_em?: string | null; conserto?: boolean; conserto_texto?: string | null; formato?: Tarefa["formato"] | null;
   postado_em?: string | null; legenda?: string | null; postar_redes?: Tarefa["postarRedes"] | null; capa_quadro_ms?: number | null; ocasiao_id?: string | null;
-  tarefa_tags?: { tag_id: string }[]; linha_caderno?: number | null; /* 292: só existe depois do SQL 292 colado */
+  tarefa_tags?: { tag_id: string }[]; linha_caderno?: number | null; cor_linha?: Tarefa["corLinha"] | null; /* 292/296: só existem depois do SQL colado */
 };
 type Pessoa = { id: string; slug: Responsavel; user_id: string | null };
 
@@ -69,7 +69,7 @@ export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem:
     dono: quem(l.dono_id), criadoPor: quem(l.criado_por), enviadaPor: quem(l.enviada_por), vaiProGoogle: l.vai_pro_google || undefined,
     postarEm: l.postar_em ?? undefined, postadoEm: l.postado_em ?? undefined, conserto: l.conserto || undefined, consertoTexto: l.conserto_texto === undefined ? undefined : l.conserto_texto ?? "", formato: l.formato ?? undefined,
     legenda: l.legenda ?? undefined, postarRedes: l.postar_redes ?? undefined, capaQuadroMs: l.capa_quadro_ms ?? undefined, ocasiaoId: l.ocasiao_id ?? undefined,
-    postagens: postagens?.length ? postagens : undefined, linhaCaderno: l.linha_caderno ?? undefined,
+    postagens: postagens?.length ? postagens : undefined, linhaCaderno: l.linha_caderno ?? undefined, corLinha: l.cor_linha ?? undefined,
   };
 }
 
@@ -198,7 +198,7 @@ async function salvarTarefaDireto(nova: NovaTarefa): Promise<Tarefa | null> {
     falhou(motivoDoBanco(e, "Não consegui salvar a tarefa. Tente de novo."));
     return null;
   }
-  if (tarefa.linhaCaderno !== antes?.linhaCaderno && !(await gravarLinhaCaderno(id, tarefa.linhaCaderno))) falhou("Não consegui guardar a linha da tarefa. Tente de novo.");
+  if (!(await gravarExtras(id, antes, tarefa))) falhou("Não consegui guardar a linha ou a cor da tarefa. Tente de novo.");
   // A tarefa já está no banco (o anexo precisa dela). Se o anexo falhar, a tarefa fica e o aviso diz que o anexo não subiu.
   try {
     const arquivos = await sincronizarAnexos(supabase(), id, tarefa.empresaId, eu && idDe(eu), antes?.arquivos ?? [], tarefa.arquivos);

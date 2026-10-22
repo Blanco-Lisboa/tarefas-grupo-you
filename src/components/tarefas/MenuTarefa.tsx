@@ -1,6 +1,6 @@
 "use client";
 import { useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import type { Etiqueta, Responsavel } from "@/lib/dados";
+import { CORES_LINHA, type CorLinha, type Etiqueta, type Responsavel } from "@/lib/dados";
 import { SeloEmpresa } from "@/components/ui/Marca";
 import "@/components/ui/selecao.css";
 import "./caderno.css";
@@ -16,6 +16,8 @@ export type Acoes = {
   criarPara: (id: string, quem: Responsavel) => void;
   marcarPessoa: (id: string, quem: Responsavel) => void;
   etiqueta: (id: string, cor: Etiqueta) => void;
+  /** Item 296: undefined = sem cor. */
+  corLinha: (id: string, cor: CorLinha | undefined) => void;
   /** empresaId "" = sem empresa. */
   empresa: (id: string, empresaId: string) => void;
 };
@@ -29,6 +31,13 @@ export const ETIQUETAS: { rotulo: string; cor: Etiqueta | null; valor: Etiqueta 
   { rotulo: "Sem", cor: null, valor: "etiqueta-5" },
 ];
 
+// Item 296: tons da cor da linha (o dourado é o da reunião). `--e` = o tom, `--et` = texto legível em cima dele.
+export const COR_LINHA: Record<CorLinha, { rotulo: string; tom: string; texto: string }> = {
+  azul: { rotulo: "Azul", tom: "#0064CC", texto: "#FFFFFF" }, roxo: { rotulo: "Roxo", tom: "var(--etiqueta-15)", texto: "#FFFFFF" },
+  dourado: { rotulo: "Dourado", tom: "var(--etiqueta-11)", texto: "#1D1D1F" }, vermelho: { rotulo: "Vermelho", tom: "var(--etiqueta-7)", texto: "#FFFFFF" },
+  verde: { rotulo: "Verde", tom: "var(--etiqueta-8)", texto: "#FFFFFF" }, rosa: { rotulo: "Rosa", tom: "var(--etiqueta-16)", texto: "#FFFFFF" },
+};
+
 /** 30 -> "30 min", 60 -> "1h", 90 -> "1h30". */
 export const rotuloDuracao = (m: number) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, "0") : ""}`);
 
@@ -39,6 +48,7 @@ type Props = {
   id: string;
   titulo: string;
   cor: string;
+  corLinha?: CorLinha;
   responsavel: Responsavel;
   empresaId: string;
   empresas: { id: string; nome: string }[];
@@ -58,7 +68,7 @@ type Props = {
   semExcluir?: boolean;
 };
 
-export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, duracao, duracaoMax, duracaoLimite, ocupadoAs, ocupadas, acoes, aoExcluir, semExcluir }: Props) {
+export function MenuTarefa({ id, titulo, cor, corLinha, responsavel, empresaId, empresas, horas, duracao, duracaoMax, duracaoLimite, ocupadoAs, ocupadas, acoes, aoExcluir, semExcluir }: Props) {
   const uid = useId();
   const pop = useRef<HTMLDivElement>(null);
   const [vista, setVista] = useState<"menu" | "hora" | "duracao" | "criar" | "pessoa" | "empresa" | "excluir">("menu");
@@ -127,6 +137,17 @@ export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, 
                     onClick={feito(() => acoes.etiqueta(id, e.valor))}
                   >{e.rotulo}</button>
                 ))}
+              </div>
+              <p className="mt-titulo">Cor da linha</p>
+              <div className="mt-etiquetas">
+                {CORES_LINHA.map((c) => (
+                  <button
+                    key={c} type="button" className="mt-etiqueta" aria-pressed={corLinha === c}
+                    style={{ "--e": COR_LINHA[c].tom, "--et": COR_LINHA[c].texto } as CSSProperties}
+                    onClick={feito(() => acoes.corLinha(id, c))}
+                  >{COR_LINHA[c].rotulo}</button>
+                ))}
+                <button type="button" className="mt-etiqueta" aria-pressed={!corLinha} onClick={feito(() => acoes.corLinha(id, undefined))}>Sem cor</button>
               </div>
               {!semExcluir && (
                 <>

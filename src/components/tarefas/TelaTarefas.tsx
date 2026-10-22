@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { PointerEvent as EventoPonteiro } from "react";
 import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
-import { RESPONSAVEIS, comoNatham, marcarEventoFeito, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useAgendaEventos, useEventosFeitos, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
+import { RESPONSAVEIS, comoNatham, marcarEventoFeito, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useAgendaEventos, useEventosFeitos, type CorLinha, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
@@ -102,7 +102,7 @@ export function TelaTarefas() {
     detalhe: [NOMES[t.responsavel], aba === "dia" && !horaDe(t) ? "dia inteiro" : ""].filter(Boolean).join(" · "),
     feita: !!t.concluida,
     reuniao: ehReuniao(t),
-    cor: t.cor,
+    cor: t.cor, corLinha: t.corLinha,
     responsavel: t.responsavel,
     enviadaPor: !ehConteudo(t) && t.enviadaPor ? NOMES[t.enviadaPor] : undefined,
     enviadaPara: enviadaPorMim(t, de) && t.dono ? NOMES[t.dono] : undefined,
@@ -241,6 +241,7 @@ export function TelaTarefas() {
     duracao: (id: string, min: number) => comTarefa((t) => { const h = horaDe(t); if (h) void salvarTarefa({ ...t, fim: `${t.inicio!.slice(0, 10)}T${somarMinutos(h, min)}` }); })(id),
     criarPara: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, id: undefined, responsavel: quem, enviarPara: ehConteudo(t) ? undefined : quem, concluida: false }))(id),
     marcarPessoa: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, responsavel: quem }))(id),
+    corLinha: (id: string, corLinha: CorLinha | undefined) => comTarefa((t) => void salvarTarefa({ ...t, corLinha }))(id),
     etiqueta: (id: string, cor: Etiqueta) => comTarefa((t) => void salvarTarefa({ ...t, cor }))(id),
     empresa: (id: string, empresaId: string) => comTarefa((t) => void salvarTarefa({ ...t, empresaId }))(id),
   };

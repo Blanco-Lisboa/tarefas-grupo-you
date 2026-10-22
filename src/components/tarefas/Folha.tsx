@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
-import type { Responsavel } from "@/lib/dados";
+import type { CorLinha, Responsavel } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import { SeloEmpresa } from "@/components/ui/Marca";
 import type { OpcaoLetra } from "./fontes";
@@ -8,7 +8,7 @@ import { horaDoSlot, SLOTS } from "./grade";
 import { ETIQUETAS, MenuTarefa, type Acoes } from "./MenuTarefa";
 import "./caderno.css";
 
-export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: boolean; /** Tarefa com nome de reunião (item 188): destaque âmbar. */ reuniao?: boolean;
+export type LinhaFolha = { id: string; /** Item 296: cor da linha inteira. */ corLinha?: CorLinha; titulo: string; detalhe: string; feita: boolean; /** Tarefa com nome de reunião (item 188): destaque âmbar. */ reuniao?: boolean;
   /** Compromisso do Google (item 221): só leitura, mas com quadradinho de feito. "continua" = linha de baixo de um compromisso longo, só pintada. */ compromisso?: "primeira" | "continua"; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao;
   /** Nome de quem mandou a tarefa (selo "enviada por"). Vazio = não foi enviada. */ enviadaPor?: string;
   /** Nome de quem recebeu, no caderno de quem enviou (selo "enviada →"). Vale no lugar de enviadaPor. */ enviadaPara?: string;
@@ -156,7 +156,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
         <ul ref={principal ? lista : undefined} className="folha-linhas" data-arrastando={!!arrasto}>
       {ls.map((l, i) => { const k = base + i; if (l?.ocupada) return <li key={l.id} hidden />; const n = l?.bloco ?? 1; return (
         <li
-          key={l?.id ?? `v${k}`} className="linha" data-k={k} data-feita={l?.feita} data-faixa={l && (l.compromisso || l.reuniao) ? (l.reuniao ? "reuniao" : "comum") : undefined}
+          key={l?.id ?? `v${k}`} className="linha" data-k={k} data-cor-linha={l?.corLinha} data-feita={l?.feita} data-faixa={l && (l.compromisso || l.reuniao) ? (l.reuniao ? "reuniao" : "comum") : undefined}
           data-bloco={n > 1 || undefined} data-arrastada={arrasto?.id === l?.id && !!l || undefined} data-alvo={arrasto && arrasto.alvo === k && arrasto.alvo !== arrasto.de ? (!continua && linhas[k] && linhas[k]!.id !== arrasto.id ? "ocupado" : "livre") : undefined}
           style={{ ...(n > 1 ? { "--n": n } : null), ...(arrasto && arrasto.id === l?.id ? { transform: `translateY(${arrasto.dy}px)` } : null) } as CSSProperties}
         >
@@ -199,7 +199,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
                   <button type="button" className="confirmar-nao" autoFocus onClick={() => setConfirmando(null)}>Manter</button>
                 </span>
               ) : acoes ? (
-                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} duracao={l.duracao ?? 30} duracaoMax={l.duracaoMax ?? 0} duracaoLimite={l.duracaoLimite ?? 0} ocupadoAs={l.ocupadoAs} ocupadas={new Set(linhas.flatMap((x, j) => (x && x.id !== l.id && !x.id.startsWith(`${l.id}#`) ? [j] : [])))} acoes={acoes} aoExcluir={() => aoApagar(l.id)} semExcluir={l.podeApagar === false} />
+                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} corLinha={l.corLinha} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} duracao={l.duracao ?? 30} duracaoMax={l.duracaoMax ?? 0} duracaoLimite={l.duracaoLimite ?? 0} ocupadoAs={l.ocupadoAs} ocupadas={new Set(linhas.flatMap((x, j) => (x && x.id !== l.id && !x.id.startsWith(`${l.id}#`) ? [j] : [])))} acoes={acoes} aoExcluir={() => aoApagar(l.id)} semExcluir={l.podeApagar === false} />
               ) : l.podeApagar === false ? null : (
                 <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => setConfirmando(l.id)}>
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>
