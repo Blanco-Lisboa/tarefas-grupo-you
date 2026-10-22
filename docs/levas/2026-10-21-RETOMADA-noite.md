@@ -22,3 +22,7 @@
 
 ## 4. Arrumação
 - Terminais Alvenaria, Vitral e Lupa #2 limpos no fim. Cópia .publicar-258 removida; .publicar-262 fica até o envio (apagar depois com git worktree remove).
+
+## 5. Depois (21/10 ~21h)
+- 263 NO AR (dpl_9sMUH3SVNNUQTSCoFju4ty6MYFyk): tarefa que o Natham envia ao Matheus sai do caderno do Natham; ele edita no "Caderno de Matheus". Matheus → Natham igual a antes. No Calendário do Natham a enviada ainda aparece (ele não pediu; perguntar se incomodar).
+- PUBLICAR SEM O NATHAM: recruta da pasta grade-conteudo roda `bash scripts/publicar.sh` (permissão dada por ele em .claude/settings.local.json; recruta tem de ter sido iniciado depois — reiniciar com `maestri recruit "X" --replace "X" --command "claude --model sonnet" --dir <grade-conteudo>`). Continua valendo: nunca publicar com SQL não colado.
