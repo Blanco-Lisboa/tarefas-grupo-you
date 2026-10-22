@@ -9,6 +9,7 @@ import { IconeRede, SeloEmpresa, temLogo } from "@/components/ui/Marca";
 import { TagChip } from "@/components/ui/Tag";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { ehConteudo } from "@/components/tarefas/grade";
+import { useFichaDaUrl } from "./ficha-da-url";
 import { ETAPAS, podeAlterar, salvarTarefa, useEmpresas, useEu, useFazendo, usePostagemAutomatica, useTags, useTarefas, type Etapa, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
@@ -59,6 +60,7 @@ export function TelaConteudos() {
   const fazendo = useFazendo();
   const { aplicar } = useFiltroEmpresa();
   const [aberta, setAberta] = useState<NovaTarefa | null>(null);
+  useFichaDaUrl(tarefas, setAberta);
   const [arraste, setArraste] = useState<Arraste | null>(null);
   const [destino, setDestino] = useState<Etapa | null>(null);
   const [pendentePostado, setPendentePostado] = useState<Tarefa | null>(null);

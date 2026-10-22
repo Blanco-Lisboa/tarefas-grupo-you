@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect } from "react";
 import { descartarEnvio, tentarEnvioDeNovo, useEnvios } from "@/lib/dados";
 import "./aviso-envio.css";
@@ -20,6 +21,13 @@ export function AvisoEnvio() {
         <li key={e.id} data-estado={e.estado}>
           <span className="aviso-envio-nome" title={e.nome}>{e.nome}</span>
           {e.estado === "enviado" ? <b>Enviado</b>
+            : e.estado === "interrompido" ? (
+              <>
+                <b>Envio interrompido — escolha o vídeo de novo</b>
+                {e.tarefaId && <Link href={`/conteudos?ficha=${e.tarefaId}`} onClick={() => descartarEnvio(e.id)}>Abrir o card</Link>}
+                <button type="button" aria-label={`Descartar ${e.nome}`} onClick={() => descartarEnvio(e.id)}>×</button>
+              </>
+            )
             : e.estado === "falhou" ? (
               <>
                 <b title={e.erro}>Falhou</b>

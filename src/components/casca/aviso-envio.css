@@ -4,7 +4,7 @@
 .aviso-envio-nome { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aviso-envio b { font-weight: 600; }
 .aviso-envio li[data-estado="falhou"] b { color: var(--atrasado); }
-.aviso-envio button { border: 0; background: none; color: var(--azul); font: inherit; cursor: pointer; padding: 0 var(--s-4); }
+.aviso-envio a, .aviso-envio button { border: 0; background: none; color: var(--azul); font: inherit; cursor: pointer; padding: 0 var(--s-4); text-decoration: none; }
 .aviso-envio-barra { flex-basis: 100%; height: 4px; border-radius: 2px; background: var(--sup-2); overflow: hidden; }
 .aviso-envio-barra > i { display: block; height: 100%; background: var(--azul); transition: width .2s ease; }
 @media (prefers-reduced-motion: reduce) { .aviso-envio-barra > i { transition: none; } }

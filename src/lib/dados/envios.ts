@@ -6,16 +6,22 @@ import { useSyncExternalStore } from "react";
 import { enviarParaDrive } from "./drive";
 import { recarregarTarefas } from "./repositorio";
 
-export type Envio = { id: string; nome: string; fracao: number; estado: "fila" | "enviando" | "enviado" | "falhou"; erro?: string };
+export type Envio = { id: string; nome: string; fracao: number; estado: "fila" | "enviando" | "enviado" | "falhou" | "interrompido"; erro?: string; tarefaId?: string };
 type Entrada = { tarefaId: string; arquivo: File; papel: "anexo" | "capa"; ordem: number };
 
-let envios: Envio[] = [];
+// Só o NOME e o card ficam guardados no navegador (nunca o arquivo): se a aba recarrega no meio do envio, o aviso volta como "interrompido" e manda escolher o vídeo de novo.
+const GUARDA = "grade:envios-abertos";
+const lerGuarda = (): Envio[] => {
+  try { return (JSON.parse(localStorage.getItem(GUARDA) ?? "[]") as Envio[]).map((e) => ({ id: e.id, nome: e.nome, tarefaId: e.tarefaId, fracao: 0, estado: "interrompido" as const })); } catch { return []; }
+};
+let envios: Envio[] = typeof window === "undefined" ? [] : lerGuarda();
+const guardar = () => { try { localStorage.setItem(GUARDA, JSON.stringify(envios.filter((e) => e.estado !== "enviado").map(({ id, nome, tarefaId }) => ({ id, nome, tarefaId })))); } catch { /* sem armazenamento: só não lembra */ } };
 const entradas = new Map<string, Entrada>();
 const ouvintes = new Set<() => void>();
 let cauda: Promise<void> = Promise.resolve(); // um envio por vez: vários vídeos grandes juntos brigariam pela mesma internet
 const SOME_EM_MS = 6000;
 
-const avisar = () => ouvintes.forEach((f) => f());
+const avisar = () => { guardar(); ouvintes.forEach((f) => f()); };
 const mudar = (id: string, p: Partial<Envio>) => { envios = envios.map((e) => (e.id === id ? { ...e, ...p } : e)); avisar(); };
 
 async function rodar(id: string) {
@@ -38,7 +44,7 @@ const enfileirar = (id: string) => { cauda = cauda.then(() => rodar(id)); };
 export function enviarEmSegundoPlano(tarefaId: string, arquivo: File, { papel = "anexo", ordem = 0 }: { papel?: "anexo" | "capa"; ordem?: number } = {}): string {
   const id = crypto.randomUUID();
   entradas.set(id, { tarefaId, arquivo, papel, ordem });
-  envios = [...envios, { id, nome: arquivo.name, fracao: 0, estado: "fila" }];
+  envios = [...envios, { id, nome: arquivo.name, fracao: 0, estado: "fila", tarefaId }];
   avisar();
   enfileirar(id);
   return id;
