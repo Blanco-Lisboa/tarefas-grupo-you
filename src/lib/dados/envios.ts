@@ -20,7 +20,6 @@ const guardar = () => { try { localStorage.setItem(GUARDA, JSON.stringify(envios
 const entradas = new Map<string, Entrada>();
 const ouvintes = new Set<() => void>();
 let cauda: Promise<void> = Promise.resolve(); // um envio por vez: vários vídeos grandes juntos brigariam pela mesma internet
-const SOME_EM_MS = 6000;
 
 const avisar = () => { guardar(); ouvintes.forEach((f) => f()); };
 const mudar = (id: string, p: Partial<Envio>) => { envios = envios.map((e) => (e.id === id ? { ...e, ...p } : e)); avisar(); };
@@ -36,7 +35,6 @@ async function rodar(id: string) {
     entradas.delete(id);
     mudar(id, { estado: "enviado", fracao: 1 });
     void recarregarTarefas(); // o card passa a mostrar o vídeo
-    setTimeout(() => { envios = envios.filter((x) => x.id !== id); avisar(); }, SOME_EM_MS);
   } catch (erro) {
     mudar(id, { estado: "falhou", erro: erro instanceof Error ? erro.message : "O envio falhou." }); // a entrada fica: "tentar de novo" continua de onde parou
   }

@@ -1,0 +1,2 @@
+/* Item 281: aviso do título vazio (abaixo do campo) */
+.ficha-titulo-aviso { display: block; margin-top: var(--s-4); color: var(--atrasado, #c0392b); font-size: var(--app-t-rotulo); }

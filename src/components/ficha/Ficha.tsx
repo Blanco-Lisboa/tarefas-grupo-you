@@ -33,6 +33,9 @@ import { IconeRede, SeloEmpresa } from "@/components/ui/Marca";
 import { Agora } from "./Agora";
 import { podeAprovar } from "./Aprovacao";
 import { Anexos } from "./Anexos";
+import { Confirmar } from "./Confirmar";
+import { TituloFicha } from "./TituloFicha";
+import { useSaidaFicha } from "./saida-ficha";
 import { useArquivosQueChegam } from "./anexos-vivos";
 import { CamposPost } from "./CamposPost";
 import { Publicacao } from "./Publicacao";
@@ -107,6 +110,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
   const fora = arquivos.filter((a) => a.papel === "capa" || a.papel === "original"); // não entram em Anexos: a capa (campo próprio) e o vídeo sem legenda guardado (270)
   const viva = todas.find((x) => x.id === tarefa.id); // a ficha nasce de uma cópia; a Publicação lê o card vivo (postando, erro, links)
   useArquivosQueChegam(viva?.arquivos, tarefa.arquivos, setArquivos); // 268
+  const saida = useSaidaFicha([t, data, horaIni, horaFim, dataFim, links, arquivos.map((a) => a.id ?? a.nome)], !!soLer, () => dialogo.current?.close()); // 281
   const temEmpresa = empresas.some((x) => x.id === t.empresaId);
   const empresaOk = !t.empresaId || temEmpresa; // "" = sem empresa
   const mudar = <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => setT((x) => ({ ...x, [campo]: valor }));
@@ -174,6 +178,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
     if (gravada) {
       setT((x) => ({ ...x, ...extra, id: gravada.id, etapa: gravada.etapa, conserto: gravada.conserto, consertoTexto: gravada.consertoTexto, tags: gravada.tags })); // etapa como ficou (Roteiro do 205, decisão)
       aoSalvar?.(salva);
+      saida.salvou();
     }
     // 229: a pasta do conteúdo no Drive acompanha título, formato, tema e empresa. Se o Drive falhar, a ficha fica aberta com o aviso (o salvar vale).
     const aviso = gravada && viva && arquivosDoDrive(viva).length && mudouPasta(tarefa, salva)
@@ -198,8 +203,8 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
       ref={dialogo}
       className="ficha"
       aria-label={nova ? "Nova tarefa" : `Tarefa ${tarefa.titulo}`}
-      onClose={aoFechar} onCancel={(e) => { if (apagando) { e.preventDefault(); setApagando(false); } }}
-      onClick={(e) => e.target === e.currentTarget && dialogo.current?.close()}
+      onClose={aoFechar} onCancel={(e) => { e.preventDefault(); if (apagando) setApagando(false); else saida.pedir(); }}
+      onClick={(e) => e.target === e.currentTarget && saida.pedir()}
     >
       <form className="ficha-cartao" onSubmit={(e) => { e.preventDefault(); void gravar(); }} style={corAtual}>
         <header className="ficha-faixa">
@@ -213,25 +218,9 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
               )}
             </span>
             {!nova && <Agora tarefaId={tarefa.id!} soLer={soLer} encerrada={viva?.tipo === "postagem" && (viva.etapa === "aprovado" || viva.etapa === "postado")} nomes={NOMES.responsavel} />}
-            <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>
+            <button type="button" className="ficha-fechar" onClick={saida.pedir}>Fechar</button>
           </div>
-          <textarea
-            className="ficha-titulo"
-            rows={1}
-            value={t.titulo}
-            onChange={(e) => mudar("titulo", e.target.value.replace(/[\r\n]+/g, " "))}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                e.currentTarget.form?.requestSubmit();
-              }
-            }}
-            placeholder="Título da tarefa"
-            aria-label="Título"
-            required
-            readOnly={soLer}
-            autoFocus={!soLer}
-          />
+          <TituloFicha valor={t.titulo} aoMudar={(v) => mudar("titulo", v)} soLer={!!soLer} />
         </header>
 
         <fieldset className="ficha-corpo" disabled={soLer}>
@@ -318,7 +307,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
             )}
           </div>
 
-          <CampoConserto viva={viva} t={t} mudar={mudar} soLer={soLer} />
+          <CampoConserto viva={viva} t={t} mudar={mudar} soLer={!!soLer} />
           {decide && (
             <div className="ficha-decidir">
               <button type="button" className="aprovacao-botao" data-acao="consertar" disabled={salvando} onClick={() => void decidir({ etapa: "edicao", conserto: true })}>{decidindo === "edicao" ? "Consertando…" : "Consertar"}</button>
@@ -335,10 +324,11 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
             <button type="button" className="ficha-lixeira" aria-label="Apagar tarefa" title="Apagar tarefa" onClick={() => setApagando(true)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4" /></svg></button>
           )}
           {((enviou && erro) || recusa) && <p className="ficha-erro" role="alert">{recusa || erro}</p>}
-          {!apagando && <button type="button" className="btn btn-2" onClick={() => dialogo.current?.close()}>{soLer ? "Fechar" : "Cancelar"}</button>}
+          {!apagando && <button type="button" className="btn btn-2" onClick={saida.pedir}>{soLer ? "Fechar" : "Cancelar"}</button>}
           {!soLer && !apagando && <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>}
         </footer>
       </form>
+      {saida.perguntando && <Confirmar titulo="Descartar alterações?" texto="O que você mexeu nesta ficha ainda não foi salvo." acao="Descartar" cancelar="Continuar editando" perigo aoConfirmar={saida.descartar} aoCancelar={saida.continuar} />}
     </dialog>
   );
 }

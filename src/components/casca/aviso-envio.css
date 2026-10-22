@@ -1,11 +1,20 @@
-/* Aviso do envio em segundo plano (AvisoEnvio): canto de baixo à direita, acima das telas e abaixo do aviso de erro */
-.aviso-envio { position: fixed; z-index: 85; right: var(--s-16); bottom: var(--s-16); display: grid; gap: var(--s-8); margin: 0; padding: 0; list-style: none; width: min(92vw, 320px); }
-.aviso-envio li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); padding: var(--s-8) var(--s-12); border-radius: var(--raio-b); background: var(--sup); color: var(--texto); font-size: var(--app-t-rotulo); box-shadow: var(--sombra-alta); }
-.aviso-envio-nome { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.aviso-envio b { font-weight: 600; }
-.aviso-envio li[data-estado="falhou"] b { color: var(--atrasado); }
-.aviso-envio a, .aviso-envio button { border: 0; background: none; color: var(--azul); font: inherit; cursor: pointer; padding: 0 var(--s-4); text-decoration: none; }
-.aviso-envio-barra { flex-basis: 100%; height: 4px; border-radius: 2px; background: var(--sup-2); overflow: hidden; }
-.aviso-envio-barra > i { display: block; height: 100%; background: var(--azul); transition: width .2s ease; }
-@media (prefers-reduced-motion: reduce) { .aviso-envio-barra > i { transition: none; } }
-@media (max-width: 480px) { .aviso-envio { right: var(--s-8); bottom: 72px; } }
+/* Painel de envios em segundo plano (AvisoEnvio, itens 268 e 281): canto de baixo à direita, acima das telas e abaixo do aviso de erro */
+.envios { position: fixed; z-index: 85; right: var(--s-16); bottom: var(--s-16); width: min(92vw, 360px); max-height: 60dvh; display: flex; flex-direction: column; border-radius: var(--raio-b); background: var(--sup); color: var(--texto); box-shadow: var(--sombra-alta); overflow: hidden; font-size: var(--app-t-rotulo); }
+.envios header { display: flex; align-items: center; gap: var(--s-4); padding: var(--s-8) var(--s-8) var(--s-8) var(--s-16); background: var(--sup-2); }
+.envios h2 { flex: 1; margin: 0; font: 600 var(--app-t-texto) / 1.2 var(--fonte); }
+.envios ul { margin: 0; padding: 0; list-style: none; overflow-y: auto; }
+.envios li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-4) var(--s-8); padding: var(--s-8) var(--s-16); border-top: 1px solid var(--borda); }
+.envios-nome { flex: 1 1 0; min-width: 0; display: grid; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.envios-nome small { font-weight: 400; color: var(--fraco); overflow: hidden; text-overflow: ellipsis; }
+.envios b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.envios li[data-estado="falhou"] b, .envios li[data-estado="interrompido"] b { color: var(--atrasado); }
+.envios li[data-estado="enviado"] b { color: var(--azul); }
+.envios-aviso { flex-basis: 100%; color: var(--fraco); }
+.envios a, .envios button { border: 0; background: none; color: var(--azul); font: inherit; cursor: pointer; padding: var(--s-4) var(--s-8); text-decoration: none; border-radius: var(--raio-b); }
+.envios header button { color: var(--texto); font-size: 18px; line-height: 1; }
+.envios button:disabled { opacity: .35; cursor: not-allowed; }
+.envios a:focus-visible, .envios button:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.envios-barra { flex-basis: 100%; height: 4px; border-radius: 2px; background: var(--sup-2); overflow: hidden; }
+.envios-barra > i { display: block; height: 100%; background: var(--azul); transition: width .2s ease; }
+@media (prefers-reduced-motion: reduce) { .envios-barra > i { transition: none; } }
+@media (max-width: 480px) { .envios { right: var(--s-8); bottom: 72px; } }
