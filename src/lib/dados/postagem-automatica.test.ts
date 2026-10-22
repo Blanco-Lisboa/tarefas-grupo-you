@@ -68,23 +68,22 @@ describe("239: modo de teste (a função confirma que publica de verdade) e rele
     await recarregarPostagemAutomatica();
     expect(modo).not.toHaveBeenCalled();
   });
-  it("4: relê quando a aba volta a ficar visível e a cada 5 minutos (só com a aba visível); quem chamou pode desligar", async () => {
+  it("4: relê quando a aba volta a ficar visível, e só então (290: sem relógio); quem chamou pode desligar", async () => {
     vi.useFakeTimers();
     const { acompanharPostagemAutomatica } = await import("./drive");
     rpc.mockResolvedValue({ data: false, error: null });
     const ouvintes: Record<string, () => void> = {};
     const doc = { hidden: true, addEventListener: (n: string, f: () => void) => { ouvintes[n] = f; }, removeEventListener: (n: string) => { delete ouvintes[n]; } };
     const parar = acompanharPostagemAutomatica(doc as never);
-    await vi.advanceTimersByTimeAsync(5 * 60_000);
-    expect(rpc).not.toHaveBeenCalled(); // aba escondida: não gasta chamada
     doc.hidden = false;
     ouvintes.visibilitychange(); // voltou para a aba
     await vi.advanceTimersByTimeAsync(0);
     expect(rpc).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(5 * 60_000); // 5 minutos com a aba aberta
+    await vi.advanceTimersByTimeAsync(60 * 60_000); // 1 hora com a aba aberta
+    expect(rpc).toHaveBeenCalledTimes(1); // não pergunta sozinho
+    ouvintes.visibilitychange();
+    await vi.advanceTimersByTimeAsync(0);
     expect(rpc).toHaveBeenCalledTimes(2);
-    await vi.advanceTimersByTimeAsync(4 * 60_000);
-    expect(rpc).toHaveBeenCalledTimes(2); // ainda não deu os próximos 5 min
     parar();
     expect(ouvintes.visibilitychange).toBeUndefined();
     await vi.advanceTimersByTimeAsync(10 * 60_000);

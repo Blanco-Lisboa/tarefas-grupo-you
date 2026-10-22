@@ -67,7 +67,7 @@ function iniciar() {
   iniciado = true;
   void recarregarAgenda();
   document.addEventListener("visibilitychange", () => { if (!document.hidden) void recarregarAgenda(); }); // voltou para a aba: busca de novo
-  setInterval(() => { if (!document.hidden) void recarregarAgenda(); }, 60_000); // o n8n confirma a ida ao Google em até ~2 min: o selo da Ficha acompanha
+  // Sem relógio de 60 s (290): o n8n gravar evento ou confirmar a ida ao Google toca o sino do 028 (agenda_copias / agenda_saida_vinculo) e a tela relê.
 }
 
 /** Busca de novo no banco. Se falhar (por exemplo, o 008 ainda não foi aplicado), mantém o que já tinha: o Calendário só fica sem a agenda. */

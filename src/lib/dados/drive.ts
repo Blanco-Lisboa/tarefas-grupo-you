@@ -228,14 +228,13 @@ async function carregarPostagemAutomatica() {
 export const usePostagemAutomatica = (): PostagemAutomatica => useSyncExternalStore(assinar, () => postagemAutomatica, () => DESLIGADA);
 /** Valor atual, fora de componente. */
 export const lerPostagemAutomatica = () => postagemAutomatica;
-/** Lê de novo. A própria camada já faz isso quando a aba volta a ficar visível e a cada 5 minutos (acompanharPostagemAutomatica). */
+/** Lê de novo. A própria camada já faz isso quando a aba volta a ficar visível (acompanharPostagemAutomatica). */
 export const recarregarPostagemAutomatica = () => carregarPostagemAutomatica();
-/** 239 · Mantém a tela em dia sem recarregar a página: relê quando a aba volta a ficar visível e a cada `cadaMs` (5 min) com a aba visível. Devolve quem desliga. */
-export function acompanharPostagemAutomatica(doc: Pick<Document, "addEventListener" | "removeEventListener" | "hidden">, cadaMs = 5 * 60_000): () => void {
+/** 239 · Mantém a tela em dia sem recarregar a página: relê quando a aba volta a ficar visível. Sem relógio (290): o interruptor muda uma vez na vida. Devolve quem desliga. */
+export function acompanharPostagemAutomatica(doc: Pick<Document, "addEventListener" | "removeEventListener" | "hidden">): () => void {
   const aoVoltar = () => { if (!doc.hidden) void recarregarPostagemAutomatica(); };
   doc.addEventListener("visibilitychange", aoVoltar);
-  const relogio = setInterval(aoVoltar, cadaMs);
-  return () => { doc.removeEventListener("visibilitychange", aoVoltar); clearInterval(relogio); };
+  return () => doc.removeEventListener("visibilitychange", aoVoltar);
 }
 
 // ---- Pastas livres (item 234): a "+ Nova pasta". Ficam na empresa, ao lado das pastas de formato; NÃO são Tema; qualquer arquivo; nada sai sozinho ----
