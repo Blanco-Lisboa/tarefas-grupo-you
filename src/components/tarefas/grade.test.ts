@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
   ({ id, titulo: id, tipo: "outro", empresaId: "e", responsavel: "natham", inicio, diaInteiro, cor: "etiqueta-1", links: [], arquivos: [] }) as Tarefa;
@@ -22,6 +22,26 @@ describe("grade do caderno", () => {
   it("sem porHora ignora o horário e mantém a ordem", () => {
     const g = montarGrade([t("a", "2026-10-20T20:00"), t("b")], false);
     expect([g[0]?.id, g[1]?.id]).toEqual(["a", "b"]);
+  });
+});
+
+describe("tarefa longa (item 275)", () => {
+  const longa = (id: string, inicio: string, fim?: string) => ({ ...t(id, inicio), fim }) as Tarefa;
+  it("duração: fim menos início; sem fim ou fim em outro dia = 30 min", () => {
+    expect(duracaoDe(longa("a", "2026-10-20T10:30", "2026-10-20T12:30"))).toBe(120);
+    expect(duracaoDe(longa("b", "2026-10-20T10:30"))).toBe(30);
+    expect(duracaoDe(longa("c", "2026-10-20T10:30", "2026-10-21T12:30"))).toBe(30);
+  });
+  it("10:30 com 2h toma 4 linhas; outra tarefa na 11:00 desce para depois do bloco", () => {
+    const a = longa("a", "2026-10-20T10:30", "2026-10-20T12:30");
+    const g = montarGrade([a, t("b", "2026-10-20T11:00")], true, true);
+    expect(linhasDoBloco(g, 7)).toBe(4);
+    expect((g[8] as { continuaDe: Tarefa }).continuaDe.id).toBe("a");
+    expect((g[11] as Tarefa).id).toBe("b");
+  });
+  it("sem o terceiro argumento (Mapa) só vêm tarefas", () => {
+    const g = montarGrade([longa("a", "2026-10-20T10:30", "2026-10-20T12:30")], true);
+    expect(g.filter(Boolean).length).toBe(1);
   });
 });
 

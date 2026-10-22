@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { doCaderno, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { doCaderno, duracaoDe, duracaoMaxima, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -83,12 +83,13 @@ export function TelaTarefas() {
   // Item 221: só no Caderno do próprio Natham, a agenda pessoal dele (fonte natham) entra nas linhas, menos o que ele já digitou.
   const comAgenda = aba === "dia" && !alheio && de === "natham";
   const { faixa, horas } = separarCompromissos(comAgenda ? eventosDoDia(agendaGoogle, dia, "natham").filter((e) => !jaTemTarefa(e, doDia)) : [], dia);
-  const grade = encaixarCompromissos(montarGrade(mostradas, aba === "dia"), horas, dia);
+  const grade = encaixarCompromissos(montarGrade(mostradas, aba === "dia", true), horas, dia);
   const daAgenda = (e: Encaixe["evento"], detalhe: string, k: string, compromisso: "primeira" | "continua"): LinhaFolha => ({
     id: `ev:${e.id}${k}`, titulo: e.titulo, detalhe, feita: eventosFeitos.has(e.id), reuniao: ehReuniao(e), compromisso, podeAlterar: false, podeApagar: false,
   });
-  const linhaDe = (t: Tarefa | Encaixe | null, k: number): LinhaFolha | null => {
+  const linhaDe = (t: Tarefa | Continua | Encaixe | null, k: number): LinhaFolha | null => {
     if (!t) return null;
+    if ("continuaDe" in t) return { id: `${t.continuaDe.id}#${k}`, titulo: "", detalhe: "", feita: false, ocupada: true };
     if ("evento" in t) {
       // hora no texto quando a linha não a mostra (11:15, 2h de duração, ou o compromisso desceu de linha)
       const redonda = t.inicio === rotuloSlot(k) && t.fim === somarMinutos(t.inicio, 30);
@@ -107,6 +108,9 @@ export function TelaTarefas() {
     enviadaPara: enviadaPorMim(t, de) && t.dono ? NOMES[t.dono] : undefined,
     podeAlterar: podeAlterar(t, eu),
     podeApagar: podeApagar(t, eu),
+    bloco: linhasDoBloco(grade, k),
+    duracao: duracaoDe(t),
+    duracaoMax: aba === "dia" && horaDe(t) ? duracaoMaxima(horaDe(t)) : 0,
     };
   };
   const linhas = grade.map(linhaDe);
@@ -214,6 +218,7 @@ export function TelaTarefas() {
     duplicar: comTarefa((t) => void salvarTarefa({ ...noDiaSeguinte(t), id: undefined, concluida: false })),
     mover: comTarefa((t) => void salvarTarefa(noDiaSeguinte(t))),
     marcarHora: moverPara,
+    duracao: (id: string, min: number) => comTarefa((t) => { const h = horaDe(t); if (h) void salvarTarefa({ ...t, fim: `${t.inicio!.slice(0, 10)}T${somarMinutos(h, min)}` }); })(id),
     criarPara: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, id: undefined, responsavel: quem, enviarPara: ehConteudo(t) ? undefined : quem, concluida: false }))(id),
     marcarPessoa: (id: string, quem: Responsavel) => comTarefa((t) => void salvarTarefa({ ...t, responsavel: quem }))(id),
     etiqueta: (id: string, cor: Etiqueta) => comTarefa((t) => void salvarTarefa({ ...t, cor }))(id),

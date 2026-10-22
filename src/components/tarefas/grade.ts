@@ -16,13 +16,36 @@ export const minutos = (hora: string) => +hora.slice(0, 2) * 60 + +hora.slice(3,
 export const horaDoSlot = (k: number) => hhmm(PRIMEIRA + k * PASSO);
 export const somarMinutos = (hora: string, n: number) => hhmm(Math.min(23 * 60 + 59, minutos(hora) + n));
 
+/** Duração em minutos (item 275): do início ao fim no mesmo dia. Sem hora, sem fim ou fim em outro dia = 30 min (o padrão). */
+export const duracaoDe = (t: Tarefa) => {
+  const h = horaDe(t);
+  return h && t.fim && t.fim.length > 10 && t.fim.slice(0, 10) === t.inicio?.slice(0, 10) ? Math.max(PASSO, minutos(t.fim.slice(11, 16)) - minutos(h)) : PASSO;
+};
+
+/** Linha de baixo de uma tarefa longa (item 275): ocupada pelo bloco, não aceita outra tarefa. */
+export type Continua = { continuaDe: Tarefa };
+
+/** Quantas linhas o bloco da tarefa na linha `k` ocupa (1 = tarefa comum). */
+export const linhasDoBloco = (grade: readonly unknown[], k: number): number => {
+  const t = grade[k];
+  let n = 1;
+  while ((grade[k + n] as Continua | null)?.continuaDe && (grade[k + n] as Continua).continuaDe === t) n++;
+  return n;
+};
+
+/** Quanto a tarefa das `hora` pode durar sem passar do fim das linhas (22:30). */
+export const duracaoMaxima = (hora: string) => Math.max(0, FIM_GRADE - minutos(hora));
+
 /**
  * Cada tarefa mora na linha do seu horário (antes das 07:00 vai para 07:00, depois das 22:00 para 22:00).
  * Linha ocupada: desce para a próxima livre. Sem hora: ocupa as primeiras linhas livres. Sempre sobra uma linha vazia.
- * Entrada já ordenada por hora.
+ * Entrada já ordenada por hora. Com `blocos` (Caderno), tarefa de mais de 30 min também toma as linhas de baixo que estiverem
+ * livres, marcadas como `Continua`; as outras telas (Mapa) chamam sem `blocos` e recebem só tarefas.
  */
-export function montarGrade(tarefas: Tarefa[], porHora: boolean): (Tarefa | null)[] {
-  const linhas: (Tarefa | undefined)[] = [];
+export function montarGrade(tarefas: Tarefa[], porHora: boolean): (Tarefa | null)[];
+export function montarGrade(tarefas: Tarefa[], porHora: boolean, blocos: true): (Tarefa | Continua | null)[];
+export function montarGrade(tarefas: Tarefa[], porHora: boolean, blocos = false): (Tarefa | Continua | null)[] {
+  const linhas: (Tarefa | Continua | undefined)[] = [];
   const semHora: Tarefa[] = [];
   for (const t of tarefas) {
     const h = porHora ? horaDe(t) : "";
@@ -30,6 +53,7 @@ export function montarGrade(tarefas: Tarefa[], porHora: boolean): (Tarefa | null
     let k = Math.min(SLOTS - 1, Math.max(0, Math.floor((minutos(h) - PRIMEIRA) / PASSO)));
     while (linhas[k]) k++;
     linhas[k] = t;
+    if (blocos) for (let j = k + 1; j < Math.min(SLOTS, k + Math.ceil(duracaoDe(t) / PASSO)) && !linhas[j]; j++) linhas[j] = { continuaDe: t };
   }
   for (const t of semHora) {
     let k = 0;
@@ -129,8 +153,8 @@ export type Encaixe = { evento: EventoAgenda; /** "HH:MM" onde começa neste dia
  * A tarefa já está no lugar dela: se a linha do início está ocupada, o compromisso desce para a próxima livre, e um compromisso
  * longo para de pintar quando encontra uma linha ocupada. Entrada: `grade` de `montarGrade` e `horas` já em ordem de início.
  */
-export function encaixarCompromissos(grade: (Tarefa | null)[], horas: EventoAgenda[], dia: string): (Tarefa | Encaixe | null)[] {
-  const linhas: (Tarefa | Encaixe | undefined)[] = grade.map((l) => l ?? undefined);
+export function encaixarCompromissos(grade: (Tarefa | Continua | null)[], horas: EventoAgenda[], dia: string): (Tarefa | Continua | Encaixe | null)[] {
+  const linhas: (Tarefa | Continua | Encaixe | undefined)[] = grade.map((l) => l ?? undefined);
   const clamp = (k: number) => Math.min(SLOTS - 1, Math.max(0, k));
   for (const e of horas) {
     const { de, ate } = trecho(e, dia);

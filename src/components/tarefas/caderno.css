@@ -96,6 +96,15 @@
 .folha-linhas[data-arrastando="true"] .alca { cursor: grabbing; }
 .linha[data-arrastada] { position: relative; z-index: 3; background-color: var(--sup); box-shadow: var(--sombra); cursor: grabbing; }
 .linha[data-alvo] { background-color: color-mix(in srgb, var(--azul) 12%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--azul) 45%, transparent); }
+/* Item 275: tarefa de mais de 30 min = um bloco que toma todas as linhas do tempo dela (como no Calendário). A pauta do meio some;
+   fica só o texto (primeira linha), com o horário de cada meia hora na margem. Vem antes das regras de reunião: a reunião longa continua âmbar. */
+.linha[data-bloco] {
+  min-height: calc(var(--n) * var(--passo)); align-items: start;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--azul) 7%, transparent) calc(100% - 1px), var(--borda) 0);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--azul) 55%, transparent);
+}
+.linha[data-bloco] .linha-hora-txt { display: block; }
+.mt-duracoes { display: flex; flex-direction: column; gap: 2px; max-height: 240px; overflow-y: auto; }
 /* Uma tarefa = uma linha do papel (item 164): logo · título · responsável · prioridade colada à direita. O título encurta com "…" antes de empurrar a prioridade */
 .linha-texto { flex: 1; min-width: 0; display: flex; align-items: center; column-gap: var(--s-8); height: var(--passo); font-size: calc(22px * var(--escala)); line-height: var(--passo); }
 .linha-texto .abrir { display: block; flex: 0 1 auto; min-width: 3ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

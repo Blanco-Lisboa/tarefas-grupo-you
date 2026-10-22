@@ -11,6 +11,8 @@ export type Acoes = {
   duplicar: (id: string) => void;
   mover: (id: string) => void;
   marcarHora: (id: string, linha: number) => void;
+  /** Item 275: duração em minutos (30, 60, 90...). */
+  duracao: (id: string, minutos: number) => void;
   criarPara: (id: string, quem: Responsavel) => void;
   marcarPessoa: (id: string, quem: Responsavel) => void;
   etiqueta: (id: string, cor: Etiqueta) => void;
@@ -27,6 +29,9 @@ export const ETIQUETAS: { rotulo: string; cor: Etiqueta | null; valor: Etiqueta 
   { rotulo: "Sem", cor: null, valor: "etiqueta-5" },
 ];
 
+/** 30 -> "30 min", 60 -> "1h", 90 -> "1h30". */
+export const rotuloDuracao = (m: number) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, "0") : ""}`);
+
 const Icone = ({ children }: { children: ReactNode }) => <svg className="mt-ico" viewBox="0 0 20 20" aria-hidden="true">{children}</svg>;
 const Pessoa = () => <Icone><circle cx="10" cy="7" r="3.2" /><path d="M3.8 17c.6-3.2 3-4.8 6.2-4.8s5.6 1.6 6.2 4.8" /></Icone>;
 
@@ -39,16 +44,19 @@ type Props = {
   empresas: { id: string; nome: string }[];
   /** Linhas de horário (rótulos "07:00"...), para "Marcar horário". */
   horas: string[];
+  /** Duração atual e a maior que cabe (minutos). Máximo 0 = sem horário: o menu não oferece duração. */
+  duracao: number;
+  duracaoMax: number;
   acoes: Acoes;
   aoExcluir: () => void;
   /** Quem só pode editar (enviou a tarefa, não é dono) não apaga. */
   semExcluir?: boolean;
 };
 
-export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, acoes, aoExcluir, semExcluir }: Props) {
+export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, horas, duracao, duracaoMax, acoes, aoExcluir, semExcluir }: Props) {
   const uid = useId();
   const pop = useRef<HTMLDivElement>(null);
-  const [vista, setVista] = useState<"menu" | "hora" | "criar" | "pessoa" | "empresa" | "excluir">("menu");
+  const [vista, setVista] = useState<"menu" | "hora" | "duracao" | "criar" | "pessoa" | "empresa" | "excluir">("menu");
   const ancora = `--menu-${uid.replace(/[^\w-]/g, "")}`;
   const feito = (f: () => void) => () => { f(); pop.current?.hidePopover(); };
   const pessoas = (aoEscolher: (q: Responsavel) => void, marcada?: Responsavel) => (
@@ -87,6 +95,12 @@ export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, 
                 <Icone><circle cx="10" cy="10" r="7" /><path d="M10 6v4l2.5 2" /></Icone>
                 <span className="selecao-opcao-rotulo">Marcar horário…</span>
               </button>
+              {duracaoMax >= 60 && (
+                <button type="button" className="selecao-opcao" onClick={() => setVista("duracao")}>
+                  <Icone><path d="M10 3v14M6 5.5l4-2.5 4 2.5M6 14.5l4 2.5 4-2.5" /></Icone>
+                  <span className="selecao-opcao-rotulo">Duração: {rotuloDuracao(duracao)}…</span>
+                </button>
+              )}
               <button type="button" className="selecao-opcao" onClick={() => setVista("criar")}>
                 <Icone><path d="M17 3 8.5 11.5M17 3l-5.5 14-3-5.5L3 8.5z" /></Icone>
                 <span className="selecao-opcao-rotulo">Criar tarefa para…</span>
@@ -125,6 +139,16 @@ export function MenuTarefa({ id, titulo, cor, responsavel, empresaId, empresas, 
               <button type="button" className="selecao-opcao mt-voltar" onClick={() => setVista("menu")}>‹ Voltar</button>
               <div className="mt-horas">
                 {horas.map((h, k) => <button key={h} type="button" className="selecao-opcao" onClick={feito(() => acoes.marcarHora(id, k))}>{h}</button>)}
+              </div>
+            </>
+          )}
+          {vista === "duracao" && (
+            <>
+              <button type="button" className="selecao-opcao mt-voltar" onClick={() => setVista("menu")}>‹ Voltar</button>
+              <div className="mt-duracoes">
+                {Array.from({ length: Math.floor(duracaoMax / 30) }, (_, j) => (j + 1) * 30).map((m) => (
+                  <button key={m} type="button" className="selecao-opcao" aria-pressed={duracao === m || undefined} onClick={feito(() => acoes.duracao(id, m))}>{rotuloDuracao(m)}</button>
+                ))}
               </div>
             </>
           )}

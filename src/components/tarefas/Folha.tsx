@@ -12,6 +12,9 @@ export type LinhaFolha = { id: string; titulo: string; detalhe: string; feita: b
   /** Compromisso do Google (item 221): só leitura, mas com quadradinho de feito. "continua" = linha de baixo de um compromisso longo, só pintada. */ compromisso?: "primeira" | "continua"; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao;
   /** Nome de quem mandou a tarefa (selo "enviada por"). Vazio = não foi enviada. */ enviadaPor?: string;
   /** Nome de quem recebeu, no caderno de quem enviou (selo "enviada →"). Vale no lugar de enviadaPor. */ enviadaPara?: string;
+  /** Item 275: linhas que o bloco da tarefa ocupa (1 = comum; 2 ou mais = tarefa longa, sem pauta no meio). */ bloco?: number;
+  /** Linha de baixo de uma tarefa longa: não desenha nada, só reserva o lugar. */ ocupada?: boolean;
+  /** Minutos da tarefa e o máximo que cabe até o fim das linhas (0 = sem hora, o menu não oferece duração). */ duracao?: number; duracaoMax?: number;
   /** false = só leitura para quem está olhando (trava do banco). Vazio = pode. */ podeAlterar?: boolean; podeApagar?: boolean };
 export type Opcao = { id: string; nome: string };
 const NENHUMA = "nenhuma"; // valor do seletor; a tarefa sem empresa guarda empresaId ""
@@ -145,14 +148,14 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
 
   const lista_ = (ls: (LinhaFolha | null)[], base: number, principal: boolean) => (
         <ul ref={principal ? lista : undefined} className="folha-linhas" data-arrastando={!!arrasto}>
-      {ls.map((l, i) => { const k = base + i; return (
+      {ls.map((l, i) => { const k = base + i; if (l?.ocupada) return <li key={l.id} hidden />; const n = l?.bloco ?? 1; return (
         <li
           key={l?.id ?? `v${k}`} className="linha" data-feita={l?.feita} data-faixa={l && (l.compromisso || l.reuniao) ? (l.reuniao ? "reuniao" : "comum") : undefined}
-          data-arrastada={arrasto?.id === l?.id && !!l || undefined} data-alvo={arrasto && arrasto.alvo === k && arrasto.alvo !== arrasto.de || undefined}
-          style={arrasto && arrasto.id === l?.id ? { transform: `translateY(${arrasto.dy}px)` } : undefined}
+          data-bloco={n > 1 || undefined} data-arrastada={arrasto?.id === l?.id && !!l || undefined} data-alvo={arrasto && arrasto.alvo === k && arrasto.alvo !== arrasto.de || undefined}
+          style={{ ...(n > 1 ? { "--n": n } : null), ...(arrasto && arrasto.id === l?.id ? { transform: `translateY(${arrasto.dy}px)` } : null) } as CSSProperties}
         >
           <span className="linha-hora">
-            <span className="linha-hora-txt">{rotulos?.[k]}</span>
+            {n > 1 ? Array.from({ length: n }, (_, j) => <span key={j} className="linha-hora-txt">{rotulos?.[k + j]}</span>) : <span className="linha-hora-txt">{rotulos?.[k]}</span>}
             {l && aoMover && l.podeAlterar !== false && (
               <button
                 type="button" className="alca" data-alca={l.id} title="Arrastar para mudar o horário"
@@ -188,7 +191,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
                   <button type="button" className="confirmar-nao" autoFocus onClick={() => setConfirmando(null)}>Manter</button>
                 </span>
               ) : acoes ? (
-                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} acoes={acoes} aoExcluir={() => aoApagar(l.id)} semExcluir={l.podeApagar === false} />
+                <MenuTarefa id={l.id} titulo={l.titulo} cor={l.cor ?? ""} responsavel={l.responsavel ?? "natham"} empresaId={l.empresa?.id ?? ""} empresas={empresasMenu ?? empresas} horas={HORAS} duracao={l.duracao ?? 30} duracaoMax={l.duracaoMax ?? 0} acoes={acoes} aoExcluir={() => aoApagar(l.id)} semExcluir={l.podeApagar === false} />
               ) : l.podeApagar === false ? null : (
                 <button type="button" className="apagar" aria-label={`Apagar: ${l.titulo}`} onClick={() => setConfirmando(l.id)}>
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>
