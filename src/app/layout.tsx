@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Inter } from "next/font/google";
 import { Casca } from "@/components/casca/Casca";
 import { SCRIPT_MENU } from "@/components/casca/menu-recolhido";
@@ -21,7 +20,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // a tela já está em português, então o Chrome não oferece traduzir nem mexe no texto.
     <html lang="pt-BR" translate="no" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full" suppressHydrationWarning>
-        <Script id="menu-recolhido" strategy="beforeInteractive">{SCRIPT_MENU}</Script>
+        {/* Script comum (não o <Script> do Next, que no cliente dá "script tag while rendering"): roda ao ler o HTML, antes da 1ª pintura (guia "preventing flash before hydration") */}
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_MENU }} />
         <Casca>{children}</Casca>
       </body>
     </html>
