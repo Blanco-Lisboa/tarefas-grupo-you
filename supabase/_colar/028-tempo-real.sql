@@ -3,6 +3,7 @@
 -- Analogia: em vez de pôr o caderno e a agenda de cada pessoa na lista de avisos (o Realtime não confere a trava nas EXCLUSÕES e vazaria
 -- "fulano apagou algo"), existe uma tabelinha-sino, public.aviso_mudanca: uma linha por assunto, só com a chave e a hora. Gatilhos tocam o sino.
 -- Linha de assunto privado só é visível (trava RLS, valendo também no Realtime) para quem já pode ver aquele assunto. Nunca se apaga linha: sem evento DELETE.
+-- ORDEM DE COLAGEM FINAL: 027, depois 026, depois 028 (este por último, depois das tabelas que os gatilhos dele observam).
 -- Antes de colar, o app funciona igual (só não recebe os avisos). Tabela que ainda não existe (019/024 não coladas) é pulada.
 begin;
 
@@ -26,7 +27,8 @@ grant select on public.aviso_mudanca to authenticated;
 -- (agenda_eventos é uma view desde o 010: o gatilho vai em agenda_copias, a tabela de verdade.)
 -- Chaves: sem ":" = assunto de todos (esteira, ideias, pastas). Com ":" = <tipo>:<id>.
 --   cartao:<pessoa> e caderno:<pessoa> = quem vê é a pessoa e o Natham lendo o Matheus (mesma regra do caderno e dos cards pessoais)
---   agenda:<fonte> = quem tem acesso àquela agenda; acesso:<pessoa> e feitos:<pessoa> = só a própria pessoa.
+--   agenda:<fonte> = quem tem acesso àquela agenda; acesso:<pessoa> e feitos:<pessoa> = só a própria pessoa
+--   (acesso: também leva a confirmação da ida ao Google, que vem de agenda_saida_vinculo, tabela que continua fechada para o app).
 drop policy if exists aviso_mudanca_le on public.aviso_mudanca;
 create policy aviso_mudanca_le on public.aviso_mudanca for select to authenticated using (
   chave !~ ':'
@@ -48,6 +50,10 @@ begin
     if modo in ('esteira', 'ideias', 'pastas') then chaves := chaves || modo;
     elsif modo in ('caderno', 'feitos') then chaves := chaves || (modo || ':' || (l->>'dono_id'));
     elsif modo = 'acesso' then chaves := chaves || ('acesso:' || (l->>'pessoa_id'));
+    elsif modo = 'vinculo' then -- confirmação da ida ao Google (010): avisa quem a função tarefas_no_google() deixa ver (dono, criador, responsável); a tabela segue fechada
+      select to_jsonb(x) into t from public.tarefas x where x.id = (l->>'tarefa_id')::uuid;
+      continue when t is null;
+      chaves := chaves || ('acesso:' || (t->>'dono_id')) || ('acesso:' || (t->>'criado_por')) || ('acesso:' || (t->>'responsavel_id'));
     elsif modo = 'agenda' then chaves := chaves || ('agenda:' || (l->>'fonte'));
     else -- 'tarefa' (a própria) ou 'filha' (tarefa_tags, arquivos, postagens: olha a tarefa a que pertence)
       if modo = 'filha' then
@@ -75,7 +81,7 @@ begin
     ('tarefas', 'tarefa'), ('tarefa_tags', 'filha'), ('arquivos', 'filha'), ('postagens', 'filha'),
     ('tags', 'esteira'), ('empresas', 'esteira'), ('fazendo_agora', 'esteira'),
     ('ideias', 'ideias'), ('ideias_categorias', 'ideias'), ('ocasioes', 'pastas'), ('pastas_livres', 'pastas'),
-    ('agenda_copias', 'agenda'), ('agenda_acesso', 'acesso'), ('agenda_feitos', 'feitos'),
+    ('agenda_copias', 'agenda'), ('agenda_saida_vinculo', 'vinculo'), ('agenda_acesso', 'acesso'), ('agenda_feitos', 'feitos'),
     ('anotacoes_dia', 'caderno'), ('nao_esquecer', 'caderno')
   ) as v(tabela, modo) loop
     if to_regclass('public.' || x.tabela) is not null then

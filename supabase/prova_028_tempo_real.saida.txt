@@ -1,0 +1,28 @@
+== linhas no total (visão do dono do banco)
+ count 
+-------
+     5
+(1 row)
+== NATHAM lê
+  tipo   | de_quem 
+---------+---------
+ acesso  | natham
+ agenda  | natham
+ caderno | matheus
+ cartao  | matheus
+ cartao  | natham
+(5 rows)
+== MATHEUS lê
+  tipo   | de_quem 
+---------+---------
+ caderno | matheus
+ cartao  | matheus
+(2 rows)
+== ADRIAN lê
+ tipo | de_quem 
+------+---------
+(0 rows)
+== ADRIAN tenta apagar/escrever aviso e ler a tabela do vínculo (todos devem falhar)
+psql:<stdin>:27: ERROR:  permission denied for table aviso_mudanca
+psql:<stdin>:27: ERROR:  permission denied for table aviso_mudanca
+psql:<stdin>:27: ERROR:  permission denied for table agenda_saida_vinculo
