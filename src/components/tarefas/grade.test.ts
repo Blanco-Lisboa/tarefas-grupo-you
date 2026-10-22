@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, DURACAO_MAXIMA, duracaoLimite, duracaoLivre, duracaoMaxima, ocupadoAs, cabeNaFicha, fichaOcupada, emConflito, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { semDataDoCaderno, doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, DURACAO_MAXIMA, duracaoLimite, duracaoLivre, duracaoMaxima, ocupadoAs, cabeNaFicha, fichaOcupada, emConflito, linhasDoBloco, montarGrade, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
   ({ id, titulo: id, tipo: "outro", empresaId: "e", responsavel: "natham", inicio, diaInteiro, cor: "etiqueta-1", links: [], arquivos: [] }) as Tarefa;
@@ -23,6 +23,14 @@ describe("grade do caderno", () => {
   it("sem porHora ignora o horário e mantém a ordem", () => {
     const g = montarGrade([t("a", "2026-10-20T20:00"), t("b")], false);
     expect([g[0]?.id, g[1]?.id]).toEqual(["a", "b"]);
+  });
+});
+
+describe("Sem data do Caderno (item 287)", () => {
+  const card = { ...t("card"), etapa: "roteiro", empresaId: "you" } as Tarefa;
+  it("card de conteúdo sem data NUNCA aparece; tarefa solta e anotação com empresa sem etapa aparecem; com data não entra", () => {
+    const solta = t("solta"), comEmpresa = { ...t("e"), empresaId: "you" } as Tarefa, datada = t("d", "2026-10-20T10:00");
+    expect(semDataDoCaderno([card, solta, comEmpresa, datada]).map((x) => x.id)).toEqual(["solta", "e"]);
   });
 });
 

@@ -128,6 +128,9 @@ export const ehReuniao = (t: { titulo: string; tipo?: string }): boolean =>
 
 /** Conteúdo de empresa tem etapa e empresa. Postagem sem empresa continua sendo tarefa pessoal do Caderno.
     Reunião nunca é conteúdo (fica no Calendário e no Caderno, fora da Esteira, do Mapa e da Fila). */
+/** Item 287: a visão "Sem data" do Caderno mostra SÓ tarefas do caderno. Card de conteúdo (empresa + etapa) sem data vive na Esteira, nunca aqui. */
+export const semDataDoCaderno = (ts: Tarefa[]) => ts.filter((x) => !x.inicio && !ehConteudo(x));
+
 export const ehConteudo = (t: Pick<Tarefa, "etapa" | "empresaId" | "titulo" | "tipo">): boolean => !!(t.etapa && t.empresaId) && !ehReuniao(t);
 
 /** Tarefa pessoal que `de` mandou para outra pessoa: continua no caderno de quem enviou (item 144), onde ele edita e apaga. */

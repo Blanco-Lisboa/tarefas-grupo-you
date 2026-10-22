@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { doCaderno, DURACAO_MAXIMA, duracaoDe, duracaoLimite, duracaoMaxima, ocupadoAs, emConflito, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { semDataDoCaderno, doCaderno, DURACAO_MAXIMA, duracaoDe, duracaoLimite, duracaoMaxima, ocupadoAs, emConflito, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -78,7 +78,7 @@ export function TelaTarefas() {
   const visiveis = tarefas.filter((t) => doCaderno(t, de) && !somenteNoDeQuemRecebeu(t, de, eu) && (!t.empresaId || aplicar([t]).length));
   const doDia = visiveis.filter((t) => t.inicio?.slice(0, 10) === dia).sort(porHora);
   const doDiaSeguinte = visiveis.filter((t) => t.inicio?.slice(0, 10) === somarDias(dia, 1)).sort(porHora);
-  const mostradas = aba === "dia" ? doDia : visiveis.filter((t) => !t.inicio);
+  const mostradas = aba === "dia" ? doDia : semDataDoCaderno(visiveis);
 
   // Item 221: só no Caderno do próprio Natham, a agenda pessoal dele (fonte natham) entra nas linhas, menos o que ele já digitou.
   const comAgenda = aba === "dia" && !alheio && de === "natham";
@@ -107,7 +107,7 @@ export function TelaTarefas() {
     enviadaPor: !ehConteudo(t) && t.enviadaPor ? NOMES[t.enviadaPor] : undefined,
     enviadaPara: enviadaPorMim(t, de) && t.dono ? NOMES[t.dono] : undefined,
     podeAlterar: podeAlterar(t, eu),
-    podeApagar: podeApagar(t, eu),
+    podeApagar: podeApagar(t, eu) && !ehConteudo(t), // 287: card de conteúdo só se apaga pela Esteira
     bloco: linhasDoBloco(grade, k),
     duracao: duracaoDe(t),
     intervalo: aba === "dia" && horaDe(t) && t.fim && duracaoDe(t) > 30 ? `${horaDe(t)}–${t.fim.slice(11, 16)}` : undefined,
@@ -294,7 +294,7 @@ export function TelaTarefas() {
             /* caderno de outra pessoa: não escreve; cada linha só liga marcar/mover/⋮ se podeAlterar (a privada dele fica só leitura, a que o Natham enviou edita) */
             aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
             aoMarcar={(id) => { if (id.startsWith("ev:")) { const ev = id.slice(3); return void marcarEventoFeito(ev, !eventosFeitos.has(ev)); } const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
-            aoApagar={(id) => void removerTarefa(id)}
+            aoApagar={(id) => { if (!ehConteudo(tarefas.find((x) => x.id === id) ?? ({} as Tarefa))) void removerTarefa(id); }}
             continua={aba === "semdata"}
             aoMover={aba === "dia" ? moverPara : undefined}
             acoes={acoes}
