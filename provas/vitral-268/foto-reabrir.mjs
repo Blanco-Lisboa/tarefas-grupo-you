@@ -1,0 +1,26 @@
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const PASTA = fileURLToPath(new URL("./", import.meta.url));
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const p = await nav.newPage({ viewport: { width: 1440, height: 760 } });
+const marca = () => p.evaluate(() => { document.getElementById("m")?.remove(); const d = document.createElement("div"); d.id = "m"; d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;right:8px;top:8px;z-index:99999;background:#fff;font:700 12px monospace;padding:4px 8px"; document.body.append(d); });
+await p.goto("http://127.0.0.1:3201/entrar", { waitUntil: "networkidle" }); await p.waitForTimeout(2000);
+await p.goto("http://127.0.0.1:3101/conteudos", { waitUntil: "networkidle" }); await p.waitForTimeout(2000);
+await p.getByText("Reels: contabilidade sem mistério").first().click();
+await p.locator("dialog.ficha[open]").waitFor();
+await p.route("http://127.0.0.1:3201/**", async (r) => { if (r.request().method() === "PUT") await new Promise((ok) => setTimeout(ok, 20000)); r.continue(); });
+await p.locator("dialog.ficha input[type=file]").last().setInputFiles({ name: "reels-bruto.mp4", mimeType: "video/mp4", buffer: Buffer.alloc(10 * 1024 * 1024) });
+await p.waitForTimeout(800);
+await p.reload({ waitUntil: "networkidle" }); // recarrega a aba no meio do envio
+await p.waitForTimeout(2000);
+await marca();
+await p.screenshot({ path: PASTA + "4-interrompido-1440.png" });
+await p.getByText("Abrir o card").click();
+await p.locator("dialog.ficha[open]").waitFor({ timeout: 5000 });
+await marca();
+console.log("url:", p.url(), "ficha aberta: sim");
+await p.screenshot({ path: PASTA + "5-ficha-aberta-pelo-aviso-1440.png" });
+await nav.close();

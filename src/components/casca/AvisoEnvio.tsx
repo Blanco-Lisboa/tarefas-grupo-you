@@ -24,7 +24,7 @@ export function AvisoEnvio() {
             : e.estado === "interrompido" ? (
               <>
                 <b>Envio interrompido — escolha o vídeo de novo</b>
-                {e.tarefaId && <Link href={`/conteudos?ficha=${e.tarefaId}`} onClick={() => descartarEnvio(e.id)}>Abrir o card</Link>}
+                {e.tarefaId && <Link href={`/conteudos?ficha=${e.tarefaId}`} onClick={() => { window.dispatchEvent(new CustomEvent("grade:ficha", { detail: e.tarefaId })); descartarEnvio(e.id); }}>Abrir o card</Link>}
                 <button type="button" aria-label={`Descartar ${e.nome}`} onClick={() => descartarEnvio(e.id)}>×</button>
               </>
             )
