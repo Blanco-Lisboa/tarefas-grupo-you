@@ -20,8 +20,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // a tela já está em português, então o Chrome não oferece traduzir nem mexe no texto.
     <html lang="pt-BR" translate="no" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full" suppressHydrationWarning>
-        {/* Script comum (não o <Script> do Next, que no cliente dá "script tag while rendering"): roda ao ler o HTML, antes da 1ª pintura (guia "preventing flash before hydration") */}
-        <script dangerouslySetInnerHTML={{ __html: SCRIPT_MENU }} />
+        {/* O <script> vai DENTRO de uma div escondida, como texto de HTML: o navegador o executa ao ler a página (antes da 1ª pintura),
+            mas o React nunca cria um elemento <script> (se criasse, ao refazer a tela no cliente, o dev avisa "script tag while
+            rendering"; o type text/plain da doc do Next NÃO silencia o aviso, testado). */}
+        <div hidden suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `<script>${SCRIPT_MENU}</script>` }} />
         <Casca>{children}</Casca>
       </body>
     </html>
