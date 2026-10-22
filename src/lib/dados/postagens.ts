@@ -17,7 +17,7 @@ export const postarEmQueVale = (t: Pick<Tarefa, "etapa" | "postarEm" | "formato"
   t.etapa === "postado" || (t.etapa === "aprovado" && !soFacebookComVideo(t)) ? t.postarEm : undefined;
 /** Carrossel com vídeo (o que já subiu e o que está subindo; capa e arquivo já limpo não contam). */
 export const carrosselComVideoGuardado = (t: Pick<Tarefa, "formato" | "arquivos">) =>
-  t.formato === "carrossel" && t.arquivos.some((a) => a.papel !== "capa" && !a.removido && a.tipo === "video");
+  t.formato === "carrossel" && t.arquivos.some((a) => a.papel !== "capa" && a.papel !== "original" && !a.removido && a.tipo === "video");
 
 /** Rede ESCOLHIDA na fila, enviando ou processando, com o card ainda em Aprovado. Linha de rede tirada do card não conta (achado b da Lupa):
     sem isso uma linha velha em "fila" fazia a tela recarregar a cada 15 s para sempre. Status desconhecido também não conta. */

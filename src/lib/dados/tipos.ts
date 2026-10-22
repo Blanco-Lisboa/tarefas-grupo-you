@@ -10,6 +10,8 @@ export const RESPONSAVEIS = ["natham", "matheus", "adrian", "lucas"] as const; /
 /** 266: Adrian faz o que o Natham faz em aprovação e no caderno do Matheus (aprovar, consertar, "Quem aprova", ler o "Caderno de Matheus").
     Espelha private.pode_aprovar, pode_trocar_aprovador e natham_le_matheus (026). Não vale para o resto do que é do Natham. */
 export const comoNatham = (eu: string | null | undefined) => eu === "natham" || eu === "adrian";
+/** 269: quem aprova, programa e posta em QUALQUER card: Natham, Adrian e Matheus (aprovação presencial). Espelha private.pode_aprovar (027). */
+export const aprovaSempre = (eu: string | null | undefined) => comoNatham(eu) || eu === "matheus";
 export const ETIQUETAS = [
   "etiqueta-1", "etiqueta-2", "etiqueta-3", "etiqueta-4", "etiqueta-5",
   "etiqueta-6", "etiqueta-7", "etiqueta-8", "etiqueta-9", "etiqueta-10",
@@ -31,7 +33,8 @@ export type Arquivo = { nome: string; url?: string; tipo?: "imagem" | "video" | 
   /** Depois da limpeza de 3 dias o arquivo sai do Storage: `removido` e o `driveLink` toma o lugar da `url`. `aviso` é o texto do banco (ex.: cópia no Drive falhou). */
   driveLink?: string; removido?: boolean; aviso?: string;
   /** 203: `id` = linha da tabela arquivos; `driveId` = arquivo no Drive (aí não há `caminho`); `ordem` = posição no carrossel; `papel` "capa" = capa do Reels. */
-  id?: string; driveId?: string; ordem?: number; papel?: "anexo" | "capa" };
+  id?: string; driveId?: string; ordem?: number; papel?: "anexo" | "capa" | "original" };
+/** 270: "original" = vídeo sem legenda, guardado quando sobe o legendado num card Aprovado; não vai ao post (o 027 troca o papel no banco). */
 
 /** Uma rede de uma postagem automática (196), escrita só pela função postar-meta. fila/enviando/processando = "Postando…". */
 export type Postagem = { rede: RedePost; status: "fila" | "enviando" | "processando" | "postado" | "erro"; link?: string; erro?: string; postadoEm?: string };
@@ -68,6 +71,8 @@ export type Tarefa = {
   formato?: Formato;
   /** Etiqueta "Conserto" (item 195): quem aprova mandou voltar para Edição. Some quando o card sai de Edição. */
   conserto?: boolean;
+  /** 271: o que o aprovador pede para editar (campo "Conserto" da ficha). Com texto, o card mostra a tag Conserto; some quando o card é aprovado. */
+  consertoTexto?: string;
   /** Postagem automática (196). Depois de Aprovado, legenda, formato, redes e quadro da capa só mudam pelo Natham ou pelo aprovador (019). */
   legenda?: string;
   /** Ausente = as duas redes (padrão do banco). */

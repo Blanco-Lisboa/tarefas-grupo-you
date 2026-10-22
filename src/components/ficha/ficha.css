@@ -184,6 +184,8 @@ html:has(.ficha[open], .card-flut.mural[open]) { overflow: hidden; scrollbar-gut
 /* Capa travada (post publicado, ou Aprovado para quem não aprova): sem a área de soltar nem o × da capa, só o que vale;
    a miniatura continua um botão que abre a capa grande (Lupa 215 r2: com o fieldset desligado, ela também desligava) */
 .ficha-capa[data-travada] :is(.ficha-anexo-solta, .ficha-anexo-tirar) { display: none; }
+.ficha-anexos-trava[data-travada] :is(.ficha-anexo-solta, .ficha-anexo-tirar) { display: none; } /* 273: trava a edição, não o olhar (antes era inert e a miniatura nem abria) */
+.ficha-anexos-trava[data-travada] .ficha-anexos:not(:has(.ficha-anexo)) { display: none; }
 .ficha-capa[data-travada] .ficha-anexos:not(:has(.ficha-anexo)) { display: none; } /* sem capa própria: a linha vazia não deixa vão */
 .ficha-capa-quadro { display: flex; gap: var(--s-16); align-items: flex-start; }
 /* Régua 215 (achado 4): miniatura com a altura dos controles ao lado (54 x 96), sem vão embaixo deles */

@@ -162,7 +162,7 @@ export function TelaConteudos() {
                   const quemFazAgora = fazendo[tarefa.id]?.quem;
                   const nomeEmpresa = tarefa.empresaId ? nomesEmpresas.get(tarefa.empresaId) : undefined;
                   return (
-                  <div className="conteudos-cartao-sombra" data-vazio={!!levantado} data-fazendo={!!quemFazAgora} data-conserto={!!tarefa.conserto} style={levantado ? { height: levantado.h } : undefined} key={tarefa.id}>
+                  <div className="conteudos-cartao-sombra" data-vazio={!!levantado} data-fazendo={!!quemFazAgora} data-conserto={!!(tarefa.conserto || tarefa.consertoTexto)} style={levantado ? { height: levantado.h } : undefined} key={tarefa.id}>
                   <article
                     className="conteudos-cartao"
                     data-arrastando={!!levantado}

@@ -1,7 +1,7 @@
 "use client";
 // Pé do card da Esteira (itens 195, 200, 196). Como usar:
 //
-//   <SeloConserto tarefa={tarefa} />   // etiqueta vermelha "Conserto" com a chave inglesa (só aparece com tarefa.conserto)
+//   <SeloConserto tarefa={tarefa} />   // etiqueta vermelha "Conserto" com a chave inglesa (com tarefa.conserto ou com texto no campo Conserto)
 //   <Aprovacao tarefa={tarefa} />      // o pé do card, conforme o tipo e a etapa (abaixo)
 //
 // - Card que NÃO é Postagem: "Concluir" em qualquer etapa (Natham, Matheus ou o dono), que pede confirmação e APAGA o card (decisão de 23/10).
@@ -22,8 +22,8 @@ export const podeAprovar = (t: Tarefa, eu: Responsavel | null) => podeAlterar(t,
 
 // Fita vermelha só com o ícone do Natham (engrenagem + chave inglesa, PNG dele em public/icones; nunca redesenhar em SVG).
 export function SeloConserto({ tarefa }: { tarefa: Tarefa }) {
-  return tarefa.conserto ? (
-    <span className="selo-conserto" role="img" aria-label="Conserto" title="Conserto">
+  return tarefa.conserto || tarefa.consertoTexto ? ( // 271: com texto no campo Conserto também mostra
+    <span className="selo-conserto" role="img" aria-label="Conserto" title={tarefa.consertoTexto || "Conserto"}>
       {/* unoptimized: chega o original de 1080 px, e o recorte do CSS (object-view-box) conta nesses pixels */}
       <Image src="/icones/conserto-engrenagem-chave.png" alt="" width={20} height={20} unoptimized />
     </span>

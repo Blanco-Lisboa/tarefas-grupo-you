@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase/cliente";
 import { carregarAnexos, ErroAnexo, sincronizarAnexos } from "./anexos";
 import { apagarTarefaComArquivos } from "./drive";
 import { ligarTempoReal } from "./tempo-real";
+import { campoConsertoTexto, fecharAprovada } from "./esteira";
 import { carregarPostagens, postando, postarEmQueVale, redesQueValem } from "./postagens";
 import type { Empresa, Fazendo, NovaTarefa, Postagem, Responsavel, Tag, Tarefa } from "./tipos";
 
@@ -12,7 +13,7 @@ type LinhaTarefa = {
   id: string; titulo: string; tipo: Tarefa["tipo"]; empresa_id: string | null; rede: Tarefa["rede"] | null; etapa: Tarefa["etapa"] | null;
   responsavel_id: string; inicio: string | null; fim: string | null; dia_inteiro: boolean; cor: Tarefa["cor"]; concluida: boolean;
   objetivo: string | null; notas: string | null; links: Tarefa["links"]; aprovador: string | null;
-  dono_id: string; criado_por: string; enviada_por: string | null; vai_pro_google?: boolean; postar_em?: string | null; conserto?: boolean; formato?: Tarefa["formato"] | null;
+  dono_id: string; criado_por: string; enviada_por: string | null; vai_pro_google?: boolean; postar_em?: string | null; conserto?: boolean; conserto_texto?: string | null; formato?: Tarefa["formato"] | null;
   postado_em?: string | null; legenda?: string | null; postar_redes?: Tarefa["postarRedes"] | null; capa_quadro_ms?: number | null; ocasiao_id?: string | null;
   tarefa_tags?: { tag_id: string }[];
 };
@@ -70,7 +71,7 @@ export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem:
     cor: l.cor, concluida: l.concluida || undefined, objetivo: l.objetivo ?? undefined, notas: l.notas ?? undefined,
     links: l.links ?? [], arquivos, tags: ids?.length ? ids : undefined, aprovador: l.aprovador ?? undefined,
     dono: quem(l.dono_id), criadoPor: quem(l.criado_por), enviadaPor: quem(l.enviada_por), vaiProGoogle: l.vai_pro_google || undefined,
-    postarEm: l.postar_em ?? undefined, postadoEm: l.postado_em ?? undefined, conserto: l.conserto || undefined, formato: l.formato ?? undefined,
+    postarEm: l.postar_em ?? undefined, postadoEm: l.postado_em ?? undefined, conserto: l.conserto || undefined, consertoTexto: l.conserto_texto === undefined ? undefined : l.conserto_texto ?? "", formato: l.formato ?? undefined,
     legenda: l.legenda ?? undefined, postarRedes: l.postar_redes ?? undefined, capaQuadroMs: l.capa_quadro_ms ?? undefined, ocasiaoId: l.ocasiao_id ?? undefined,
     postagens: postagens?.length ? postagens : undefined,
   };
@@ -163,7 +164,7 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa | null> {
   const { enviarPara: _enviarPara, ...resto } = nova;
   void _enviarPara;
   // O gatilho do 015 faz o mesmo no banco: Conserto só em Edição, data do post só em Aprovado/Postado.
-  const tarefa: Tarefa = { ...resto, conserto: resto.etapa === "edicao" && resto.conserto ? true : undefined,
+  const tarefa: Tarefa = { ...resto, ...fecharAprovada(resto, tags), conserto: resto.etapa === "edicao" && resto.conserto ? true : undefined,
     postarEm: postarEmQueVale({ ...resto, postarRedes: redesQueValem(resto) }), postarRedes: redesQueValem(resto), programacaoCancelada: undefined, id, dono, criadoPor: antes?.criadoPor ?? eu ?? undefined, enviadaPor: antes ? antes.enviadaPor : dono !== eu ? eu ?? undefined : undefined };
   tarefa.postadoEm = postadoEmDe(antes, tarefa.etapa); // 238: a data real de entrada em Postado (o banco grava a mesma)
   // Havia data e o salvar a tirou (só Facebook + vídeo): a tela avisa "Programação cancelada" até alguém programar de novo.
@@ -179,7 +180,7 @@ export async function salvarTarefa(nova: NovaTarefa): Promise<Tarefa | null> {
     const linha = { id, ...campos, postar_em: tarefa.postarEm ?? null, conserto: !!tarefa.conserto, formato: tarefa.formato ?? null, responsavel_id: campos.responsavel_id ?? null, dono_id: idDe(dono), criado_por: idDe(eu), enviada_por: dono !== eu ? idDe(eu) : null,
       legenda: tarefa.legenda?.trim() || null, postar_redes: tarefa.postarRedes ?? null, capa_quadro_ms: tarefa.capaQuadroMs ?? null,
       // 238: Tema escolhido vai; Tema TIRADO (tinha e agora não tem) vai como null; nunca teve, nem vai (ver campoOcasiao)
-      ...campoOcasiao(tarefa.ocasiaoId, antes?.ocasiaoId),
+      ...campoOcasiao(tarefa.ocasiaoId, antes?.ocasiaoId), ...campoConsertoTexto(tarefa.consertoTexto, antes?.consertoTexto),
       // só vai quando é verdade: antes do 010 a coluna não existe e mandar `false` derrubaria o salvar de toda tarefa do Caderno
       ...(tarefa.vaiProGoogle ? { vai_pro_google: true } : {}) };
     // Caminho novo: tarefa e tags numa só chamada (007). Se a função ainda não existe no banco, segue pelo caminho antigo.

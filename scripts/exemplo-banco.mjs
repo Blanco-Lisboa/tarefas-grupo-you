@@ -52,7 +52,7 @@ const tarefa = (titulo, extra = {}) => ({
   id: `t${++n}`, titulo, tipo: "outro", empresa_id: null, rede: null, etapa: null, responsavel_id: P.natham, inicio: null, fim: null,
   dia_inteiro: false, cor: "etiqueta-5", concluida: false, objetivo: null, notas: null, links: [], aprovador: null,
   dono_id: P.natham, criado_por: P.natham, enviada_por: null, tarefa_tags: [], legenda: null, postar_redes: null, postar_em: null,
-  conserto: false, formato: null, capa_quadro_ms: null, ocasiao_id: null, created_at: `2026-10-${pad(10 + (n % 10))}T10:00:00Z`, ...extra,
+  conserto: false, conserto_texto: null, formato: null, capa_quadro_ms: null, ocasiao_id: null, created_at: `2026-10-${pad(10 + (n % 10))}T10:00:00Z`, ...extra,
 });
 const TIPO = { roteiro: "roteiro", gravacao: "gravacao", edicao: "edicao" };
 const card = (titulo, empresa, rede, formato, etapa, quem, dia, hora, extra = {}) => tarefa(titulo, {
@@ -141,6 +141,8 @@ const arquivos = [
   anexo("Carrossel: 3 impostos que o MEI paga", "slide-2.png", "anexo", 1),
   anexo("Reels: dica rápida de IR", "capa.png", "capa"),
   anexo("Post: bem-vindo à Beec", "arte.png"),
+  { ...video("Reels: dica rápida de IR", "ir-sem-legenda.mp4"), papel: "original" }, // 270: o sem legenda, guardado
+  video("Reels: dica rápida de IR", "ir-legendado.mp4"),
   anexo("Reels: depoimento da Maria", "capa.png", "capa"),
   anexo("Carrossel: 5 dicas de MEI", "capa.png", "capa"),
   anexo("Carrossel: 5 dicas de MEI", "slide-2.png", "anexo", 1),
@@ -226,7 +228,7 @@ const naoNulos = (url) => [...url.searchParams].filter(([, v]) => v === "not.is.
 createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   if (url.pathname === "/entrar") {
-    const cookie = `sb-127-auth-token=base64-${b64(sessaoDe(USUARIOS.natham))}; Path=/; Max-Age=31536000; SameSite=Lax`;
+    const cookie = `sb-127-auth-token=base64-${b64(sessaoDe(USUARIOS[url.searchParams.get("quem")] ?? USUARIOS.natham))}; Path=/; Max-Age=31536000; SameSite=Lax`;
     return res.writeHead(302, { "set-cookie": cookie, location: `http://127.0.0.1:${PORTA_APP}/` }).end();
   }
   res.setHeader("access-control-allow-origin", req.headers.origin ?? "*");

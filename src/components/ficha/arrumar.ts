@@ -1,5 +1,5 @@
 import { ehReuniao } from "@/components/tarefas/grade";
-import { comoNatham, type Etapa, type NovaTarefa, type Responsavel } from "@/lib/dados";
+import { aprovaSempre, type Etapa, type NovaTarefa, type Responsavel } from "@/lib/dados";
 
 /** O que a Ficha manda salvar (Lupa R6-1): a tarefa da ficha, depois `extras` (data, anexos, links...), e por último os campos
     arrumados: sem a tag de aprovação o aprovador sai, título e notas sem espaços nas pontas, objetivo só em postagem.
@@ -17,9 +17,9 @@ export const arrumar = (t: NovaTarefa, pedeAprovador: boolean, extras: Partial<N
     como está (sem etapa = tarefa do Caderno, que nunca vira card); reunião nunca é conteúdo. O Caderno cria pela folha, não pela ficha. */
 export const etapaAoSalvar = (t: NovaTarefa): Etapa | undefined => t.etapa ?? (!t.id && t.empresaId && !ehReuniao(t) ? "roteiro" : undefined);
 
-/** Espelha private.pode_aprovar (015, 026): o Natham ou o Adrian, ou a pessoa cujo nome é o aprovador (nome = slug com maiúscula). Sem aprovador: só eles. */
+/** Espelha private.pode_aprovar (015, 026, 027): o Natham, o Adrian ou o Matheus (269), ou a pessoa cujo nome é o aprovador (nome = slug com maiúscula). Sem aprovador: só eles. */
 export const ehQuemAprova = (aprovador: string | undefined, eu: Responsavel | null) =>
-  comoNatham(eu) || (!!eu && eu === aprovador?.trim().toLowerCase());
+  aprovaSempre(eu) || (!!eu && eu === aprovador?.trim().toLowerCase());
 
 /** Espelha private.pode_trocar_aprovador (021, item 223): quem escolhe "Quem aprova" num card que já existe é o Natham, o Matheus
     ou quem aprova hoje. Antes era só ehQuemAprova, e o Matheus não escolhia nada em card do Natham ou sem aprovador. */

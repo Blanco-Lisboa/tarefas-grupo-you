@@ -19,7 +19,7 @@ describe("ficha: o que vai para o banco ao salvar (Lupa R6-1)", () => {
 });
 
 describe("podeTrocarAprovador (223)", () => {
-  it("o Matheus escolhe quem aprova em card do Natham, de outro ou sem aprovador; Natham sempre; os outros só se forem o aprovador", () => {
+  it("o Matheus escolhe quem aprova em card do Natham, de outro ou sem aprovador; Natham, Adrian e Matheus sempre; os outros só se forem o aprovador", () => {
     expect(podeTrocarAprovador("Natham", "matheus")).toBe(true);
     expect(podeTrocarAprovador(undefined, "matheus")).toBe(true);
     expect(podeTrocarAprovador("Adrian", "matheus")).toBe(true);
@@ -36,8 +36,10 @@ describe("ehQuemAprova (015)", () => {
     expect(ehQuemAprova("Matheus", "natham")).toBe(true);
     expect(ehQuemAprova(undefined, "adrian")).toBe(true); // 266
     expect(ehQuemAprova(" matheus ", "matheus")).toBe(true);
-    expect(ehQuemAprova("Natham", "matheus")).toBe(false);
-    expect(ehQuemAprova(undefined, "matheus")).toBe(false);
+    expect(ehQuemAprova("Natham", "matheus")).toBe(true); // 269: aprovação presencial
+    expect(ehQuemAprova(undefined, "matheus")).toBe(true);
+    expect(ehQuemAprova("Natham", "lucas")).toBe(false);
+    expect(ehQuemAprova(undefined, "lucas")).toBe(false);
     expect(ehQuemAprova("Matheus", null)).toBe(false);
   });
 });

@@ -10,7 +10,7 @@ export function CamposPost({ t, arquivos, travado, postado, mudar, aoMudarCapa }
   t: NovaTarefa; arquivos: Arquivo[]; travado: boolean; postado?: boolean; mudar: <K extends keyof NovaTarefa>(campo: K, valor: NovaTarefa[K]) => void; aoMudarCapa: (capas: Arquivo[]) => void;
 }) {
   const capa = arquivos.find((a) => a.papel === "capa");
-  const video = arquivos.find((a) => a.papel !== "capa" && a.tipo === "video");
+  const video = arquivos.find((a) => a.papel !== "capa" && a.papel !== "original" && a.tipo === "video");
   return (
     <>
       <label className="ficha-campo">

@@ -37,6 +37,7 @@ import { CamposPost } from "./CamposPost";
 import { Publicacao } from "./Publicacao";
 import { TagsFicha } from "./TagsFicha";
 import { LINK_VALIDO, LinksDrive } from "./LinksDrive";
+import { AvisosVideo, CampoConserto } from "./Conserto";
 import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido, mudouPasta, podeTrocarAprovador, soTagsQueExistem, trocarEmpresa } from "./arrumar";
 import { CampoOcasiao, PrazoDrive } from "./CampoOcasiao";
 import { TextoComLinks } from "@/components/pastas/links";
@@ -102,7 +103,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
   const aprovadorTravado = !nova && !podeTrocarAprovador(tarefa.aprovador, eu);
   // 019: depois de Aprovado, o que vai para a rede (descrição do post, formato, arquivos, capa) só muda pelo Natham ou por quem aprova.
   const postTravado = !nova && (tarefa.etapa === "aprovado" || tarefa.etapa === "postado") && !(podeAlterar(tarefa as Tarefa, eu) && ehQuemAprova(tarefa.aprovador, eu));
-  const capas = arquivos.filter((a) => a.papel === "capa");
+  const fora = arquivos.filter((a) => a.papel === "capa" || a.papel === "original"); // não entram em Anexos: a capa (campo próprio) e o vídeo sem legenda guardado (270)
   const viva = todas.find((x) => x.id === tarefa.id); // a ficha nasce de uma cópia; a Publicação lê o card vivo (postando, erro, links)
   const temEmpresa = empresas.some((x) => x.id === t.empresaId);
   const empresaOk = !t.empresaId || temEmpresa; // "" = sem empresa
@@ -159,7 +160,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
     const etapa = etapaAoSalvar(t);
     const enviarPara = nova && t.responsavel !== eu && !ehConteudo({ ...t, etapa }) ? t.responsavel : undefined;
     const existem = t.tags?.length ? await recarregarTags() : []; // 243: tag excluída enquanto a ficha estava aberta não vai
-    const pronta = arrumar(t, pedeAprovador, {
+    const pronta = arrumar(t, pedeAprovador || t.etapa === "aprovado" || t.etapa === "postado", { // 272: sem a tag, o aprovador do card aprovado continua
       ...quando, etapa, enviarPara, arquivos, tags: soTagsQueExistem(t.tags, existem),
       vaiProGoogle: nova ? vai : tarefa.vaiProGoogle, // só liga na criação e se pode ir (R5-5)
       links: links.filter((l) => LINK_VALIDO.test(l.url.trim())).map((l) => ({ rotulo: l.rotulo.trim() || "Link do Drive", url: l.url.trim() })),
@@ -169,7 +170,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
     gravando.current = false;
     setSalvando(false);
     if (gravada) {
-      setT((x) => ({ ...x, ...extra, id: gravada.id, etapa: gravada.etapa, conserto: gravada.conserto })); // etapa como ficou (Roteiro do 205, decisão)
+      setT((x) => ({ ...x, ...extra, id: gravada.id, etapa: gravada.etapa, conserto: gravada.conserto, consertoTexto: gravada.consertoTexto, tags: gravada.tags })); // etapa como ficou (Roteiro do 205, decisão)
       aoSalvar?.(salva);
     }
     // 229: a pasta do conteúdo no Drive acompanha título, formato, tema e empresa. Se o Drive falhar, a ficha fica aberta com o aviso (o salvar vale).
@@ -297,9 +298,9 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
           <TagsFicha t={t} mudar={mudar} pedeAprovador={pedeAprovador} aprovadorTravado={aprovadorTravado} />
 
           <LinksDrive links={links} aoMudar={setLinks} />
-          <div inert={postTravado}><Anexos valor={arquivos.filter((a) => a.papel !== "capa")} aoMudar={(v) => setArquivos([...v, ...capas])} empresaId={t.empresaId} carrossel={t.formato === "carrossel"} /></div>
+          <div className="ficha-anexos-trava" data-travada={postTravado || undefined}><Anexos valor={arquivos.filter((a) => !fora.includes(a))} aoMudar={(v) => setArquivos([...v, ...fora])} empresaId={t.empresaId} carrossel={t.formato === "carrossel"} /></div>
           {viva && <PrazoDrive t={viva} />}
-          {postTravado && <p className="ficha-dica ficha-dica-fica">Aprovado: descrição do post, formato, arquivos e capa só mudam pelo Natham ou por quem aprova.</p>}
+          <AvisosVideo arquivos={arquivos} viva={viva} travado={postTravado} />
 
           <div className="ficha-campo ficha-notas">
             <label className="ficha-legenda" htmlFor="ficha-notas">Notas</label>
@@ -315,6 +316,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
             )}
           </div>
 
+          <CampoConserto viva={viva} t={t} mudar={mudar} soLer={soLer} />
           {decide && (
             <div className="ficha-decidir">
               <button type="button" className="aprovacao-botao" data-acao="consertar" disabled={salvando} onClick={() => void decidir({ etapa: "edicao", conserto: true })}>{decidindo === "edicao" ? "Consertando…" : "Consertar"}</button>

@@ -8,7 +8,7 @@ export const redesDe = (t: Pick<Tarefa, "postarRedes">): RedePost[] => t.postarR
 
 type Base = Pick<Tarefa, "arquivos" | "legenda" | "empresaId">;
 /** Só o que já está guardado: arquivo que não subiu (pendente) ou que a limpeza tirou (removido) a função não acha. */
-const midias = (t: Pick<Tarefa, "arquivos">) => t.arquivos.filter((a) => a.papel !== "capa" && !a.pendente && !a.removido && (a.tipo === "imagem" || a.tipo === "video"));
+const midias = (t: Pick<Tarefa, "arquivos">) => t.arquivos.filter((a) => a.papel !== "capa" && a.papel !== "original" && !a.pendente && !a.removido && (a.tipo === "imagem" || a.tipo === "video"));
 
 /** Carrossel com vídeo só vai para o Instagram: o Facebook não mistura foto e vídeo num post. */
 export const carrosselComVideo = (t: Pick<Tarefa, "arquivos">, formato?: Formato) => formato === "carrossel" && midias(t).some((a) => a.tipo === "video");
