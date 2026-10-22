@@ -115,6 +115,9 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
   // Arrastar pela alça (vertical): a linha acompanha o ponteiro e a linha de horário sob ele fica marcada; soltar move.
   const lista = useRef<HTMLUListElement>(null);
   const refoco = useRef<string | null>(null);
+  // Item 297: o brilho (menu-brilho) de TODAS as linhas coloridas e da reunião anda no mesmo compasso. Cada animação nasce numa hora
+  // diferente (cor nova, troca de página, recarregar), então depois de cada pintura todas voltam a ter o mesmo ponto de partida: o relógio da página.
+  useEffect(() => { for (const a of document.getAnimations()) if (a instanceof CSSAnimation && a.animationName === "menu-brilho" && a.startTime !== 0) a.startTime = 0; });
   const [arrasto, setArrasto] = useState<{ id: string; de: number; alvo: number; y0: number; dy: number } | null>(null);
   useEffect(() => { // depois de mover pelo teclado a linha troca de lugar: a alça volta a ter o foco
     if (refoco.current) document.querySelector<HTMLElement>(`[data-alca="${CSS.escape(refoco.current)}"]`)?.focus();
