@@ -12,7 +12,7 @@
 // - Postagem em "Postado": nada no pé; os links do post ficam na ficha e no Mapa.
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
-import { podeAlterar, podeApagar, removerTarefa, useEu, usePostagemAutomatica, type Responsavel, type Tarefa } from "@/lib/dados";
+import { podeAlterar, podeApagar, removerTarefa, useEu, usePendentes, usePostagemAutomatica, type Responsavel, type Tarefa } from "@/lib/dados";
 import { ehQuemAprova } from "./arrumar";
 import { Confirmar } from "./Confirmar";
 import { comoHoraMarcada, estadoDoCard } from "./postagem";
@@ -34,6 +34,7 @@ export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
   const eu = useEu();
   const { ligada } = usePostagemAutomatica();
   const [concluindo, setConcluindo] = useState(false);
+  const semVideoNovo = usePendentes().has(tarefa.id);
   // Sem isto, clicar nos botões "pegava" o card para arrastar.
   const pe = (filhos: ReactNode, classe = "") => <div className={`aprovacao ${classe}`} onPointerDown={(e) => e.stopPropagation()}>{filhos}</div>;
 
@@ -47,5 +48,5 @@ export function Aprovacao({ tarefa }: { tarefa: Tarefa }) {
   }
   if (tarefa.etapa !== "aprovado") return null;
   const estado = estadoDoCard(tarefa);
-  return pe(<p className="aprovacao-situacao" data-tipo={estado.tom} role={estado.tom === "normal" ? undefined : "status"}>{comoHoraMarcada(estado.texto, ligada)}</p>, "aprovacao-postagem");
+  return pe(<>{semVideoNovo && <p className="aprovacao-situacao" data-tipo="erro" role="alert">Vídeo novo não subiu: postagem bloqueada</p>}<p className="aprovacao-situacao" data-tipo={estado.tom} role={estado.tom === "normal" ? undefined : "status"}>{comoHoraMarcada(estado.texto, ligada)}</p></>, "aprovacao-postagem");
 }

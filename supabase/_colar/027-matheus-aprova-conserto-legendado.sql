@@ -43,7 +43,7 @@ begin
   if new.tarefa_id is not null and new.tipo = 'video' and new.papel = 'anexo'
      and exists (select 1 from public.tarefas t where t.id = new.tarefa_id and t.etapa = 'aprovado') then
     update public.arquivos set papel = 'original' where tarefa_id = new.tarefa_id and tipo = 'video' and papel = 'anexo' and id <> new.id;
-    update public.tarefas set video_subindo_ate = null where id = new.tarefa_id and video_subindo_ate is not null;  -- achado 5: o legendado chegou, a marca sai (coluna criada no passo 8, antes do primeiro envio)
+    update public.tarefas set video_pendente_desde = null where id = new.tarefa_id and video_pendente_desde is not null;  -- achado 5: o legendado chegou, a marca sai (coluna criada no passo 8)
   end if;
   return null;
 end $$;
@@ -88,6 +88,7 @@ begin
     end if;
   end if;
   if new.etapa is distinct from 'edicao' then new.conserto := false; end if;
+  if new.etapa is distinct from 'aprovado' then new.video_pendente_desde := null; end if;  -- achado 5: saiu de Aprovado, a pendência do vídeo novo acaba
   if tg_op = 'INSERT' or new.etapa in ('aprovado', 'postado') then new.conserto_texto := null; end if;  -- 271: aprovado = o pedido de conserto fecha
   if new.etapa is null or new.etapa not in ('aprovado', 'postado') then new.postar_em := null; end if;
   -- 236: a data real de entrada em Postado (a tela conta os 7 dias dela). Só o gatilho escreve: quem já estava Postado mantém a data.
@@ -149,7 +150,7 @@ begin
   where t.id = p_tarefa and t.etapa = 'aprovado' and t.tipo = 'postagem' and (select private.pode_aprovar(t.aprovador))
     and ((select auth.uid()) is null or (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id)));
   if not found then raise exception 'so o Natham ou o aprovador posta agora, e so card de Postagem em Aprovado' using errcode = '42501'; end if;
-  if (select public.video_subindo(p_tarefa)) then raise exception 'o video legendado ainda esta subindo: espere terminar' using errcode = '55000'; end if;
+  if (select public.video_pendente(p_tarefa)) then raise exception 'o video novo ainda nao chegou: espere, suba de novo ou use Postar com o video atual' using errcode = '55000'; end if;
   update public.tarefas set postar_em = v_agora where id = p_tarefa;
   if v_antes is not distinct from v_agora then perform private.alarme_tocou('postar', p_tarefa, 0); end if;
 end $$;
@@ -164,7 +165,7 @@ begin
       and ((select auth.uid()) is null or (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id)))) then
     raise exception 'so o Natham ou o aprovador tenta de novo' using errcode = '42501';
   end if;
-  if (select public.video_subindo(p_tarefa)) then raise exception 'o video legendado ainda esta subindo: espere terminar' using errcode = '55000'; end if;
+  if (select public.video_pendente(p_tarefa)) then raise exception 'o video novo ainda nao chegou: espere, suba de novo ou use Postar com o video atual' using errcode = '55000'; end if;
   delete from public.postagens p using public.tarefas t where t.id = p_tarefa and p.tarefa_id = t.id and p.status in ('fila', 'erro') and not p.rede = any (t.postar_redes);
   update public.postagens p set status = 'fila', erro = null from public.tarefas t
     where p.tarefa_id = p_tarefa and t.id = p.tarefa_id and p.status = 'erro' and p.rede = any (t.postar_redes);
@@ -173,28 +174,46 @@ end $$;
 revoke all on function public.tentar_de_novo(uuid) from public, anon;
 grant execute on function public.tentar_de_novo(uuid) to authenticated;
 
--- 8) Lupa re-revisão 1, achado 5: marca NO BANCO de "vídeo legendado ainda subindo". A tela põe a marca ao começar o envio de um vídeo num card Aprovado
---    (e a renova a cada 5 min enquanto envia), tira ao terminar ou falhar; a confirmação do envio também tira (gatilho do 3). Vence em 15 min sozinha.
---    Com a marca valendo: "Postar agora" e "Tentar de novo" recusam (postar_agora/tentar_de_novo, abaixo) e o alarme da hora marcada espera (alarme_tocou, abaixo).
---    Vale para QUALQUER aba ou pessoa, porque mora no card. Analogia: um aviso "tinta fresca" na porta do correio: ninguém despacha enquanto estiver lá.
-alter table public.tarefas add column if not exists video_subindo_ate timestamptz;
+-- 8) Lupa re-revisão 1 e 2, achado 5: marca NO BANCO de "vídeo novo pendente". A tela confirma a marca com o banco ANTES de o envio de um vídeo começar num card Aprovado.
+--    Ela só sai quando o vídeo novo chega (gatilho do passo 3), ou quando alguém clica "Postar com o vídeo atual" (liberar_video_pendente), ou se o card sai de Aprovado.
+--    Falha do envio NÃO libera, e fechar a aba no meio também não: prefere-se bloquear a postar o vídeo sem legenda. Sem prazo de validade (a saída é explícita).
+--    Com a marca: "Postar agora" e "Tentar de novo" recusam (abaixo), o alarme da hora marcada espera (alarme_tocou, abaixo) e a ficha e o card avisam "Vídeo novo não subiu".
+--    Vale para QUALQUER aba ou pessoa, porque mora no card. Analogia: um aviso "tinta fresca" na porta do correio, que só sai quando a tinta seca ou o dono tira de propósito.
+alter table public.tarefas add column if not exists video_pendente_desde timestamptz;
 
-create or replace function public.marcar_video_subindo(p_tarefa uuid, p_subindo boolean) returns void
+create or replace function public.marcar_video_pendente(p_tarefa uuid) returns void
 language plpgsql security definer set search_path = ''
 as $$
 begin
   if not (select private.pode_mexer_anexos(p_tarefa)) then raise exception 'sem permissao para mexer nos anexos deste card' using errcode = '42501'; end if;
-  update public.tarefas set video_subindo_ate = case when p_subindo then now() + interval '15 minutes' else null end
-  where id = p_tarefa and etapa = 'aprovado';
+  update public.tarefas set video_pendente_desde = coalesce(video_pendente_desde, now()) where id = p_tarefa and etapa = 'aprovado';
 end $$;
-revoke all on function public.marcar_video_subindo(uuid, boolean) from public, anon;
-grant execute on function public.marcar_video_subindo(uuid, boolean) to authenticated;
+revoke all on function public.marcar_video_pendente(uuid) from public, anon;
+grant execute on function public.marcar_video_pendente(uuid) to authenticated;
 
-create or replace function public.video_subindo(p_tarefa uuid) returns boolean
+-- "Postar com o vídeo atual": quem aprova desiste do vídeo novo e libera a postagem; se a hora já passou, o alarme é acordado na hora.
+create or replace function public.liberar_video_pendente(p_tarefa uuid) returns void
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  if not exists (select 1 from public.tarefas t where t.id = p_tarefa and (select private.pode_aprovar(t.aprovador))
+      and ((select auth.uid()) is null or (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id)))) then
+    raise exception 'so o Natham ou o aprovador libera a postagem com o video atual' using errcode = '42501';
+  end if;
+  update public.tarefas set video_pendente_desde = null where id = p_tarefa and video_pendente_desde is not null;
+  if exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'aprovado' and t.postar_em is not null
+      and t.postar_em <= to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD"T"HH24:MI')) then
+    perform private.alarme_tocou('postar', p_tarefa, 0);
+  end if;
+end $$;
+revoke all on function public.liberar_video_pendente(uuid) from public, anon;
+grant execute on function public.liberar_video_pendente(uuid) to authenticated;
+
+create or replace function public.video_pendente(p_tarefa uuid) returns boolean
 language sql stable security invoker set search_path = ''
-as $$ select coalesce((select video_subindo_ate > now() from public.tarefas where id = p_tarefa), false) $$;
-revoke all on function public.video_subindo(uuid) from public, anon;
-grant execute on function public.video_subindo(uuid) to authenticated;
+as $$ select coalesce((select video_pendente_desde is not null from public.tarefas where id = p_tarefa), false) $$;
+revoke all on function public.video_pendente(uuid) from public, anon;
+grant execute on function public.video_pendente(uuid) to authenticated;
 
 create or replace function private.alarme_tocou(p_tipo text, p_tarefa uuid, p_rodada int) returns void
 language plpgsql security definer set search_path = ''
@@ -212,9 +231,9 @@ begin
   if p_tipo = 'postar' and not exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'aprovado' and t.postar_em is not null
        and t.postar_em <= to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD"T"HH24:MI')) then return; end if;
   if p_tipo = 'limpar' and not exists (select 1 from public.tarefas t where t.id = p_tarefa and t.etapa = 'postado') then return; end if;
-  -- 270 (Lupa re-revisão 1, achado 5): o vídeo legendado ainda está subindo. Não posta o antigo: o alarme se rearma para daqui a 1 minuto, sem gastar rodada.
-  -- A marca vence sozinha (video_subindo_ate), então um envio que morreu não trava a postagem para sempre.
-  if p_tipo = 'postar' and exists (select 1 from public.tarefas t where t.id = p_tarefa and t.video_subindo_ate > now()) then
+  -- 270 (Lupa re-revisão 1 e 2, achado 5): o vídeo legendado está subindo ou não subiu. Não posta o antigo: o alarme se rearma para daqui a 1 minuto, sem gastar rodada.
+  -- A marca só sai com o vídeo novo ou com "Postar com o vídeo atual" (liberar_video_pendente).
+  if p_tipo = 'postar' and exists (select 1 from public.tarefas t where t.id = p_tarefa and t.video_pendente_desde is not null) then
     if exists (select 1 from cron.job where jobname = v_nome) then perform cron.unschedule(v_nome); end if;
     perform private.cron_alarme('postar', p_tarefa, now() + interval '1 minute', p_rodada);
     return;

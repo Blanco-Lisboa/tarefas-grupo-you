@@ -31,5 +31,6 @@ export * from "./anotacoes";
 export * from "./agenda-feitos";
 export * from "./drive";
 export * from "./envios";
-export { videoSubindo } from "./subindo";
+export { liberarPendente, videoPendente } from "./subindo";
+export { reler as relerPendentes, usePendentes } from "./pendentes";
 export * from "./arvore";

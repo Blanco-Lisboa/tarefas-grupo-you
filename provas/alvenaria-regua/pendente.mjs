@@ -1,0 +1,37 @@
+// Achado 1 da Re-revisão 2: envio do legendado falha -> card e ficha mostram o bloqueio; "Postar com o vídeo atual" libera. Cópia de exemplo em 3121/3221.
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const PASTA = fileURLToPath(new URL("./", import.meta.url));
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const p = await nav.newPage({ viewport: { width: 1440, height: 760 } });
+const marca = () => p.evaluate(() => { document.getElementById("m")?.remove(); const d = document.createElement("div"); d.id = "m"; d.textContent = "innerWidth " + innerWidth; d.style.cssText = "position:fixed;right:8px;top:8px;z-index:99999;background:#fff;font:700 12px monospace;padding:4px 8px"; document.body.append(d); });
+const foto = async (n) => { await marca(); await p.screenshot({ path: PASTA + n }); };
+let derruba = true;
+await p.route(/functions\/v1\/drive/, async (r) => { if (derruba && /sessao_envio/.test(r.request().postData() ?? "")) return r.abort(); return r.continue(); });
+await p.goto("http://127.0.0.1:3221/entrar", { waitUntil: "networkidle" });
+await p.goto("http://127.0.0.1:3121/conteudos", { waitUntil: "networkidle" });
+await p.waitForTimeout(3000);
+await p.getByText("Reels: dica rápida de IR").first().click();
+await p.locator("dialog.ficha[open]").waitFor();
+await p.locator("dialog.ficha input[type=file]").last().setInputFiles({ name: "legendado-que-falha.mp4", mimeType: "video/mp4", buffer: Buffer.alloc(1024 * 1024) });
+await p.waitForTimeout(4000);
+console.log("aviso do canto:", await p.locator(".aviso-envio").allInnerTexts());
+await p.locator("dialog.ficha .publicacao").scrollIntoViewIfNeeded();
+await foto("3-envio-falhou-ficha-bloqueada-1440.png");
+console.log("botão liberar:", await p.locator("dialog.ficha [data-acao=liberar]").count(), "| botão postar agora:", await p.locator("dialog.ficha [data-acao=postar]").count());
+await p.keyboard.press("Escape");
+await p.waitForTimeout(1500);
+console.log("linha no card:", await p.locator(".conteudos-cartao-sombra", { hasText: "dica rápida de IR" }).locator(".aprovacao-situacao").allInnerTexts());
+await foto("4-card-bloqueado-1440.png");
+// libera de propósito
+await p.getByText("Reels: dica rápida de IR").first().click();
+await p.locator("dialog.ficha[open]").waitFor();
+await p.locator("dialog.ficha [data-acao=liberar]").click();
+await p.getByRole("button", { name: "Postar com o vídeo atual" }).last().click();
+await p.waitForTimeout(1500);
+console.log("depois de liberar, aviso na ficha:", await p.locator("dialog.ficha .aprovacao-erro").allInnerTexts());
+await foto("5-liberado-1440.png");
+await nav.close();

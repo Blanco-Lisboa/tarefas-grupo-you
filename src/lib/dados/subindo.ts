@@ -1,31 +1,25 @@
-// Marca no BANCO de "vídeo legendado ainda subindo" (Lupa re-revisão 1, achado 5; SQL 027, passo 8). Enquanto vale, o banco não deixa
+// Marca no BANCO de "vídeo novo pendente" (Lupa re-revisão 1 e 2, achado 5; SQL 027, passo 8). Enquanto vale, o banco não deixa
 // "Postar agora", "Tentar de novo" nem o alarme da hora marcada postarem o vídeo antigo (qualquer aba, qualquer pessoa).
-// Antes de colar o 027 as funções não existem: os erros são engolidos e o app segue como antes (a trava só da aba da ficha continua valendo).
+// Falha do envio NÃO tira a marca; só o vídeo novo chegando ou "Postar com o vídeo atual" tiram. Antes de colar o 027 as funções não existem:
+// isso conta como "sem marca" e o app segue como antes (a trava só da aba da ficha continua valendo).
 import { supabase } from "@/lib/supabase/cliente";
+import { funcaoAusente } from "./repositorio";
 
-const RENOVA_EM_MS = 5 * 60_000; // o banco vence a marca em 15 min; renovar a cada 5 mantém enquanto o envio vive
-const emEnvio = new Map<string, { n: number; relogio: ReturnType<typeof setInterval> }>();
-
-const marcar = (tarefaId: string, subindo: boolean) => void Promise.resolve(supabase().rpc("marcar_video_subindo", { p_tarefa: tarefaId, p_subindo: subindo })).catch(() => {});
-
-/** Começa a segurar a postagem do card (vários vídeos do mesmo card contam juntos). Devolve a função que solta; a marca só sai quando o último soltar. */
-export function segurarPostagem(tarefaId: string): () => void {
-  const atual = emEnvio.get(tarefaId);
-  if (atual) atual.n++;
-  else { marcar(tarefaId, true); emEnvio.set(tarefaId, { n: 1, relogio: setInterval(() => marcar(tarefaId, true), RENOVA_EM_MS) }); }
-  let solto = false;
-  return () => {
-    const e = emEnvio.get(tarefaId);
-    if (solto || !e) return;
-    solto = true;
-    if (--e.n > 0) return;
-    clearInterval(e.relogio);
-    emEnvio.delete(tarefaId);
-    marcar(tarefaId, false);
-  };
+/** Devolve o texto do erro (para a tela mostrar) ou null se deu certo / a função ainda não existe. */
+async function chamar(funcao: "marcar_video_pendente" | "liberar_video_pendente", tarefaId: string): Promise<string | null> {
+  try {
+    const { error } = await supabase().rpc(funcao, { p_tarefa: tarefaId });
+    if (!error || funcaoAusente(error)) return null;
+    return error.code === "42501" ? "Você não pode mexer neste card." : "O banco não confirmou. Tente de novo.";
+  } catch { return "Sem conexão com o banco. Tente de novo."; }
 }
 
-/** O banco diz que há vídeo subindo neste card? Erro (função ainda não colada) conta como "não". */
-export const videoSubindo = async (tarefaId: string): Promise<boolean> => {
-  try { const { data } = await supabase().rpc("video_subindo", { p_tarefa: tarefaId }); return data === true; } catch { return false; }
+/** Marca o card como "vídeo novo pendente" e só devolve null quando o banco confirmou: o envio só começa depois disso. */
+export const marcarPendente = (tarefaId: string) => chamar("marcar_video_pendente", tarefaId);
+/** "Postar com o vídeo atual": quem aprova desiste do vídeo novo e libera a postagem. */
+export const liberarPendente = (tarefaId: string) => chamar("liberar_video_pendente", tarefaId);
+
+/** O banco diz que este card espera um vídeo novo? Erro (função ainda não colada) conta como "não". */
+export const videoPendente = async (tarefaId: string): Promise<boolean> => {
+  try { const { data } = await supabase().rpc("video_pendente", { p_tarefa: tarefaId }); return data === true; } catch { return false; }
 };

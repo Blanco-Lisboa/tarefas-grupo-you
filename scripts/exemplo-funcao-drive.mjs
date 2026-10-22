@@ -87,6 +87,7 @@ export function funcaoDrive(c, { res, ocasioes, pastasLivres, arquivos, tarefas,
     case "confirmar_envio": case "confirmar_envio_pasta": {
       const base = { id: `a${novoId()}`, caminho: null, drive_id: c.drive_id, ordem: Number(c.ordem ?? 0), papel: c.papel ?? "anexo", nome: c.nome, tipo: c.tipo, tamanho: c.tamanho, criado_por: P.natham, created_at: new Date().toISOString() };
             // o gatilho arquivos_video_novo do SQL 027: vídeo NOVO de anexo num card Aprovado manda os vídeos de anexo anteriores para papel "original"
+      if (c.acao === "confirmar_envio" && base.tipo === "video" && base.papel === "anexo") { const t = tarefas.find((x) => x.id === c.tarefa_id); if (t) t.video_pendente_desde = null; } // o gatilho também tira a marca do vídeo novo pendente
       if (c.acao === "confirmar_envio" && base.tipo === "video" && base.papel === "anexo" && tarefas.find((x) => x.id === c.tarefa_id)?.etapa === "aprovado") {
         for (const a of arquivos) if (a.tarefa_id === c.tarefa_id && a.tipo === "video" && a.papel === "anexo") a.papel = "original";
       }

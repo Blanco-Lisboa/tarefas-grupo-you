@@ -5,7 +5,7 @@
 import { useSyncExternalStore } from "react";
 import { enviarParaDrive } from "./drive";
 import { recarregarTarefas } from "./repositorio";
-import { segurarPostagem } from "./subindo";
+import { marcarPendente } from "./subindo";
 
 export type Envio = { id: string; nome: string; fracao: number; estado: "fila" | "enviando" | "enviado" | "falhou" | "interrompido"; erro?: string; tarefaId?: string };
 type Entrada = { tarefaId: string; arquivo: File; papel: "anexo" | "capa"; ordem: number };
@@ -30,24 +30,18 @@ async function rodar(id: string) {
   if (!e) return;
   mudar(id, { estado: "enviando", fracao: 0, erro: undefined });
   try {
+    // Achado 5: vídeo de anexo: o banco confirma a marca "vídeo novo pendente" ANTES de o primeiro byte sair. A marca não sai ao falhar (só ao chegar ou com "Postar com o vídeo atual").
+    if (e.papel === "anexo" && e.arquivo.type.startsWith("video/")) { const recusa = await marcarPendente(e.tarefaId); if (recusa) throw new Error(recusa); }
     await enviarParaDrive(e.tarefaId, e.arquivo, e.papel, e.ordem, (fracao) => mudar(id, { fracao }));
     entradas.delete(id);
-    soltar(id);
     mudar(id, { estado: "enviado", fracao: 1 });
     void recarregarTarefas(); // o card passa a mostrar o vídeo
     setTimeout(() => { envios = envios.filter((x) => x.id !== id); avisar(); }, SOME_EM_MS);
   } catch (erro) {
-    soltar(id); // falhou: a postagem do card não fica presa esperando
     mudar(id, { estado: "falhou", erro: erro instanceof Error ? erro.message : "O envio falhou." }); // a entrada fica: "tentar de novo" continua de onde parou
   }
 }
-const segurando = new Map<string, () => void>(); // achado 5: vídeo na fila ou subindo segura a postagem do card no banco
-const soltar = (id: string) => { segurando.get(id)?.(); segurando.delete(id); };
-const enfileirar = (id: string) => {
-  const e = entradas.get(id);
-  if (e && e.arquivo.type.startsWith("video/") && e.papel === "anexo" && !segurando.has(id)) segurando.set(id, segurarPostagem(e.tarefaId));
-  cauda = cauda.then(() => rodar(id));
-};
+const enfileirar = (id: string) => { cauda = cauda.then(() => rodar(id)); };
 
 /** Põe o vídeo (ou qualquer arquivo) do card `tarefaId` na fila de envio ao Drive e devolve na hora. */
 export function enviarEmSegundoPlano(tarefaId: string, arquivo: File, { papel = "anexo", ordem = 0 }: { papel?: "anexo" | "capa"; ordem?: number } = {}): string {
@@ -66,7 +60,6 @@ export function tentarEnvioDeNovo(id: string) {
 }
 /** Tira o aviso de um envio que falhou e não será refeito. */
 export function descartarEnvio(id: string) {
-  soltar(id);
   entradas.delete(id);
   envios = envios.filter((e) => e.id !== id);
   avisar();

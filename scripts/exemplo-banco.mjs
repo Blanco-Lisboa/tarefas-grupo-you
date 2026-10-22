@@ -282,6 +282,12 @@ createServer(async (req, res) => {
     return res.writeHead(204).end();
   }
   // 238: o interruptor da postagem automática (a cópia de exemplo fica DESLIGADA; para ver ligada: EXEMPLO_POSTAGEM_AUTOMATICA=1 npm run exemplo)
+  if (rpc === "marcar_video_pendente" || rpc === "liberar_video_pendente" || rpc === "video_pendente") { // 270 achado 5 (027, passo 8): marca "vídeo novo pendente"
+    const t = tarefas.find((x) => x.id === (await corpoDe(req)).p_tarefa);
+    if (rpc === "video_pendente") return res.writeHead(200).end(JSON.stringify(!!t?.video_pendente_desde));
+    if (t) t.video_pendente_desde = rpc === "marcar_video_pendente" && t.etapa === "aprovado" ? t.video_pendente_desde ?? new Date().toISOString() : null;
+    return res.writeHead(204).end();
+  }
   if (rpc === "postagem_automatica_ligada") return res.writeHead(200).end(JSON.stringify(process.env.EXEMPLO_POSTAGEM_AUTOMATICA === "1"));
   if (rpc) return res.writeHead(200).end("[]"); // tarefas_no_google, postar_agora etc.: nada a fazer
 

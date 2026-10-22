@@ -7,7 +7,7 @@
 // - Toda ação passa pela checagem (o que falta) e grava a FICHA INTEIRA (gravar) antes, para não perder o que foi mudado nela.
 // - Só a You está ligada: em outra empresa fica só o aviso.
 import { useState } from "react";
-import { REDES_POST, postarAgora, tentarDeNovo, useEnvios, useEu, videoSubindo, usePostagemAutomatica, type NovaTarefa, type RedePost, type Tarefa } from "@/lib/dados";
+import { REDES_POST, postarAgora, tentarDeNovo, descartarEnvio, liberarPendente, relerPendentes, useEnvios, useEu, usePendentes, usePostagemAutomatica, videoPendente, type NovaTarefa, type RedePost, type Tarefa } from "@/lib/dados";
 import { paraDia, paraHora } from "@/components/calendario/logica";
 import { CampoData } from "@/components/ui/CampoData";
 import Image from "next/image";
@@ -24,8 +24,13 @@ type Props = {
 
 export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const eu = useEu();
-  const SUBINDO = "Espere o vídeo terminar de subir (ou tire o que falhou do aviso do canto)."; // Lupa 5
-  const subindo = useEnvios().some((e) => e.tarefaId === salvo.id && e.estado !== "enviado"); // Lupa 5: vídeo novo ainda subindo ou falhou
+  // Lupa 5: vídeo novo subindo (nesta aba) ou pendente no BANCO (não subiu, outra aba, aba fechada): a postagem espera. Só sai com o vídeo novo ou com "Postar com o vídeo atual".
+  const SUBINDO = "Vídeo novo não subiu ou ainda está subindo. Suba de novo, ou use Postar com o vídeo atual.";
+  const noBanco = usePendentes().has(salvo.id);
+  const doCard = useEnvios().filter((e) => e.tarefaId === salvo.id && e.estado !== "enviado");
+  const subindo = doCard.length > 0 || noBanco;
+  const [liberando, setLiberando] = useState(false);
+  const [recusaLiberar, setRecusaLiberar] = useState("");
   // 238: desligada (ou carregando) = a ficha não promete post real. 239: ligada sem a postar-meta confirmar que publica de verdade
   // (POSTAR_DE_VERDADE=nao, fora do ar ou sem resposta: deVerdade false) = modo de teste.
   const { ligada, deVerdade } = usePostagemAutomatica();
@@ -70,7 +75,7 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   const postar = async () => {
     setConfirmando(false);
     if (!checar()) return;
-    if (await videoSubindo(salvo.id)) return setFalta([SUBINDO]);
+    if (await videoPendente(salvo.id)) return setFalta([SUBINDO]);
     if (await gravar({ postarRedes: valem })) void postarAgora(salvo.id);
   };
 
@@ -79,6 +84,9 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
     <fieldset className="ficha-campo publicacao"><legend>Publicação</legend><div className="publicacao-caixa">
       {salvo.empresaId !== "you" ? <p className="ficha-dica ficha-dica-fica">{comoHoraMarcada("Postagem automática só para a You (por enquanto).", ligada)}</p> : <>
         {sit?.tipo === "postando" && <p className="aprovacao-situacao" data-tipo="postando" role="status">Postando…</p>}
+        {subindo && <div className="aprovacao-erro" role="alert"><p><strong>Vídeo novo não subiu.</strong> A postagem está bloqueada para não sair o vídeo sem legenda.</p>
+          {aprova && <button type="button" className="aprovacao-botao" data-acao="liberar" onClick={() => { setRecusaLiberar(""); setLiberando(true); }}>Postar com o vídeo atual</button>}
+          {recusaLiberar && <p>{recusaLiberar}</p>}</div>}
         {txt.aviso && <p className="aprovacao-nota publicacao-desligada" role="note">{txt.aviso}</p>}
         {sit?.tipo === "programado" && !ajuste && <p className="aprovacao-situacao">{txt.situacao(sit.texto)}</p>}
         {ajuste && <div className="aprovacao-erro" role="alert"><p>{txt.situacao(`Precisa de ajuste: ${SO_FACEBOOK} Ao salvar, a programação é cancelada.`)}</p></div>}
@@ -126,6 +134,8 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
           {falta.length > 0 && <ul className="aprovacao-falta" role="alert">{falta.map((f) => <li key={f}>{f}</li>)}</ul>}
         </>}
       </>}
+      {liberando && <Confirmar titulo="Postar com o vídeo atual?" texto="O vídeo novo não chegou. O post sai com o vídeo que está no card agora (sem a legenda, se for o caso). Não dá para desfazer." acao="Postar com o vídeo atual" perigo
+        aoCancelar={() => setLiberando(false)} aoConfirmar={() => { setLiberando(false); void liberarPendente(salvo.id).then((r) => { if (r) return setRecusaLiberar(r); doCard.forEach((e) => descartarEnvio(e.id)); relerPendentes(); }); }} />}
       {confirmando && ligada && <Confirmar {...txt.confirmar(textoRedes(valem), rascunho.titulo)}
         aoCancelar={() => setConfirmando(false)} aoConfirmar={() => void postar()} />}
     </div></fieldset>
