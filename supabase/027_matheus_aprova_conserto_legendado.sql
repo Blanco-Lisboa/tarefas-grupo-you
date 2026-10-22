@@ -169,5 +169,13 @@ end $$;
 revoke all on function public.tentar_de_novo(uuid) from public, anon;
 grant execute on function public.tentar_de_novo(uuid) to authenticated;
 
+-- 7) Item 272, limpeza única: cards que já estavam em Aprovado ou Postado antes do conserto ainda levavam a tag "Esperando aprovação".
+--    Tira SÓ as tags de aprovação (tags.aprovacao) desses cards; as outras ficam. Mexe só na ligação tarefa_tags: a tag em si
+--    (e o cadeado do 022, que barra editar/apagar a linha em public.tags) não é tocada. Conferido em produção em 22/10 só com SELECT: 4 cards (3 Aprovado, 1 Postado).
+--    Idempotente: na segunda colagem não sobra nada para tirar. O "Quem aprova" do card (tarefas.aprovador) fica como está.
+delete from public.tarefa_tags tt
+using public.tags g, public.tarefas t
+where tt.tag_id = g.id and g.aprovacao and t.id = tt.tarefa_id and t.etapa in ('aprovado', 'postado');
+
 notify pgrst, 'reload schema';
 commit;
