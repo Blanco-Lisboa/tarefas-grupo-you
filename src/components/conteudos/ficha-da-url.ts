@@ -7,7 +7,7 @@ export const EVENTO_FICHA = "grade:ficha";
 // quando o aviso avisa (já estando nela, o endereço muda mas a tela não recarrega), e limpa o endereço.
 export function useFichaDaUrl(tarefas: Tarefa[], abrir: (t: Tarefa) => void) {
   const vivas = useRef(tarefas);
-  vivas.current = tarefas;
+  useEffect(() => { vivas.current = tarefas; }); // antes do efeito abaixo: a ordem dos efeitos é a da escrita
   useEffect(() => {
     const tenta = (id: string | null | undefined) => {
       const t = id ? vivas.current.find((x) => x.id === id) : undefined;
