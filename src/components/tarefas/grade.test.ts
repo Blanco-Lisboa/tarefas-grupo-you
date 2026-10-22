@@ -54,6 +54,13 @@ describe("de quem é o caderno", () => {
     expect(somenteNoDeQuemRecebeu(deMatheus, "matheus", "matheus")).toBe(false);
     expect(somenteNoDeQuemRecebeu(priv, "natham", "natham")).toBe(false);
   });
+  it("266: o que o Adrian manda ao Matheus sai do caderno dele; ao Natham, fica (ele não abre o caderno do Natham)", () => {
+    const paraMatheus = { ...priv, dono: "matheus", enviadaPor: "adrian", responsavel: "matheus" } as Tarefa;
+    const paraNatham = { ...priv, dono: "natham", enviadaPor: "adrian", responsavel: "natham" } as Tarefa;
+    expect(somenteNoDeQuemRecebeu(paraMatheus, "adrian", "adrian")).toBe(true);
+    expect(doCaderno(paraMatheus, "matheus")).toBe(true);
+    expect(somenteNoDeQuemRecebeu(paraNatham, "adrian", "adrian")).toBe(false);
+  });
   it("sem dono cai no responsável; sem `de` mostra tudo", () => {
     expect(doCaderno({ ...priv, dono: undefined }, "matheus")).toBe(true);
     expect(doCaderno(priv, null)).toBe(true);

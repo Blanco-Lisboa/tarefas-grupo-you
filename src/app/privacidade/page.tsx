@@ -15,7 +15,7 @@ export default function Page() {
         </header>
         <section>
           <h2>Quem somos</h2>
-          <p>O Tarefas Grupo You é uma ferramenta de uso interno do Grupo You. Quem usa são apenas duas pessoas da equipe: Natham e Matheus. Não é um serviço aberto ao público e não pedimos cadastro de clientes.</p>
+          <p>O Tarefas Grupo You é uma ferramenta de uso interno do Grupo You. Quem usa são apenas três pessoas da equipe: Natham, Matheus e Adrian. Não é um serviço aberto ao público e não pedimos cadastro de clientes.</p>
         </section>
         <section>
           <h2>O que o app acessa no Google</h2>

@@ -245,7 +245,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
             />
             <Selecao
               rotulo="Responsável" multipla={false} valor={[resp]} aoMudar={([v]) => v && setResp(v as Responsavel)}
-              opcoes={[{ valor: "natham", rotulo: "Natham" }, { valor: "matheus", rotulo: "Matheus" }]}
+              opcoes={[{ valor: "natham", rotulo: "Natham" }, { valor: "matheus", rotulo: "Matheus" }, { valor: "adrian", rotulo: "Adrian" }]}
             />
           </div>
         )}

@@ -25,7 +25,7 @@ describe("podeTrocarAprovador (223)", () => {
     expect(podeTrocarAprovador("Adrian", "matheus")).toBe(true);
     expect(podeTrocarAprovador(undefined, "natham")).toBe(true);
     expect(podeTrocarAprovador("Adrian", "adrian")).toBe(true);
-    expect(podeTrocarAprovador("Natham", "adrian")).toBe(false);
+    expect(podeTrocarAprovador("Natham", "adrian")).toBe(true); // 266: Adrian aprova como o Natham
     expect(podeTrocarAprovador(undefined, "lucas")).toBe(false);
     expect(podeTrocarAprovador("Natham", null)).toBe(false);
   });
@@ -34,6 +34,7 @@ describe("podeTrocarAprovador (223)", () => {
 describe("ehQuemAprova (015)", () => {
   it("Natham sempre; os outros só se forem o aprovador; sem aprovador só o Natham", () => {
     expect(ehQuemAprova("Matheus", "natham")).toBe(true);
+    expect(ehQuemAprova(undefined, "adrian")).toBe(true); // 266
     expect(ehQuemAprova(" matheus ", "matheus")).toBe(true);
     expect(ehQuemAprova("Natham", "matheus")).toBe(false);
     expect(ehQuemAprova(undefined, "matheus")).toBe(false);

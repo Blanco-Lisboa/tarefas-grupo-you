@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { PointerEvent as EventoPonteiro } from "react";
 import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
-import { RESPONSAVEIS, marcarEventoFeito, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useAgendaEventos, useEventosFeitos, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
+import { RESPONSAVEIS, comoNatham, marcarEventoFeito, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useAgendaEventos, useEventosFeitos, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
@@ -54,7 +54,7 @@ export function TelaTarefas() {
   const eu = useEu();
   const agendaGoogle = useAgendaEventos();
   const eventosFeitos = useEventosFeitos();
-  // Caderno de quem (item 155): cada um vê só o que é seu; o Natham pode espiar o de outra pessoa, só olhando.
+  // Caderno de quem (item 155): cada um vê só o que é seu; o Natham (e o Adrian, só o do Matheus) pode espiar o de outra pessoa, só olhando.
   const [ver, setVer] = useState<Responsavel | null>(null);
   const de = ver ?? eu;
   const alheio = !!ver && ver !== eu;
@@ -227,10 +227,10 @@ export function TelaTarefas() {
         <div className="tarefas-grupo tarefas-quem">
           <h1 className="tarefas-titulo">Caderno</h1>
           <FiltroEmpresa />
-          {eu === "natham" && (
+          {comoNatham(eu) && (
             <Selecao
               rotulo="Caderno de" multipla={false} valor={[de ?? eu]} aoMudar={([v]) => v && setVer(v === eu ? null : (v as Responsavel))}
-              opcoes={RESPONSAVEIS.map((r) => ({ valor: r, rotulo: NOMES[r], antes: <Pessoa quem={r} tamanho={20} /> }))}
+              opcoes={(eu === "natham" ? [...RESPONSAVEIS] : [eu as Responsavel, "matheus" as Responsavel]).map((r) => ({ valor: r, rotulo: NOMES[r], antes: <Pessoa quem={r} tamanho={20} /> }))}
             />
           )}
         </div>

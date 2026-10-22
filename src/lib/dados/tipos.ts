@@ -6,7 +6,10 @@ export const ETAPAS = ["roteiro", "gravacao", "edicao", "analise", "aprovado", "
 export const FORMATOS = ["reels", "post", "carrossel", "story"] as const;
 /** Onde a postagem automática (196) publica. Só a You por enquanto. */
 export const REDES_POST = ["instagram", "facebook"] as const;
-export const RESPONSAVEIS = ["natham", "matheus", "adrian", "lucas"] as const; // as 4 pessoas do banco; só Natham e Matheus têm login
+export const RESPONSAVEIS = ["natham", "matheus", "adrian", "lucas"] as const; // as 4 pessoas do banco; Natham, Matheus e Adrian têm login (266)
+/** 266: Adrian faz o que o Natham faz em aprovação e no caderno do Matheus (aprovar, consertar, "Quem aprova", ler o "Caderno de Matheus").
+    Espelha private.pode_aprovar, pode_trocar_aprovador e natham_le_matheus (026). Não vale para o resto do que é do Natham. */
+export const comoNatham = (eu: string | null | undefined) => eu === "natham" || eu === "adrian";
 export const ETIQUETAS = [
   "etiqueta-1", "etiqueta-2", "etiqueta-3", "etiqueta-4", "etiqueta-5",
   "etiqueta-6", "etiqueta-7", "etiqueta-8", "etiqueta-9", "etiqueta-10",

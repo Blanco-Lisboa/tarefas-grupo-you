@@ -18,7 +18,7 @@ export type Acoes = {
   empresa: (id: string, empresaId: string) => void;
 };
 
-const PESSOAS: { valor: Responsavel; rotulo: string }[] = [{ valor: "natham", rotulo: "Natham" }, { valor: "matheus", rotulo: "Matheus" }];
+const PESSOAS: { valor: Responsavel; rotulo: string }[] = [{ valor: "natham", rotulo: "Natham" }, { valor: "matheus", rotulo: "Matheus" }, { valor: "adrian", rotulo: "Adrian" }];
 // Etiquetas do menu; "Sem" é a cor padrão (lavanda) mostrada em cinza. Prioridade é VERMELHA (item 100). A linha da folha mostra as três com nome.
 export const ETIQUETAS: { rotulo: string; cor: Etiqueta | null; valor: Etiqueta }[] = [
   { rotulo: "Prioridade", cor: "etiqueta-7", valor: "etiqueta-7" },

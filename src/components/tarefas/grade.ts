@@ -1,4 +1,4 @@
-import type { EventoAgenda, Responsavel, Tarefa } from "@/lib/dados";
+import { comoNatham, type EventoAgenda, type Responsavel, type Tarefa } from "@/lib/dados";
 import { ultimoDia } from "@/components/calendario/logica";
 
 // Margem de horários do caderno (igual ao CRM): a linha k vale 07:00 + 30 min × k, 31 linhas até 22:00.
@@ -61,9 +61,10 @@ export const doCaderno = (t: Tarefa, de: string | null | undefined) =>
   !de || (ehConteudo(t) ? t.responsavel === de : (t.dono ?? t.responsavel) === de || enviadaPorMim(t, de));
 
 /** Item 263: o Natham vê o caderno de quem recebe, então a tarefa que ele envia sai do caderno DELE e vive só no de quem recebeu
-    (onde ele ainda edita). Só regra de exibição; Matheus e Adrian continuam vendo o que enviaram (ninguém abre o caderno do Natham). */
+    (onde ele ainda edita). Item 266: o Adrian também abre o caderno do Matheus, então o que ele manda ao Matheus sai do dele.
+    Só regra de exibição; o que o Adrian manda ao Natham, e o que o Matheus manda, continua no caderno de quem enviou (ninguém abre o do Natham). */
 export const somenteNoDeQuemRecebeu = (t: Tarefa, de: string | null | undefined, eu: string | null | undefined) =>
-  eu === "natham" && de === eu && enviadaPorMim(t, de);
+  de === eu && enviadaPorMim(t, de) && (eu === "natham" || (comoNatham(eu) && t.dono === "matheus"));
 
 /** Nas listas pessoais, conteúdo com empresa aparece para todos; o restante segue o dono do Caderno. */
 export const daMinhaLista = (t: Tarefa, eu: string | null | undefined) =>
