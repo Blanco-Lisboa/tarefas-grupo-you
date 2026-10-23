@@ -36,6 +36,7 @@ const com = (cats: string[], c: string) => (cats.includes(c) ? cats : [...cats, 
 // Item 257: várias referências por ideia. Antes do 025 (coluna "links") só existe o link único; o código serve aos dois casos,
 // para o mural nunca quebrar no meio da colagem. A coluna "link" continua sendo o 1º da lista (cópia para quem ainda lê só ela).
 let comLista = true; // o banco já tem a coluna "links"? (descoberto a cada leitura)
+let comOrdem = true; // item 298: o banco já tem a coluna "ordem" nas colunas do mural? Sem ela, a ordem nova vale só até recarregar
 const daLinha = (l: Linha): Ideia => ({ id: l.id, empresaId: l.empresa_id, categoria: l.categoria, titulo: l.titulo, texto: l.texto, links: l.links?.length ? l.links : l.link ? [l.link] : [] });
 const paraBanco = (i: Omit<Ideia, "links"> & { links?: string[]; link?: string }) => {
   const links = i.links ?? (i.link ? [i.link] : []);
@@ -85,8 +86,14 @@ export async function carregarIdeias(e: string) {
   const g = geracao.get(e) ?? 0;
   const sb = supabase();
   const ler = (cols: string) => sb.from("ideias").select(cols).eq("empresa_id", e).order("seq");
-  const [i0, c] = await Promise.all([ler("id, empresa_id, categoria, titulo, texto, link, links"), sb.from("ideias_categorias").select("nome").eq("empresa_id", e).order("seq")]);
+  const [i0, c0] = await Promise.all([
+    ler("id, empresa_id, categoria, titulo, texto, link, links"),
+    sb.from("ideias_categorias").select("nome").eq("empresa_id", e).order("ordem", { nullsFirst: false }).order("seq"),
+  ]);
   let i = i0;
+  let c = c0;
+  comOrdem = !c.error;
+  if (c.error) c = await sb.from("ideias_categorias").select("nome").eq("empresa_id", e).order("seq"); // ainda sem a coluna "ordem"
   comLista = !i.error;
   if (i.error) i = await ler("id, empresa_id, categoria, titulo, texto, link"); // ainda sem a coluna "links": lê o link único
   if (i.error || c.error) return falhou("Não consegui carregar as ideias. Recarregue a página.");
@@ -139,6 +146,57 @@ export function criarCategoria(e: string, nome: string) {
   );
 }
 
+// ---- colunas do mural (298): renomear, mover, apagar --------------------------------------------------------------------
+const ordemParaBanco = (e: string, cats: string[]) => cats.map((nome, n) => ({ empresa_id: e, nome, ...(comOrdem && { ordem: n + 1 }) }));
+const reler = (e: string) => () => void carregarIdeias(e); // falha: relê o banco e a tela volta ao que ele tem
+const emSerie = async (ops: (() => PromiseLike<{ error: unknown }>)[]) => { for (const op of ops) { const r = await op(); if (r.error) return r; } return { error: null }; };
+
+/** Grava a ordem atual das colunas (todas, de 1 a N). Sem a coluna "ordem" no banco, só avisa que vale até recarregar. */
+function guardarOrdem(e: string, cats: string[], aviso: string) {
+  if (!comOrdem) { falhou("A ordem das colunas ainda não pode ser guardada no banco (falta colar o SQL). Ela vale até recarregar a página."); return; }
+  void escrever(e, supabase().from("ideias_categorias").upsert(ordemParaBanco(e, cats), { onConflict: "empresa_id,nome" }), reler(e), aviso);
+}
+
+/** Move a coluna uma casa (-1 esquerda, +1 direita) e guarda a ordem para todo mundo. */
+export function moverCategoria(e: string, nome: string, passo: -1 | 1) {
+  const cats = (estado.get(e) ?? VAZIO).categorias, de = cats.indexOf(nome), para = de + passo;
+  if (de < 0 || para < 0 || para >= cats.length) return;
+  const nova = [...cats];
+  [nova[de], nova[para]] = [nova[para], nova[de]];
+  trocar(e, (s) => ({ ...s, categorias: nova }));
+  guardarOrdem(e, nova, "Não consegui guardar a nova ordem das colunas. Tente de novo.");
+}
+
+/** Renomeia a coluna e leva as ideias dela junto. Devolve false se já existe outra coluna com esse nome. */
+export function renomearCategoria(e: string, velho: string, novo: string): boolean {
+  const s = estado.get(e) ?? VAZIO, norm = (t: string) => t.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  if (s.categorias.some((c) => c !== velho && norm(c) === norm(novo))) return false;
+  if (novo === velho) return true;
+  const cats = s.categorias.map((c) => (c === velho ? novo : c));
+  trocar(e, (x) => ({ categorias: cats, ideias: x.ideias.map((i) => (i.categoria === velho ? { ...i, categoria: novo } : i)) }));
+  const sb = supabase();
+  void escrever(
+    e,
+    emSerie([
+      () => sb.from("ideias_categorias").upsert(ordemParaBanco(e, cats), { onConflict: "empresa_id,nome" }), // a coluna nova nasce antes: a ideia nunca fica sem coluna
+      () => sb.from("ideias").update({ categoria: novo }).eq("empresa_id", e).eq("categoria", velho),
+      () => sb.from("ideias_categorias").delete().eq("empresa_id", e).eq("nome", velho),
+    ]),
+    reler(e),
+    "Não consegui renomear a coluna. Tente de novo.",
+  );
+  return true;
+}
+
+/** Apaga a coluna, só se estiver vazia (as ideias nunca somem junto). Devolve false se ainda tem ideia dentro. */
+export function apagarCategoria(e: string, nome: string): boolean {
+  const s = estado.get(e) ?? VAZIO;
+  if (s.ideias.some((i) => i.categoria === nome)) return false;
+  trocar(e, (x) => ({ ...x, categorias: x.categorias.filter((c) => c !== nome) }));
+  void escrever(e, supabase().from("ideias_categorias").delete().eq("empresa_id", e).eq("nome", nome), reler(e), "Não consegui apagar a coluna. Tente de novo.");
+  return true;
+}
+
 export const ideiasDe = (e: string) => estado.get(e) ?? VAZIO;
 
 /** Ideias e colunas de uma empresa (reativo). Vem do banco; antes de chegar, vazio. */
@@ -148,5 +206,8 @@ export function useIdeias(e: string) {
   const salvar = useCallback((nova: Parameters<typeof gravarIdeia>[1]) => gravarIdeia(e, nova), [e]);
   const apagar = useCallback((id: string) => apagarIdeia(e, id), [e]);
   const criar = useCallback((nome: string) => criarCategoria(e, nome), [e]);
-  return { ideias: s.ideias, categorias: s.categorias, salvar, apagar, criarCategoria: criar };
+  const mover = useCallback((nome: string, passo: -1 | 1) => moverCategoria(e, nome, passo), [e]);
+  const renomear = useCallback((velho: string, novo: string) => renomearCategoria(e, velho, novo), [e]);
+  const apagarCat = useCallback((nome: string) => apagarCategoria(e, nome), [e]);
+  return { ideias: s.ideias, categorias: s.categorias, salvar, apagar, criarCategoria: criar, moverCategoria: mover, renomearCategoria: renomear, apagarCategoria: apagarCat };
 }

@@ -282,7 +282,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .mural-col .cab-coluna h2 { white-space: normal; line-height: 1.15; overflow-wrap: anywhere; } /* título longo quebra de linha, não corta (item 255) */
 .mural-col .cab-coluna { min-height: 56px; }
 .mural-quadro { overscroll-behavior: contain; display: flex; gap: var(--s-12); align-items: flex-start; overflow: auto; min-height: 0; padding-bottom: var(--s-8); scrollbar-color: var(--borda) transparent; }
-.mural-col { --etapa: var(--mural-tom, var(--azul)); container-type: inline-size; flex: none; width: 320px; max-height: 100%; display: flex; flex-direction: column; gap: 0; padding: 0; overflow: hidden; background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra); }
+.mural-col { position: relative; --etapa: var(--mural-tom, var(--azul)); container-type: inline-size; flex: none; width: 320px; max-height: 100%; display: flex; flex-direction: column; gap: 0; padding: 0; overflow: hidden; background: var(--vidro); border: 1px solid var(--vidro-linha); border-radius: var(--raio-c); box-shadow: var(--sombra); }
 .mural-folhas { overscroll-behavior: contain; display: grid; gap: var(--s-8); overflow-y: auto; min-height: 0; padding: var(--s-8); scrollbar-width: thin; scrollbar-color: var(--borda) transparent; }
 .mural-folha { position: relative; display: grid; gap: var(--s-4); padding: var(--s-16) var(--s-16) var(--s-12); background: linear-gradient(180deg, #fff, var(--sup-2)); border: 1px solid var(--vidro-linha); border-left: 3px solid color-mix(in srgb, var(--mural-tom, var(--azul)) 70%, #fff); border-radius: var(--raio-b); box-shadow: var(--sombra); transition: box-shadow var(--dur-rapida) var(--curva), transform var(--dur-rapida) var(--curva); }
 .mural-folha:hover, .mural-folha:focus-within { box-shadow: var(--sombra-alta); transform: translateY(-1px); }
@@ -325,3 +325,13 @@ span.mural-ver { cursor: default; color: var(--fraco); overflow: hidden; text-ov
 .mural-confirma p { margin: 0; font-weight: 600; font-size: var(--app-t-texto); }
 .mural-vazio { margin: var(--s-16); color: var(--fraco); }
 @media (prefers-reduced-motion: reduce) { .mural-folha, .mural-apagar, .mural-trocar { transition: none; transform: none; } }
+
+/* Colunas do mural (298): ⋮ no cabeçalho, nome em edição, aviso de nome repetido, confirmação cobrindo a coluna */
+.mural-col .mt-pontos { width: 28px; height: 28px; opacity: .65; }
+.mural-col .mt-pontos:hover { opacity: 1; background: var(--sup-2); border-radius: var(--raio-b); }
+.selecao-opcao:disabled { opacity: .4; cursor: default; }
+.mural-col-nome { font: 800 var(--app-t-secao) var(--fonte); color: var(--topo-texto); width: 100%; min-width: 0; padding: 2px 6px; margin: 0 -6px; background: var(--sup); border: 1px solid var(--azul); border-radius: 6px; outline: none; }
+.mural-col-erro { margin: 0; padding: var(--s-4) var(--s-12); font-size: var(--app-t-rotulo); color: var(--atrasado); }
+.mural-col > .mural-confirma { z-index: 2; border-radius: var(--raio-c); padding: var(--s-16); text-align: center; justify-items: center; }
+.mural-confirma-nota { font-weight: 400 !important; color: var(--fraco); }
+.mural-ref .mural-ver { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }

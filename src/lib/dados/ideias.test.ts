@@ -19,6 +19,7 @@ const fake = {
       select: (cols?: string) => (fim = () => semColuna && cols?.includes("links") ? { error: "42703" } : ({ data: tabelas[t].filter((l) => filtros.every(([k, v]) => l[k] === v)).toSorted((a, b) => (a.seq as number) - (b.seq as number)), error: null }), q),
       eq: (k: string, v: unknown) => (filtros.push([k, v]), q),
       order: () => q,
+      update: (campos: L) => (fim = () => (tabelas[t].filter((l) => filtros.every(([k, v]) => l[k] === v)).forEach((l) => Object.assign(l, campos)), { error: null }), q),
       delete: () => (fim = () => (recusar.has(`delete:${t}`) ? { error: "x" } : ((tabelas[t] = tabelas[t].filter((l) => !filtros.every(([k, v]) => l[k] === v))), { error: null })), q),
       upsert: (linhas: L | L[], o: { onConflict: string; ignoreDuplicates?: boolean }) => (espera = t === "ideias" ? segurar : null, fim = () => {
         if (recusar.has(`upsert:${t}`) || [].concat(linhas as never).some((l: L) => l.titulo === "falha") || (semColuna && [].concat(linhas as never).some((l: L) => "links" in l))) return { error: "x" };
@@ -195,5 +196,39 @@ describe("conferências da Lupa (261)", () => {
     const m = await import("./ideias");
     await m.carregarIdeias("you");
     expect(m.ideiasDe("you")).toMatchObject({ ideias: [], categorias: ["Vazia"] });
+  });
+});
+
+describe("colunas do mural (298)", () => {
+  const abrir = async () => {
+    guardado.clear();
+    tabelas.ideias_categorias.push({ empresa_id: "you", nome: "A", seq: 1 }, { empresa_id: "you", nome: "B", seq: 2 });
+    tabelas.ideias.push({ id: "i", empresa_id: "you", categoria: "B", titulo: "x", texto: "", link: null, links: [], seq: 1 });
+    const m = await import("./ideias");
+    await m.carregarIdeias("you");
+    return m;
+  };
+  it("mover troca a coluna de lugar e guarda a ordem", async () => {
+    const m = await abrir();
+    m.moverCategoria("you", "B", -1);
+    expect(m.ideiasDe("you").categorias).toEqual(["B", "A"]);
+    await vi.waitFor(() => expect(tabelas.ideias_categorias.map((c) => [c.nome, c.ordem])).toEqual([["A", 2], ["B", 1]]));
+    m.moverCategoria("you", "B", -1); // já está na ponta: nada muda
+    expect(m.ideiasDe("you").categorias).toEqual(["B", "A"]);
+  });
+  it("apagar só vale com a coluna vazia", async () => {
+    const m = await abrir();
+    expect(m.apagarCategoria("you", "B")).toBe(false);
+    expect(m.ideiasDe("you").categorias).toEqual(["A", "B"]);
+    expect(m.apagarCategoria("you", "A")).toBe(true);
+    expect(m.ideiasDe("you").categorias).toEqual(["B"]);
+  });
+  it("renomear recusa nome já usado (sem acento/maiúscula) e leva as ideias junto", async () => {
+    const m = await abrir();
+    expect(m.renomearCategoria("you", "A", "b")).toBe(false);
+    expect(m.renomearCategoria("you", "B", "Ç")).toBe(true);
+    expect(m.ideiasDe("you")).toMatchObject({ categorias: ["A", "Ç"], ideias: [{ categoria: "Ç" }] });
+    await vi.waitFor(() => expect(tabelas.ideias[0].categoria).toBe("Ç"));
+    expect(tabelas.ideias_categorias.map((c) => c.nome).sort()).toEqual(["A", "Ç"]);
   });
 });

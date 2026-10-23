@@ -294,11 +294,11 @@ createServer(async (req, res) => {
   const tabela = url.pathname.match(/^\/rest\/v1\/(\w+)/)?.[1];
   if (!tabela) return res.writeHead(404).end("{}");
   if (req.method === "GET") {
-    const filtros = igual(url);
-    const nn = naoNulos(url);
-    return res.writeHead(200).end(JSON.stringify((tabelas[tabela] ?? []).filter((l) => filtros.every(([k, v]) => String(l[k]) === v) && nn.every((k) => l[k] != null))));
+    const filtros = igual(url), nn = naoNulos(url);
+    return res.writeHead(200).end(JSON.stringify((tabelas[tabela] ?? []).filter((l) => filtros.every(([k, v]) => String(l[k]) === v) && nn.every((k) => l[k] != null)).sort((a, b) => (tabela === "ideias_categorias" ? (a.ordem ?? 1e9) - (b.ordem ?? 1e9) : 0) || 0))); // 298: colunas na ordem guardada
   }
   const id = url.searchParams.get("id")?.replace(/^eq\./, "");
+  if ((tabela === "ideias" && req.method === "PATCH") || (tabela === "ideias_categorias" && ["PATCH", "DELETE"].includes(req.method))) { const f = igual(url), l = tabelas[tabela], c = req.method === "PATCH" ? await corpoDe(req) : null; for (let i = l.length; i--;) if (f.every(([k, v]) => String(l[i][k]) === v)) c ? Object.assign(l[i], c) : l.splice(i, 1); return res.writeHead(204).end(); } // 298: renomear e apagar coluna
   if (tabela === "tarefas" && req.method === "DELETE") {
     const i = tarefas.findIndex((x) => x.id === id);
     const apagada = i >= 0 ? tarefas.splice(i, 1) : [];
