@@ -6,6 +6,7 @@ begin;
 
 alter table public.ideias add column if not exists prints text[] not null default '{}';
 
+-- Corpos copiados de producao (pg_get_functiondef, 23/10) + so a linha 'ideias'.
 -- Quem pode ver/mexer em ideias/<empresa>/<arquivo>: qualquer pessoa cadastrada (as ideias são dos dois, como a tabela ideias).
 create or replace function private.pode_ver_arquivo(caminho text) returns boolean
 language sql stable set search_path = ''
@@ -24,7 +25,7 @@ as $$
   select case split_part(caminho, '/', 1)
     when 'tarefas' then exists (
       select 1 from public.tarefas t where t.id::text = split_part(caminho, '/', 2)
-        and (select private.pode_alterar(t.dono_id, t.enviada_por, t.etapa, t.empresa_id)))
+        and (select private.pode_mexer_anexos(t.id)))
     when 'pecas' then (select private.minha_pessoa()) is not null
     when 'ideias' then (select private.minha_pessoa()) is not null
     else false
