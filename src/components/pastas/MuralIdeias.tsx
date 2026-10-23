@@ -76,7 +76,6 @@ export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: str
 function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dados) => void; aoApagar: () => void }) {
   const [confirmando, setConfirmando] = useState(false);
   const [tirando, setTirando] = useState<string | null>(null); // link esperando confirmação para sair
-  const [acrescentando, setAcrescentando] = useState(false);
   const sair = (campo: "titulo" | "texto") => (e: { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
     const v = e.currentTarget.value.trim();
     if (campo === "titulo" && !v) { e.currentTarget.value = ideia.titulo; return; } // ideia sem título não existe: volta o que estava
@@ -86,7 +85,6 @@ function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dado
   const novoLink = (e: { currentTarget: HTMLInputElement }) => {
     const v = e.currentTarget.value.trim();
     e.currentTarget.value = "";
-    setAcrescentando(false);
     if (linkValido(v) && !links.includes(v)) aoSalvar({ ...ideia, links: [...links, v] });
   };
   return (
@@ -98,7 +96,7 @@ function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dado
         </button>
       </div>
       <textarea className="mural-detalhe" aria-label="Detalhe" rows={2} placeholder="Detalhe" defaultValue={ideia.texto} onBlur={sair("texto")} />
-      <div className="mural-rodape" data-vazio={!links.length && !acrescentando ? true : undefined}>
+      <div className="mural-rodape" data-vazio={!links.length ? true : undefined}>
         {links.map((l) => {
           const rede = redeDoLink(l);
           const rotulo = rotuloLink(links, l);
@@ -117,20 +115,14 @@ function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dado
             </div>
           );
         })}
-        {links.length > 0 && !acrescentando && (
-          <button type="button" className="mural-mais" onClick={() => setAcrescentando(true)}>+ link</button>
-        )}
-        {(!links.length || acrescentando) && (
-          <input
-            type="url"
-            className="mural-link-campo"
-            aria-label={links.length ? "Outro link de referência" : "Link de referência"}
-            placeholder={links.length ? "Colar outro link" : "Colar link de referência"}
-            autoFocus={acrescentando}
-            onBlur={novoLink}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())}
-          />
-        )}
+        <input
+          type="url"
+          className="mural-link-campo"
+          aria-label={links.length ? "Outro link de referência" : "Link de referência"}
+          placeholder={links.length ? "Colar outro link" : "Colar link de referência"}
+          onBlur={novoLink}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())}
+        />
       </div>
       {(confirmando || tirando) && (
         <div className="mural-confirma" role="alertdialog" aria-label={tirando ? "Tirar link" : "Apagar ideia"}>

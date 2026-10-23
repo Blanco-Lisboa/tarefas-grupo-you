@@ -15,6 +15,7 @@ const CHAVE = "grade-conteudo:ideias:v1"; // onde ficavam, no navegador, antes d
 const marca = (e: string) => `${CHAVE}:subiu:${e}`;
 
 let estado = new Map<string, Estado>(); // troca o mapa a cada mudança (exigência do useSyncExternalStore)
+const geracao = new Map<string, number>(); // por empresa: sobe a cada escrita; uma leitura que começou antes de uma escrita é velha e não vale
 const pendentes = new Map<string, number>(); // por empresa: escritas ainda não confirmadas; a leitura daquela empresa não pisa por cima delas
 const versoes = new Map<string, number>(); // por ideia: nº da última gravação; uma falha antiga só desfaz se ainda for a última
 const ouvintes = new Set<() => void>();
@@ -81,6 +82,7 @@ async function subir(e: string): Promise<boolean> {
 // ---- leitura -------------------------------------------------------------------------------------------------------------
 export async function carregarIdeias(e: string) {
   const copiou = await subirIdeiasDoNavegador(e);
+  const g = geracao.get(e) ?? 0;
   const sb = supabase();
   const ler = (cols: string) => sb.from("ideias").select(cols).eq("empresa_id", e).order("seq");
   const [i0, c] = await Promise.all([ler("id, empresa_id, categoria, titulo, texto, link, links"), sb.from("ideias_categorias").select("nome").eq("empresa_id", e).order("seq")]);
@@ -89,7 +91,7 @@ export async function carregarIdeias(e: string) {
   if (i.error) i = await ler("id, empresa_id, categoria, titulo, texto, link"); // ainda sem a coluna "links": lê o link único
   if (i.error || c.error) return falhou("Não consegui carregar as ideias. Recarregue a página.");
   if (!copiou) falhou("Não consegui copiar as ideias que estavam só neste navegador. Elas continuam guardadas; tento de novo na próxima abertura.");
-  if (pendentes.get(e)) return;
+  if (pendentes.get(e) || (geracao.get(e) ?? 0) !== g) return;
   const ideias = (i.data as unknown as Linha[]).map(daLinha);
   trocar(e, () => ({ ideias, categorias: ideias.reduce((cats, x) => com(cats, x.categoria), (c.data ?? []).map((x) => x.nome as string)) }));
 }
@@ -97,6 +99,7 @@ export async function carregarIdeias(e: string) {
 // ---- escrita otimista ----------------------------------------------------------------------------------------------------
 async function escrever(e: string, op: PromiseLike<{ error: unknown }>, desfazer: () => void, aviso: string) {
   pendentes.set(e, (pendentes.get(e) ?? 0) + 1);
+  geracao.set(e, (geracao.get(e) ?? 0) + 1);
   const { error } = await op;
   pendentes.set(e, pendentes.get(e)! - 1);
   if (error) { desfazer(); falhou(aviso); }
