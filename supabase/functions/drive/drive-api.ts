@@ -25,9 +25,9 @@ export function criarDriveApi(c: Contexto) {
     async renomear(id: string, nome: string) {
       await chamar(`${arq(id)}?fields=id`, { method: "PATCH", body: JSON.stringify({ name: nome }) });
     },
-    /** Dá acesso de editor, sem e-mail de aviso. */
-    async compartilhar(id: string, email: string) {
-      await chamar(`${arq(id)}/permissions?sendNotificationEmail=false`, { method: "POST", body: JSON.stringify({ role: "writer", type: "user", emailAddress: email }) });
+    /** Dá acesso (editor por padrão; "reader" = só vê), sem e-mail de aviso. */
+    async compartilhar(id: string, email: string, role: "writer" | "reader" = "writer") {
+      await chamar(`${arq(id)}/permissions?sendNotificationEmail=false`, { method: "POST", body: JSON.stringify({ role, type: "user", emailAddress: email }) });
     },
     /** Abre a sessão de envio retomável com Origin do app: é o endereço (Location) que o navegador usa para mandar as partes direto ao Drive. */
     async abrirSessao(pasta: string, nome: string, tipoMime: string, tamanho: number, origem: string, etiqueta: Record<string, string>): Promise<string> {

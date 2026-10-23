@@ -20,12 +20,25 @@ export function criarPastas(d: { api: DriveApi; env: (n: string) => string | und
     await d.api.lixeira(id); // outra chamada criou ao mesmo tempo: fica a dela
     return (await s.ler<{ drive_id: string }>("drive_pastas", { chave }, "drive_id"))[0].drive_id;
   }
-  const pastaRaiz = () => pastaFixa("raiz", async () => {
+  const criarRaiz = () => pastaFixa("raiz", async () => {
     const id = await d.api.criarPasta("Tarefas · Conteúdos");
     const email = d.env("DRIVE_COMPARTILHAR_COM"); // e-mail do Matheus (D3); sem ele, a pasta fica só do Natham
     if (email) await d.api.compartilhar(id, email);
     return id;
   });
+  /** A raiz, já compartilhada como LEITOR com o Adrian (item 303: ele vê o vídeo no player do card para analisar e aprovar). O e-mail vem de pessoas.email;
+      a marca `leitor:<email>` em drive_pastas garante 1 só ida ao Drive, valendo para a raiz que já existia e para a nova. */
+  async function pastaRaiz() {
+    const raiz = await criarRaiz();
+    const s = servico();
+    const email = ((await s.ler<{ email: string | null }>("pessoas", { slug: "adrian" }, "email"))[0]?.email ?? "").trim().toLowerCase();
+    const chave = `leitor:${email}`;
+    if (email && !(await s.ler("drive_pastas", { chave }, "chave")).length) {
+      await d.api.compartilhar(raiz, email, "reader");
+      await s.inserir("drive_pastas", { chave, drive_id: raiz }, "chave"); // não usa pastaFixa: ele mandaria a raiz para a lixeira se perdesse a corrida
+    }
+    return raiz;
+  }
   async function pastaEmpresa(empresaId: string) {
     const [e] = await servico().ler<{ nome: string }>("empresas", { id: empresaId }, "nome");
     if (!e) throw new Recusa(404, "Empresa não encontrada.");
