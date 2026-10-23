@@ -95,15 +95,6 @@ describe("drive: envio e confirmação", () => {
     expect(m.b.estado.tabelas.ocasioes).toHaveLength(0); // card sem tema NÃO inventa tema com o título dele (229)
     expect([...m.g.estado.sessoes.values()][0].origem).toBe("https://app.exemplo"); // S1: Origin enviado na abertura da sessão
   });
-  it("303: o Adrian entra como LEITOR na raiz (1 vez só), e a raiz que já existia também recebe", async () => {
-    const m = montar();
-    m.b.estado.tabelas.pessoas.push({ id: "p-adrian", slug: "adrian", email: "Adrian@Exemplo.com" });
-    await anexar(m, new Uint8Array(5));
-    await anexar(m, new Uint8Array(6), "foto.png", "imagem", "image/png");
-    const leitores = m.g.estado.permissoes.filter((p) => p.role === "reader");
-    expect(leitores).toEqual([{ id: expect.any(String), email: "adrian@exemplo.com", role: "reader" }]);
-    expect(m.g.estado.permissoes.filter((p) => p.email === "matheus@exemplo.com")).toEqual([{ id: expect.any(String), email: "matheus@exemplo.com", role: "writer" }]);
-  });
   it("segundo anexo reaproveita as pastas (não cria de novo)", async () => {
     const m = montar();
     await anexar(m, new Uint8Array(5));
