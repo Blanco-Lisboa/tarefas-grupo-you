@@ -196,7 +196,6 @@ export function TelaConteudos() {
                       {tarefa.arquivos.length > 0 && (
                         <span className="conteudos-clipe" title={`${tarefa.arquivos.length} anexo${tarefa.arquivos.length > 1 ? "s" : ""}`} aria-label={`${tarefa.arquivos.length} anexo${tarefa.arquivos.length > 1 ? "s" : ""}`}>
                           <svg viewBox="0 0 24 24" aria-hidden><path d="M21 12.5l-8.5 8.5a5.5 5.5 0 01-7.8-7.8L13.2 4.7a3.7 3.7 0 015.2 5.2l-8.5 8.5a1.9 1.9 0 01-2.6-2.6L14.6 7.5" /></svg>
-                          {tarefa.arquivos.length}
                         </span>
                       )}
                       {tarefa.rede && <span className="conteudos-rede" title={NOMES.rede[tarefa.rede]}><IconeRede rede={tarefa.rede} tamanho={18} /></span>}
