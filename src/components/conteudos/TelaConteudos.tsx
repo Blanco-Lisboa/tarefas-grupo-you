@@ -140,7 +140,10 @@ export function TelaConteudos() {
       <div className="conteudos-quadro" ref={quadro} aria-label="Quadro de conteúdos por etapa">
         {ETAPAS.map((etapa, indice) => {
           // Mais novo no topo (item 134): a lista chega na ordem de criação, então a coluna a mostra de trás para frente.
+          // 307: só em Postado, o último a entrar fica no topo (postadoEm, gravado pelo banco); sem ele (card antigo) vai para baixo, na ordem de antes (sort é estável).
+          const quandoEntrou = (t: Tarefa) => Date.parse(t.postadoEm ?? "") || 0;
           const itens = conteudos.filter((t) => t.etapa === etapa).reverse();
+          if (etapa === "postado") itens.sort((a, b) => quandoEntrou(b) - quandoEntrou(a));
           return (
             <section
               className="conteudos-coluna"
