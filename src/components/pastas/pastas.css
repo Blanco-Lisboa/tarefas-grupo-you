@@ -335,3 +335,20 @@ span.mural-ver { cursor: default; color: var(--fraco); overflow: hidden; text-ov
 .mural-col > .mural-confirma { z-index: 2; border-radius: var(--raio-c); padding: var(--s-16); text-align: center; justify-items: center; }
 .mural-confirma-nota { font-weight: 400 !important; color: var(--fraco); }
 .mural-ref .mural-ver { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* 300: bloco Prints da folha (entre a descrição e os links). Vazio: só uma dica, e só com a folha em foco. */
+.mural-prints { display: flex; flex-wrap: wrap; gap: 8px; margin-top: var(--s-8); }
+.mural-prints[data-vazio] { margin-top: 0; }
+.mural-prints-dica { display: none; font-size: var(--app-t-rotulo); color: var(--fraco); }
+.mural-folha:focus-within .mural-prints-dica { display: block; margin-top: var(--s-4); }
+.mural-print { position: relative; width: calc(50% - 4px); aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; border: 1px solid var(--vidro-linha); background: var(--sup); }
+.mural-print-ver { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.mural-print-ver img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mural-print-espera { display: block; width: 100%; height: 100%; background: var(--sup); }
+.mural-print-tirar { position: absolute; top: 4px; right: 4px; min-width: 22px; height: 22px; padding: 0 6px; border: 0; border-radius: 999px; background: rgb(0 0 0 / .55); color: #fff; font-size: 13px; line-height: 22px; cursor: pointer; opacity: 0; transition: opacity var(--dur-rapida) var(--curva); }
+.mural-print:hover .mural-print-tirar, .mural-print-tirar:focus-visible, .mural-print-tirar[data-certo] { opacity: 1; }
+.mural-print-tirar[data-certo] { background: #c0392b; }
+.mural-lupa { margin: auto; inset: 0; padding: 0; border: 0; background: transparent; max-width: 92vw; max-height: 92vh; overflow: visible; }
+.mural-lupa::backdrop { background: rgb(10 14 24 / .72); }
+.mural-lupa img { display: block; max-width: 92vw; max-height: 88vh; border-radius: 12px; box-shadow: 0 20px 60px rgb(0 0 0 / .4); }
+.mural-lupa-x { position: absolute; top: -14px; right: -14px; width: 32px; height: 32px; border: 0; border-radius: 999px; background: #fff; color: var(--texto); font-size: 20px; line-height: 32px; cursor: pointer; box-shadow: 0 2px 8px rgb(0 0 0 / .3); }

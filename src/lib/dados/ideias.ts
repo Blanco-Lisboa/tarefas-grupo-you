@@ -6,9 +6,9 @@ import { supabase } from "@/lib/supabase/cliente";
 import { falhou } from "./repositorio";
 import { AVISOS, ligarTempoReal } from "./tempo-real";
 
-export type Ideia = { id: string; empresaId: string; categoria: string; titulo: string; texto: string; links: string[] };
+export type Ideia = { id: string; empresaId: string; categoria: string; titulo: string; texto: string; links: string[]; prints: string[] };
 type Estado = { ideias: Ideia[]; categorias: string[] };
-type Linha = { id: string; empresa_id: string; categoria: string; titulo: string; texto: string; link: string | null; links?: string[] | null };
+type Linha = { id: string; empresa_id: string; categoria: string; titulo: string; texto: string; link: string | null; links?: string[] | null; prints?: string[] | null };
 
 const VAZIO: Estado = { ideias: [], categorias: [] };
 const CHAVE = "grade-conteudo:ideias:v1"; // onde ficavam, no navegador, antes do banco
@@ -36,11 +36,12 @@ const com = (cats: string[], c: string) => (cats.includes(c) ? cats : [...cats, 
 // Item 257: várias referências por ideia. Antes do 025 (coluna "links") só existe o link único; o código serve aos dois casos,
 // para o mural nunca quebrar no meio da colagem. A coluna "link" continua sendo o 1º da lista (cópia para quem ainda lê só ela).
 let comLista = true; // o banco já tem a coluna "links"? (descoberto a cada leitura)
+let comPrints = true; // item 300: o banco já tem a coluna "prints" (e a gaveta ideias/ no Storage)?
 let comOrdem = true; // item 298: o banco já tem a coluna "ordem" nas colunas do mural? Sem ela, a ordem nova vale só até recarregar
-const daLinha = (l: Linha): Ideia => ({ id: l.id, empresaId: l.empresa_id, categoria: l.categoria, titulo: l.titulo, texto: l.texto, links: l.links?.length ? l.links : l.link ? [l.link] : [] });
-const paraBanco = (i: Omit<Ideia, "links"> & { links?: string[]; link?: string }) => {
+const daLinha = (l: Linha): Ideia => ({ id: l.id, empresaId: l.empresa_id, categoria: l.categoria, titulo: l.titulo, texto: l.texto, links: l.links?.length ? l.links : l.link ? [l.link] : [], prints: l.prints ?? [] });
+const paraBanco = (i: Omit<Ideia, "links" | "prints"> & { links?: string[]; link?: string; prints?: string[] }) => {
   const links = i.links ?? (i.link ? [i.link] : []);
-  return { id: i.id, empresa_id: i.empresaId, categoria: i.categoria, titulo: i.titulo, texto: i.texto, link: links[0] ?? null, ...(comLista && { links }) };
+  return { id: i.id, empresa_id: i.empresaId, categoria: i.categoria, titulo: i.titulo, texto: i.texto, link: links[0] ?? null, ...(comLista && { links }), ...(comPrints && { prints: i.prints ?? [] }) };
 };
 
 // ---- cópia única do navegador para o banco ------------------------------------------------------------------------------
@@ -87,13 +88,15 @@ export async function carregarIdeias(e: string) {
   const sb = supabase();
   const ler = (cols: string) => sb.from("ideias").select(cols).eq("empresa_id", e).order("seq");
   const [i0, c0] = await Promise.all([
-    ler("id, empresa_id, categoria, titulo, texto, link, links"),
+    ler("id, empresa_id, categoria, titulo, texto, link, links, prints"),
     sb.from("ideias_categorias").select("nome").eq("empresa_id", e).order("ordem", { nullsFirst: false }).order("seq"),
   ]);
   let i = i0;
   let c = c0;
+  comPrints = !i.error;
   comOrdem = !c.error;
   if (c.error) c = await sb.from("ideias_categorias").select("nome").eq("empresa_id", e).order("seq"); // ainda sem a coluna "ordem"
+  if (i.error) i = await ler("id, empresa_id, categoria, titulo, texto, link, links"); // ainda sem a coluna "prints"
   comLista = !i.error;
   if (i.error) i = await ler("id, empresa_id, categoria, titulo, texto, link"); // ainda sem a coluna "links": lê o link único
   if (i.error || c.error) return falhou("Não consegui carregar as ideias. Recarregue a página.");
@@ -116,8 +119,8 @@ const colocar = (e: string, id: string, ideia: Ideia | undefined) =>
   trocar(e, (s) => ({ ...s, ideias: ideia ? (s.ideias.some((i) => i.id === id) ? s.ideias.map((i) => (i.id === id ? ideia : i)) : [...s.ideias, ideia]) : s.ideias.filter((i) => i.id !== id) }));
 
 /** Cria (sem id) ou edita (com id existente). Devolve a ideia já na tela; o banco confirma depois. */
-export function gravarIdeia(e: string, nova: Omit<Ideia, "id" | "empresaId"> & { id?: string }): Ideia {
-  const ideia: Ideia = { ...nova, id: nova.id ?? crypto.randomUUID(), empresaId: e };
+export function gravarIdeia(e: string, nova: Omit<Ideia, "id" | "empresaId" | "prints"> & { id?: string; prints?: string[] }): Ideia {
+  const ideia: Ideia = { prints: [], ...nova, id: nova.id ?? crypto.randomUUID(), empresaId: e };
   const antes = (estado.get(e) ?? VAZIO).ideias.find((i) => i.id === ideia.id);
   const v = versao(ideia.id);
   colocar(e, ideia.id, ideia);
@@ -195,6 +198,29 @@ export function apagarCategoria(e: string, nome: string): boolean {
   trocar(e, (x) => ({ ...x, categorias: x.categorias.filter((c) => c !== nome) }));
   void escrever(e, supabase().from("ideias_categorias").delete().eq("empresa_id", e).eq("nome", nome), reler(e), "Não consegui apagar a coluna. Tente de novo.");
   return true;
+}
+
+// ---- prints (300) -------------------------------------------------------------------------------------------------------
+const BALDE = "arquivos"; // o mesmo balde dos anexos; os prints ficam na gaveta ideias/<empresa>/
+const ATE_10_MB = 10 * 1024 * 1024;
+
+/** Sobe a imagem colada e devolve o caminho dela, para a folha guardar na lista. Devolve null (e avisa) se não deu. */
+export async function subirPrint(e: string, arquivo: File): Promise<string | null> {
+  if (!comPrints) { falhou("Prints ainda não podem ser guardados (falta colar o SQL do item 300)."); return null; }
+  if (arquivo.size > ATE_10_MB) { falhou("Essa imagem passa de 10 MB. Use uma menor."); return null; }
+  const caminho = `ideias/${e}/${crypto.randomUUID()}.${arquivo.type.split("/")[1]?.replace(/[^\w]/g, "") || "png"}`;
+  const { error } = await supabase().storage.from(BALDE).upload(caminho, arquivo, { contentType: arquivo.type });
+  if (error) { falhou("Não consegui guardar o print. Tente de novo."); return null; }
+  return caminho;
+}
+
+/** Tira o arquivo do armário (a folha já deixou de listá-lo). Se falhar, sobra um arquivo solto, sem efeito na tela. */
+export const apagarPrint = (caminho: string) => void supabase().storage.from(BALDE).remove([caminho]);
+
+/** Endereços temporários (1 hora) para mostrar os prints; o balde é privado. */
+export async function urlsDosPrints(caminhos: string[]): Promise<Map<string, string>> {
+  const { data } = caminhos.length ? await supabase().storage.from(BALDE).createSignedUrls(caminhos, 3600) : { data: [] };
+  return new Map((data ?? []).flatMap((u) => (u.path && u.signedUrl ? [[u.path, u.signedUrl] as const] : [])));
 }
 
 export const ideiasDe = (e: string) => estado.get(e) ?? VAZIO;

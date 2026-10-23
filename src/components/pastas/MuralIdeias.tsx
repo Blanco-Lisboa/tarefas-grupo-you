@@ -5,6 +5,7 @@ import { CabecalhoColuna } from "@/components/ui/CabecalhoColuna";
 import { IconeRede } from "@/components/ui/Marca";
 import { CardFlutuante } from "./CardFlutuante";
 import { MenuColuna } from "./MenuColuna";
+import { usePrints } from "./PrintsIdeia";
 
 // Pasta "Ideias de conteúdo" aberta como Mural de folhas (item 247): todas as ideias da empresa, uma coluna por categoria.
 // Escrever na folha salva ao sair do campo. A ideia nasce numa coluna e fica nela até ser apagada (item 249). Tudo passa por useIdeias.
@@ -32,7 +33,7 @@ const rotuloLink = (links: string[], l: string) => {
   return mesmas.length > 1 ? `${nome} ${mesmas.indexOf(l) + 1}` : nome;
 };
 
-type Dados = Omit<Ideia, "empresaId" | "id"> & { id?: string };
+type Dados = Omit<Ideia, "empresaId" | "id" | "prints"> & { id?: string; prints?: string[] };
 
 export function MuralIdeias({ empresaId, nome, tom, aoFechar }: { empresaId: string; nome: string; tom: string; aoFechar: () => void }) {
   const { ideias, categorias: todas, salvar, apagar, criarCategoria, moverCategoria, renomearCategoria, apagarCategoria } = useIdeias(empresaId);
@@ -124,6 +125,7 @@ function Coluna({ cat, numero, itens, naPonta, podeMover, autoFocar, aoSalvar, a
 function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dados) => void; aoApagar: () => void }) {
   const [confirmando, setConfirmando] = useState(false);
   const [tirando, setTirando] = useState<string | null>(null); // link esperando confirmação para sair
+  const { colar, bloco } = usePrints(ideia, aoSalvar);
   const sair = (campo: "titulo" | "texto") => (e: { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
     const v = e.currentTarget.value.trim();
     if (campo === "titulo" && !v) { e.currentTarget.value = ideia.titulo; return; } // ideia sem título não existe: volta o que estava
@@ -136,7 +138,7 @@ function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dado
     if (linkValido(v) && !links.includes(v)) aoSalvar({ ...ideia, links: [...links, v] });
   };
   return (
-    <article className="mural-folha">
+    <article className="mural-folha" onPaste={colar}>
       <div className="mural-folha-topo">
         <textarea className="mural-titulo" aria-label="Título" rows={1} maxLength={120} defaultValue={ideia.titulo} onBlur={sair("titulo")} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())} />
         <button type="button" className="mural-apagar" aria-label={`Apagar ideia ${ideia.titulo}`} onClick={() => setConfirmando(true)}>
@@ -144,6 +146,7 @@ function Folha({ ideia, aoSalvar, aoApagar }: { ideia: Ideia; aoSalvar: (d: Dado
         </button>
       </div>
       <textarea className="mural-detalhe" aria-label="Detalhe" rows={2} placeholder="Detalhe" defaultValue={ideia.texto} onBlur={sair("texto")} />
+      {bloco}
       <div className="mural-rodape" data-vazio={!links.length ? true : undefined}>
         {links.map((l) => {
           const rede = redeDoLink(l);

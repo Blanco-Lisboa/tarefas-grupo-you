@@ -2,10 +2,9 @@
 // Nada vai ao banco real: o app de exemplo (porta 3101) é ligado a este endereço pelo `npm run exemplo` (scripts/exemplo.mjs).
 // Datas contam a partir de HOJE (domingo desta semana = dia 0), para o Calendário e o Mapa sempre abrirem cheios.
 // GET /entrar = "login" sem senha: grava a sessão de mentira do Natham no cookie e volta para o app.
-import { createReadStream, statSync } from "node:fs";
-import { createServer } from "node:http";
+import { createReadStream, statSync } from "node:fs"; import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
-import { funcaoDrive } from "./exemplo-funcao-drive.mjs";
+import { funcaoDrive } from "./exemplo-funcao-drive.mjs"; import { storageDePrints } from "./exemplo-storage-prints.mjs";
 
 export const PORTA_BANCO = Number(process.env.EXEMPLO_PORTA_BANCO ?? 3201);
 const PORTA_APP = Number(process.env.EXEMPLO_PORTA_APP ?? 3101);
@@ -247,6 +246,7 @@ createServer(async (req, res) => {
     return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(sessaoDe(id).user));
   }
   // Storage: endereços assinados (POST) e a própria imagem (GET)
+  if (await storageDePrints(req, res, url)) return;
   if (url.pathname === "/storage/v1/object/sign/arquivos" && req.method === "POST") {
     const { paths = [] } = await corpoDe(req);
     return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(paths.map((path) => ({ error: null, path, signedURL: `/object/sign/arquivos/${path}?token=exemplo` }))));
