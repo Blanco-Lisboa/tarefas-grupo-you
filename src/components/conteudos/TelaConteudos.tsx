@@ -17,6 +17,7 @@ import { diasDeAtraso } from "@/lib/atraso";
 import { ConfirmarPostado } from "./ConfirmarPostado";
 import { confirmarPostado } from "./confirmar";
 import { tipoDaColuna } from "./tipo";
+import { quandoPostou } from "@/components/ficha/postagem";
 import "./conteudos.css";
 
 const nomes: Record<Etapa, string> = {
@@ -43,6 +44,9 @@ const linkDrive = (tarefa: Tarefa) => {
   const url = tarefa.links.find((l) => /^(https?:\/\/)?drive\.google\.com\//i.test(l.url.trim()))?.url.trim();
   return url ? (/^https?:\/\//i.test(url) ? url : `https://${url}`) : null;
 };
+
+/** 309b: em Postado o rodapé mostra a data de postagem (quandoPostou); nas outras etapas, a hora agendada como sempre. */
+const dataDoRodape = (t: Tarefa) => (t.etapa === "postado" ? quandoPostou(t) : undefined) ?? t.postarEm ?? t.inicio;
 
 function dataLegivel(inicio?: string) {
   if (!inicio) return "Sem data";
@@ -218,7 +222,7 @@ export function TelaConteudos() {
                     )}
                     <div className="conteudos-cartao-rodape">
                       <span className="conteudos-quem-faz"><Pessoa quem={tarefa.responsavel} tamanho={24} />{NOMES.responsavel[tarefa.responsavel]}</span>
-                      <time dateTime={(tarefa.postarEm ?? tarefa.inicio)?.slice(0, 10)}>{tarefa.formato && `${NOMES.formato[tarefa.formato]} · `}{dataLegivel(tarefa.postarEm ?? tarefa.inicio)}</time>
+                      <time dateTime={dataDoRodape(tarefa)?.slice(0, 10)}>{tarefa.formato && `${NOMES.formato[tarefa.formato]} · `}{dataLegivel(dataDoRodape(tarefa))}</time>
                     </div>
                     {(falta || drive) && (
                       <div className="conteudos-prazo">

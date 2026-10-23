@@ -13,7 +13,7 @@ import { CampoData } from "@/components/ui/CampoData";
 import Image from "next/image";
 import { podeAprovar } from "./Aprovacao";
 import { Confirmar } from "./Confirmar";
-import { CANCELADA, NOME_REDE, SO_FACEBOOK, carrosselComVideo, carrosselSoFacebook, faltaParaPostar, programacaoCancelada, redesDe, redesValidas, situacao, textoRedes, textosPublicacao, comoHoraMarcada } from "./postagem";
+import { CANCELADA, NOME_REDE, SO_FACEBOOK, carrosselComVideo, carrosselSoFacebook, faltaParaPostar, programacaoCancelada, redesDe, quandoPostou, redesValidas, situacao, textoRedes, textosPublicacao, comoHoraMarcada } from "./postagem";
 
 type Props = {
   salvo: Tarefa; rascunho: NovaTarefa;
@@ -43,10 +43,16 @@ export function Publicacao({ salvo, rascunho, mudar, gravar }: Props) {
   if (salvo.tipo !== "postagem" || (salvo.etapa !== "aprovado" && salvo.etapa !== "postado")) return null;
 
   if (salvo.etapa === "postado") {
+    // 309: em Postado o bloco fica só para consulta: a data de postagem e os links, sem redes clicáveis, sem Programar e sem Postar agora.
     const links = (salvo.postagens ?? []).filter((p) => p.link);
-    return links.length ? (
+    const q = quandoPostou(salvo);
+    const redesPostadas = (salvo.postagens ?? []).filter((p) => p.status === "postado").map((p) => p.rede);
+    return links.length || q ? (
       <fieldset className="ficha-campo publicacao"><legend>Publicação</legend>
-        <div className="publicacao-caixa"><div className="publicacao-links">{links.map((p) => <a key={p.rede} className="aprovacao-link" href={p.link} target="_blank" rel="noopener noreferrer">Ver no {NOME_REDE[p.rede]}</a>)}</div></div>
+        <div className="publicacao-caixa">
+          {q && <p className="aprovacao-situacao">Postado em {q.slice(8, 10)}/{q.slice(5, 7)}/{q.slice(0, 4)}{q.length > 10 && ` · ${q.slice(11, 16)}`}{redesPostadas.length > 0 && ` · ${textoRedes(redesPostadas)}`}</p>}
+          {links.length > 0 && <div className="publicacao-links">{links.map((p) => <a key={p.rede} className="aprovacao-link" href={p.link} target="_blank" rel="noopener noreferrer">Ver no {NOME_REDE[p.rede]}</a>)}</div>}
+        </div>
       </fieldset>
     ) : null;
   }

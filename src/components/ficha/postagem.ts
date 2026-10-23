@@ -1,5 +1,5 @@
 // Regras de tela da postagem automática (196). O banco (019) e a função postar-meta conferem de novo; aqui é para mostrar o que falta antes.
-import { REDES_POST, type Formato, type Postagem, type RedePost, type Tarefa } from "@/lib/dados";
+import { REDES_POST, horaDeBrasilia, type Formato, type Postagem, type RedePost, type Tarefa } from "@/lib/dados";
 
 export const NOME_REDE: Record<RedePost, string> = { instagram: "Instagram", facebook: "Facebook" };
 export const textoRedes = (redes: readonly RedePost[]) => redes.map((r) => NOME_REDE[r]).join(" + ");
@@ -7,6 +7,9 @@ export const textoRedes = (redes: readonly RedePost[]) => redes.map((r) => NOME_
 export const redesDe = (t: Pick<Tarefa, "postarRedes">): RedePost[] => t.postarRedes ?? [...REDES_POST];
 
 type Base = Pick<Tarefa, "arquivos" | "legenda" | "empresaId">;
+/** 309: a data de postagem de um card Postado, "AAAA-MM-DDTHH:mm" em Brasília: quando entrou em Postado (postadoEm); sem ela (card antigo), a hora agendada. */
+export const quandoPostou = (t: Pick<Tarefa, "postadoEm" | "postarEm">): string | undefined => (t.postadoEm ? horaDeBrasilia(t.postadoEm) : undefined) ?? t.postarEm;
+
 /** Só o que já está guardado: arquivo que não subiu (pendente) ou que a limpeza tirou (removido) a função não acha. */
 const midias = (t: Pick<Tarefa, "arquivos">) => t.arquivos.filter((a) => a.papel !== "capa" && a.papel !== "original" && !a.pendente && !a.removido && (a.tipo === "imagem" || a.tipo === "video"));
 
