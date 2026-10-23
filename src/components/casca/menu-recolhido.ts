@@ -3,7 +3,10 @@
 // Sem React aqui: o layout (componente de servidor) importa o SCRIPT_MENU; o hook mora na Casca.
 
 const CHAVE = "grade:menu-recolhido";
-export const SCRIPT_MENU = `try{if(localStorage.getItem("${CHAVE}")==="1")document.documentElement.dataset.menu="recolhido"}catch(e){}`;
+// Também tira do <body> as divs que a extensão de tradução do Chrome injeta (class translator-hidden / translate-tooltip-mtz):
+// elas entram antes do React hidratar e dão "Hydration failed" no overlay (item 301). Só essas duas classes, só por 5 s.
+const LIMPA = `var t=function(){document.querySelectorAll("body>.translator-hidden,body>.translate-tooltip-mtz").forEach(function(n){n.remove()})};t();var o=new MutationObserver(t);o.observe(document.body,{childList:true});setTimeout(function(){o.disconnect()},5000)`;
+export const SCRIPT_MENU = `try{if(localStorage.getItem("${CHAVE}")==="1")document.documentElement.dataset.menu="recolhido"}catch(e){}${LIMPA}`;
 
 const ouvintes = new Set<() => void>();
 export const assinar = (f: () => void) => (ouvintes.add(f), () => void ouvintes.delete(f));
