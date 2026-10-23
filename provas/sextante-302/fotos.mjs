@@ -9,7 +9,7 @@ const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const exp = 1893456000, uid = "u-natham";
 const jwt = [b64({ alg: "HS256", typ: "JWT" }), b64({ sub: uid, exp, role: "authenticated", aud: "authenticated" }), b64("assinatura")].join(".");
 const sessao = { access_token: jwt, refresh_token: "x", expires_in: 3600, expires_at: exp, token_type: "bearer", user: { id: uid, aud: "authenticated", role: "authenticated", email: "foto@exemplo.invalid", app_metadata: {}, user_metadata: {}, created_at: "2026-10-19T00:00:00Z" } };
-const ANTES = ".conteudos-cartao-sombra[data-fazendo='true'] .conteudos-cartao-topo{display:flex!important}.conteudos-cartao-sombra[data-fazendo='true'] .conteudos-clipe{margin-top:0!important}.conteudos-fazendo{right:52px!important}";
+const ANTES = ".conteudos-cartao-sombra[data-fazendo='true'] .conteudos-clipe{position:static!important}.conteudos-fazendo{right:52px!important}";
 const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
 for (const [w, h] of [[1903, 900], [1440, 760], [390, 800]]) {
   for (const fase of ["antes", "depois"]) {
@@ -41,7 +41,7 @@ for (const [w, h] of [[1903, 900], [1440, 760], [390, 800]]) {
       const e = document.createElement("div"); e.style.cssText = "position:fixed;top:0;right:0;z-index:99999;background:#000;color:#fff;font:14px monospace;padding:4px"; e.textContent = fase + " innerWidth=" + innerWidth; document.body.append(e);
       return true;
     }, { fase, ANTES });
-    console.log(w, fase, ok);
+    console.log(w, fase, ok, await p.evaluate(() => [...document.querySelectorAll("[style*=\"width: 340px\"]")].map((c) => c.querySelector("small").textContent + "=" + Math.round(c.querySelector(".conteudos-cartao").getBoundingClientRect().height)).join(" | ")));
     await p.screenshot({ path: join(PASTA, `${fase}-${w}.png`) });
     await ctx.close();
   }
