@@ -19,13 +19,13 @@
 // - NOMES traz o texto de tela de cada valor: NOMES.tipo.gravacao = "Gravação", NOMES.rede.kwai = "Kwai", etc.
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { cabeNaFicha, ehConteudo, fichaOcupada } from "@/components/tarefas/grade";
+import { ehConteudo } from "@/components/tarefas/grade";
 import {
   FORMATOS, REDES, RESPONSAVEIS, TIPOS, arquivosDoDrive, lerErro, organizarCard, recarregarTags, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
   type Etapa, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type Tarefa, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
-import { deTexto, paraHora, vaiProGoogle } from "@/components/calendario/logica";
+import { vaiProGoogle } from "@/components/calendario/logica";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
@@ -45,7 +45,6 @@ import { AvisosVideo, CampoConserto } from "./Conserto";
 import { arrumar, ehQuemAprova, etapaAoSalvar, fimValido, mudouPasta, podeTrocarAprovador, soTagsQueExistem, trocarEmpresa } from "./arrumar";
 import { CampoOcasiao, PrazoDrive } from "./CampoOcasiao";
 import { TextoComLinks } from "@/components/pastas/links";
-import { CampoData } from "@/components/ui/CampoData";
 import "./ficha.css";
 
 export const NOMES = {
@@ -66,7 +65,6 @@ export const tarefaEmBranco = (parcial: Partial<NovaTarefa> = {}): NovaTarefa =>
 });
 
 const NENHUMA = "nenhuma"; // valor do seletor Empresa; a tarefa sem empresa guarda empresaId ""
-const HORA = 60 * 60_000;
 
 export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
   tarefa: NovaTarefa; aoFechar: () => void; aoSalvar?: (salva: NovaTarefa) => void; soLer?: boolean; tipos?: readonly TipoTarefa[];
@@ -77,11 +75,12 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
   const eu = useEu();
   const dialogo = useRef<HTMLDialogElement>(null);
   const [t, setT] = useState<NovaTarefa>(() => ({ ...tarefa, empresaId: tarefa.id || !tarefa.etapa ? tarefa.empresaId : tarefa.empresaId || empresas[0]?.id || "" })); // tarefa já existente sem empresa continua sem empresa (item 125)
-  const [data, setData] = useState(tarefa.inicio?.slice(0, 10) ?? "");
-  const [horaIni, setHoraIni] = useState(tarefa.inicio?.slice(11, 16) || "09:00");
-  // Sem campo Termina (item 159): tarefa nova nasce sem fim; a antiga guarda o fim que tinha e ele anda junto com o Começa.
-  const [horaFim, setHoraFim] = useState(tarefa.id ? tarefa.fim?.slice(11, 16) ?? "" : "");
-  const [dataFim, setDataFim] = useState(tarefa.id ? tarefa.fim?.slice(0, 10) ?? "" : "");
+  // 308: a ficha não tem mais campo Começa nem Termina. O início e o fim que a tarefa já tinha ficam como estão (o salvar devolve o mesmo valor);
+  // tarefa nova sem início continua sem início ("Sem data"), sem data inventada.
+  const data = tarefa.inicio?.slice(0, 10) ?? "";
+  const horaIni = tarefa.inicio?.slice(11, 16) || "09:00";
+  const horaFim = tarefa.id ? tarefa.fim?.slice(11, 16) ?? "" : "";
+  const dataFim = tarefa.id ? tarefa.fim?.slice(0, 10) ?? "" : "";
   const [links, setLinks] = useState<LinkDrive[]>(tarefa.links);
   const [arquivos, setArquivos] = useState(tarefa.arquivos);
   const [editandoNotas, setEditandoNotas] = useState(false);
@@ -126,23 +125,6 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
     if (!ok) setRecusa(lerErro());
   }
 
-  // Mudou o início: o fim anda junto e a duração fica igual (senão o fim fica antes do início e trava o formulário).
-  // A última duração válida fica guardada para o caminho "limpa a data e escolhe outra" (sem data não dá para medir).
-  const duracao = useRef(HORA), daFicha = { ...tarefa, responsavel: t.responsavel, diaInteiro: t.diaInteiro }, horarioOcupado = !!data && fichaOcupada(todas, daFicha, data, horaIni); // item 275: início em linha ocupada é barrado
-  function mudarInicio(novaData: string, novaHora: string) {
-    if (data && horaFim) {
-      const atual = deTexto(`${dataFim || data}T${horaFim}`).getTime() - deTexto(`${data}T${horaIni}`).getTime();
-      if (atual > 0) duracao.current = atual;
-    }
-    if (novaData && horaFim) {
-      const fim = paraHora(new Date(deTexto(`${novaData}T${novaHora}`).getTime() + Math.min(duracao.current, cabeNaFicha(todas, daFicha, novaData, novaHora) * 60_000 || duracao.current)));
-      setDataFim(fim.slice(0, 10));
-      setHoraFim(fim.slice(11, 16));
-    }
-    setData(novaData);
-    setHoraIni(novaHora);
-  }
-
   useEffect(() => {
     const d = dialogo.current;
     if (d && !d.open) d.showModal();
@@ -152,7 +134,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
       Card gravado com anexo que falhou (Lupa 215 v2) conta como salvo: o rascunho passa a ser o que foi gravado (com id e etapa nova,
       para um Salvar seguinte não criar outra tarefa nem desfazer a decisão) e aoSalvar é chamado; devolve false por causa do anexo. */
   async function gravar(extra: Partial<NovaTarefa> = {}, fechar = true): Promise<boolean> {
-    if (soLer || horarioOcupado || !t.titulo.trim() || !empresaOk || gravando.current) return false; // dois cliques em Salvar criavam a tarefa duas vezes
+    if (soLer || !t.titulo.trim() || !empresaOk || gravando.current) return false; // dois cliques em Salvar criavam a tarefa duas vezes
     gravando.current = true;
     const quando: Pick<NovaTarefa, "inicio" | "fim" | "diaInteiro"> = !data
       ? { inicio: undefined, fim: undefined, diaInteiro: false }
@@ -264,17 +246,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
               {fica && <p className="ficha-dica ficha-dica-fica">Continua no caderno de {NOMES.responsavel[fica]}: trocar o responsável não entrega a tarefa a outra pessoa.</p>}
             </fieldset>
 
-            <fieldset className="ficha-campo" aria-label="Quando">
-              <div className="ficha-quando">
-                {/* Data e hora no mesmo painel (item 76): calendário + rodas de hora e minuto. Conteúdo antigo de dia inteiro mostra só a data. */}
-                <div className="ficha-mini">
-                  {t.diaInteiro ? "Data" : "Começa"}
-                  <CampoData rotulo={t.diaInteiro ? "Data" : "Começa"} valor={data} hora={t.diaInteiro ? undefined : data ? horaIni : ""}
-                    aoMudar={(d, h) => mudarInicio(d, h || horaIni)} />
-                </div>
-              </div>
-              {horarioOcupado ? <p className="ficha-dica" role="alert">Este horário já tem outra tarefa no caderno. Escolha outro horário para salvar.</p> : !data && <p className="ficha-dica">Sem data: fica na coluna &quot;Sem data&quot; do calendário.</p>}
-            </fieldset>
+            {!data && <p className="ficha-dica">Sem data: fica na coluna &quot;Sem data&quot; do calendário.</p>}
           </div>
 
           {t.tipo === "postagem" && (

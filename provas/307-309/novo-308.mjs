@@ -1,0 +1,25 @@
+// 308 regra 3: card novo sem data salva sem erro, com inicio nulo. Uso: node novo-308.mjs
+import { createRequire } from "node:module";
+import { join } from "node:path";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+const exp = 1893456000, uid = "u-natham";
+const jwt = [b64({ alg: "HS256", typ: "JWT" }), b64({ sub: uid, exp, role: "authenticated", aud: "authenticated" }), b64("assinatura")].join(".");
+const sessao = { access_token: jwt, refresh_token: "x", expires_in: 3600, expires_at: exp, token_type: "bearer", user: { id: uid, aud: "authenticated", role: "authenticated", email: "foto@exemplo.invalid", app_metadata: {}, user_metadata: {}, created_at: "2026-10-19T00:00:00Z" } };
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const ctx = await nav.newContext({ viewport: { width: 1440, height: 900 } });
+await ctx.addCookies([{ name: "sb-127-auth-token", value: "base64-" + b64(sessao), domain: "127.0.0.1", path: "/" }]);
+const p = await ctx.newPage();
+const salvas = [];
+p.on("request", (r) => { if (r.url().includes("/rpc/salvar_tarefa")) salvas.push(r.postDataJSON().p); });
+await p.goto("http://127.0.0.1:3101/conteudos", { waitUntil: "networkidle" });
+await p.waitForTimeout(2000);
+await p.getByRole("button", { name: /Novo conteúdo em/ }).first().click();
+await p.waitForSelector("dialog.ficha[open]");
+await p.locator("dialog.ficha .ficha-faixa").locator("input, textarea, [contenteditable]").first().fill("Card novo sem data 308");
+const aviso = await p.evaluate(() => document.querySelector("dialog.ficha .ficha-dica")?.textContent);
+await p.getByRole("button", { name: "Salvar" }).click();
+await p.waitForTimeout(1500);
+console.log(JSON.stringify({ aviso, enviado: salvas[0] && { titulo: salvas[0].titulo, inicio: salvas[0].inicio, fim: salvas[0].fim, dia_inteiro: salvas[0].dia_inteiro }, fichaFechou: !(await p.locator("dialog.ficha[open]").count()), erro: await p.locator("[role=alert]").allTextContents() }));
+await nav.close();

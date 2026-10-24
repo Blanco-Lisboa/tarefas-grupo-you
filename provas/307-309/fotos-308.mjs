@@ -1,0 +1,40 @@
+// 308: ficha sem "Começa" (conteúdo e Caderno) + prova de que salvar não mexe no início. Precisa de `npm run exemplo` no ar (3101). Uso: node fotos-308.mjs
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+const require = createRequire(join(process.env.APPDATA, "npm", "node_modules", "/"));
+const { chromium } = require("playwright");
+const PASTA = fileURLToPath(new URL("./", import.meta.url));
+const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+const exp = 1893456000, uid = "u-natham";
+const jwt = [b64({ alg: "HS256", typ: "JWT" }), b64({ sub: uid, exp, role: "authenticated", aud: "authenticated" }), b64("assinatura")].join(".");
+const sessao = { access_token: jwt, refresh_token: "x", expires_in: 3600, expires_at: exp, token_type: "bearer", user: { id: uid, aud: "authenticated", role: "authenticated", email: "foto@exemplo.invalid", app_metadata: {}, user_metadata: {}, created_at: "2026-10-19T00:00:00Z" } };
+const nav = await chromium.launch({ args: ["--window-position=-3000,0"] });
+const ctx = await nav.newContext({ viewport: { width: 1440, height: 900 } });
+await ctx.addCookies([{ name: "sb-127-auth-token", value: "base64-" + b64(sessao), domain: "127.0.0.1", path: "/" }]);
+const p = await ctx.newPage();
+const lerBanco = () => p.evaluate(async () => (await fetch("http://127.0.0.1:3201/rest/v1/tarefas?select=id,titulo,etapa,inicio,fim,dia_inteiro", { headers: { apikey: "falsa" } })).json());
+const salvas = [];
+p.on("request", (r) => { if (r.url().includes("/rpc/salvar_tarefa")) salvas.push(r.postDataJSON().p); });
+async function prova(rota, titulo, nome) {
+  await p.goto("http://127.0.0.1:3101" + rota, { waitUntil: "networkidle" });
+  await p.waitForTimeout(2000);
+  for (let i = 0; i < 8 && !(await p.getByText(titulo, { exact: true }).count()); i++) await p.getByRole("button", { name: "Dia anterior" }).click().then(() => p.waitForTimeout(300), () => {});
+  const antes = (await lerBanco()).find((t) => t.titulo === titulo);
+  await p.getByText(titulo, { exact: true }).first().click();
+  await p.waitForSelector("dialog.ficha[open]");
+  await p.waitForTimeout(800);
+  const temComeca = await p.evaluate(() => /(Começa|Termina)(?![a-zà-ú])/i.test(document.querySelector("dialog.ficha")?.textContent ?? ""));
+  await p.screenshot({ path: PASTA + nome + ".png" });
+  salvas.length = 0;
+  await p.getByRole("button", { name: "Salvar" }).click();
+  await p.waitForTimeout(1500);
+  const depois = (await lerBanco()).find((t) => t.titulo === titulo);
+  console.log(nome, JSON.stringify({ temComeca, antes, depois, enviado: salvas[0] && { inicio: salvas[0].inicio, fim: salvas[0].fim, dia_inteiro: salvas[0].dia_inteiro } }));
+}
+const todas = await (async () => { await p.goto("http://127.0.0.1:3101/tarefas", { waitUntil: "networkidle" }); return lerBanco(); })();
+console.log("caderno com inicio:", JSON.stringify(todas.filter((t) => !t.etapa && t.inicio).slice(0, 5)));
+await prova("/conteudos", "TikTok: o que é pró-labore", "ficha-conteudo-sem-comeca");
+const alvo = process.argv[2] ?? todas.find((t) => !t.etapa && t.inicio)?.titulo;
+await prova("/tarefas", alvo, "ficha-caderno-sem-comeca");
+await nav.close();
