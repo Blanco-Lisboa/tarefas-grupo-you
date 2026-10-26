@@ -17,7 +17,7 @@ const pessoas = [
   { id: P.adrian, slug: "adrian", user_id: null },
   { id: P.lucas, slug: "lucas", user_id: null },
 ];
-const empresas = [{ id: "you", nome: "You", sigla: "YO" }, { id: "beec", nome: "Beec", sigla: "BE" }];
+const empresas = [{ id: "you", nome: "You", sigla: "YO" }, { id: "beec", nome: "Beec", sigla: "BE" }, { id: "tu-ecom", nome: "Tu Ecom", sigla: "TE" }];
 const TAG = "tag-esperando-aprovacao";
 const tags = [{ id: TAG, nome: "Esperando aprovação", cor: "etiqueta-1", aprovacao: true }];
 

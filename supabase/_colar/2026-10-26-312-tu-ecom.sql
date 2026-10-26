@@ -9,17 +9,18 @@ insert into public.empresas (id, nome, sigla, cor, ordem) values
   ('tu-ecom', 'Tu Ecom', 'TE', '{"g":"#0B241B","r":"#0F3D2E","c":"#1E5A45","o":"#A9C2B5"}', 3)
 on conflict (id) do nothing;
 
--- Pastas de fábrica (como as da Beec em supabase/003_semente.sql). Sem a "Adrian - Aprovar": essa é só da You.
+-- Pastas de fábrica: iguais às da Beec em produção (SELECT de 26/10/2026 em public.pastas, só leitura).
+-- Sem a "Adrian - Aprovar": essa é só da You. A ordem pula a 4 de propósito, como na Beec.
 insert into public.pastas (empresa_id, slug, nome, tipo, vazio, ideias, ordem)
-select e.id, p.slug, p.nome, p.tipo, p.vazio, p.ideias, p.ordem
+select e.id, p.slug, p.nome, p.tipo, null, p.ideias, p.ordem
 from public.empresas e
 join (values
-  ('post', 'Posts', 'post', null, false, 1),
-  ('carrossel', 'Carrosséis', 'carrossel', null, false, 2),
-  ('video', 'Vídeos', 'video', null, false, 3),
-  ('story', 'Stories', 'story', null, false, 4),
-  ('ideias', 'Ideias de conteúdo', null, null, true, 5)
-) as p (slug, nome, tipo, vazio, ideias, ordem)
+  ('post', 'Posts', 'post', false, 1),
+  ('carrossel', 'Carrosséis', 'carrossel', false, 2),
+  ('video', 'Vídeos', 'video', false, 3),
+  ('story', 'Stories', 'story', false, 5),
+  ('ideias', 'Ideias de conteúdo', null, true, 6)
+) as p (slug, nome, tipo, ideias, ordem)
   on true
 where e.id = 'tu-ecom'
 on conflict (empresa_id, slug) do nothing;
