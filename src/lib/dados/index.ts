@@ -34,3 +34,4 @@ export * from "./envios";
 export { liberarPendente, videoPendente } from "./subindo";
 export { haQuanto, reler as relerPendentes, usePendentes } from "./pendentes";
 export * from "./arvore";
+export { duplicarCard } from "./duplicar-card";

@@ -21,7 +21,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ehConteudo } from "@/components/tarefas/grade";
 import {
-  FORMATOS, REDES, RESPONSAVEIS, TIPOS, arquivosDoDrive, lerErro, organizarCard, recarregarTags, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
+  FORMATOS, REDES, duplicarCard, RESPONSAVEIS, TIPOS, arquivosDoDrive, lerErro, organizarCard, recarregarTags, limparErro, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useEmpresas, useErroDados, useEu, useTags, useTarefas, useTarefasNoGoogle,
   type Etapa, type Formato, type Link as LinkDrive, type NovaTarefa, type Rede, type Responsavel, type Tarefa, type TipoTarefa,
 } from "@/lib/dados";
 import Link from "next/link";
@@ -101,6 +101,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
   const dono = tarefa.dono ?? tarefa.responsavel;
   const fica = !nova && !soLer && !ehConteudo(t) && t.responsavel !== dono ? dono : undefined; // o banco não deixa mudar o dono
   const lixeira = !nova && podeApagar({ ...tarefa, id: tarefa.id! }, eu); // vale o que está no banco, não o que foi mudado na ficha
+  const podeDuplicar = !nova && !soLer && !!tarefa.empresaId && !!tarefa.etapa; // só card da Esteira (empresa + etapa)
   const marcadas = t.tags ?? [];
   const pedeAprovador = tags.some((g) => g.aprovacao && marcadas.includes(g.id));
   const aprovadorTravado = !nova && !podeTrocarAprovador(tarefa.aprovador, eu);
@@ -168,6 +169,14 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
     if (aviso) setRecusa(aviso);
     if (fechar && !aviso) setEnviou(true);
     return !!gravada && !lerErro();
+  }
+
+  // 310: cópia de planejamento na Esteira ("<título> - Cópia N"); a ficha fecha e a cópia aparece na coluna
+  async function duplicar() {
+    if (!tarefa.id) return;
+    limparErro();
+    const salvou = await salvarTarefa(duplicarCard(tarefa as Tarefa, todas, tags));
+    if (salvou) setEnviou(true); else setRecusa(lerErro());
   }
 
   async function excluir() {
@@ -295,6 +304,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
           ) : lixeira && (
             <button type="button" className="ficha-lixeira" aria-label="Apagar tarefa" title="Apagar tarefa" onClick={() => setApagando(true)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4" /></svg></button>
           )}
+          {!apagando && podeDuplicar && <button type="button" className="btn btn-2 ficha-duplicar" onClick={() => void duplicar()}>Duplicar</button>}
           {((enviou && erro) || recusa) && <p className="ficha-erro" role="alert">{recusa || erro}</p>}
           {!apagando && <button type="button" className="btn btn-2" onClick={saida.pedir}>{soLer ? "Fechar" : "Cancelar"}</button>}
           {!soLer && !apagando && <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>}
