@@ -1,0 +1,569 @@
+Marca
+Símbolo
+Versões
+Regras de uso
+Cores
+Tipografia
+Grafismos
+Registros
+Aplicações
+Voz
+Arquivos
+MENTORIA PARA VENDEDORES DE ROUPA
+MANUAL DE IDENTIDADE VISUAL
+Da costura ao marketplace
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+01 · MARCA
+A marca
+
+A Tu Ecom é uma mentoria para quem vende roupa em marketplace. Ensinamos o caminho completo, do corte e da costura até a venda na Shopee, na Shein, no TikTok Shop e no Mercado Livre. Nasceu no Brás, em São Paulo, perto da comunidade de confeccionistas bolivianos que sustenta boa parte da moda brasileira.
+
+PILAR 01
+Produção
+Corte e costura
+PILAR 02
+Vendas
+No marketplace
+PILAR 03
+Crescimento
+Gestão e escala
+
+Profissional, premium e respeitosa. Aqui, quem costura é dono do próprio negócio.
+
+02 · O SÍMBOLO
+O símbolo
+01
+Escudo
+Inspirado no escudo da cidade de Santa Cruz de la Sierra, terra do nosso sócio. Um selo de origem e de qualidade.
+02
+Tesoura
+Produção: corte e costura com padrão de qualidade.
+03
+Cruz vermelha
+A cruz potenciada do escudo cruceño, que dá nome à cidade. Divide o escudo nos quatro passos da mentoria.
+04
+Sacola
+Vendas: a peça certa no marketplace certo.
+01
+02
+03
+04
+05
+06
+07
+05
+Palmeiras
+As palmeiras totaí do escudo de Santa Cruz: a riqueza da terra de onde a marca vem.
+06
+Gráfico
+Crescimento: gestão e escala do negócio.
+07
+Verde e dourado
+O verde da bandeira de Santa Cruz, que representa as florestas da região, com o dourado do acabamento.
+
+Da costura ao marketplace, com orgulho de origem.
+
+03 · VERSÕES
+Versões da logo
+Escudo · fundo marfim
+Versão oficial colorida sobre marfim #F3EEE3.
+Escudo · fundo verde-mata
+Versão oficial colorida sobre --mata #0F3D2E.
+VERSÕES EM PRODUÇÃO
+Escudo sem a faixa
+Versão monocromática
+Versão pequena para avatar
+Até lá, use só o escudo colorido oficial.
+04 · REGRAS DE USO
+Regras de uso
+Área de proteção
+x
+x = altura da faixa TU ECOM
+Nenhum elemento entra nesta área.
+Tamanho mínimo
+96PX
+64PX
+48PX
+Escudo com faixa: mínimo de 48px de altura. Abaixo disso, use a versão pequena para avatar quando ela sair.
+Usos incorretos
+Esticar ou distorcer
+Girar
+Trocar as cores
+Aplicar sombra ou brilho
+FOTO
+Colocar sobre foto sem contraste
+Tu Ecom
+Redesenhar ou substituir a fonte do nome
+05 · CORES
+Cores
+Cores da logo
+mata
+#0F3D2E
+Fundo escuro principal: menu, fechamento, posts escuros.
+Marfim em cima: 10.5
+cruz
+#DA291C
+Vermelho da cruz. Pilar Produção. Barras, bordas e preenchimentos.
+Marfim em cima: 4.2, só texto grande
+ouro
+#C9A45C
+Filete do escudo. Fios, ícones e botão primário.
+Tinta em cima: 7.0
+mostarda
+#D99A00
+A sacola. Pilar Vendas. Faixa de destaque da Voz.
+Tinta em cima: 6.7
+verde-folha
+#007A33
+Palmeiras e gráfico. Pilar Crescimento.
+No marfim como texto: 4.7
+Apoio
+rosa-toborochi
+#E07FA3
+A flor símbolo da cidade. Acento raro, nunca texto pequeno.
+Tinta em cima: 6.0
+ouro-vivo
+#E8B83A
+Destaques, rótulos e pesponto no escuro.
+No --mata: 6.6
+cruz-funda
+#A31F16
+Fundos vermelhos com texto marfim. Texto vermelho no claro.
+Marfim em cima: 6.6
+fundos suaves
+#F1DED3 · #F3E6C4 · #E0E5D5 · #F6DDE6
+Vermelho, mostarda, verde e rosa, para blocos de destaque.
+Tinta em cima: 12.6 ou mais
+Neutros
+marfim
+#F3EEE3
+Fundo claro e texto no escuro.
+Tinta em cima: 14.2
+cru
+#E6DDCB
+Cards e superfícies no claro.
+Tinta em cima: 12.1
+linha-clara
+#D3C8B2
+Bordas de 1px no claro.
+Só borda
+tinta
+#0B241B
+Texto principal sobre claro.
+No marfim: 14.2
+grafite
+#4A5568
+Texto secundário sobre claro.
+No marfim: 6.5
+nevoa-verde
+#A9C2B5
+Texto secundário sobre escuro.
+No --mata: 6.4
+mata-2
+#164A39
+Superfícies e cards no escuro.
+Marfim em cima: 8.8
+mata-3
+#1E5A45
+Card elevado no escuro.
+Marfim em cima: 7.0
+linha-mata
+#2C6650
+Bordas de 1px no escuro.
+Só borda
+LEITURA OFICIAL DA BANDEIRA DA BOLÍVIA
+O significado da tricolor
+Vive na fita métrica e na faixa tricolor: #DA291C, #F4E400 e #007A33.
+Vermelho · O sangue dos heróis. Produção · o esforço
+Amarelo · As riquezas. Vendas · a riqueza
+Verde · A natureza e a esperança. Crescimento · a esperança
+BANDEIRA CRUCEÑA E TOBOROCHI
+As cores de Santa Cruz
+Verde · as florestas da região. Branco · a nobreza do povo.
+Rosa · o toborochi, a flor símbolo da cidade.
+Proporção
+50% marfim e cru
+20% verde-mata
+10% dourado
+20% apoio: vermelho, mostarda, verde, rosa
+Pilares: Produção = vermelho (--cruz), Vendas = mostarda (--mostarda), Crescimento = verde (--verde-folha).
+Rodízio por seção (barra do título, rótulo, borda superior dos cards e fundo suave de um bloco): vermelho, mostarda, verde, rosa, em sequência.
+Vermelho sobre verde-escuro só como preenchimento (cruz, faixa, fita), nunca como texto: no fundo --mata, texto vermelho reprova em contraste.
+Evite campos grandes de vermelho encostados em campos grandes de verde. Separe sempre com marfim, dourado ou mostarda.
+Texto vermelho no claro usa --cruz-funda. Mostarda e rosa nunca como texto; em cima deles, texto --tinta.
+O amarelo da bandeira (#F4E400) aparece só na fita métrica e na faixa tricolor.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+06 · TIPOGRAFIA
+Tipografia
+THUNDER
+DISPLAY · 700 · CAIXA ALTA
+Força e presença. Para títulos e números de impacto.
+Zodiak itálico
+SERIFA · 400, ITÁLICO, 700 · A PARTIR DE 16PX
+Autoridade e elegância. Para títulos de seção e destaques.
+Satoshi
+SANS · 400, 500, 700
+Clareza no dia a dia. Para textos, botões e rótulos.
+Escala
+12
+Da costura ao marketplace
+14
+Da costura ao marketplace
+16
+Da costura ao marketplace
+20
+Da costura ao marketplace
+25
+Da costura ao marketplace
+31
+Da costura ao marketplace
+39
+Da costura ao marketplace
+49
+Da costura ao marketplace
+61
+DA COSTURA AO MARKETPLACE
+Teste de acentos
+AÇÃO · CORAÇÃO · PRODUÇÃO
+AÇÃO · CORAÇÃO · PRODUÇÃO
+AÇÃO · CORAÇÃO · PRODUÇÃO
+07 · GRAFISMOS
+Grafismos
+1
+2
+3
+4
+5
+6
+7
+8
+9
+Fita métrica tricolor
+36px (3 faixas de 12px) nas cores da bandeira da Bolívia, ondulada, marcações --tinta a 50%, ponteira dourada. Atravessa a base da composição. Nunca passa sobre texto.
+Fundo pesponto
+Costura reta em losango de 32px, tracejado 5/3. No escuro, --ouro-vivo a 8%; no claro, --tinta a 6%. Cobre a peça inteira. Amostras ampliadas.
+Corte
+Costura
+Anúncio
+Botão marcador
+Botão de roupa: círculo de 14px com 4 furos, preenchido em dourado, furos na cor do fundo. Marcador de listas de conteúdo e de módulo concluído. Nunca em erro ou alerta.
+Losango
+Losango de 8px: ornamento no centro do fio, na capa e como marcador de alerta.
+Título de seção
+Fio tricolor
+3px × 96px, três segmentos iguais nas cores da bandeira da Bolívia, sob títulos de seção. Segmentado, nunca degradê.
+Fio com losango
+Fio 1px dourado com losango de 8px no centro. No escuro, --ouro a 40%; no claro, --ouro-escuro.
+08 · REGISTROS
+Registros e carrosséis
+A
+Todo escuro
+Anúncio pago, lançamento de turma, prova e resultado.
+B
+Todo claro
+Conteúdo técnico denso: passo a passo, tabela, checklist.
+C
+Sanduíche
+PADRÃO DA CASA
+Capa e fechamento escuros, miolo claro. Padrão da casa para carrossel educativo. Na dúvida, use o C.
+D
+Alternado
+Comparações: erro × acerto, antes × depois.
+REGRA DE FEED
+No máximo 2 capas claras seguidas.
+09 · APLICAÇÕES
+Aplicações
+PERFIL DO INSTAGRAM
+tuecom
+Mentoria para vendedores de roupa · Da costura ao marketplace
+POST 1080×1350 · ESCURO
+POST 1080×1350 · CLARO
+STORY 1080×1920
+ETIQUETA DE ROUPA
+DA COSTURA
+AO MARKETPLACE
+CRACHÁ · ESCURO
+MENTORADO
+Nome do mentorado
+Nome da confecção
+1
+2
+3
+4
+5
+CRACHÁ · CLARO
+MENTORADO
+Nome do mentorado
+Nome da confecção
+1
+2
+3
+4
+5
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+10 · VOZ
+Voz
+Profissional
+Premium
+Respeitoso
+Dono do próprio negócio
+FALAMOS ASSIM
+Sua costura merece preço de profissional.
+Do corte à primeira venda, com método.
+Anúncios que vendem na Shopee, Shein, TikTok Shop e Mercado Livre.
+Gestão, números e equipe para escalar a confecção.
+NÃO FALAMOS ASSIM
+COITADISMO
+Coitado de quem costura o dia inteiro e não ganha nada.
+PROMESSA DE DINHEIRO FÁCIL
+Fique rico vendendo roupa sem esforço.
+GÍRIA FORÇADA
+Bora bombar as vendas, é só sucesso!
+ESTEREÓTIPO
+O costureiro boliviano humilde e sofrido.
+11 · ARQUIVOS OFICIAIS
+Da costura ao marketplace
+@tuecom
+LOGO
+Escudo oficial colorido, PNG
+FONTES
+Thunder, Zodiak e Satoshi
+DESIGN SYSTEM
+Tu Ecom - DS
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60

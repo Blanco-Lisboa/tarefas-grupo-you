@@ -7,6 +7,9 @@ Só leitura nas origens; aqui ficam cópias. Troque o arquivo daqui, nunca o da 
 - `you-logo.svg`  ← You/identidade/logo/svg/you-logo-laranja.svg (logo com nome)
 - `beec.svg`      ← Beec/identidade/logo/svg/beec-icone-roxo.svg (símbolo, roxo profundo)
 - `beec-logo.svg` ← Beec/identidade/logo/svg/beec-logo-roxo.svg (logo com nome)
+- `tu-ecom.png`   ← Desktop/ID-Visual-ALL/Tu Ecom/Manual de Identidade Visual - Tu Ecom.html (SÓ LEITURA; o escudo oficial
+  colorido, 1254×1254 PNG com fundo transparente, embutido no manual como "Escudo sobre marfim"; extraído em 26/10/2026, item 312).
+  Cor principal da marca: verde-mata #0F3D2E ("Fundo escuro principal" do manual). Texto do manual em docs/referencias/2026-10-26-312-manual-tu-ecom.txt.
 Empresa nova sem arquivo aqui aparece com o nome em texto (veja `SeloEmpresa`).
 
 ## redes/ (desenho oficial da marca, pacote simple-icons 13.21.0, CC0; a cor é a oficial de cada marca)
