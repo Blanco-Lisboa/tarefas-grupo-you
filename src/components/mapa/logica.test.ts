@@ -83,7 +83,7 @@ describe("fila por dia", () => {
   });
 
   it("reunião com empresa e etapa não entra na fila nem no Mapa (item 188)", () => {
-    const reuniao = t("Reunião de pauta", "postagem", "2026-10-18", { titulo: "Reunião de pauta" });
+    const reuniao = t("Reunião de pauta", "reuniao", "2026-10-18", { titulo: "Reunião de pauta" });
     expect(filaPorDia([reuniao], "2026-10-19")).toEqual([]);
     expect(conteudos([reuniao])).toEqual([]);
   });
@@ -130,7 +130,7 @@ describe("278 · Postado de qualquer tipo", () => {
 
 describe("semData (item 198)", () => {
   it("postagem de empresa sem data entra; com data, postada, pessoal e reunião ficam fora", () => {
-    const lista = [t("a", "postagem"), t("b", "postagem", "2026-10-20T09:00"), t("c", "postagem", undefined, { etapa: "postado" }), t("d", "postagem", undefined, { empresaId: "" }), t("e", "roteiro"), t("Reunião de pauta", "postagem"), t("f", "postagem", undefined, { concluida: true })];
+    const lista = [t("a", "postagem"), t("b", "postagem", "2026-10-20T09:00"), t("c", "postagem", undefined, { etapa: "postado" }), t("d", "postagem", undefined, { empresaId: "" }), t("e", "roteiro"), t("Reunião de pauta", "reuniao"), t("f", "postagem", undefined, { concluida: true })];
     expect(semData(lista).map((x) => x.id)).toEqual(["a", "c"]); // 278: Postado sem data entra; só concluído sem Postado fica fora
   });
 

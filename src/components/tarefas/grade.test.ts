@@ -190,11 +190,17 @@ describe("separação entre tarefa do caderno e conteúdo", () => {
   });
 
   it("reunião com etapa e empresa não é conteúdo, mas segue no caderno e no calendário do dono", () => {
-    const reuniao = { ...base, titulo: "Reunião com a Beec", dono: "natham", responsavel: "natham" } as Tarefa;
+    const reuniao = { ...base, tipo: "outro", titulo: "Reunião com a Beec", dono: "natham", responsavel: "natham" } as Tarefa;
     expect(ehConteudo(reuniao)).toBe(false);
     expect(doCaderno(reuniao, "natham")).toBe(true);
     expect(daMinhaLista(reuniao, "natham")).toBe(true);
     expect(daMinhaLista(reuniao, "matheus")).toBe(false);
+  });
+
+  it("314: card de Postagem ou Roteiro com reunião no título continua na Esteira", () => {
+    expect(ehConteudo({ ...base, titulo: "Reunião com Junio" })).toBe(true);
+    expect(ehConteudo({ ...base, tipo: "roteiro", titulo: "Reunião junio - 1" })).toBe(true);
+    expect(ehConteudo({ ...base, tipo: "reuniao", titulo: "Pauta" })).toBe(false);
   });
 
   it("mantém a tarefa pessoal no caderno e na lista do calendário", () => {

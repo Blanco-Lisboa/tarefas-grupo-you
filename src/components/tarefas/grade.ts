@@ -122,9 +122,10 @@ export const msAteMeiaNoite = (agora: Date): number =>
   new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1).getTime() - agora.getTime() + 500;
 
 /** Reunião (item 188) = tipo Reunião ou título com "reunião", "reuniões" ou a abreviação "reun", sem ligar para maiúscula
-    ou acento. "Reunir material" não conta. Só o título já basta: é o que o evento do Google traz. */
+    ou acento. "Reunir material" não conta. Só o título já basta: é o que o evento do Google traz.
+    314 · Mas só quando o tipo não foi escolhido: card de Postagem/Roteiro criado na Esteira com "reunião" no título é conteúdo (sumia da coluna). */
 export const ehReuniao = (t: { titulo: string; tipo?: string }): boolean =>
-  t.tipo === "reuniao" || /\b(reuni(ao|oes)|reun)\b/.test(t.titulo.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase());
+  t.tipo === "reuniao" || ((!t.tipo || t.tipo === "outro") && /\b(reuni(ao|oes)|reun)\b/.test(t.titulo.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase()));
 
 /** Conteúdo de empresa tem etapa e empresa. Postagem sem empresa continua sendo tarefa pessoal do Caderno.
     Reunião nunca é conteúdo (fica no Calendário e no Caderno, fora da Esteira, do Mapa e da Fila). */
