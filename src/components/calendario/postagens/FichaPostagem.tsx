@@ -8,7 +8,7 @@ import { CampoData } from "@/components/ui/CampoData";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
 import { SeloEmpresa } from "@/components/ui/Marca";
-import { DIAS_SEMANA, faltaPreencher, HORAS, soHoraQuemTitulo } from "./logica";
+import { comODia, DIAS_SEMANA, faltaPreencher, HORAS, paraGravar, soHoraQuemTitulo } from "./logica";
 import { PerguntaEscopo } from "./PerguntaEscopo";
 
 const FORMATOS = Object.entries(NOMES.formato).map(([valor, rotulo]) => ({ valor, rotulo }));
@@ -23,7 +23,8 @@ export function FichaPostagem({ inicial, ocorrencia, aoFechar }: { inicial: Plan
   const empresas = useEmpresas();
   const dialogo = useRef<HTMLDialogElement>(null);
   const [t, setT] = useState<Planejada | null>(ocorrencia ? null : inicial);
-  const [antes, setAntes] = useState<Planejada | null>(ocorrencia ? null : inicial);
+  const [antes, setAntes] = useState<Planejada | null>(ocorrencia ? null : inicial); // a série como está no banco
+  const [aberta, setAberta] = useState<Planejada | null>(ocorrencia ? null : inicial); // o que a ficha mostrou ao abrir (com o "só este dia")
   const [pergunta, setPergunta] = useState<Pergunta>(null);
   const [aviso, setAviso] = useState("");
   const [salvando, setSalvando] = useState(false);
@@ -35,19 +36,19 @@ export function FichaPostagem({ inicial, ocorrencia, aoFechar }: { inicial: Plan
     let vivo = true;
     void lerSerie(ocorrencia.planejadaId).then((s) => {
       if (!vivo) return;
-      if (s) { setT(s); setAntes(s); } else setAviso("Não consegui abrir esta postagem. Feche e tente de novo.");
+      if (s) { const dia = comODia(s, ocorrencia); setT(dia); setAberta(dia); setAntes(s); } else setAviso("Não consegui abrir esta postagem. Feche e tente de novo.");
     });
     return () => { vivo = false; };
-  }, [ocorrencia?.planejadaId]);
+  }, [ocorrencia]); // (objeto estável: vem do estado de Postagens, e a chave do componente já é planejada+dia)
 
   const mudar = (parte: Partial<Planejada>) => setT((x) => (x ? { ...x, ...parte } : x));
   const falta = t ? faltaPreencher(t) : "";
   const repete = !nova && antes?.repete === "semana";
 
   async function gravar(escopo: EscopoPostagem) {
-    if (!t) return;
+    if (!t || !antes || !aberta) return;
     setPergunta(null); setSalvando(true); setAviso("");
-    const r = await salvarPlanejada(t, escopo, ocorrencia?.dia);
+    const r = await salvarPlanejada(paraGravar(antes, aberta, t, escopo), escopo, ocorrencia?.dia);
     setSalvando(false);
     if (r.erro) setAviso(r.erro); else dialogo.current?.close();
   }

@@ -1,6 +1,6 @@
 // Calendário de postagens (315): só agrupamento, rótulos e conferência do formulário. O ESTADO (planejada/feita/faltou/extra) vem pronto do banco;
 // aqui nada é recalculado. Datas "AAAA-MM-DD" do relógio local, como o resto do calendário.
-import type { EstadoPostagem, Ocorrencia, Planejada } from "@/lib/dados";
+import type { EscopoPostagem, EstadoPostagem, Ocorrencia, Planejada } from "@/lib/dados";
 import { diasDaSemana, diasDoMes } from "../logica";
 
 export type Modo = "semana" | "mes";
@@ -49,3 +49,15 @@ export const soHoraQuemTitulo = (a: Planejada, b: Planejada) =>
 
 /** Mesmo texto do selo "formato · hora" do bloco. */
 export const quando = (o: Pick<Ocorrencia, "hora">) => o.hora.slice(0, 5);
+
+/** Lupa 315: um dia com "só este dia" tem hora, quem posta e título próprios. A ficha abre mostrando os DO DIA (é o bloco que foi clicado). */
+export const comODia = (s: Planejada, o: Pick<Ocorrencia, "hora" | "responsavel" | "titulo">): Planejada =>
+  ({ ...s, hora: quando(o), responsavel: o.responsavel ?? s.responsavel, titulo: o.titulo ?? s.titulo });
+
+/** Ao gravar "este e os próximos" ou "todos", hora/quem/título que a pessoa NÃO mexeu voltam a ser os da série:
+ *  senão o "só este dia" de um dia vazaria para a série inteira em silêncio. "Só este dia" grava o que está na ficha. */
+export function paraGravar(serie: Planejada, aberta: Planejada, t: Planejada, escopo: EscopoPostagem): Planejada {
+  if (escopo === "dia") return t;
+  const fica = <K extends "hora" | "responsavel" | "titulo">(c: K) => (t[c] === aberta[c] ? serie[c] : t[c]);
+  return { ...t, hora: fica("hora"), responsavel: fica("responsavel"), titulo: fica("titulo") };
+}

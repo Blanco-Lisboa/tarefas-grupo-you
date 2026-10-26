@@ -68,10 +68,14 @@ colagem 2 do 315: sem erro (idempotente)
     63 | ok    | G1 mudar a pauta toca o sino "pauta", e qualquer logado (Adrian) ouve                                                           | 
     64 | ok    | G2 relógios: postagens_gerar 0 6 * * * e postagens_riscar */5                                                                   | 
     65 | ok    | G3 apagar "todos": a série e a tarefa futura não feita somem                                                                    | 
-(65 rows)
+    66 | ok    | H1 editar "todos" com a série lida inteira preserva começo e dias (só a hora muda)                                              | 
+    67 | ok    | H2 data avulsa no formato do app grava e gera a tarefa                                                                          | 
+    68 | ok    | H3 o Matheus salva a tarefa da pauta pela ficha (com empresa): não bate no CHECK e o vínculo com a pauta continua               | 
+    69 | ok    | H3 e ela continua fora da Esteira (sem etapa) e fora do Google                                                                  | 
+(69 rows)
 
       total      
 -----------------
- FALHAS: 0 de 65
+ FALHAS: 0 de 69
 (1 row)
 

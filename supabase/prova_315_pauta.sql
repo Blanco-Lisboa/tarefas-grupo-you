@@ -264,6 +264,37 @@ begin
   perform public.confere('G3 apagar "todos": a série e a tarefa futura não feita somem', not exists (select 1 from public.postagens_planejadas where id = s) and not exists (select 1 from public.tarefas where id = tr));
 end $$;
 
+-- ===== H. Lupa (fechamento): as três pontas com o que o APP manda de verdade (formato de paraBanco, fixado no teste do app) =====
+do $$
+declare hoje date := (now() at time zone 'America/Sao_Paulo')::date; s uuid; d uuid; t uuid; p jsonb;
+begin
+  -- criar toda semana como a ficha manda (id nulo, data nula, título nulo, fim nulo), começando há 14 dias
+  perform public.login('natham'); set local role authenticated;
+  s := public.salvar_planejada(jsonb_build_object('id', null, 'empresa_id', 'tu-ecom', 'formato', 'carrossel', 'redes', jsonb_build_array('instagram', 'facebook'),
+    'hora', '17:00', 'responsavel', 'matheus', 'titulo', null, 'repete', 'semana', 'data', null, 'dias_semana', jsonb_build_array(1, 3, 5),
+    'inicio', hoje - 14, 'fim', null), 'todos', null);
+  -- editar "todos" como a ficha faz depois de ler a série inteira (lerSerie): só a hora muda
+  select to_jsonb(x) - 'responsavel_id' - 'criado_por' - 'created_at' || jsonb_build_object('responsavel', 'matheus', 'hora', '18:30') into p
+    from public.postagens_planejadas x where x.id = s;
+  perform public.salvar_planejada(p, 'todos', hoje);
+  perform public.confere('H1 editar "todos" com a série lida inteira preserva começo e dias (só a hora muda)',
+    (select inicio = hoje - 14 and dias_semana = '{1,3,5}' and hora = '18:30' and fim is null from public.postagens_planejadas where id = s));
+  -- data avulsa como a ficha manda (dias_semana nulo, fim nulo)
+  d := public.salvar_planejada(jsonb_build_object('id', null, 'empresa_id', 'you', 'formato', 'story', 'redes', jsonb_build_array('instagram'), 'hora', '07:30',
+    'responsavel', 'matheus', 'titulo', 'Bastidores', 'repete', 'data', 'data', hoje + 1, 'dias_semana', null, 'inicio', hoje + 1, 'fim', null), 'todos', null);
+  perform public.confere('H2 data avulsa no formato do app grava e gera a tarefa', (select count(*) from public.tarefas where planejada_id = d and titulo = 'Postar Story — You · Bastidores') = 1);
+  reset role;
+  -- o Matheus salva a tarefa da pauta pela ficha (salvar_tarefa, sem planejada_id e sem etapa), até escolhendo empresa: passa e o vínculo fica
+  select id into t from public.tarefas where planejada_id = d;
+  perform public.login('matheus'); set local role authenticated;
+  perform public.salvar_tarefa((select to_jsonb(x) - 'planejada_id' || '{"titulo":"Bastidores (gravar 07h)","empresa_id":"you","etapa":null}' from public.tarefas x where x.id = t));
+  reset role;
+  perform public.confere('H3 o Matheus salva a tarefa da pauta pela ficha (com empresa): não bate no CHECK e o vínculo com a pauta continua',
+    (select titulo = 'Bastidores (gravar 07h)' and empresa_id = 'you' and etapa is null and planejada_id = d from public.tarefas where id = t));
+  perform public.confere('H3 e ela continua fora da Esteira (sem etapa) e fora do Google', (select not vai_pro_google from public.tarefas where id = t)
+    and not exists (select 1 from public.agenda_saida where tarefa_id = t));
+end $$;
+
 \echo '== RESULTADO'
 select ordem, case when ok then 'ok   ' else 'FALHA' end as r, nome, detalhe from public.prova order by ordem;
 select 'FALHAS: ' || count(*) filter (where not ok) || ' de ' || count(*) as total from public.prova;

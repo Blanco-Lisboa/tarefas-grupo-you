@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Ocorrencia, Planejada } from "@/lib/dados";
-import { faltaPreencher, HORAS, periodoDe, planejadaNova, porDiaPostagens, soHoraQuemTitulo } from "./logica";
+import { comODia, faltaPreencher, HORAS, paraGravar, periodoDe, planejadaNova, porDiaPostagens, soHoraQuemTitulo } from "./logica";
 
 const o = (dia: string, hora: string, empresaId: string): Ocorrencia => ({ dia, hora, empresaId, estado: "planejada" });
 
@@ -45,3 +45,15 @@ describe("soHoraQuemTitulo", () => {
 });
 
 it("horas vão de 07:00 a 22:00", () => expect([HORAS[0], HORAS.at(-1), HORAS.length]).toEqual(["07:00", "22:00", 31]));
+
+describe("Lupa 315: dia com \"só este dia\" na ficha", () => {
+  const serie: Planejada = { ...planejadaNova("2026-11-02"), id: "s", empresaId: "you", repete: "semana", diasSemana: [1, 3], hora: "17:00", titulo: "" };
+  const dia = comODia(serie, { hora: "18:30", responsavel: "natham", titulo: "Só hoje" });
+  it("abre mostrando hora, quem e título do DIA", () => expect([dia.hora, dia.responsavel, dia.titulo]).toEqual(["18:30", "natham", "Só hoje"]));
+  it("todos/próximos: o que não foi mexido volta a ser da série; o que foi mexido vai", () => {
+    const g = paraGravar(serie, dia, { ...dia, titulo: "Novo para todos" }, "todos");
+    expect([g.hora, g.responsavel, g.titulo, g.diasSemana]).toEqual(["17:00", "matheus", "Novo para todos", [1, 3]]);
+  });
+  it("só este dia grava o que está na ficha", () => expect(paraGravar(serie, dia, { ...dia, hora: "19:00" }, "dia").hora).toBe("19:00"));
+  it("dia sem exceção: nada muda", () => expect(paraGravar(serie, comODia(serie, { hora: "17:00" }), comODia(serie, { hora: "17:00" }), "todos")).toEqual(serie));
+});
