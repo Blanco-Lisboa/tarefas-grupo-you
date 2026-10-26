@@ -12,6 +12,7 @@ export type LinhaFolha = { id: string; /** Item 296: cor da linha inteira. */ co
   /** Compromisso do Google (item 221): só leitura, mas com quadradinho de feito. "continua" = linha de baixo de um compromisso longo, só pintada. */ compromisso?: "primeira" | "continua"; cor?: string; responsavel?: Responsavel; /** Vazio = tarefa sem empresa: não mostra logo. */ empresa?: Opcao;
   /** Nome de quem mandou a tarefa (selo "enviada por"). Vazio = não foi enviada. */ enviadaPor?: string;
   /** Nome de quem recebeu, no caderno de quem enviou (selo "enviada →"). Vale no lugar de enviadaPor. */ enviadaPara?: string;
+  /** 315: tarefa gerada pela pauta de postagens: selo "da pauta" na linha. */ daPauta?: boolean;
   /** Item 275: linhas que o bloco da tarefa ocupa (1 = comum; 2 ou mais = tarefa longa, sem pauta no meio). */ bloco?: number;
   /** Sobreposição antiga: horário gravado (ex.: "09:00–11:00") que passa do começo de outra tarefa. Só aviso; nada é gravado sozinho. */ conflito?: string;
   /** Item 283: "13:30–14:30" de todo bloco de mais de 30 min, discreto ao lado do nome. */ intervalo?: string;
@@ -191,6 +192,7 @@ export function Folha({ letra, titulo, subtitulo, linhas, faixa, rotulos, vazio,
                 {l.intervalo && !l.conflito && <span className="linha-intervalo">{l.intervalo}</span>}
                 {l.conflito && <span className="linha-conflito" title={l.podeAlterar === false ? "O horário gravado passa do começo de outra tarefa. Só quem é dono da tarefa muda a duração." : "O horário gravado passa do começo de outra tarefa. Mude a duração pelo ⋮."}>⚠ {l.conflito}</span>}
                 {l.enviadaPara ? <span className="linha-selo">enviada → {l.enviadaPara}</span> : l.enviadaPor && <span className="linha-selo">enviada por {l.enviadaPor}</span>}
+                {l.daPauta && <span className="linha-selo linha-selo--pauta" title="Veio do calendário de postagens">da pauta</span>}
                 {(() => { const e = ETIQUETAS.find((x) => x.cor && x.valor === l.cor); return e && (
                   <span className="linha-etq" style={{ "--e": `var(--${e.valor})`, "--et": `var(--${e.valor}-texto)` } as CSSProperties}>{e.rotulo}</span>
                 ); })()}

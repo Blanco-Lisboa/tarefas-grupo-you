@@ -118,6 +118,8 @@
 .linha .detalhe { flex: none; font-size: calc(16px * var(--escala)); line-height: 1; margin-left: var(--s-4); white-space: nowrap; }
 /* selo "enviada por X" (item 177): retângulo de cantos suaves, não pílula */
 .linha-selo { flex: none; padding: 2px 8px; border-radius: 8px; background: color-mix(in srgb, var(--azul) 12%, transparent); color: var(--azul); font: 600 var(--t-12) / 1.2 var(--fonte); white-space: nowrap; }
+/* selo "da pauta" (315): mesmo molde do "enviada por", tom neutro para não brigar com a cor da empresa */
+.linha-selo--pauta { background: color-mix(in srgb, var(--texto) 9%, transparent); color: var(--texto); opacity: .8; }
 .linha-intervalo { flex: none; font: 500 var(--t-12) / 1 var(--fonte); color: var(--fraco); white-space: nowrap; font-variant-numeric: tabular-nums; } /* item 283: "13:30–14:30" ao lado do nome do bloco */
 .linha-etq { flex: none; margin-left: auto; padding: 3px 8px; border-radius: var(--raio-b); background: var(--e); color: var(--et); font: 600 var(--t-12) / 1 var(--fonte); }
 

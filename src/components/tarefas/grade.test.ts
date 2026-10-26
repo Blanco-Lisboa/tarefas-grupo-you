@@ -323,3 +323,22 @@ describe("Sem data em qualquer linha (292)", () => {
     expect(g[41]).toBeNull();
   });
 });
+
+describe("315: tarefa da pauta de postagens no Caderno", () => {
+  // Sem etapa e sem empresa, com planejadaId: é tarefa comum do Caderno do responsável.
+  const pauta = { ...t("p", "2026-10-26T17:00"), tipo: "outro", empresaId: "", responsavel: "matheus", dono: "matheus", criadoPor: "natham", planejadaId: "plan-1", titulo: "Postar Reels — You" } as Tarefa;
+  it("não é conteúdo: fica fora da Esteira, do Mapa e da Fila", () => {
+    expect(ehConteudo(pauta)).toBe(false);
+    expect(ehConteudo({ ...pauta, empresaId: "you" })).toBe(false); // Matheus escolhe empresa na ficha: ainda sem etapa
+  });
+  it("entra no Caderno do Matheus, na linha da hora, e não vai ao Google", () => {
+    expect(doCaderno(pauta, "matheus")).toBe(true);
+    expect(montarGrade([pauta], true).findIndex((x) => x?.id === "p")).toBe(20); // 17:00 = (17-7)*2
+    expect(pauta.vaiProGoogle).toBeUndefined();
+  });
+  it("quando a linha da hora está tomada, desce para a livre", () => {
+    const g = montarGrade([t("a", "2026-10-26T17:00"), pauta], true);
+    expect(g[20]?.id).toBe("a");
+    expect(g[21]?.id).toBe("p");
+  });
+});

@@ -97,6 +97,8 @@ export type Tarefa = {
   enviadaPor?: Responsavel;
   /** Vai para a agenda do Google do responsável (volta da agenda, 010). Só o Calendário liga isto, ao CRIAR a tarefa; depois não muda (o banco trava). Tarefa do Caderno nunca vai. */
   vaiProGoogle?: boolean;
+  /** 315: veio da pauta de postagens (calendário de postagens). Só leitura: o app nunca manda esta coluna; o banco impede que vire card (CHECK tarefas_pauta_sem_etapa). */
+  planejadaId?: string;
 };
 
 /** Rótulo colorido que se cria e se marca nos conteúdos. aprovacao = marcar pede "Quem aprova". */

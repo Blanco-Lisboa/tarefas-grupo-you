@@ -106,6 +106,7 @@ export function TelaTarefas() {
     responsavel: t.responsavel,
     enviadaPor: !ehConteudo(t) && t.enviadaPor ? NOMES[t.enviadaPor] : undefined,
     enviadaPara: enviadaPorMim(t, de) && t.dono ? NOMES[t.dono] : undefined,
+    daPauta: t.planejadaId ? true : undefined,
     podeAlterar: podeAlterar(t, eu),
     podeApagar: podeApagar(t, eu) && !ehConteudo(t), // 287: card de conteúdo só se apaga pela Esteira
     bloco: linhasDoBloco(grade, k),

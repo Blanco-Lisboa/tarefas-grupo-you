@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { etapaAoSalvar } from "@/components/ficha/arrumar";
 import { campoOcasiao, daLinha, funcaoAusente, motivoDoBanco, paraBanco, podeAlterar, podeApagar, postadoEmDe, trocarFazendo } from "./repositorio";
 
 const quem = (id: string | null) => ({ a: "natham", b: "matheus" } as const)[id as "a" | "b"];
@@ -24,6 +25,29 @@ describe("repositório: linha do banco <-> tarefa da tela", () => {
     expect(daLinha({ ...linha, vai_pro_google: true }, [], quem).vaiProGoogle).toBe(true);
     expect(daLinha({ ...linha }, [], quem).vaiProGoogle).toBeUndefined();
     expect(paraBanco(daLinha({ ...linha, vai_pro_google: true }, [], quem), "b")).not.toHaveProperty("vai_pro_google");
+  });
+});
+
+describe("315: tarefa da pauta de postagens", () => {
+  const daPauta = { ...linha, etapa: null, planejada_id: "p1", vai_pro_google: false, tipo: "outro" as const };
+  it("planejada_id é lido do banco (só selo) e nunca reenviado na edição", () => {
+    const t = daLinha(daPauta, [], quem);
+    expect(t.planejadaId).toBe("p1");
+    expect(paraBanco(t, "b")).not.toHaveProperty("planejada_id");
+    expect(daLinha({ ...linha }, [], quem).planejadaId).toBeUndefined(); // antes do SQL colado a coluna nem vem
+  });
+  it("não vai ao Google, nem na leitura nem na volta", () => {
+    const t = daLinha(daPauta, [], quem);
+    expect(t.vaiProGoogle).toBeUndefined();
+    expect(paraBanco(t, "b")).not.toHaveProperty("vai_pro_google");
+  });
+  it("mesmo com empresa escolhida na ficha, salvar não inventa etapa", () => {
+    const t = { ...daLinha(daPauta, [], quem), empresaId: "you" };
+    expect(etapaAoSalvar(t)).toBeUndefined();
+    expect(paraBanco(t, "b").etapa).toBeNull();
+  });
+  it("recusa do CHECK vira frase que se entende", () => {
+    expect(motivoDoBanco({ code: "23514", message: 'violates check constraint "tarefas_pauta_sem_etapa"' }, "x")).toMatch(/pauta de postagens/);
   });
 });
 

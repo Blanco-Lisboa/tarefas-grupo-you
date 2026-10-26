@@ -16,7 +16,7 @@ type LinhaTarefa = {
   id: string; titulo: string; tipo: Tarefa["tipo"]; empresa_id: string | null; rede: Tarefa["rede"] | null; etapa: Tarefa["etapa"] | null;
   responsavel_id: string; inicio: string | null; fim: string | null; dia_inteiro: boolean; cor: Tarefa["cor"]; concluida: boolean;
   objetivo: string | null; notas: string | null; links: Tarefa["links"]; aprovador: string | null;
-  dono_id: string; criado_por: string; enviada_por: string | null; vai_pro_google?: boolean; postar_em?: string | null; conserto?: boolean; conserto_texto?: string | null; formato?: Tarefa["formato"] | null;
+  dono_id: string; criado_por: string; enviada_por: string | null; vai_pro_google?: boolean; planejada_id?: string | null; /* 315: só existe depois do SQL da pauta */ postar_em?: string | null; conserto?: boolean; conserto_texto?: string | null; formato?: Tarefa["formato"] | null;
   postado_em?: string | null; legenda?: string | null; postar_redes?: Tarefa["postarRedes"] | null; capa_quadro_ms?: number | null; ocasiao_id?: string | null;
   tarefa_tags?: { tag_id: string }[]; linha_caderno?: number | null; cor_linha?: Tarefa["corLinha"] | null; /* 292/296: só existem depois do SQL colado */
 };
@@ -66,7 +66,7 @@ export function daLinha(l: LinhaTarefa, arquivos: Tarefa["arquivos"] = [], quem:
     responsavel: quem(l.responsavel_id) ?? "natham", inicio: l.inicio ?? undefined, fim: l.fim ?? undefined, diaInteiro: l.dia_inteiro,
     cor: l.cor, concluida: l.concluida || undefined, objetivo: l.objetivo ?? undefined, notas: l.notas ?? undefined,
     links: l.links ?? [], arquivos, tags: ids?.length ? ids : undefined, aprovador: l.aprovador ?? undefined,
-    dono: quem(l.dono_id), criadoPor: quem(l.criado_por), enviadaPor: quem(l.enviada_por), vaiProGoogle: l.vai_pro_google || undefined,
+    dono: quem(l.dono_id), criadoPor: quem(l.criado_por), enviadaPor: quem(l.enviada_por), vaiProGoogle: l.vai_pro_google || undefined, planejadaId: l.planejada_id ?? undefined,
     postarEm: l.postar_em ?? undefined, postadoEm: l.postado_em ?? undefined, conserto: l.conserto || undefined, consertoTexto: l.conserto_texto === undefined ? undefined : l.conserto_texto ?? "", formato: l.formato ?? undefined,
     legenda: l.legenda ?? undefined, postarRedes: l.postar_redes ?? undefined, capaQuadroMs: l.capa_quadro_ms ?? undefined, ocasiaoId: l.ocasiao_id ?? undefined,
     postagens: postagens?.length ? postagens : undefined, linhaCaderno: l.linha_caderno ?? undefined, corLinha: l.cor_linha ?? undefined,
@@ -128,12 +128,12 @@ const cancelados = new Set<string>(); // cards cuja programação o salvar desta
 let espiarAte = 0; // depois de mandar postar, a função pode levar alguns segundos para registrar: olha por 2 min mesmo sem linha nova
 const espiar = () => { clearTimeout(espiando); espiando = setTimeout(() => { if (!document.hidden) void carregar(); }, 15_000); };
 
-const soLeitura = "Essa tarefa é só para olhar: você não pode mexer nela.";
-const semAcesso = "O banco não deixou salvar (sem permissão ou o item não existe mais).";
+const soLeitura = "Essa tarefa é só para olhar: você não pode mexer nela."; const semAcesso = "O banco não deixou salvar (sem permissão ou o item não existe mais).";
 /** Recusas do banco que a pessoa entende (015/019): quem aprova, e Aprovado/Postado só para Postagem. */
 export function motivoDoBanco(e: unknown, padrao: string) {
   const { code, message } = (e ?? {}) as { code?: string; message?: string };
   if (code === "42501") return "Só o Natham ou quem aprova o card pode fazer isso.";
+  if (code === "23514" && message?.includes("tarefas_pauta_sem_etapa")) return "Tarefa da pauta de postagens fica no Caderno: ela não vira card da Esteira. O post sai pela Esteira.";
   if (code === "23514" && message?.includes("Postagem")) return "Só card de Postagem vai para Aprovado e Postado. Para terminar, use Concluir.";
   return e instanceof Error && e.message === semAcesso ? e.message : padrao;
 }
