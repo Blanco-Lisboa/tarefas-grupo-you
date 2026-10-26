@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
-import { podeAlterar, salvarTarefa, useAgendaEventos, useEu, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { podeAlterar, salvarTarefa, useAgendaEventos, useEu, usePostagensCalendario, useTarefas, type NovaTarefa, type Tarefa } from "@/lib/dados";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { Ficha, tarefaEmBranco } from "@/components/ficha/Ficha";
 import { Ano } from "./Ano";
@@ -9,6 +9,9 @@ import { BarraFiltros, passa, passaEvento, SEM_FILTROS, type Filtros } from "./F
 import { Grade } from "./Grade";
 import { agendaPorDia, andar, comMinuto, diasDaSemana, diasDoMes, esperarFimDoArraste, mover, paraHora, porDia, tituloPeriodo, type Destino, type Visao } from "./logica";
 import { Mes } from "./Mes";
+import { periodoDe } from "./postagens/logica";
+import { Postagens } from "./postagens/Postagens";
+import { modoSalvo, TrocaVisao, type ModoCalendario } from "./postagens/TrocaVisao";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { daMinhaLista } from "@/components/tarefas/grade";
 import { CampoData } from "@/components/ui/CampoData";
@@ -29,7 +32,17 @@ const VISOES: { v: Visao; rotulo: string; tecla: string }[] = [
 
 export function TelaCalendario() {
   const agora = useAgora();
-  return agora ? <Calendario agora={agora} /> : <section className="cal" aria-busy="true" />;
+  return agora ? <Corpo agora={agora} /> : <section className="cal" aria-busy="true" />;
+}
+
+/** 315: o botão "Tarefas | Postagens". Só aparece quando o banco já tem o calendário de postagens (antes do SQL colado a tela é a de sempre). */
+function Corpo({ agora }: { agora: string }) {
+  const [modo, setModo] = useState<ModoCalendario>(modoSalvo);
+  const semana = periodoDe("semana", agora.slice(0, 10));
+  const { itens, ausente } = usePostagensCalendario(semana.de, semana.ate);
+  const tem = itens !== undefined && !ausente;
+  const trocador = tem ? <TrocaVisao modo={modo} aoMudar={setModo} /> : null;
+  return tem && modo === "postagens" ? <Postagens agora={agora} trocador={trocador} /> : <Calendario agora={agora} trocador={trocador} />;
 }
 
 /** Data/hora de uma tarefa nova criada clicando num lugar vazio. */
@@ -39,7 +52,7 @@ function quando(d: Destino): Partial<NovaTarefa> {
   return { inicio: comMinuto(d.dia, d.minuto) }; // nasce sem fim (item 159): bloco de 30 min
 }
 
-function Calendario({ agora }: { agora: string }) {
+function Calendario({ agora, trocador }: { agora: string; trocador: ReactNode }) {
   const hoje = agora.slice(0, 10);
   const [visao, setVisao] = useState<Visao>("semana");
   const [cursor, setCursor] = useState(hoje);
@@ -117,6 +130,7 @@ function Calendario({ agora }: { agora: string }) {
         <FiltroEmpresa />
         <BarraFiltros filtros={filtros} mudar={setFiltros} />
         <div className="cal-acoes">
+          {trocador}
           <SemData lista={semData} acoes={acoes} />
           <Selecao
             rotulo="Visão"

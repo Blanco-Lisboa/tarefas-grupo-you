@@ -1,0 +1,162 @@
+"use client";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { apagarPlanejada, salvarPlanejada, useEmpresas, type EscopoPostagem, type Ocorrencia, type Planejada, type RedePost, type Responsavel } from "@/lib/dados";
+import { Confirmar } from "@/components/ficha/Confirmar";
+import { NOMES } from "@/components/ficha/Ficha";
+import { tomDaEmpresa } from "@/lib/cores-empresa";
+import { CampoData } from "@/components/ui/CampoData";
+import { Pessoa } from "@/components/ui/Pessoa";
+import { Selecao } from "@/components/ui/Selecao";
+import { SeloEmpresa } from "@/components/ui/Marca";
+import { DIAS_SEMANA, faltaPreencher, HORAS, soHoraQuemTitulo } from "./logica";
+import { PerguntaEscopo } from "./PerguntaEscopo";
+import { lerSerie } from "./serie";
+
+const FORMATOS = Object.entries(NOMES.formato).map(([valor, rotulo]) => ({ valor, rotulo }));
+const REDES: { valor: RedePost; rotulo: string }[] = [{ valor: "instagram", rotulo: "Instagram" }, { valor: "facebook", rotulo: "Facebook" }];
+const QUEM: Responsavel[] = ["matheus", "natham", "adrian"]; // quem tem Caderno (o Lucas não tem login)
+const REPETE = [{ v: "data", nome: "Só nesta data" }, { v: "semana", nome: "Toda semana" }] as const;
+
+type Pergunta = "salvar" | "apagar" | "apagar-unica" | null;
+
+/** Criar (sem `ocorrencia`) ou editar uma postagem planejada. Só o Natham chega aqui; o banco confere de novo (42501). */
+export function FichaPostagem({ inicial, ocorrencia, aoFechar }: { inicial: Planejada; ocorrencia?: Ocorrencia; aoFechar: () => void }) {
+  const empresas = useEmpresas();
+  const dialogo = useRef<HTMLDialogElement>(null);
+  const [t, setT] = useState<Planejada | null>(ocorrencia ? null : inicial);
+  const [antes, setAntes] = useState<Planejada | null>(ocorrencia ? null : inicial);
+  const [pergunta, setPergunta] = useState<Pergunta>(null);
+  const [aviso, setAviso] = useState("");
+  const [salvando, setSalvando] = useState(false);
+  const nova = !ocorrencia;
+
+  useEffect(() => { if (dialogo.current && !dialogo.current.open) dialogo.current.showModal(); }, []);
+  useEffect(() => {
+    if (!ocorrencia?.planejadaId) return;
+    let vivo = true;
+    void lerSerie(ocorrencia.planejadaId).then((s) => {
+      if (!vivo) return;
+      if (s) { setT(s); setAntes(s); } else setAviso("Não consegui abrir esta postagem. Feche e tente de novo.");
+    });
+    return () => { vivo = false; };
+  }, [ocorrencia?.planejadaId]);
+
+  const mudar = (parte: Partial<Planejada>) => setT((x) => (x ? { ...x, ...parte } : x));
+  const falta = t ? faltaPreencher(t) : "";
+  const repete = !nova && antes?.repete === "semana";
+
+  async function gravar(escopo: EscopoPostagem) {
+    if (!t) return;
+    setPergunta(null); setSalvando(true); setAviso("");
+    const r = await salvarPlanejada(t, escopo, ocorrencia?.dia);
+    setSalvando(false);
+    if (r.erro) setAviso(r.erro); else dialogo.current?.close();
+  }
+  async function apagar(escopo: EscopoPostagem) {
+    if (!ocorrencia?.planejadaId) return;
+    setPergunta(null); setSalvando(true); setAviso("");
+    const erro = await apagarPlanejada(ocorrencia.planejadaId, escopo, ocorrencia.dia);
+    setSalvando(false);
+    if (erro) setAviso(erro); else dialogo.current?.close();
+  }
+  const dia = (n: number) => !!t?.diasSemana?.includes(n);
+
+  return (
+    <dialog ref={dialogo} className="ficha pficha" aria-label={nova ? "Nova postagem" : "Postagem planejada"} onClose={aoFechar}
+      onClick={(e) => e.target === e.currentTarget && dialogo.current?.close()}>
+      <form className="ficha-cartao" onSubmit={(e) => { e.preventDefault(); if (!falta && !salvando) { if (repete) setPergunta("salvar"); else void gravar("todos"); } }}
+        style={{ "--etiqueta-atual": t?.empresaId ? tomDaEmpresa(t.empresaId).r : "var(--borda)" } as CSSProperties}>
+        <header className="ficha-faixa">
+          <div className="ficha-faixa-topo">
+            <span className="ficha-rotulo"><span className="ficha-cor-marca" aria-hidden />{nova ? "Nova postagem" : "Postagem planejada"}
+              {ocorrencia && repete && <span>· dia {ocorrencia.dia.slice(8)}/{ocorrencia.dia.slice(5, 7)}</span>}</span>
+            <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>
+          </div>
+          <p className="pficha-ajuda">O que precisa ser postado. Cada dia vira uma tarefa no Caderno de quem posta.</p>
+        </header>
+
+        {!t ? <p className="pficha-carregando" aria-busy={!aviso}>{aviso || "Abrindo..."}</p> : (
+          <fieldset className="ficha-corpo" disabled={salvando}>
+            <div className="ficha-grade">
+              <div className="ficha-campo ficha-escolha">
+                <Selecao rotulo="Empresa" multipla={false} vazio="Escolher" valor={t.empresaId ? [t.empresaId] : []} aoMudar={([v]) => v && mudar({ empresaId: v })}
+                  opcoes={empresas.map((e) => ({ valor: e.id, rotulo: e.nome, antes: <SeloEmpresa empresaId={e.id} nome={e.nome} tamanho={18} /> }))} />
+              </div>
+              <div className="ficha-campo ficha-escolha">
+                <Selecao rotulo="Formato" multipla={false} valor={[t.formato]} opcoes={FORMATOS} aoMudar={([v]) => v && mudar({ formato: v as Planejada["formato"] })} />
+              </div>
+              <div className="ficha-campo ficha-escolha">
+                <Selecao rotulo="Redes" valor={t.redes} opcoes={REDES} aoMudar={(v) => mudar({ redes: v as RedePost[] })} />
+              </div>
+              <div className="ficha-campo ficha-escolha">
+                <Selecao rotulo="Hora" multipla={false} valor={[t.hora]} opcoes={HORAS.map((h) => ({ valor: h, rotulo: h }))} aoMudar={([v]) => v && mudar({ hora: v })} />
+              </div>
+            </div>
+
+            <fieldset className="ficha-campo">
+              <legend>Quem posta</legend>
+              <div className="ficha-pessoas">
+                {QUEM.map((r) => (
+                  <button key={r} type="button" className="pficha-pessoa" aria-pressed={(t.responsavel ?? "matheus") === r} onClick={() => mudar({ responsavel: r })}>
+                    <Pessoa quem={r} tamanho={20} />{NOMES.responsavel[r]}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            <label className="ficha-campo">
+              <span className="ficha-legenda">Título ou observação <span className="pficha-opc">(opcional)</span></span>
+              <input className="pficha-texto" type="text" maxLength={200} value={t.titulo ?? ""} onChange={(e) => mudar({ titulo: e.target.value })} placeholder="Ex.: dica rápida do MEI" />
+            </label>
+
+            <fieldset className="ficha-campo">
+              <legend>Repetição</legend>
+              <div className="pficha-troca" role="group" aria-label="Repetição">
+                {REPETE.map((r) => (
+                  <button key={r.v} type="button" aria-pressed={t.repete === r.v} disabled={repete && r.v !== "semana"} onClick={() => mudar({ repete: r.v })}>{r.nome}</button>
+                ))}
+              </div>
+              {t.repete === "data" ? (
+                <CampoData rotulo="Dia" valor={t.data ?? ""} aoMudar={(d) => mudar({ data: d, inicio: d })} semLimpar />
+              ) : (
+                <>
+                  <div className="pficha-dias" role="group" aria-label="Dias da semana">
+                    {DIAS_SEMANA.map((d) => (
+                      <button key={d.n} type="button" aria-pressed={dia(d.n)}
+                        onClick={() => mudar({ diasSemana: dia(d.n) ? t.diasSemana!.filter((x) => x !== d.n) : [...(t.diasSemana ?? []), d.n] })}>{d.nome}</button>
+                    ))}
+                  </div>
+                  <div className="ficha-grade">
+                    <CampoData rotulo="Começa em" valor={t.inicio ?? ""} aoMudar={(d) => mudar({ inicio: d })} semLimpar />
+                    <CampoData rotulo="Termina em (opcional)" valor={t.fim ?? ""} min={t.inicio} aoMudar={(d) => mudar({ fim: d || undefined })} />
+                  </div>
+                </>
+              )}
+            </fieldset>
+          </fieldset>
+        )}
+
+        <footer className="ficha-pe">
+          {!nova && t && (
+            <button type="button" className="ficha-lixeira" aria-label="Apagar postagem" title="Apagar postagem" onClick={() => setPergunta(repete ? "apagar" : "apagar-unica")}>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4" /></svg>
+            </button>
+          )}
+          {aviso && t && <p className="ficha-erro" role="alert">{aviso}</p>}
+          {!aviso && falta && t && <p className="pficha-falta">{falta}</p>}
+          <button type="button" className="btn btn-2" onClick={() => dialogo.current?.close()}>Cancelar</button>
+          <button type="submit" className="btn" disabled={!t || !!falta || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>
+        </footer>
+      </form>
+      {pergunta === "salvar" && t && antes && (
+        <PerguntaEscopo titulo="Salvar a mudança" semDia={soHoraQuemTitulo(antes, t) ? undefined : "Só hora, quem posta e título mudam em um dia só."}
+          aoEscolher={(e) => void gravar(e)} aoCancelar={() => setPergunta(null)} />
+      )}
+      {pergunta === "apagar" && <PerguntaEscopo titulo="Apagar postagem" perigo aoEscolher={(e) => void apagar(e)} aoCancelar={() => setPergunta(null)} />}
+      {pergunta === "apagar-unica" && (
+        <Confirmar titulo="Apagar esta postagem?" texto="As tarefas dela que ainda não foram feitas saem do Caderno. As que já foram feitas ficam." acao="Apagar" perigo
+          aoConfirmar={() => void apagar("todos")} aoCancelar={() => setPergunta(null)} />
+      )}
+    </dialog>
+  );
+}

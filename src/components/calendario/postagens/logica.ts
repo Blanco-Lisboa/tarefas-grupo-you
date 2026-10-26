@@ -1,0 +1,51 @@
+// Calendário de postagens (315): só agrupamento, rótulos e conferência do formulário. O ESTADO (planejada/feita/faltou/extra) vem pronto do banco;
+// aqui nada é recalculado. Datas "AAAA-MM-DD" do relógio local, como o resto do calendário.
+import type { EstadoPostagem, Ocorrencia, Planejada } from "@/lib/dados";
+import { diasDaSemana, diasDoMes } from "../logica";
+
+export type Modo = "semana" | "mes";
+
+/** Os dias que a tela mostra e o intervalo que o banco é chamado para devolver (o mês inclui os dias de fora, como no Calendário). */
+export function periodoDe(modo: Modo, cursor: string) {
+  const dias = modo === "semana" ? diasDaSemana(cursor) : diasDoMes(cursor);
+  return { dias, de: dias[0], ate: dias[dias.length - 1] };
+}
+
+/** Por dia, na ordem da hora; empate: empresa. */
+export function porDiaPostagens(itens: readonly Ocorrencia[]) {
+  const mapa = new Map<string, Ocorrencia[]>();
+  for (const o of itens) mapa.set(o.dia, [...(mapa.get(o.dia) ?? []), o]);
+  for (const l of mapa.values()) l.sort((a, b) => a.hora.localeCompare(b.hora) || a.empresaId.localeCompare(b.empresaId));
+  return mapa;
+}
+
+export const ESTADOS: Record<EstadoPostagem, string> = { planejada: "Planejada", feita: "Postada", faltou: "Faltou", extra: "Extra" };
+
+/** Horas oferecidas: as linhas do Caderno (07:00 a 22:00, de meia em meia hora), para a tarefa cair na linha certa. */
+export const HORAS = Array.from({ length: 31 }, (_, k) => `${String(7 + Math.floor(k / 2)).padStart(2, "0")}:${k % 2 ? "30" : "00"}`);
+
+/** Segunda a domingo (como o Natham fala); o número é o do banco: 0 = domingo. */
+export const DIAS_SEMANA = [{ n: 1, nome: "Seg" }, { n: 2, nome: "Ter" }, { n: 3, nome: "Qua" }, { n: 4, nome: "Qui" }, { n: 5, nome: "Sex" }, { n: 6, nome: "Sáb" }, { n: 0, nome: "Dom" }];
+
+export const planejadaNova = (dia: string): Planejada => ({
+  empresaId: "", formato: "reels", redes: ["instagram", "facebook"], hora: "17:00", responsavel: "matheus", titulo: "",
+  repete: "data", data: dia, diasSemana: [], inicio: dia,
+});
+
+/** O que falta preencher ("" = pode salvar). */
+export function faltaPreencher(p: Planejada): string {
+  if (!p.empresaId) return "Escolha a empresa.";
+  if (!p.redes.length) return "Escolha pelo menos uma rede.";
+  if (p.repete === "data") return p.data ? "" : "Escolha o dia.";
+  if (!p.diasSemana?.length) return "Marque os dias da semana.";
+  if (!p.inicio) return "Escolha quando começa.";
+  return p.fim && p.fim < p.inicio ? "O fim não pode ser antes do começo." : "";
+}
+
+/** "Só este dia" no banco só muda hora, quem faz e título. Mudou outra coisa? Essa opção não pode ser oferecida (ela ignoraria a mudança em silêncio). */
+export const soHoraQuemTitulo = (a: Planejada, b: Planejada) =>
+  a.empresaId === b.empresaId && a.formato === b.formato && a.redes.join() === b.redes.join() && a.repete === b.repete
+  && (a.diasSemana ?? []).join() === (b.diasSemana ?? []).join() && (a.fim ?? "") === (b.fim ?? "") && (a.inicio ?? "") === (b.inicio ?? "");
+
+/** Mesmo texto do selo "formato · hora" do bloco. */
+export const quando = (o: Pick<Ocorrencia, "hora">) => o.hora.slice(0, 5);

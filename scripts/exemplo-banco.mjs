@@ -4,7 +4,7 @@
 // GET /entrar = "login" sem senha: grava a sessão de mentira do Natham no cookie e volta para o app.
 import { createReadStream, statSync } from "node:fs"; import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
-import { funcaoDrive } from "./exemplo-funcao-drive.mjs"; import { storageDePrints } from "./exemplo-storage-prints.mjs";
+import { funcaoDrive } from "./exemplo-funcao-drive.mjs"; import { storageDePrints } from "./exemplo-storage-prints.mjs"; import { postagensExemplo } from "./exemplo-postagens.mjs";
 
 export const PORTA_BANCO = Number(process.env.EXEMPLO_PORTA_BANCO ?? 3201);
 const PORTA_APP = Number(process.env.EXEMPLO_PORTA_APP ?? 3101);
@@ -272,7 +272,6 @@ createServer(async (req, res) => {
   if (url.pathname === "/functions/v1/drive" && req.method === "POST") {
     return funcaoDrive(await corpoDe(req), { res, ocasioes, pastasLivres, arquivos, tarefas, P, porta: PORTA_BANCO, novoId: () => ++n });
   }
-
   const rpc = url.pathname.match(/^\/rest\/v1\/rpc\/(\w+)/)?.[1];
   if (rpc === "salvar_tarefa" && req.method === "POST") {
     const { p, p_tags = [] } = await corpoDe(req);
@@ -289,6 +288,7 @@ createServer(async (req, res) => {
     return res.writeHead(204).end();
   }
   if (rpc === "postagem_automatica_ligada") return res.writeHead(200).end(JSON.stringify(process.env.EXEMPLO_POSTAGEM_AUTOMATICA === "1"));
+  if (await postagensExemplo({ res, url, rpc, metodo: req.method, corpo: () => corpoDe(req) })) return; // 315: calendário de postagens (exemplo-postagens.mjs)
   if (rpc) return res.writeHead(200).end("[]"); // tarefas_no_google, postar_agora etc.: nada a fazer
 
   const tabela = url.pathname.match(/^\/rest\/v1\/(\w+)/)?.[1];
