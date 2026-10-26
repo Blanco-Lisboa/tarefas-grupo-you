@@ -9,8 +9,8 @@ export function Confirmar({ titulo, texto, acao, cancelar = "Cancelar", perigo, 
   const dialogo = useRef<HTMLDialogElement>(null);
   useEffect(() => { if (dialogo.current && !dialogo.current.open) dialogo.current.showModal(); }, []);
   return (
-    // O diálogo nasce dentro do card: sem parar o clique e o arraste aqui, eles "pegavam" o card por trás.
-    <dialog ref={dialogo} className="confirmar" aria-labelledby="confirmar-titulo" onClose={(e) => { e.stopPropagation(); aoCancelar(); }} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+    // O diálogo nasce dentro do card: sem parar o clique, o arraste e o Esc (cancel) aqui, eles "pegavam" o card por trás.
+    <dialog ref={dialogo} className="confirmar" aria-labelledby="confirmar-titulo" onCancel={(e) => e.stopPropagation()} onClose={(e) => { e.stopPropagation(); aoCancelar(); }} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
       <h2 id="confirmar-titulo">{titulo}</h2>
       <p>{texto}</p>
       <div className="confirmar-acoes">

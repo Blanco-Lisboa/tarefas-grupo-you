@@ -85,6 +85,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
   const [arquivos, setArquivos] = useState(tarefa.arquivos);
   const [editandoNotas, setEditandoNotas] = useState(false);
   const [apagando, setApagando] = useState(false);
+  const [duplicando, setDuplicando] = useState(false); // 313: confirmação antes de criar a cópia
   const [recusa, setRecusa] = useState(""); // Aprovar/Consertar que o banco recusou
   // Só fecha depois que o banco aceitou: se recusar, a ficha fica aberta com o aviso e nada do que foi escrito se perde.
   // (O aviso geral da casca fica atrás da ficha, então o erro aparece também no pé dela.)
@@ -174,6 +175,7 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
   // 310: cópia de planejamento na Esteira ("<título> - Cópia N"); a ficha fecha e a cópia aparece na coluna
   async function duplicar() {
     if (!tarefa.id) return;
+    setDuplicando(false);
     limparErro();
     const salvou = await salvarTarefa(duplicarCard(tarefa as Tarefa, todas, tags));
     if (salvou) setEnviou(true); else setRecusa(lerErro());
@@ -304,12 +306,13 @@ export function Ficha({ tarefa, aoFechar, aoSalvar, soLer, tipos = TIPOS }: {
           ) : lixeira && (
             <button type="button" className="ficha-lixeira" aria-label="Apagar tarefa" title="Apagar tarefa" onClick={() => setApagando(true)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.7 10h6.6L14 6M8.5 9v4M11.5 9v4" /></svg></button>
           )}
-          {!apagando && podeDuplicar && <button type="button" className="btn btn-2 ficha-duplicar" onClick={() => void duplicar()}>Duplicar</button>}
+          {!apagando && podeDuplicar && <button type="button" className="btn btn-2 ficha-duplicar" onClick={() => setDuplicando(true)}>Duplicar</button>}
           {((enviou && erro) || recusa) && <p className="ficha-erro" role="alert">{recusa || erro}</p>}
           {!apagando && <button type="button" className="btn btn-2" onClick={saida.pedir}>{soLer ? "Fechar" : "Cancelar"}</button>}
           {!soLer && !apagando && <button type="submit" className="btn" disabled={!t.titulo.trim() || !empresaOk || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>}
         </footer>
       </form>
+      {duplicando && <Confirmar titulo="Duplicar este card?" texto={`A cópia vai se chamar "${duplicarCard(tarefa as Tarefa, todas, tags).titulo}".`} acao="Duplicar" aoConfirmar={() => void duplicar()} aoCancelar={() => setDuplicando(false)} />}
       {saida.perguntando && <Confirmar titulo="Descartar alterações?" texto="O que você mexeu nesta ficha ainda não foi salvo." acao="Descartar" cancelar="Continuar editando" perigo aoConfirmar={saida.descartar} aoCancelar={saida.continuar} />}
     </dialog>
   );
