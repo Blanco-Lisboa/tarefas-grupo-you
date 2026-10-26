@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpc = vi.fn();
-vi.mock("@/lib/supabase/cliente", () => ({ supabase: () => ({ rpc }) }));
-import { apagarPlanejada, carregar, daLinha, lerAusente, lerPeriodo, paraBanco, salvarPlanejada, type Planejada } from "./postagens-planejadas";
+const maybeSingle = vi.fn();
+vi.mock("@/lib/supabase/cliente", () => ({ supabase: () => ({ rpc, from: () => ({ select: () => ({ eq: () => ({ maybeSingle }) }) }) }) }));
+import { apagarPlanejada, carregar, daLinha, daSerie, lerSerie, lerAusente, lerPeriodo, paraBanco, salvarPlanejada, type Planejada } from "./postagens-planejadas";
 
-beforeEach(() => rpc.mockReset());
+beforeEach(() => { rpc.mockReset(); maybeSingle.mockReset(); });
 
 const linha = {
   planejada_id: "p1", dia: "2026-11-02", hora: "17:00", empresa_id: "you", formato: "reels" as const, redes: ["instagram" as const],
@@ -64,5 +65,26 @@ describe("calendário de postagens (315)", () => {
     rpc.mockResolvedValue({ data: null, error: null });
     expect(await apagarPlanejada("p1")).toBe("");
     expect(rpc).toHaveBeenCalledWith("apagar_planejada", { p_id: "p1", p_escopo: "todos", p_dia: null });
+  });
+});
+
+describe("série inteira para a ficha (315-fecho)", () => {
+  const serie = { id: "s1", empresa_id: "you", formato: "reels" as const, redes: ["instagram" as const], hora: "17:00:00".slice(0, 5), titulo: null, repete: "semana" as const,
+    data: null, dias_semana: [1, 3], inicio: "2026-09-21", fim: "2026-12-31", pessoas: { slug: "natham" as const } };
+  it("traz dias, começo, fim e quem posta (o que o bloco do calendário não tem)", () => {
+    expect(daSerie(serie)).toEqual({ id: "s1", empresaId: "you", formato: "reels", redes: ["instagram"], hora: "17:00", titulo: "", responsavel: "natham",
+      repete: "semana", data: undefined, diasSemana: [1, 3], inicio: "2026-09-21", fim: "2026-12-31" });
+  });
+  it("sem pessoa ligada cai no Matheus; data avulsa não tem dias", () => {
+    expect(daSerie({ ...serie, pessoas: null, repete: "data", data: "2026-11-05", dias_semana: null }))
+      .toMatchObject({ responsavel: "matheus", data: "2026-11-05", diasSemana: [] });
+  });
+  it("lerSerie: achou devolve a série; não achou ou erro devolve null", async () => {
+    maybeSingle.mockResolvedValueOnce({ data: serie, error: null });
+    expect((await lerSerie("s1"))?.inicio).toBe("2026-09-21");
+    maybeSingle.mockResolvedValueOnce({ data: null, error: null });
+    expect(await lerSerie("x")).toBeNull();
+    maybeSingle.mockResolvedValueOnce({ data: null, error: { code: "42501" } });
+    expect(await lerSerie("x")).toBeNull();
   });
 });

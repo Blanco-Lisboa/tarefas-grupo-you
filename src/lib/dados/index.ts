@@ -35,5 +35,5 @@ export { liberarPendente, videoPendente } from "./subindo";
 export { haQuanto, reler as relerPendentes, usePendentes } from "./pendentes";
 export * from "./arvore";
 export { duplicarCard } from "./duplicar-card";
-export { apagarPlanejada, salvarPlanejada, usePostagensCalendario } from "./postagens-planejadas";
+export { apagarPlanejada, lerSerie, salvarPlanejada, usePostagensCalendario } from "./postagens-planejadas";
 export type { EscopoPostagem, EstadoPostagem, Ocorrencia, Planejada, Repete } from "./postagens-planejadas";

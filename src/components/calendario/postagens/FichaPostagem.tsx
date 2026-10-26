@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { apagarPlanejada, salvarPlanejada, useEmpresas, type EscopoPostagem, type Ocorrencia, type Planejada, type RedePost, type Responsavel } from "@/lib/dados";
+import { apagarPlanejada, lerSerie, salvarPlanejada, useEmpresas, type EscopoPostagem, type Ocorrencia, type Planejada, type RedePost, type Responsavel } from "@/lib/dados";
 import { Confirmar } from "@/components/ficha/Confirmar";
 import { NOMES } from "@/components/ficha/Ficha";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
@@ -10,7 +10,6 @@ import { Selecao } from "@/components/ui/Selecao";
 import { SeloEmpresa } from "@/components/ui/Marca";
 import { DIAS_SEMANA, faltaPreencher, HORAS, soHoraQuemTitulo } from "./logica";
 import { PerguntaEscopo } from "./PerguntaEscopo";
-import { lerSerie } from "./serie";
 
 const FORMATOS = Object.entries(NOMES.formato).map(([valor, rotulo]) => ({ valor, rotulo }));
 const REDES: { valor: RedePost; rotulo: string }[] = [{ valor: "instagram", rotulo: "Instagram" }, { valor: "facebook", rotulo: "Facebook" }];

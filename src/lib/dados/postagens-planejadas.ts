@@ -112,3 +112,21 @@ export async function apagarPlanejada(id: string, escopo: EscopoPostagem = "todo
   relerTudo();
   return "";
 }
+
+type LinhaSerie = {
+  id: string; empresa_id: string; formato: Formato; redes: RedePost[]; hora: string; titulo: string | null; repete: Repete; data: string | null;
+  dias_semana: number[] | null; inicio: string | null; fim: string | null; pessoas: { slug: Responsavel } | null;
+};
+
+/** Uma linha da tabela postagens_planejadas (com o slug de quem posta) como a ficha edita. */
+export const daSerie = (l: LinhaSerie): Planejada => ({
+  id: l.id, empresaId: l.empresa_id, formato: l.formato, redes: l.redes, hora: l.hora.slice(0, 5), titulo: l.titulo ?? "", responsavel: l.pessoas?.slug ?? "matheus",
+  repete: l.repete, data: l.data ?? undefined, diasSemana: l.dias_semana ?? [], inicio: l.inicio ?? undefined, fim: l.fim ?? undefined,
+});
+
+/** A série INTEIRA de uma postagem (dias da semana, começo, fim): o bloco do calendário só traz o dia dele, e editar "todos" sem isso apagaria o começo.
+ *  A trava de leitura do banco deixa os logados lerem. `null` = não achou ou falhou (a ficha avisa). */
+export async function lerSerie(id: string): Promise<Planejada | null> {
+  const { data, error } = await supabase().from("postagens_planejadas").select("*, pessoas:responsavel_id(slug)").eq("id", id).maybeSingle();
+  return error || !data ? null : daSerie(data as LinhaSerie);
+}
