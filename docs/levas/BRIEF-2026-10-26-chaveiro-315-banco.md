@@ -13,3 +13,4 @@ Regras:
 - Tarefas NÃO tem tema escuro e é só PC.
 - Commits com prefixo "315-banco:". Atualize a sub-linha do 315 na leva com o que ficou pronto + sha + prova, e commite.
 Resposta final (até 8 linhas): o que ficou pronto, o que a prova mostrou, nome do arquivo SQL para o Natham colar, e o que ficou sem prova.
+- REGRA dele (26/10): nenhum arquivo, anexo ou imagem no Supabase/Storage; só linhas de texto. Vídeos e arquivos continuam no Drive.
