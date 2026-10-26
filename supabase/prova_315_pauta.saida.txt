@@ -1,0 +1,77 @@
+colagem 1 do 315: sem erro
+colagem 2 do 315: sem erro (idempotente)
+== RESULTADO
+ ordem |   r   |                                                              nome                                                               |                                detalhe                                 
+-------+-------+---------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------
+     1 | ok    | A1 série seg+qua de 01/03 a 14/03/2027 = 4 dias certos                                                                          | 2027-03-01 17:00, 2027-03-03 17:00, 2027-03-08 17:00, 2027-03-10 17:00
+     2 | ok    | A2 exceção "pula" (só 03/03): o dia some, a série fica                                                                          | 2027-03-01, 2027-03-08, 2027-03-10
+     3 | ok    | A3 exceção "muda" (só 08/03 às 18:30): os outros dias seguem 17:00                                                              | 2027-03-01 17:00, 2027-03-08 18:30, 2027-03-10 17:00
+     4 | ok    | A4 "este e os próximos" a partir de 08/03: a antiga para em 07/03 e uma nova começa em 08/03 às 19:00 (a exceção do 08/03 caiu) | 2027-03-01 17:00 antiga, 2027-03-08 19:00 nova, 2027-03-10 19:00 nova
+     5 | ok    | A4 a antiga ficou com fim = 07/03                                                                                               | 
+     6 | ok    | B matheus lê a pauta                                                                                                            | 
+     7 | ok    | B matheus lê o calendário                                                                                                       | 
+     8 | ok    | B matheus NÃO cria direto na tabela (42501)                                                                                     | 
+     9 | ok    | B matheus NÃO muda direto na tabela (0 linhas)                                                                                  | 
+    10 | ok    | B matheus NÃO apaga exceção direto (0 linhas)                                                                                   | 
+    11 | ok    | B matheus NÃO escreve no livro-razão (42501)                                                                                    | 
+    12 | ok    | B matheus NÃO cria pela função (42501, "Só o Natham monta o calendário de postagens")                                           | 
+    13 | ok    | B matheus NÃO apaga pela função (42501)                                                                                         | 
+    14 | ok    | B matheus NÃO chama a geração nem o riscar (42501)                                                                              | 
+    15 | ok    | B adrian lê a pauta                                                                                                             | 
+    16 | ok    | B adrian lê o calendário                                                                                                        | 
+    17 | ok    | B adrian NÃO cria direto na tabela (42501)                                                                                      | 
+    18 | ok    | B adrian NÃO muda direto na tabela (0 linhas)                                                                                   | 
+    19 | ok    | B adrian NÃO apaga exceção direto (0 linhas)                                                                                    | 
+    20 | ok    | B adrian NÃO escreve no livro-razão (42501)                                                                                     | 
+    21 | ok    | B adrian NÃO cria pela função (42501, "Só o Natham monta o calendário de postagens")                                            | 
+    22 | ok    | B adrian NÃO apaga pela função (42501)                                                                                          | 
+    23 | ok    | B adrian NÃO chama a geração nem o riscar (42501)                                                                               | 
+    24 | ok    | B nada mudou na pauta                                                                                                           | 
+    25 | ok    | B sem login NÃO lê o calendário (42501)                                                                                         | 
+    26 | ok    | C1 salvar já gera hoje..hoje+13 = 14 tarefas                                                                                    | 14
+    27 | ok    | C1 todas no Caderno do Matheus (dono = responsável = Matheus), criadas pelo Natham, sem empresa e sem etapa                     | 
+    28 | ok    | C1 na linha do horário certo e com título/redes                                                                                 | 
+    29 | ok    | C1 vai_pro_google sai FALSO e nada entra na fila do Google                                                                      | 
+    30 | ok    | C2 gerar de novo não cria nada (0) e não duplica                                                                                | 0
+    31 | ok    | C2 livro-razão: 14 linhas, uma por dia                                                                                          | 
+    32 | ok    | C3 o Matheus vê as 14 no Caderno dele                                                                                           | 
+    33 | ok    | C3 o Matheus apaga uma à mão                                                                                                    | 
+    34 | ok    | C3 gerar de novo NÃO recria a apagada (0 novas, 13 tarefas, livro-razão com tarefa nula)                                        | 0
+    35 | ok    | C4 o Natham lê o Caderno do Matheus como antes (13)                                                                             | 
+    36 | ok    | C5 tarefa da pauta NÃO ganha etapa (Matheus: CHECK tarefas_pauta_sem_etapa)                                                     | 
+    37 | ok    | C5 nem pelo salvar_tarefa (o caminho do app)                                                                                    | 
+    38 | ok    | C5 o Matheus continua podendo arrastar o horário                                                                                | 
+    39 | ok    | C5 nem o editor de SQL dá etapa a ela                                                                                           | 
+    40 | ok    | D1 a feita (amanhã) ficou como estava: 10:00, Matheus, riscada                                                                  | 
+    41 | ok    | D1 a apagada à mão (hoje+2) continua apagada                                                                                    | 
+    42 | ok    | D1 as outras 12 foram refeitas às 11:00 no Caderno do novo responsável (Natham)                                                 | 12
+    43 | ok    | D1 e nada duplicou (13 tarefas, 14 linhas no livro-razão)                                                                       | 
+    44 | ok    | D2 "só este dia" (pula hoje+4) tira a tarefa daquele dia e ela não volta                                                        | 
+    45 | ok    | D3 "este e os próximos" (de hoje+10): as tarefas de hoje+10 em diante somem; antes ficam                                        | 
+    46 | ok    | D3 gerar de novo não traz de volta nada                                                                                         | 
+    47 | ok    | E0 antes do post: planejada                                                                                                     | planejada
+    48 | ok    | E1 o post saiu: a planejada fica FEITA com o card certo                                                                         | 
+    49 | ok    | E1 e a tarefa do Caderno do Matheus foi riscada NA HORA (gatilho)                                                               | 
+    50 | ok    | E2 dois carrosséis no dia e UM post: casa o primeiro pela hora (10:00 feita, 15:00 planejada)                                   | 10:00 feita, 15:00 planejada
+    51 | ok    | E2 com o SEGUNDO post os dois ficam feitos (10:00 e 15:00)                                                                      | 10:00 feita, 15:00 feita
+    52 | ok    | E2 as duas tarefas do Caderno riscadas                                                                                          | 
+    53 | ok    | E2 nenhum post virou "extra"                                                                                                    | 
+    54 | ok    | E3 riscar é só de ida: o card voltou e a tarefa continua riscada                                                                | 
+    55 | ok    | E3 (o calendário volta a mostrar "planejada" para aquele reels)                                                                 | 
+    56 | ok    | E4 antes do relógio: ainda não riscada                                                                                          | 
+    57 | ok    | E4 o relógio (riscar_postagens) risca                                                                                           | 
+    58 | ok    | F0 pauta no passado não gera tarefa no Caderno                                                                                  | 
+    59 | ok    | F1 dia passado sem post = FALTOU                                                                                                | faltou
+    60 | ok    | F2 post às 23:30 de São Paulo (já é o dia seguinte em GMT) casa com a pauta do dia certo                                        | 
+    61 | ok    | F3 post sem pauta aparece como EXTRA (com hora e card), e o Matheus vê                                                          | 
+    62 | ok    | F3 postado sem formato também é extra (não some)                                                                                | 
+    63 | ok    | G1 mudar a pauta toca o sino "pauta", e qualquer logado (Adrian) ouve                                                           | 
+    64 | ok    | G2 relógios: postagens_gerar 0 6 * * * e postagens_riscar */5                                                                   | 
+    65 | ok    | G3 apagar "todos": a série e a tarefa futura não feita somem                                                                    | 
+(65 rows)
+
+      total      
+-----------------
+ FALHAS: 0 de 65
+(1 row)
+
