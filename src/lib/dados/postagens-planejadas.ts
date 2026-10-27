@@ -16,6 +16,7 @@ export type EscopoPostagem = "dia" | "proximos" | "todos";
 
 /** O que o Natham monta na ficha. `diasSemana`: 0 = domingo ... 6 = sábado (igual ao getDay()). */
 export type Planejada = {
+  /** `hora` vazia = meta do dia: tem de sair naquele dia, a qualquer hora; fica só no calendário (não vira tarefa no Caderno). */
   id?: string; empresaId: string; formato: Formato; redes: RedePost[]; hora: string; responsavel?: Responsavel; titulo?: string;
   repete: Repete; data?: string; diasSemana?: number[]; inicio?: string; fim?: string;
 };
@@ -27,12 +28,12 @@ export type Ocorrencia = {
 };
 
 type Linha = {
-  planejada_id: string | null; dia: string; hora: string; empresa_id: string; formato: Formato | null; redes: RedePost[] | null;
+  planejada_id: string | null; dia: string; hora: string | null; empresa_id: string; formato: Formato | null; redes: RedePost[] | null;
   responsavel: Responsavel | null; titulo: string | null; repete: Repete | null; estado: EstadoPostagem; card_id: string | null; card_titulo: string | null;
 };
 
 export const daLinha = (l: Linha): Ocorrencia => ({
-  planejadaId: l.planejada_id ?? undefined, dia: l.dia, hora: l.hora, empresaId: l.empresa_id, formato: l.formato ?? undefined,
+  planejadaId: l.planejada_id ?? undefined, dia: l.dia, hora: l.hora ?? "", empresaId: l.empresa_id, formato: l.formato ?? undefined,
   redes: l.redes ?? undefined, responsavel: l.responsavel ?? undefined, titulo: l.titulo ?? undefined, repete: l.repete ?? undefined,
   estado: l.estado, cardId: l.card_id ?? undefined, cardTitulo: l.card_titulo ?? undefined,
 });
@@ -114,13 +115,13 @@ export async function apagarPlanejada(id: string, escopo: EscopoPostagem = "todo
 }
 
 type LinhaSerie = {
-  id: string; empresa_id: string; formato: Formato; redes: RedePost[]; hora: string; titulo: string | null; repete: Repete; data: string | null;
+  id: string; empresa_id: string; formato: Formato; redes: RedePost[]; hora: string | null; titulo: string | null; repete: Repete; data: string | null;
   dias_semana: number[] | null; inicio: string | null; fim: string | null; pessoas: { slug: Responsavel } | null;
 };
 
 /** Uma linha da tabela postagens_planejadas (com o slug de quem posta) como a ficha edita. */
 export const daSerie = (l: LinhaSerie): Planejada => ({
-  id: l.id, empresaId: l.empresa_id, formato: l.formato, redes: l.redes, hora: l.hora.slice(0, 5), titulo: l.titulo ?? "", responsavel: l.pessoas?.slug ?? "matheus",
+  id: l.id, empresaId: l.empresa_id, formato: l.formato, redes: l.redes, hora: l.hora?.slice(0, 5) ?? "", titulo: l.titulo ?? "", responsavel: l.pessoas?.slug ?? "matheus",
   repete: l.repete, data: l.data ?? undefined, diasSemana: l.dias_semana ?? [], inicio: l.inicio ?? undefined, fim: l.fim ?? undefined,
 });
 

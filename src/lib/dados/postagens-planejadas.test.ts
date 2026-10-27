@@ -17,6 +17,7 @@ describe("calendário de postagens (315)", () => {
   it("linha do banco vira bloco; extra fica sem planejada", () => {
     expect(daLinha(linha)).toEqual({ planejadaId: "p1", dia: "2026-11-02", hora: "17:00", empresaId: "you", formato: "reels", redes: ["instagram"],
       responsavel: "matheus", titulo: undefined, repete: "semana", estado: "feita", cardId: "c1", cardTitulo: "Reels real" });
+    expect(daLinha({ ...linha, hora: null }).hora).toBe(""); // meta do dia: sem hora
     const extra = daLinha({ ...linha, planejada_id: null, redes: null, responsavel: null, repete: null, formato: null, estado: "extra" });
     expect(extra.planejadaId).toBeUndefined();
     expect(extra.formato).toBeUndefined();
@@ -76,6 +77,7 @@ describe("série inteira para a ficha (315-fecho)", () => {
       repete: "semana", data: undefined, diasSemana: [1, 3], inicio: "2026-09-21", fim: "2026-12-31" });
   });
   it("sem pessoa ligada cai no Matheus; data avulsa não tem dias", () => {
+    expect(daSerie({ ...serie, hora: null }).hora).toBe(""); // meta do dia: sem hora
     expect(daSerie({ ...serie, pessoas: null, repete: "data", data: "2026-11-05", dias_semana: null }))
       .toMatchObject({ responsavel: "matheus", data: "2026-11-05", diasSemana: [] });
   });

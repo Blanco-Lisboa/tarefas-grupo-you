@@ -21,8 +21,8 @@ export function porDiaPostagens(itens: readonly Ocorrencia[]) {
 
 export const ESTADOS: Record<EstadoPostagem, string> = { planejada: "Planejada", feita: "Postada", faltou: "Faltou", extra: "Extra" };
 
-/** Horas oferecidas: as linhas do Caderno (07:00 a 22:00, de meia em meia hora), para a tarefa cair na linha certa. */
-export const HORAS = Array.from({ length: 31 }, (_, k) => `${String(7 + Math.floor(k / 2)).padStart(2, "0")}:${k % 2 ? "30" : "00"}`);
+/** Horas oferecidas: 05:00 a 21:30, de meia em meia hora (a grade da semana vai até 22:00). O Caderno começa às 07:00: antes disso a tarefa cai na primeira linha. */
+export const HORAS = Array.from({ length: 34 }, (_, k) => `${String(5 + Math.floor(k / 2)).padStart(2, "0")}:${k % 2 ? "30" : "00"}`);
 
 /** Segunda a domingo (como o Natham fala); o número é o do banco: 0 = domingo. */
 export const DIAS_SEMANA = [{ n: 1, nome: "Seg" }, { n: 2, nome: "Ter" }, { n: 3, nome: "Qua" }, { n: 4, nome: "Qui" }, { n: 5, nome: "Sex" }, { n: 6, nome: "Sáb" }, { n: 0, nome: "Dom" }];
@@ -42,9 +42,10 @@ export function faltaPreencher(p: Planejada): string {
   return p.fim && p.fim < p.inicio ? "O fim não pode ser antes do começo." : "";
 }
 
-/** "Só este dia" no banco só muda hora, quem faz e título. Mudou outra coisa? Essa opção não pode ser oferecida (ela ignoraria a mudança em silêncio). */
+/** "Só este dia" no banco só muda hora, quem faz e título. Mudou outra coisa? Essa opção não pode ser oferecida (ela ignoraria a mudança em silêncio).
+ *  Virar meta (sem hora) ou deixar de ser também não: no banco, hora vazia num dia quer dizer "a da série". */
 export const soHoraQuemTitulo = (a: Planejada, b: Planejada) =>
-  a.empresaId === b.empresaId && a.formato === b.formato && a.redes.join() === b.redes.join() && a.repete === b.repete
+  !a.hora === !b.hora && a.empresaId === b.empresaId && a.formato === b.formato && a.redes.join() === b.redes.join() && a.repete === b.repete
   && (a.diasSemana ?? []).join() === (b.diasSemana ?? []).join() && (a.fim ?? "") === (b.fim ?? "") && (a.inicio ?? "") === (b.inicio ?? "");
 
 /** Mesmo texto do selo "formato · hora" do bloco. */
@@ -60,4 +61,10 @@ export function paraGravar(serie: Planejada, aberta: Planejada, t: Planejada, es
   if (escopo === "dia") return t;
   const fica = <K extends "hora" | "responsavel" | "titulo">(c: K) => (t[c] === aberta[c] ? serie[c] : t[c]);
   return { ...t, hora: fica("hora"), responsavel: fica("responsavel"), titulo: fica("titulo") };
+}
+
+/** Etiqueta de metas de uma empresa num dia: tudo saiu = feita; alguma faltou = faltou; senão, planejada. */
+export function estadoDoGrupo(metas: readonly Pick<Ocorrencia, "estado">[]): EstadoPostagem {
+  if (metas.every((o) => o.estado === "feita")) return "feita";
+  return metas.some((o) => o.estado === "faltou") ? "faltou" : "planejada";
 }

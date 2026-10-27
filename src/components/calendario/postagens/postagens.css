@@ -27,22 +27,57 @@ button.pbloco-corpo:hover { background: rgb(0 0 0 / 0.04); }
 .pbloco-pe { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .pbloco-estado { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--sinal); }
 .pbloco-sinal { flex: none; width: 13px; height: 13px; fill: none; stroke: var(--sinal); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-.pbloco-card { align-self: flex-start; margin: 0 0 6px 12px; padding: 1px 4px; border-radius: 6px; font: 600 11px var(--fonte); color: var(--azul); text-decoration: none; }
+.pbloco-card { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; cursor: pointer; align-self: flex-start; margin: 0 0 6px 12px; padding: 1px 4px; border-radius: 6px; font: 600 11px var(--fonte); color: var(--azul); text-decoration: none; }
+.pbloco-card svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
 .pbloco-card:hover { background: var(--realce); text-decoration: underline; text-underline-offset: 2px; }
 .pbloco-chip .pbloco-corpo { padding: 2px 6px 2px 10px; font-size: 11px; min-height: 22px; justify-content: center; }
 .pbloco-chip .pbloco-sinal { width: 12px; height: 12px; }
 
-/* ---------- semana: uma coluna por dia, os blocos em ordem de hora ---------- */
-.psemana { display: grid; grid-template-columns: repeat(var(--colunas), minmax(0, 1fr)); min-width: 760px; flex: 1; min-height: 0; }
-.psemana-dia { display: flex; flex-direction: column; min-width: 0; border-left: 1px solid var(--linha); }
-.psemana-dia:first-child { border-left: 0; }
-.psemana-dia .grade-dia { border-left: 0; border-bottom: 1px solid var(--borda); cursor: default; pointer-events: none; }
-.psemana-dia[data-hoje="true"] { background: color-mix(in srgb, var(--azul) 4%, transparent); }
-.psemana-lista { display: flex; flex-direction: column; gap: 6px; padding: 8px 6px; min-width: 0; flex: 1; }
-.psemana-vazio { margin: 4px 0; text-align: center; font-size: 11px; color: var(--fraco); }
-.psemana-nova { align-self: stretch; margin-top: auto; padding: 5px 8px; border: 1px dashed var(--borda); border-radius: 8px; background: none; color: var(--fraco); font: 600 var(--t-12) var(--fonte); cursor: pointer; }
-.psemana-nova:hover { color: var(--azul); border-color: var(--azul); background: var(--azul-claro); }
-.cal-painel[data-visao="semana"] { overflow-x: auto; }
+/* ---------- semana: a grade de horários das Tarefas (calendario.css), das 05:00 às 22:00, esticada na altura do painel ---------- */
+.pgrade .grade-dia { cursor: default; }
+.pgrade .grade-dia:hover .grade-dia-num { background: none; }
+.pgrade .grade-dia[data-hoje="true"]:hover .grade-dia-num { background: var(--azul); }
+/* Sem rolagem no computador: sem a faixa reservada da barra de rolar, a grade vai até a borda do painel */
+.pgrade .grade-cabeca, .pgrade .grade-rolagem { scrollbar-gutter: auto; }
+.pgrade .grade-rolagem { display: flex; flex-direction: column; }
+/* A borda do cabeçalho é a linha das 05:00: o rótulo dela fica logo abaixo, os outros no meio da sua linha */
+.pgrade .grade-horas span:first-child { translate: 0 50%; }
+.pgrade .grade-corpo { flex: 1; height: auto; min-height: calc(var(--horas) * 28px); }
+.pgrade .grade-coluna {
+  cursor: default;
+  background:
+    linear-gradient(to top, var(--linha) 0 1px, transparent 1px) 0 0 / 100% calc(100% / var(--horas)); /* só as horas cheias, sem a meia hora */
+}
+.pgrade .grade-coluna[data-criar="true"] { cursor: copy; }
+.pgrade-item { position: absolute; z-index: 1; display: flex; min-height: 26px; }
+/* Faixa "Metas": uma etiqueta por empresa (logo, feitas/total, sinal), lado a lado; clicar abre a lista do dia */
+.pgrade .pmetas { cursor: default; flex-direction: row; flex-wrap: wrap; align-content: flex-start; gap: 4px; }
+.pmeta-etiqueta {
+  --fundo-bloco: color-mix(in srgb, var(--cor) 16%, #fff); --sinal: var(--fraco);
+  display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 7px 0 8px; border: 0; border-radius: 8px;
+  background: var(--fundo-bloco); box-shadow: inset 3px 0 0 var(--cor); color: var(--texto); font: 700 var(--t-12) var(--fonte); font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.pmeta-etiqueta:hover { filter: brightness(0.97); }
+.pmeta-etiqueta[data-estado="feita"] { --fundo-bloco: color-mix(in srgb, var(--etiqueta-8) 14%, #fff); --sinal: var(--etiqueta-8); }
+.pmeta-etiqueta[data-estado="faltou"] { --fundo-bloco: color-mix(in srgb, var(--atrasado) 12%, #fff); --sinal: var(--atrasado); }
+.pmeta-pop { min-width: 260px; }
+.pmeta-titulo { display: flex; align-items: center; gap: 6px; margin: 0; padding: 4px 6px 6px; font: 600 var(--t-12) var(--fonte); color: var(--fraco); }
+.pmeta-linha { --sinal: var(--fraco); display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 8px; font-size: var(--t-14); }
+.pmeta-linha[data-estado="feita"] { --sinal: var(--etiqueta-8); }
+.pmeta-linha[data-estado="faltou"] { --sinal: var(--atrasado); }
+.pmeta-fala { flex: 1; color: var(--fraco); font-size: var(--t-12); }
+.pmeta-acao { flex: none; padding: 2px 6px; border: 0; border-radius: 6px; background: none; color: var(--azul); font: 600 var(--t-12) var(--fonte); cursor: pointer; }
+.pmeta-acao:hover { background: var(--realce); }
+/* Numa linha só (a hora tem ~30 a 40px): logo, formato, hora, sinal do estado e quem posta. A palavra do estado e o título ficam no balão do mouse. */
+.pgrade-item .pbloco { flex: 1; flex-direction: row; align-items: stretch; overflow: hidden; }
+.pgrade-item .pbloco-corpo { flex: 1; flex-direction: row; align-items: center; gap: 6px; padding: 2px 6px 2px 10px; }
+.pgrade-item .pbloco-linha { flex: 1; }
+.pgrade-item .pbloco-titulo { display: none; }
+.pgrade-item .pbloco-estado { font-size: 0; gap: 0; }
+.pgrade-item .pbloco-pe { flex: none; }
+/* "Ver card" vira um ícone no fim da linha, ao lado da foto, sem cobrir a hora; o nome fica no balão e no leitor de tela */
+.pgrade-item .pbloco-card { flex: none; align-self: center; display: grid; place-items: center; width: 22px; height: 22px; margin: 0 4px 0 0; padding: 0; }
+.pgrade-item .pbloco-card span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* ---------- mês ---------- */
 .pmes .mes-celula { cursor: default; }

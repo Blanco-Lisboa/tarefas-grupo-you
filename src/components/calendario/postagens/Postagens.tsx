@@ -1,12 +1,15 @@
 "use client";
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
-import { useEu, usePostagensCalendario, type Ocorrencia, type Planejada } from "@/lib/dados";
+import { podeAlterar, useEu, usePostagensCalendario, useTarefas, type Ocorrencia, type Planejada, type Tarefa } from "@/lib/dados";
+import { Ficha } from "@/components/ficha/Ficha";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
 import { FiltroEmpresa } from "@/components/casca/FiltroEmpresa";
 import { CampoData } from "@/components/ui/CampoData";
 import { Selecao } from "@/components/ui/Selecao";
-import { andar, diaCurto, nomeMes, nomeSemana, tituloPeriodo } from "../logica";
+import { quandoDe } from "@/lib/atraso";
+import { andar, nomeMes, nomeSemana, paraHora, tituloPeriodo } from "../logica";
 import { Bloco } from "./Bloco";
+import { GradePostagens } from "./GradePostagens";
 import { FichaPostagem } from "./FichaPostagem";
 import { periodoDe, planejadaNova, porDiaPostagens, type Modo } from "./logica";
 import "./postagens.css";
@@ -23,7 +26,17 @@ export function Postagens({ agora, trocador }: { agora: string; trocador: ReactN
   const [modo, setModo] = useState<Modo>("semana");
   const [cursor, setCursor] = useState(hoje);
   const [aberta, setAberta] = useState<Aberta>(null);
-  const natham = useEu() === "natham";
+  const eu = useEu();
+  const natham = eu === "natham";
+  const tarefas = useTarefas();
+  const [card, setCard] = useState<Tarefa | null>(null);
+  // Hora em que o card saiu, pela mesma data do Mapa e do banco (quando_do_post): programada, início, ou quando foi para Postado
+  const horaDoCard = (id: string) => {
+    const t = tarefas.find((x) => x.id === id);
+    const q = t && (quandoDe(t) || (t.postadoEm && paraHora(new Date(t.postadoEm))));
+    return q ? q.slice(11, 16) : "";
+  };
+  const verCard = (id: string) => { const t = tarefas.find((x) => x.id === id); if (t) setCard(t); };
   const { aplicar } = useFiltroEmpresa();
   const { dias, de, ate } = periodoDe(modo, cursor);
   const { itens } = usePostagensCalendario(de, ate);
@@ -53,7 +66,7 @@ export function Postagens({ agora, trocador }: { agora: string; trocador: ReactN
       conta("faltou") && `${conta("faltou")} faltou`, conta("extra") && plural(conta("extra"), "extra", "extras")].filter(Boolean).join(" · ")
     : "Nenhuma postagem";
 
-  const criar = (dia: string) => setAberta({ inicial: planejadaNova(dia) });
+  const criar = (dia: string, hora?: string) => setAberta({ inicial: { ...planejadaNova(dia), ...(hora && { hora }) } });
   const editar = (o: Ocorrencia) => o.planejadaId && setAberta({ inicial: planejadaNova(o.dia), ocorrencia: o });
   const abrir = (o: Ocorrencia) => (natham && o.planejadaId ? () => editar(o) : undefined);
   const irPara = (dia: string) => { setModo("semana"); setCursor(dia); };
@@ -79,21 +92,7 @@ export function Postagens({ agora, trocador }: { agora: string; trocador: ReactN
       <div className="cal-painel-pai">
         <div className="cal-painel" data-visao={modo}>
           {modo === "semana" ? (
-            <div className="psemana" style={{ "--colunas": dias.length } as CSSProperties}>
-              {dias.map((dia) => (
-                <div key={dia} className="psemana-dia" data-hoje={dia === hoje}>
-                  <div className="grade-dia" data-hoje={dia === hoje}>
-                    <span className="grade-dia-nome">{nomeSemana(dia)}</span>
-                    <span className="grade-dia-num">{Number(dia.slice(8, 10))}</span>
-                  </div>
-                  <div className="psemana-lista">
-                    {(mapa.get(dia) ?? []).map((o, i) => <Bloco key={`${o.planejadaId ?? o.cardId}-${i}`} o={o} modo="cartao" aoAbrir={abrir(o)} />)}
-                    {!mapa.get(dia) && <p className="psemana-vazio">Nada para postar</p>}
-                    {natham && <button type="button" className="psemana-nova" onClick={() => criar(dia)} aria-label={`Nova postagem em ${diaCurto(dia)}`}>+ Postagem</button>}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <GradePostagens dias={dias} mapa={mapa} agora={agora} abrir={abrir} verCard={verCard} horaDoCard={horaDoCard} criar={natham ? criar : undefined} />
           ) : (
             <div className="mes pmes" style={{ "--semanas": dias.length / 7 } as CSSProperties}>
               {dias.slice(0, 7).map((d) => <div key={d} className="mes-semana">{nomeSemana(d)}</div>)}
@@ -114,6 +113,7 @@ export function Postagens({ agora, trocador }: { agora: string; trocador: ReactN
           )}
         </div>
       </div>
+      {card && <Ficha key={card.id} tarefa={card} tipos={["roteiro", "gravacao", "edicao", "postagem"]} aoFechar={() => setCard(null)} soLer={!podeAlterar(card, eu)} />}
       {aberta && <FichaPostagem key={aberta.ocorrencia ? `${aberta.ocorrencia.planejadaId}-${aberta.ocorrencia.dia}` : "nova"} inicial={aberta.inicial} ocorrencia={aberta.ocorrencia} aoFechar={() => setAberta(null)} />}
     </section>
   );

@@ -13,6 +13,7 @@ import { PerguntaEscopo } from "./PerguntaEscopo";
 
 const FORMATOS = Object.entries(NOMES.formato).map(([valor, rotulo]) => ({ valor, rotulo }));
 const REDES: { valor: RedePost; rotulo: string }[] = [{ valor: "instagram", rotulo: "Instagram" }, { valor: "facebook", rotulo: "Facebook" }];
+const META = "meta"; // valor da opção "Qualquer hora" (a Seleção ignora valor vazio)
 const QUEM: Responsavel[] = ["matheus", "natham", "adrian"]; // quem tem Caderno (o Lucas não tem login)
 const REPETE = [{ v: "data", nome: "Só nesta data" }, { v: "semana", nome: "Toda semana" }] as const;
 
@@ -72,7 +73,7 @@ export function FichaPostagem({ inicial, ocorrencia, aoFechar }: { inicial: Plan
               {ocorrencia && repete && <span>· dia {ocorrencia.dia.slice(8)}/{ocorrencia.dia.slice(5, 7)}</span>}</span>
             <button type="button" className="ficha-fechar" onClick={() => dialogo.current?.close()}>Fechar</button>
           </div>
-          <p className="pficha-ajuda">O que precisa ser postado. Cada dia vira uma tarefa no Caderno de quem posta.</p>
+          <p className="pficha-ajuda">{t && !t.hora ? "Meta do dia: tem de sair no dia, a qualquer hora. Fica só aqui no calendário, sem tarefa no Caderno." : "O que precisa ser postado. Cada dia vira uma tarefa no Caderno de quem posta."}</p>
         </header>
 
         {!t ? <p className="pficha-carregando" aria-busy={!aviso}>{aviso || "Abrindo..."}</p> : (
@@ -89,7 +90,8 @@ export function FichaPostagem({ inicial, ocorrencia, aoFechar }: { inicial: Plan
                 <Selecao rotulo="Redes" valor={t.redes} opcoes={REDES} aoMudar={(v) => mudar({ redes: v as RedePost[] })} />
               </div>
               <div className="ficha-campo ficha-escolha">
-                <Selecao rotulo="Hora" multipla={false} valor={[t.hora]} opcoes={HORAS.map((h) => ({ valor: h, rotulo: h }))} aoMudar={([v]) => v && mudar({ hora: v })} />
+                <Selecao rotulo="Hora" multipla={false} valor={[t.hora || META]} opcoes={[{ valor: META, rotulo: "Qualquer hora (meta do dia)" }, ...HORAS.map((h) => ({ valor: h, rotulo: h }))]}
+                  aoMudar={([v]) => v && mudar({ hora: v === META ? "" : v })} />
               </div>
             </div>
 

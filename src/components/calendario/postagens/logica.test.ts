@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Ocorrencia, Planejada } from "@/lib/dados";
-import { comODia, faltaPreencher, HORAS, paraGravar, periodoDe, planejadaNova, porDiaPostagens, soHoraQuemTitulo } from "./logica";
+import { comODia, estadoDoGrupo, faltaPreencher, HORAS, paraGravar, periodoDe, planejadaNova, porDiaPostagens, soHoraQuemTitulo } from "./logica";
 
 const o = (dia: string, hora: string, empresaId: string): Ocorrencia => ({ dia, hora, empresaId, estado: "planejada" });
 
@@ -41,10 +41,11 @@ describe("soHoraQuemTitulo", () => {
   it("formato ou dias impedem", () => {
     expect(soHoraQuemTitulo(a, { ...a, formato: "post" })).toBe(false);
     expect(soHoraQuemTitulo(a, { ...a, diasSemana: [1] })).toBe(false);
+    expect(soHoraQuemTitulo(a, { ...a, hora: "" })).toBe(false); // virar meta do dia não cabe em "só este dia"
   });
 });
 
-it("horas vão de 07:00 a 22:00", () => expect([HORAS[0], HORAS.at(-1), HORAS.length]).toEqual(["07:00", "22:00", 31]));
+it("horas vão de 05:00 a 21:30", () => expect([HORAS[0], HORAS.at(-1), HORAS.length]).toEqual(["05:00", "21:30", 34]));
 
 describe("Lupa 315: dia com \"só este dia\" na ficha", () => {
   const serie: Planejada = { ...planejadaNova("2026-11-02"), id: "s", empresaId: "you", repete: "semana", diasSemana: [1, 3], hora: "17:00", titulo: "" };
@@ -56,4 +57,10 @@ describe("Lupa 315: dia com \"só este dia\" na ficha", () => {
   });
   it("só este dia grava o que está na ficha", () => expect(paraGravar(serie, dia, { ...dia, hora: "19:00" }, "dia").hora).toBe("19:00"));
   it("dia sem exceção: nada muda", () => expect(paraGravar(serie, comODia(serie, { hora: "17:00" }), comODia(serie, { hora: "17:00" }), "todos")).toEqual(serie));
+});
+
+it("etiqueta de metas: tudo saiu = feita, alguma faltou = faltou, senão planejada", () => {
+  expect(estadoDoGrupo([{ estado: "feita" }, { estado: "feita" }])).toBe("feita");
+  expect(estadoDoGrupo([{ estado: "feita" }, { estado: "faltou" }])).toBe("faltou");
+  expect(estadoDoGrupo([{ estado: "feita" }, { estado: "planejada" }])).toBe("planejada");
 });
