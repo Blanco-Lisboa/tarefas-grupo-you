@@ -1,13 +1,14 @@
 // Calendário de postagens (315): só agrupamento, rótulos e conferência do formulário. O ESTADO (planejada/feita/faltou/extra) vem pronto do banco;
 // aqui nada é recalculado. Datas "AAAA-MM-DD" do relógio local, como o resto do calendário.
 import type { EscopoPostagem, EstadoPostagem, Ocorrencia, Planejada } from "@/lib/dados";
-import { diasDaSemana, diasDoMes } from "../logica";
+import { diasDaSemana, diasDoMes, type Visao } from "../logica";
 
-export type Modo = "semana" | "mes";
+export type Modo = Visao;
 
-/** Os dias que a tela mostra e o intervalo que o banco é chamado para devolver (o mês inclui os dias de fora, como no Calendário). */
-export function periodoDe(modo: Modo, cursor: string) {
-  const dias = modo === "semana" ? diasDaSemana(cursor) : diasDoMes(cursor);
+/** Os dias que a tela mostra e o intervalo que o banco é chamado para devolver (o mês inclui os dias de fora, como no Calendário).
+ *  O Ano não entra: ele só mostra o calendário, sem buscar postagens. */
+export function periodoDe(modo: Exclude<Modo, "ano">, cursor: string) {
+  const dias = modo === "dia" ? [cursor] : modo === "semana" ? diasDaSemana(cursor) : diasDoMes(cursor);
   return { dias, de: dias[0], ate: dias[dias.length - 1] };
 }
 

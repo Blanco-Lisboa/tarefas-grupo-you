@@ -3,6 +3,8 @@
 import type { EventoAgenda, NovaTarefa, Tarefa } from "@/lib/dados";
 
 export type Visao = "dia" | "semana" | "mes" | "ano";
+/** Opções do filtro Visão, iguais nos dois calendários. */
+export const VISOES: { v: Visao; rotulo: string }[] = [{ v: "dia", rotulo: "Dia" }, { v: "semana", rotulo: "Semana" }, { v: "mes", rotulo: "Mês" }, { v: "ano", rotulo: "Ano" }];
 /** Para onde a tarefa foi solta. null = coluna "Sem data". */
 export type Destino = { dia: string; minuto?: number; diaInteiro?: boolean } | null;
 

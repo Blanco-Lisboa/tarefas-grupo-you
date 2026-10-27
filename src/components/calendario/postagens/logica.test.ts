@@ -5,6 +5,10 @@ import { comODia, estadoDoGrupo, faltaPreencher, HORAS, paraGravar, periodoDe, p
 const o = (dia: string, hora: string, empresaId: string): Ocorrencia => ({ dia, hora, empresaId, estado: "planejada" });
 
 describe("periodoDe", () => {
+  it("dia: só ele", () => {
+    const p = periodoDe("dia", "2026-10-28");
+    expect([p.de, p.ate, p.dias]).toEqual(["2026-10-28", "2026-10-28", ["2026-10-28"]]);
+  });
   it("semana: domingo a sábado", () => {
     const p = periodoDe("semana", "2026-10-28");
     expect([p.de, p.ate, p.dias.length]).toEqual(["2026-10-25", "2026-10-31", 7]);

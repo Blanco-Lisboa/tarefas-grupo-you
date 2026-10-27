@@ -7,8 +7,9 @@ import { Ano } from "./Ano";
 import { Evento, useSoltar, type Acoes } from "./Evento";
 import { BarraFiltros, passa, passaEvento, SEM_FILTROS, type Filtros } from "./Filtros";
 import { Grade } from "./Grade";
-import { agendaPorDia, andar, comMinuto, diasDaSemana, diasDoMes, esperarFimDoArraste, mover, paraHora, porDia, tituloPeriodo, type Destino, type Visao } from "./logica";
+import { agendaPorDia, comMinuto, diasDaSemana, diasDoMes, esperarFimDoArraste, mover, paraHora, porDia, tituloPeriodo, VISOES, type Destino, type Visao } from "./logica";
 import { Mes } from "./Mes";
+import { Navegar } from "./Navegar";
 import { periodoDe } from "./postagens/logica";
 import { Postagens } from "./postagens/Postagens";
 import { modoSalvo, TrocaVisao, type ModoCalendario } from "./postagens/TrocaVisao";
@@ -22,13 +23,6 @@ import "./calendario.css";
 const assinarRelogio = (f: () => void) => { const id = setInterval(f, 30_000); return () => clearInterval(id); };
 const lerRelogio = () => paraHora(new Date());
 const useAgora = () => useSyncExternalStore(assinarRelogio, lerRelogio, () => null);
-
-const VISOES: { v: Visao; rotulo: string; tecla: string }[] = [
-  { v: "dia", rotulo: "Dia", tecla: "d" },
-  { v: "semana", rotulo: "Semana", tecla: "s" },
-  { v: "mes", rotulo: "Mês", tecla: "m" },
-  { v: "ano", rotulo: "Ano", tecla: "a" },
-];
 
 export function TelaCalendario() {
   const agora = useAgora();
@@ -93,21 +87,6 @@ function Calendario({ agora, trocador }: { agora: string; trocador: ReactNode })
     irPara: (v, dia) => { setVisao(v); setCursor(dia); },
   };
 
-  // Atalhos como no Google Agenda: D S M A troca a visão, T volta para hoje, setas andam.
-  useEffect(() => {
-    const tecla = (e: KeyboardEvent) => {
-      const alvo = e.target as HTMLElement;
-      if (e.ctrlKey || e.metaKey || e.altKey || alvo.closest("input, select, textarea, dialog")) return;
-      const k = e.key.toLowerCase();
-      const v = VISOES.find((x) => x.tecla === k);
-      if (v) setVisao(v.v);
-      else if (k === "t") setCursor(hoje);
-      else if (e.key === "ArrowLeft" || e.key === "ArrowRight") setCursor((c) => andar(visao, c, e.key === "ArrowLeft" ? -1 : 1));
-    };
-    window.addEventListener("keydown", tecla);
-    return () => window.removeEventListener("keydown", tecla);
-  }, [hoje, visao]);
-
   const periodo = visao === "dia" ? [cursor] : visao === "semana" ? diasDaSemana(cursor)
     : visao === "mes" ? diasDoMes(cursor).filter((d) => d.startsWith(cursor.slice(0, 7))) : null;
   const noPeriodo = new Set(
@@ -117,8 +96,8 @@ function Calendario({ agora, trocador }: { agora: string; trocador: ReactNode })
 
   return (
     <section className="cal">
-      {/* Item 224 (como o Google Agenda): uma faixa só. Sem Hoje / ← / →: o título abre o calendário de data (o mesmo do Caderno);
-          as teclas T e as setas continuam. */}
+      {/* Item 224 (como o Google Agenda): uma faixa só. O título abre o calendário de data (o mesmo do Caderno);
+          Hoje ‹ › ficam ao lado da Visão. Sem atalhos de teclado (pedido do Natham). */}
       <header className="cal-barra">
         <div className="cal-titulo">
           <h1>
@@ -132,6 +111,7 @@ function Calendario({ agora, trocador }: { agora: string; trocador: ReactNode })
         <div className="cal-acoes">
           {trocador}
           <SemData lista={semData} acoes={acoes} />
+          <Navegar visao={visao} cursor={cursor} hoje={hoje} aoMudar={setCursor} />
           <Selecao
             rotulo="Visão"
             multipla={false}
@@ -149,7 +129,7 @@ function Calendario({ agora, trocador }: { agora: string; trocador: ReactNode })
             <Grade key={visao} dias={visao === "dia" ? [cursor] : diasDaSemana(cursor)} mapa={mapa} agenda={agenda} agora={agora} acoes={acoes} />
           )}
           {visao === "mes" && <Mes cursor={cursor} mapa={mapa} agenda={agenda} hoje={hoje} acoes={acoes} />}
-          {visao === "ano" && <Ano cursor={cursor} mapa={mapa} hoje={hoje} acoes={acoes} />}
+          {visao === "ano" && <Ano cursor={cursor} hoje={hoje} irPara={acoes.irPara} mapa={mapa} soltar={acoes.soltar} />}
         </div>
       </div>
 

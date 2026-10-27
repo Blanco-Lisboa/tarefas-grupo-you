@@ -21,6 +21,9 @@
 .cal .selecao-botao { gap: 5px; padding: 0 8px 0 10px; }
 .cal-acoes .selecao-rotulo-p { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* escondido só da vista */
 .cal .cal-barra .btn { padding: 0 var(--s-12); }
+/* Hoje ‹ › (Navegar.tsx): botões secundários de vidro, as setas quadradas */
+.cal-navegar { display: flex; gap: 4px; }
+.cal .cal-barra .cal-seta { width: var(--app-controle); padding: 0; font-size: var(--t-20); line-height: 1; }
 @media (max-width: 767px) { .cal-titulo { flex: 1 1 100%; flex-wrap: wrap; } .cal-titulo h1 { font-size: var(--t-20); } }
 
 /* ---------- filtros da tela: botões de seleção da base ---------- */
