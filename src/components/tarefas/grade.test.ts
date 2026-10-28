@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { semDataDoCaderno, doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, DURACAO_MAXIMA, duracaoLimite, duracaoLivre, duracaoMaxima, ocupadoAs, cabeNaFicha, fichaOcupada, emConflito, linhasDoBloco, montarGrade, montarSemData, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
+import { cadernosQueVe, novaDoCaderno, semDataDoCaderno, doCaderno, encaixarCompromissos, jaTemTarefa, separarCompromissos, titulosParecidos, daMinhaLista, enviadaPorMim, somenteNoDeQuemRecebeu, ehConteudo, ehReuniao, eventosDoDia, duracaoDe, DURACAO_MAXIMA, duracaoLimite, duracaoLivre, duracaoMaxima, ocupadoAs, cabeNaFicha, fichaOcupada, emConflito, linhasDoBloco, montarGrade, montarSemData, msAteMeiaNoite, quandoEvento, rotuloSlot, SLOTS } from "./grade";
 
 const t = (id: string, inicio?: string, diaInteiro = false) =>
   ({ id, titulo: id, tipo: "outro", empresaId: "e", responsavel: "natham", inicio, diaInteiro, cor: "etiqueta-1", links: [], arquivos: [] }) as Tarefa;
@@ -340,5 +340,17 @@ describe("315: tarefa da pauta de postagens no Caderno", () => {
     const g = montarGrade([t("a", "2026-10-26T17:00"), pauta], true);
     expect(g[20]?.id).toBe("a");
     expect(g[21]?.id).toBe("p");
+  });
+});
+
+describe("escrever no caderno de outra pessoa", () => {
+  it("abre (e escreve em) só os cadernos que já via: Natham todos, Adrian o dele e o do Matheus, os outros só o próprio", () => {
+    expect(cadernosQueVe("natham")).toEqual(["natham", "matheus", "adrian", "lucas"]);
+    expect(cadernosQueVe("adrian")).toEqual(["adrian", "matheus"]);
+    expect(cadernosQueVe("matheus")).toEqual(["matheus"]);
+    expect(cadernosQueVe(null)).toEqual([]);
+  });
+  it("a tarefa escrita no caderno do Matheus vai para ele pelo mesmo envio de sempre (enviarPara)", () => {
+    expect(novaDoCaderno("Gravar", "you", "matheus")).toMatchObject({ titulo: "Gravar", empresaId: "you", responsavel: "matheus", enviarPara: "matheus", tipo: "outro" });
   });
 });

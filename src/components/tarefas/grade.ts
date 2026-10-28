@@ -1,4 +1,4 @@
-import { comoNatham, type EventoAgenda, type Responsavel, type Tarefa } from "@/lib/dados";
+import { comoNatham, RESPONSAVEIS, type EventoAgenda, type Responsavel, type Tarefa } from "@/lib/dados";
 import { ultimoDia } from "@/components/calendario/logica";
 
 // Margem de horários do caderno (igual ao CRM): a linha k vale 07:00 + 30 min × k, 31 linhas até 22:00.
@@ -8,6 +8,15 @@ export const SLOTS = 31;
 
 const dois = (n: number) => String(n).padStart(2, "0");
 const hhmm = (m: number) => `${dois(Math.floor(m / 60))}:${dois(m % 60)}`;
+
+/** Cadernos que dá para abrir (item 155/266): o Natham abre o de todos; o Adrian, o dele e o do Matheus; os outros, só o próprio. */
+export const cadernosQueVe = (eu: Responsavel | null | undefined): Responsavel[] =>
+  !eu ? [] : eu === "natham" ? [...RESPONSAVEIS] : comoNatham(eu) ? [eu, "matheus"] : [eu];
+
+/** Tarefa escrita numa linha do Caderno, no seu ou no de outra pessoa que você abre: vai para `responsavel` e, se não for você,
+    chega como "enviada por" você (o mesmo envio de sempre: enviarPara). */
+export const novaDoCaderno = (titulo: string, empresaId: string, responsavel: Responsavel) =>
+  ({ titulo, tipo: "outro" as const, empresaId, responsavel, enviarPara: responsavel, cor: "etiqueta-5" as const, links: [], arquivos: [] });
 
 export const rotuloSlot = (k: number) => (k < SLOTS ? hhmm(PRIMEIRA + k * PASSO) : "");
 /** "HH:MM" do início, ou "" se for dia inteiro ou sem hora. */

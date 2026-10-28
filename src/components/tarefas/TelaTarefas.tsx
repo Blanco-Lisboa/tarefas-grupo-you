@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { PointerEvent as EventoPonteiro } from "react";
 import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
-import { RESPONSAVEIS, comoNatham, marcarEventoFeito, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useAgendaEventos, useEventosFeitos, type CorLinha, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
+import { comoNatham, marcarEventoFeito, podeAlterar, podeApagar, removerTarefa, salvarTarefa, useAgendaEventos, useEventosFeitos, type CorLinha, type Etiqueta, type Responsavel, useEmpresas, useEu, useTarefas, type Tarefa } from "@/lib/dados";
 import { Selecao } from "@/components/ui/Selecao";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { useFiltroEmpresa } from "@/lib/filtro-empresa";
@@ -14,7 +14,7 @@ import { Agenda } from "./Agenda";
 import { Folha, type LinhaFolha } from "./Folha";
 import type { Acoes } from "./MenuTarefa";
 import { arrastarFolha, copiar, virarFolha, type Pedido } from "./virar";
-import { semDataDoCaderno, doCaderno, DURACAO_MAXIMA, duracaoDe, duracaoLimite, duracaoMaxima, ocupadoAs, emConflito, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, montarSemData, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
+import { cadernosQueVe, novaDoCaderno, semDataDoCaderno, doCaderno, DURACAO_MAXIMA, duracaoDe, duracaoLimite, duracaoMaxima, ocupadoAs, emConflito, encaixarCompromissos, enviadaPorMim, ehConteudo, ehReuniao, eventosDoDia, horaDe, horaDoSlot, jaTemTarefa, linhasDoBloco, minutos, montarGrade, montarSemData, msAteMeiaNoite, separarCompromissos, somenteNoDeQuemRecebeu, type Continua, type Encaixe, rotuloSlot, SLOTS, somarMinutos } from "./grade";
 import { LETRA_PRINCIPAL } from "./fontes";
 import "./caderno.css";
 
@@ -257,7 +257,7 @@ export function TelaTarefas() {
           {comoNatham(eu) && (
             <Selecao
               rotulo="Caderno de" multipla={false} valor={[de ?? eu]} aoMudar={([v]) => v && setVer(v === eu ? null : (v as Responsavel))}
-              opcoes={(eu === "natham" ? [...RESPONSAVEIS] : [eu as Responsavel, "matheus" as Responsavel]).map((r) => ({ valor: r, rotulo: NOMES[r], antes: <Pessoa quem={r} tamanho={20} /> }))}
+              opcoes={cadernosQueVe(eu).map((r) => ({ valor: r, rotulo: NOMES[r], antes: <Pessoa quem={r} tamanho={20} /> }))}
             />
           )}
         </div>
@@ -298,20 +298,22 @@ export function TelaTarefas() {
             linhas={linhas}
             faixa={linhasFaixa}
             rotulos={rotulos}
-            vazio={alheio ? (aba === "dia" ? "Nada marcado para este dia." : "Nenhuma tarefa sem data.") : aba === "dia" ? "Nada marcado para este dia. Escreva aqui." : "Nenhuma tarefa sem data. Escreva aqui."}
+            vazio={aba === "dia" ? "Nada marcado para este dia. Escreva aqui." : "Nenhuma tarefa sem data. Escreva aqui."}
             empresas={empresasEscolha}
             empresasMenu={empresas}
             empresaPadrao={empresasEscolha[0]?.id ?? ""}
-            /* caderno de outra pessoa: não escreve; cada linha só liga marcar/mover/⋮ se podeAlterar (a privada dele fica só leitura, a que o Natham enviou edita) */
+            /* caderno de outra pessoa: escreve como no seu, e a tarefa nasce dele, "enviada por" quem escreveu; cada linha só liga marcar/mover/⋮
+               se podeAlterar (a privada dele fica só leitura, a que o Natham enviou edita) */
+            key={de ?? ""} /* trocar de caderno zera o Responsável escolhido: a próxima nasce do dono do caderno aberto */
             aoAbrir={(id) => setAberta(tarefas.find((t) => t.id === id) ?? null)}
             aoMarcar={(id) => { if (id.startsWith("ev:")) { const ev = id.slice(3); return void marcarEventoFeito(ev, !eventosFeitos.has(ev)); } const t = tarefas.find((x) => x.id === id); if (t) void salvarTarefa({ ...t, concluida: !t.concluida }); }}
             aoApagar={(id) => { if (!ehConteudo(tarefas.find((x) => x.id === id) ?? ({} as Tarefa))) void removerTarefa(id); }}
             continua={aba === "semdata"}
             aoMover={aba === "dia" ? moverPara : moverSemData}
             acoes={acoes}
-            responsavelPadrao={eu ?? undefined}
-            aoEscrever={alheio ? undefined : (t, empresaId, responsavel, linha) => {
-              const base = { titulo: t, tipo: "outro" as const, empresaId, responsavel, enviarPara: responsavel, cor: "etiqueta-5" as const, links: [], arquivos: [] };
+            responsavelPadrao={de ?? undefined}
+            aoEscrever={!eu || !cadernosQueVe(eu).includes(de as Responsavel) ? undefined : (t, empresaId, responsavel, linha) => {
+              const base = novaDoCaderno(t, empresaId, responsavel);
               if (aba === "semdata") return void salvarTarefa({ ...base, diaInteiro: false, linhaCaderno: linha });
               // Escrever numa linha de horário marca esse horário (30 min); depois das 22:00, dia inteiro.
               if (linha >= SLOTS) return void salvarTarefa({ ...base, inicio: dia, diaInteiro: true });
