@@ -154,6 +154,15 @@ describe("semData (item 198)", () => {
     expect(filaPorDia(lista, "2026-10-20").map((g) => [g.dia, g.itens.map((i) => i.t.id)])).toEqual([["2026-10-20", []], ["2026-10-25", ["prog"]]]);
   });
 
+  // Bug do Natham (27/10): post da Beec foi para Postado sem data de postar nem início; o banco (quando_do_post) e o calendário
+  // de postagens o põem no dia em que entrou em Postado, o Mapa o deixava em "Sem data". 22:25 UTC = 19:25 em Brasília.
+  it("Postado sem data de postar nem início entra no dia em que foi para Postado (hora de Brasília)", () => {
+    const postado = t("beec", "postagem", undefined, { etapa: "postado", postadoEm: "2026-10-27T22:25:06.248993+00:00" });
+    expect(quandoDe(postado)).toBe("2026-10-27T19:25");
+    expect(conteudos([postado]).map((x) => x.id)).toEqual(["beec"]);
+    expect(semData([postado])).toEqual([]);
+  });
+
   it("a ordem na linha segue a data de postar", () => {
     const a = t("a", "postagem", "2026-10-22T12:00", { etapa: "aprovado", postarEm: "2026-10-28T10:00" });
     const b = t("b", "postagem", undefined, { etapa: "aprovado", postarEm: "2026-10-26T10:00" });
