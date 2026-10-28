@@ -249,6 +249,7 @@
   .ano-janela { flex: 1; min-height: 0; container-type: size; padding: var(--s-24) var(--s-24) var(--s-16);
     --dia: min((100cqi - 3 * var(--s-48)) / 32, ((100cqh - 40px - 2 * var(--s-16)) / 3 - 30px) / 7); }
   .ano { flex: 1; grid-template-columns: repeat(4, calc(8 * var(--dia))); grid-template-rows: repeat(3, auto); align-content: space-between; justify-content: center; column-gap: var(--s-48); row-gap: var(--s-16); } /* bloco dos 12 meses no centro, vãos iguais */
+  .ano-legenda { align-self: center; width: calc(32 * var(--dia) + 3 * var(--s-48)); max-width: 100%; } /* alinhada com o bloco dos meses */
 }
 .ano-mes { display: flex; flex-direction: column; min-width: 0; }
 .ano-titulo {
