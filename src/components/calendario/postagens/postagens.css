@@ -90,6 +90,12 @@ button.pbloco-corpo:hover { background: rgb(0 0 0 / 0.04); }
 /* ---------- mês ---------- */
 .pmes .mes-celula { cursor: default; }
 .pmes .mes-celula[data-criar="true"] { cursor: copy; }
+/* Lince (390): o chip não sai da célula. Mede a própria largura; a hora é a última a sumir (o resto fica no balão) */
+.pmes .pbloco-chip { min-width: 0; container-type: inline-size; }
+.pmes .pbloco-chip .pbloco-linha { overflow: hidden; }
+@container (max-width: 110px) { .pmes .pbloco-chip .pbloco-formato { display: none; } }
+@container (max-width: 64px) { .pmes .pbloco-chip .marca-logo { display: none; } }
+@container (max-width: 50px) { .pmes .pbloco-chip .pbloco-sinal { display: none; } .pmes .pbloco-chip .pbloco-corpo { padding-inline: 6px 2px; } }
 
 /* ---------- ficha de criar/editar ---------- */
 .ficha.pficha { height: fit-content; max-height: min(760px, calc(100dvh - 24px)); }

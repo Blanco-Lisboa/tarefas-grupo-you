@@ -54,7 +54,7 @@ export function TelaTarefas() {
   const eu = useEu();
   const agendaGoogle = useAgendaEventos();
   const eventosFeitos = useEventosFeitos();
-  // Caderno de quem (item 155): cada um vê só o que é seu; o Natham (e o Adrian, só o do Matheus) pode espiar o de outra pessoa, só olhando.
+  // Caderno de quem (item 155): cada um vê só o que é seu; o Natham (e o Adrian, só o do Matheus) abre o de outra pessoa e escreve nele (cadernosQueVe).
   const [ver, setVer] = useState<Responsavel | null>(null);
   const de = ver ?? eu;
   const alheio = !!ver && ver !== eu;
