@@ -8,7 +8,7 @@ import { CampoData } from "@/components/ui/CampoData";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
 import { SeloEmpresa } from "@/components/ui/Marca";
-import { diaCurto } from "../logica";
+import { diaCurto, paraDia } from "../logica";
 import { comODia, DIAS_SEMANA, diasRepetidos, faltaPreencher, HORAS, janelaDaPlanejada, paraGravar, soHoraQuemTitulo } from "./logica";
 import { PerguntaEscopo } from "./PerguntaEscopo";
 
@@ -47,9 +47,10 @@ export function FichaPostagem({ inicial, ocorrencia, aoFechar }: { inicial: Plan
   const falta = t ? faltaPreencher(t) : "";
   const repete = !nova && antes?.repete === "semana";
   // Lince 27/10: outra planejada da mesma empresa e formato nos mesmos dias faz o post casar com só uma (a outra fica em aberto). Avisa antes.
-  const janela = janelaDaPlanejada(t ?? inicial);
-  const { itens: vizinhos } = usePostagensCalendario(janela.de || inicial.inicio || "", janela.ate || inicial.inicio || "");
-  const repetidos = t && vizinhos ? diasRepetidos(t, vizinhos) : [];
+  const desde = ocorrencia?.dia ?? paraDia(new Date()); // série antiga: olha do dia aberto em diante
+  const janela = janelaDaPlanejada(t ?? inicial, desde);
+  const { itens: vizinhos } = usePostagensCalendario(janela.de, janela.ate);
+  const repetidos = t && vizinhos ? diasRepetidos(t, vizinhos, desde) : [];
   const seguir = () => { if (repete) setPergunta("salvar"); else void gravar("todos"); };
 
   async function gravar(escopo: EscopoPostagem) {

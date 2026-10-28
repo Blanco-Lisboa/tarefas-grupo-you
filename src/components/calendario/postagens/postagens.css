@@ -78,11 +78,14 @@ button.pbloco-corpo:hover { background: rgb(0 0 0 / 0.04); }
 /* "Ver card" vira um ícone no fim da linha, ao lado da foto, sem cobrir a hora; o nome fica no balão e no leitor de tela */
 .pgrade-item .pbloco-card { flex: none; align-self: center; display: grid; place-items: center; width: 22px; height: 22px; margin: 0 4px 0 0; padding: 0; }
 .pgrade-item .pbloco-card span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-/* Lince 27/10: bloco estreito (dois lado a lado): a hora nunca passa por baixo da foto. Sai primeiro a foto, depois o formato (os dois seguem no balão). */
+/* Lince 27/10: bloco estreito (dois lado a lado): a hora é a última a sumir. Saem, nesta ordem, a foto, o sinal do estado e o Ver card,
+   o formato e o logo (tudo segue no balão; a cor do fundo continua dizendo o estado e o filete, a empresa). */
 .pgrade-item { container-type: inline-size; }
 .pgrade-item .pbloco-linha { overflow: hidden; }
 @container (max-width: 180px) { .pgrade-item .pbloco-pe .pessoa { display: none; } }
-@container (max-width: 130px) { .pgrade-item .pbloco-formato { display: none; } }
+@container (max-width: 150px) { .pgrade-item .pbloco-pe, .pgrade-item .pbloco-card { display: none; } }
+@container (max-width: 120px) { .pgrade-item .pbloco-formato { display: none; } }
+@container (max-width: 76px) { .pgrade-item .pbloco-linha .marca-logo { display: none; } }
 
 /* ---------- mês ---------- */
 .pmes .mes-celula { cursor: default; }

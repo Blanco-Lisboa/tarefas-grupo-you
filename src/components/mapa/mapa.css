@@ -81,7 +81,8 @@
   display: flex; flex-direction: column; gap: 6px;
   overflow-y: auto; scrollbar-width: thin; /* nunca esconde cartão: se o dia tiver mais do que cabe, o bloco rola por dentro */
 }
-.mapa-marco[data-lado="cima"] .mapa-bloco { top: calc(var(--haste) * -1 - 7px - var(--ex)); max-height: calc(var(--haste) + 2px + 2 * var(--ex)); } /* em cima o bloco pode ir até perto da linha */
+/* em cima o bloco vai até 5px acima da linha: a caixa que rola (com a folga da sombra) não pode passar dela, senão a 2ª pasta cobre os dias (Lince, 390) */
+.mapa-marco[data-lado="cima"] .mapa-bloco { top: calc(var(--haste) * -1 - 7px - var(--ex)); max-height: calc(var(--haste) + 2px + var(--ex)); }
 .mapa-marco[data-lado="baixo"] .mapa-bloco { bottom: calc(var(--haste) * -1 - 7px - var(--ex)); justify-content: flex-end; }
 /* Item 213: o dia vira uma pasta de vidro por empresa (PastaDoDia), lado a lado sem encostar. A pasta mede a largura do pai: o pai
    tem o tamanho de ~0,9 dia, então duas pastas cabem nos 2 dias que separam um marco do outro do mesmo lado. */

@@ -76,18 +76,19 @@ export const naHoraDoCard = (o: Ocorrencia, horaDoCard: (id: string) => string):
   return hora ? { ...o, hora } : o;
 };
 
-/** Até onde a ficha procura outra planejada igual: a data avulsa, ou a série do começo até o fim (no máximo 5 semanas). */
-export function janelaDaPlanejada(p: Planejada): { de: string; ate: string } {
-  const de = (p.repete === "data" ? p.data : p.inicio) ?? "";
-  if (p.repete === "data" || !de) return { de, ate: de };
-  // shortcut: olha só as 5 primeiras semanas da série; outra planejada que comece depois disso não é avisada
+/** Até onde a ficha procura outra planejada igual: a data avulsa, ou a série de `desde` (o dia aberto, ou hoje) até o fim, no máximo 5 semanas.
+ *  Série antiga começa a olhar em `desde`, não no começo dela (Lince: senão só via o passado). */
+export function janelaDaPlanejada(p: Planejada, desde: string): { de: string; ate: string } {
+  if (p.repete === "data") return { de: p.data || desde, ate: p.data || desde };
+  const de = p.inicio && p.inicio > desde ? p.inicio : desde;
+  // shortcut: olha só 5 semanas a partir de `de`; outra planejada que comece depois disso não é avisada
   const ate = somarDias(de, 34);
   return { de, ate: p.fim && p.fim < ate ? p.fim : ate };
 }
 
 /** Lince 27/10: dias em que JÁ existe outra planejada da mesma empresa e formato nos dias que esta cobre (o post casaria com só uma delas). */
-export function diasRepetidos(p: Planejada, itens: readonly Ocorrencia[]): string[] {
-  const { de, ate } = janelaDaPlanejada(p);
+export function diasRepetidos(p: Planejada, itens: readonly Ocorrencia[], desde: string): string[] {
+  const { de, ate } = janelaDaPlanejada(p, desde);
   const cobre = (dia: string) => (p.repete === "data" ? dia === p.data : dia >= de && dia <= ate && !!p.diasSemana?.includes(deTexto(dia).getDay()));
   return [...new Set(itens.filter((o) => o.planejadaId && o.planejadaId !== p.id && o.empresaId === p.empresaId && o.formato === p.formato && cobre(o.dia)).map((o) => o.dia))].sort();
 }
