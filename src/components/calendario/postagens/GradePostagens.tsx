@@ -5,7 +5,7 @@ import { DatasDoDia } from "../DatasDoDia";
 import { faixas, minutoDoDia, nomeSemana } from "../logica";
 import { Bloco } from "./Bloco";
 import { MetasDoDia } from "./Metas";
-import { HORAS as HORAS_FICHA } from "./logica";
+import { HORAS as HORAS_FICHA, naHoraDoCard } from "./logica";
 
 // Semana das postagens na grade de horários das Tarefas (classes de calendario.css), mas só das 05:00 às 22:00 e esticada
 // na altura da tela: tudo cabe sem rolar. Posições em % do período. Cada postagem ocupa 1 hora; as que se cruzam ficam lado a lado.
@@ -67,9 +67,11 @@ export function GradePostagens({ dias, mapa, agora, criar, verCard, horaDoCard, 
             {dias.map((dia) => {
               // O post que cumpriu uma meta aparece também na hora em que saiu (sem editar: a meta se edita pela etiqueta)
               const cumpriram = metas(dia).flatMap((o) => { const hora = o.cardId ? horaDoCard(o.cardId) : ""; return hora ? [{ ...o, hora, planejadaId: undefined }] : []; });
-              const itens = faixas([...(mapa.get(dia) ?? []).filter((o) => o.hora), ...cumpriram].map((o) => {
+              // Feita fica na hora em que o card saiu (Lince 27/10); editar abre a planejada como ela é (`plano`)
+              const itens = faixas([...(mapa.get(dia) ?? []).filter((o) => o.hora), ...cumpriram].map((plano) => {
+                const o = naHoraDoCard(plano, horaDoCard);
                 const ini = Math.min(Math.max(minutoDoDia(`${dia}T${o.hora}`), INI), FIM - 30); // post fora da grade (ex.: extra às 23h) fica na ponta
-                return { o, ini, fim: Math.min(ini + DURA, FIM) };
+                return { o, plano, ini, fim: Math.min(ini + DURA, FIM) };
               }));
               return (
                 <div key={dia} className="grade-coluna" data-hoje={dia === hoje} data-criar={!!criar}
@@ -77,7 +79,7 @@ export function GradePostagens({ dias, mapa, agora, criar, verCard, horaDoCard, 
                   {itens.map((p, i) => (
                     <div key={`${p.o.planejadaId ?? p.o.cardId}-${i}`} className="pgrade-item"
                       style={{ top: pct(p.ini), height: `calc(${pct(INI + p.fim - p.ini)} - 2px)`, left: `calc(${(p.faixa / p.total) * 100}% + 2px)`, width: `calc(${100 / p.total}% - 4px)` }}>
-                      <Bloco o={p.o} modo="cartao" aoAbrir={abrir(p.o)} aoVerCard={verCard} />
+                      <Bloco o={p.o} modo="cartao" aoAbrir={abrir(p.plano)} aoVerCard={verCard} />
                     </div>
                   ))}
                   {dia === hoje && agoraMin >= INI && agoraMin <= FIM && <div className="grade-agora" style={{ top: pct(agoraMin) }} aria-label="Agora" />}

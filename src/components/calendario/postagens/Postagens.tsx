@@ -9,12 +9,12 @@ import { Selecao } from "@/components/ui/Selecao";
 import { quandoDe } from "@/lib/atraso";
 import { Ano } from "../Ano";
 import { DatasDoDia } from "../DatasDoDia";
-import { nomeMes, nomeSemana, paraHora, tituloPeriodo, VISOES } from "../logica";
+import { nomeMes, nomeSemana, tituloPeriodo, VISOES } from "../logica";
 import { Navegar } from "../Navegar";
 import { Bloco } from "./Bloco";
 import { GradePostagens } from "./GradePostagens";
 import { FichaPostagem } from "./FichaPostagem";
-import { periodoDe, planejadaNova, porDiaPostagens, type Modo } from "./logica";
+import { naHoraDoCard, periodoDe, planejadaNova, porDiaPostagens, type Modo } from "./logica";
 import "./postagens.css";
 
 const CABEM = 3; // no mês, como nas tarefas: até 3 por dia e "+N mais"
@@ -35,7 +35,7 @@ export function Postagens({ agora, trocador }: { agora: string; trocador: ReactN
   // Hora em que o card saiu, pela mesma data do Mapa e do banco (quando_do_post): programada, início, ou quando foi para Postado
   const horaDoCard = (id: string) => {
     const t = tarefas.find((x) => x.id === id);
-    const q = t && (quandoDe(t) || (t.postadoEm && paraHora(new Date(t.postadoEm))));
+    const q = t && quandoDe(t); // quandoDe já cai no postadoEm (hora de Brasília) quando não há outra data
     return q ? q.slice(11, 16) : "";
   };
   const verCard = (id: string) => { const t = tarefas.find((x) => x.id === id); if (t) setCard(t); };
@@ -98,7 +98,7 @@ export function Postagens({ agora, trocador }: { agora: string; trocador: ReactN
                     onClick={(e) => natham && e.target === e.currentTarget && criar(dia)}>
                     <button type="button" className="mes-numero" onClick={() => irPara("semana", dia)} title="Ver a semana">{n === 1 ? `1 de ${nomeMes(dia).slice(0, 3).toLowerCase()}` : n}</button>
                     <DatasDoDia dia={dia} />
-                    {lista.slice(0, sobra > 0 ? CABEM - 1 : CABEM).map((o, i) => <Bloco key={`${o.planejadaId ?? o.cardId}-${i}`} o={o} modo="chip" aoAbrir={abrir(o)} />)}
+                    {lista.slice(0, sobra > 0 ? CABEM - 1 : CABEM).map((o, i) => <Bloco key={`${o.planejadaId ?? o.cardId}-${i}`} o={naHoraDoCard(o, horaDoCard)} modo="chip" aoAbrir={abrir(o)} />)}
                     {sobra > 0 && <button type="button" className="mes-mais" onClick={() => irPara("semana", dia)}>+{sobra + 1} mais</button>}
                   </div>
                 );

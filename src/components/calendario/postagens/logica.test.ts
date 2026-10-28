@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Ocorrencia, Planejada } from "@/lib/dados";
-import { comODia, estadoDoGrupo, faltaPreencher, HORAS, paraGravar, periodoDe, planejadaNova, porDiaPostagens, soHoraQuemTitulo } from "./logica";
+import { comODia, diasRepetidos, estadoDoGrupo, faltaPreencher, HORAS, janelaDaPlanejada, naHoraDoCard, paraGravar, periodoDe, planejadaNova, porDiaPostagens, soHoraQuemTitulo } from "./logica";
 
 const o = (dia: string, hora: string, empresaId: string): Ocorrencia => ({ dia, hora, empresaId, estado: "planejada" });
 
@@ -67,4 +67,27 @@ it("etiqueta de metas: tudo saiu = feita, alguma faltou = faltou, senão planeja
   expect(estadoDoGrupo([{ estado: "feita" }, { estado: "feita" }])).toBe("feita");
   expect(estadoDoGrupo([{ estado: "feita" }, { estado: "faltou" }])).toBe("faltou");
   expect(estadoDoGrupo([{ estado: "feita" }, { estado: "planejada" }])).toBe("planejada");
+});
+
+describe("Lince 27/10: planejada repetida e hora do card", () => {
+  const you: Planejada = { ...planejadaNova("2026-10-27"), id: "nova", empresaId: "you", repete: "semana", diasSemana: [1, 2, 3, 4, 5, 6], inicio: "2026-10-27", hora: "" };
+  const antiga: Ocorrencia = { planejadaId: "938a", dia: "2026-10-27", hora: "19:00", empresaId: "you", formato: "reels", estado: "feita", cardId: "ef3d" };
+  it("acha a outra planejada You + Reels no mesmo dia", () => expect(diasRepetidos(you, [antiga])).toEqual(["2026-10-27"]));
+  it("ignora a própria série, outro formato, outra empresa, extra e dia que a série não cobre", () => {
+    const outros: Ocorrencia[] = [
+      { ...antiga, planejadaId: "nova" }, { ...antiga, formato: "post" }, { ...antiga, empresaId: "beec" },
+      { ...antiga, planejadaId: undefined, estado: "extra" }, { ...antiga, dia: "2026-11-01" }, { ...antiga, dia: "2026-10-26" },
+    ];
+    expect(diasRepetidos(you, outros)).toEqual([]); // 01/11 é domingo; 26/10 é antes do começo
+  });
+  it("data avulsa: só aquele dia", () => expect(diasRepetidos({ ...you, repete: "data", data: "2026-10-28" }, [antiga, { ...antiga, dia: "2026-10-28" }])).toEqual(["2026-10-28"]));
+  it("janela da série: até o fim ou 5 semanas", () => {
+    expect(janelaDaPlanejada(you)).toEqual({ de: "2026-10-27", ate: "2026-11-30" });
+    expect(janelaDaPlanejada({ ...you, fim: "2026-10-30" })).toEqual({ de: "2026-10-27", ate: "2026-10-30" });
+  });
+  it("bloco feita vai para a hora em que o card saiu", () => {
+    expect(naHoraDoCard(antiga, () => "18:30").hora).toBe("18:30");
+    expect(naHoraDoCard(antiga, () => "").hora).toBe("19:00");
+    expect(naHoraDoCard({ ...antiga, estado: "planejada" }, () => "18:30").hora).toBe("19:00");
+  });
 });

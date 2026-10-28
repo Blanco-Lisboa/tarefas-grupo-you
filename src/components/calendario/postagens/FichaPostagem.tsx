@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { apagarPlanejada, lerSerie, salvarPlanejada, useEmpresas, type EscopoPostagem, type Ocorrencia, type Planejada, type RedePost, type Responsavel } from "@/lib/dados";
+import { apagarPlanejada, lerSerie, salvarPlanejada, useEmpresas, usePostagensCalendario, type EscopoPostagem, type Ocorrencia, type Planejada, type RedePost, type Responsavel } from "@/lib/dados";
 import { Confirmar } from "@/components/ficha/Confirmar";
 import { NOMES } from "@/components/ficha/Ficha";
 import { tomDaEmpresa } from "@/lib/cores-empresa";
@@ -8,7 +8,8 @@ import { CampoData } from "@/components/ui/CampoData";
 import { Pessoa } from "@/components/ui/Pessoa";
 import { Selecao } from "@/components/ui/Selecao";
 import { SeloEmpresa } from "@/components/ui/Marca";
-import { comODia, DIAS_SEMANA, faltaPreencher, HORAS, paraGravar, soHoraQuemTitulo } from "./logica";
+import { diaCurto } from "../logica";
+import { comODia, DIAS_SEMANA, diasRepetidos, faltaPreencher, HORAS, janelaDaPlanejada, paraGravar, soHoraQuemTitulo } from "./logica";
 import { PerguntaEscopo } from "./PerguntaEscopo";
 
 const FORMATOS = Object.entries(NOMES.formato).map(([valor, rotulo]) => ({ valor, rotulo }));
@@ -17,7 +18,7 @@ const META = "meta"; // valor da opção "Qualquer hora" (a Seleção ignora val
 const QUEM: Responsavel[] = ["matheus", "natham", "adrian"]; // quem tem Caderno (o Lucas não tem login)
 const REPETE = [{ v: "data", nome: "Só nesta data" }, { v: "semana", nome: "Toda semana" }] as const;
 
-type Pergunta = "salvar" | "apagar" | "apagar-unica" | null;
+type Pergunta = "repetida" | "salvar" | "apagar" | "apagar-unica" | null;
 
 /** Criar (sem `ocorrencia`) ou editar uma postagem planejada. Só o Natham chega aqui; o banco confere de novo (42501). */
 export function FichaPostagem({ inicial, ocorrencia, aoFechar }: { inicial: Planejada; ocorrencia?: Ocorrencia; aoFechar: () => void }) {
@@ -45,6 +46,11 @@ export function FichaPostagem({ inicial, ocorrencia, aoFechar }: { inicial: Plan
   const mudar = (parte: Partial<Planejada>) => setT((x) => (x ? { ...x, ...parte } : x));
   const falta = t ? faltaPreencher(t) : "";
   const repete = !nova && antes?.repete === "semana";
+  // Lince 27/10: outra planejada da mesma empresa e formato nos mesmos dias faz o post casar com só uma (a outra fica em aberto). Avisa antes.
+  const janela = janelaDaPlanejada(t ?? inicial);
+  const { itens: vizinhos } = usePostagensCalendario(janela.de || inicial.inicio || "", janela.ate || inicial.inicio || "");
+  const repetidos = t && vizinhos ? diasRepetidos(t, vizinhos) : [];
+  const seguir = () => { if (repete) setPergunta("salvar"); else void gravar("todos"); };
 
   async function gravar(escopo: EscopoPostagem) {
     if (!t || !antes || !aberta) return;
@@ -65,7 +71,7 @@ export function FichaPostagem({ inicial, ocorrencia, aoFechar }: { inicial: Plan
   return (
     <dialog ref={dialogo} className="ficha pficha" aria-label={nova ? "Nova postagem" : "Postagem planejada"} onClose={aoFechar}
       onClick={(e) => e.target === e.currentTarget && dialogo.current?.close()}>
-      <form className="ficha-cartao" onSubmit={(e) => { e.preventDefault(); if (!falta && !salvando) { if (repete) setPergunta("salvar"); else void gravar("todos"); } }}
+      <form className="ficha-cartao" onSubmit={(e) => { e.preventDefault(); if (!falta && !salvando) { if (repetidos.length) setPergunta("repetida"); else seguir(); } }}
         style={{ "--etiqueta-atual": t?.empresaId ? tomDaEmpresa(t.empresaId).r : "var(--borda)" } as CSSProperties}>
         <header className="ficha-faixa">
           <div className="ficha-faixa-topo">
@@ -150,6 +156,11 @@ export function FichaPostagem({ inicial, ocorrencia, aoFechar }: { inicial: Plan
           <button type="submit" className="btn" disabled={!t || !!falta || salvando}>{salvando ? "Salvando..." : "Salvar"}</button>
         </footer>
       </form>
+      {pergunta === "repetida" && t && (
+        <Confirmar titulo={`Já existe ${NOMES.formato[t.formato]} da ${empresas.find((e) => e.id === t.empresaId)?.nome ?? t.empresaId} ${repetidos.length === 1 ? "neste dia" : "nestes dias"}`}
+          texto={`${repetidos.length === 1 ? "No dia" : "Nos dias"} ${repetidos.slice(0, 3).map(diaCurto).join(", ")}${repetidos.length > 3 ? ` e mais ${repetidos.length - 3}` : ""} já tem outra postagem planejada igual. Um post só cumpre uma delas e a outra fica em aberto. Salvar mesmo assim?`}
+          acao="Salvar mesmo assim" aoConfirmar={seguir} aoCancelar={() => setPergunta(null)} />
+      )}
       {pergunta === "salvar" && t && antes && (
         <PerguntaEscopo titulo="Salvar a mudança" semDia={soHoraQuemTitulo(antes, t) ? undefined : "Só hora, quem posta e título mudam em um dia só."}
           aoEscolher={(e) => void gravar(e)} aoCancelar={() => setPergunta(null)} />

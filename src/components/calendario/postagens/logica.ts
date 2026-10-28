@@ -1,7 +1,7 @@
 // Calendário de postagens (315): só agrupamento, rótulos e conferência do formulário. O ESTADO (planejada/feita/faltou/extra) vem pronto do banco;
 // aqui nada é recalculado. Datas "AAAA-MM-DD" do relógio local, como o resto do calendário.
 import type { EscopoPostagem, EstadoPostagem, Ocorrencia, Planejada } from "@/lib/dados";
-import { diasDaSemana, diasDoMes, type Visao } from "../logica";
+import { deTexto, diasDaSemana, diasDoMes, somarDias, type Visao } from "../logica";
 
 export type Modo = Visao;
 
@@ -68,4 +68,26 @@ export function paraGravar(serie: Planejada, aberta: Planejada, t: Planejada, es
 export function estadoDoGrupo(metas: readonly Pick<Ocorrencia, "estado">[]): EstadoPostagem {
   if (metas.every((o) => o.estado === "feita")) return "feita";
   return metas.some((o) => o.estado === "faltou") ? "faltou" : "planejada";
+}
+
+/** Feita: o bloco mostra (e fica na grade) na hora em que o card saiu, não na planejada. Sem a hora do card (não carregado), fica a planejada. */
+export const naHoraDoCard = (o: Ocorrencia, horaDoCard: (id: string) => string): Ocorrencia => {
+  const hora = o.estado === "feita" && o.cardId ? horaDoCard(o.cardId) : "";
+  return hora ? { ...o, hora } : o;
+};
+
+/** Até onde a ficha procura outra planejada igual: a data avulsa, ou a série do começo até o fim (no máximo 5 semanas). */
+export function janelaDaPlanejada(p: Planejada): { de: string; ate: string } {
+  const de = (p.repete === "data" ? p.data : p.inicio) ?? "";
+  if (p.repete === "data" || !de) return { de, ate: de };
+  // shortcut: olha só as 5 primeiras semanas da série; outra planejada que comece depois disso não é avisada
+  const ate = somarDias(de, 34);
+  return { de, ate: p.fim && p.fim < ate ? p.fim : ate };
+}
+
+/** Lince 27/10: dias em que JÁ existe outra planejada da mesma empresa e formato nos dias que esta cobre (o post casaria com só uma delas). */
+export function diasRepetidos(p: Planejada, itens: readonly Ocorrencia[]): string[] {
+  const { de, ate } = janelaDaPlanejada(p);
+  const cobre = (dia: string) => (p.repete === "data" ? dia === p.data : dia >= de && dia <= ate && !!p.diasSemana?.includes(deTexto(dia).getDay()));
+  return [...new Set(itens.filter((o) => o.planejadaId && o.planejadaId !== p.id && o.empresaId === p.empresaId && o.formato === p.formato && cobre(o.dia)).map((o) => o.dia))].sort();
 }

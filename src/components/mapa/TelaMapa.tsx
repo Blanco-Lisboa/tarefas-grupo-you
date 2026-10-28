@@ -126,18 +126,25 @@ function Linha({ dias, inicio, marcos, abrir, topo }: { dias: string[]; inicio: 
     const ajustarBlocos = () => {
       const celular = matchMedia("(max-width: 767px)").matches;
       const janela = f.getBoundingClientRect();
+      // Lince 27/10: puxado para dentro da tela, o bloco não pode cair em cima do bloco anterior do mesmo lado (dia com 2 pastas em 390).
+      // `livre` = onde acaba o anterior de cada lado; a folga da sombra (--ex) dos dois pode se cruzar, o card não.
+      const livre: Record<string, number> = {};
       f.querySelectorAll<HTMLElement>(".mapa-marco").forEach((marco) => {
         const bloco = marco.querySelector<HTMLElement>(".mapa-bloco");
         if (!bloco) return;
+        const estilo = getComputedStyle(bloco);
+        const lado = marco.dataset.lado ?? "";
         const x = marco.getBoundingClientRect().left;
-        if (!celular || x < janela.left || x > janela.right) {
-          bloco.style.removeProperty("translate");
-          return;
+        const inicio = x + (parseFloat(estilo.left) || 0);
+        let alvo = inicio;
+        if (celular && x >= janela.left && x <= janela.right) {
+          const minimo = janela.left + 8;
+          const maximo = Math.max(minimo, janela.right - bloco.offsetWidth - 8);
+          alvo = Math.max(Math.max(minimo, Math.min(inicio, maximo)), livre[lado] ?? -Infinity);
         }
-        const inicio = x + (parseFloat(getComputedStyle(bloco).left) || 0);
-        const minimo = janela.left + 8;
-        const maximo = Math.max(minimo, janela.right - bloco.offsetWidth - 8);
-        bloco.style.translate = `${Math.round(Math.max(minimo, Math.min(inicio, maximo)) - inicio)}px 0`;
+        livre[lado] = alvo + bloco.offsetWidth - 2 * (parseFloat(estilo.getPropertyValue("--ex")) || 0) + 8;
+        if (alvo === inicio) bloco.style.removeProperty("translate");
+        else bloco.style.translate = `${Math.round(alvo - inicio)}px 0`;
       });
     };
     let quadro = 0;
