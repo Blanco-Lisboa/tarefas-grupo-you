@@ -238,43 +238,65 @@
 }
 
 /* ---------- ano ---------- */
-.ano-janela { padding: var(--s-24) var(--s-24) var(--s-16); }
-.ano { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--s-24) var(--s-32); }
+/* Como o Google Agenda: 4x3 no computador, enchendo o painel; 2 colunas no celular (rola para baixo). Todo mês tem a mesma
+   grade: 8 colunas (a faixa do número da semana e os 7 dias) x 7 linhas (letras e 6 semanas), em células quadradas iguais
+   (--dia), número no centro. --dia sai do tamanho do painel: a maior célula em que os 12 meses cabem. */
+.ano-janela { container-type: inline-size; display: flex; flex-direction: column; padding: var(--s-16) var(--s-12);
+  --dia: calc((100cqi - var(--s-12)) / 16); }
+.ano { display: grid; grid-template-columns: repeat(2, calc(8 * var(--dia))); justify-content: space-between; row-gap: var(--s-24); }
+@media (min-width: 768px) {
+  /* 40px = legenda embaixo; 30px = nome do mês */
+  .ano-janela { flex: 1; min-height: 0; container-type: size; padding: var(--s-24) var(--s-24) var(--s-16);
+    --dia: min((100cqi - 3 * var(--s-32)) / 32, ((100cqh - 40px - 2 * var(--s-16)) / 3 - 30px) / 7); }
+  .ano { flex: 1; grid-template-columns: repeat(4, calc(8 * var(--dia))); grid-template-rows: repeat(3, auto); align-content: space-between; row-gap: var(--s-16); }
+}
+.ano-mes { display: flex; flex-direction: column; min-width: 0; }
 .ano-titulo {
-  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-8); width: 100%; padding: 0 0 6px; margin-bottom: 6px;
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-8); width: 100%; height: 24px; padding: 0; margin-bottom: 6px;
   background: none; border: 0; border-bottom: 2px solid var(--linha); cursor: pointer; text-align: left;
-  font: var(--titulo-peso) var(--t-20) var(--fonte); letter-spacing: var(--titulo-espaco); color: var(--texto);
+  font: var(--titulo-peso) var(--t-16) / 1 var(--fonte); letter-spacing: -0.01em; color: var(--texto);
 }
 .ano-titulo span { font: 500 var(--t-12) var(--fonte); color: var(--fraco); letter-spacing: 0; }
 .ano-titulo { position: relative; }
 /* Mês atual e passar o mouse: traço azul de ponta redonda por cima da linha */
 .ano-titulo::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px; border-radius: 2px; background: var(--azul); opacity: 0; transition: opacity var(--dur-rapida) var(--curva); }
 .ano-titulo:hover::after, .ano-mes[data-atual="true"] .ano-titulo::after { opacity: 1; }
-.ano-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
-.ano-letra { text-align: center; font-size: 10px; font-weight: 600; color: var(--fraco); }
-.ano-dia {
-  height: 26px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 6px; cursor: pointer;
-  font: 500 11px var(--fonte); color: var(--texto); background: rgb(0 0 0 / 0.03);
+.ano-dias { display: grid; grid-template-columns: repeat(8, var(--dia)); grid-auto-rows: var(--dia); place-items: center; }
+.ano-letra { font-size: max(10px, calc(var(--dia) * .36)); font-weight: 600; color: var(--fraco); }
+/* Faixa da semana: contínua de cima a baixo do mês (sem vão entre as linhas), cantos redondos só nas pontas */
+.ano-semana {
+  place-self: stretch; display: grid; place-items: center; background: var(--realce); color: var(--fraco);
+  font: 600 max(9px, calc(var(--dia) * .34)) var(--fonte); font-variant-numeric: tabular-nums;
 }
+.ano-dias > .ano-semana:nth-child(9) { border-radius: 6px 6px 0 0; }
+.ano-dias > .ano-semana:nth-child(49) { border-radius: 0 0 6px 6px; }
+.ano-dia {
+  --anel: transparent;
+  width: calc(var(--dia) - 2px); height: calc(var(--dia) - 2px); display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  font: 500 max(10px, calc(var(--dia) * .4)) / 1 var(--fonte); font-variant-numeric: tabular-nums; color: var(--texto); background: none;
+}
+.ano-dia:hover { outline: 1px solid var(--azul); outline-offset: 0; }
+/* Dia do mês vizinho: só completa as 6 semanas (sem clique, sem data, sem contar tarefa) */
+.ano-dia[data-fora] { color: color-mix(in srgb, var(--fraco) 55%, var(--sup)); cursor: default; }
+.ano-dia[data-fora]:hover { outline: 0; }
 /* Mais tarefas, azul mais forte. Até o 3 a letra é a do texto (7,5 sobre o 3); no 4, branco sobre o azul cheio (5,68) */
 .ano-dia[data-nivel="1"] { background: rgb(0 100 204 / 0.12); }
 .ano-dia[data-nivel="2"] { background: rgb(0 100 204 / 0.26); }
 .ano-dia[data-nivel="3"] { background: rgb(0 100 204 / 0.45); }
 .ano-dia[data-nivel="4"] { background: var(--azul); color: var(--no-azul); font-weight: 600; }
-.ano-dia[data-hoje="true"] { outline: 2px solid var(--azul); outline-offset: 1px; font-weight: 700; }
+/* Hoje: círculo azul cheio, como no Google */
+.ano-dia[data-hoje="true"] { background: var(--azul); color: var(--no-azul); font-weight: 700; }
 .ano-dia[data-alvo="true"] { outline: 2px dashed var(--azul); }
-.ano-dia:hover { outline: 1px solid var(--azul); }
-/* Feriado e data comemorativa: anel em volta do número (o contorno quadrado azul continua sendo o hoje) */
-.ano-dia[data-data] { position: relative; }
-.ano-dia[data-data]::before { content: ""; position: absolute; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--data-feriado); pointer-events: none;
-  box-shadow: 0 0 0 1px var(--sup), inset 0 0 0 1px var(--sup); } /* fio branco: o anel aparece também sobre o azul cheio (dia com muitas tarefas) */
-.ano-dia[data-data="comemorativa"]::before { border-color: var(--data-comemorativa); }
-.ano-legenda { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-8) var(--s-16); margin: var(--s-24) 0 0; font-size: var(--t-12); color: var(--fraco); }
+/* Feriado, comemorativa e destaque: anel na cor do tipo, com fio branco por dentro (aparece também sobre o azul cheio) */
+.ano-dia[data-data] { box-shadow: inset 0 0 0 2px var(--anel), inset 0 0 0 3px var(--sup); }
+.ano-dia[data-data="feriado"] { --anel: var(--data-feriado); }
+.ano-dia[data-data="comemorativa"] { --anel: var(--data-comemorativa); }
+.ano-dia[data-data="destaque"] { --anel: var(--data-destaque); }
+.ano-legenda { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-8) var(--s-16); margin: var(--s-16) 0 0; font-size: var(--t-12); color: var(--fraco); }
 .ano-legenda p { display: flex; align-items: center; gap: 4px; margin: 0; }
-.ano-legenda p:only-child { margin-left: auto; }
-.ano-legenda-datas .ano-dia + .ano-dia, .ano-legenda-datas .ano-dia ~ .ano-dia { margin-left: var(--s-8); }
+.ano-legenda-datas .ano-dia ~ .ano-dia { margin-left: var(--s-8); }
 .ano-legenda .ano-dia { width: 14px; height: 14px; cursor: default; }
-.ano-legenda .ano-dia[data-data]::before { inset: 0; width: auto; height: auto; }
+.ano-legenda .ano-dia:hover { outline: 0; }
 
 /* Etiqueta do feriado / data comemorativa no topo do dia (DatasDoDia.tsx) */
 .data-imp {
@@ -282,11 +304,19 @@
   font: 600 11px / 1.35 var(--fonte); background: var(--data-feriado-fundo); color: var(--data-feriado); cursor: help;
 }
 .data-imp[data-tipo="comemorativa"] { background: var(--data-comemorativa-fundo); color: var(--data-comemorativa); }
+.data-imp[data-tipo="destaque"] { background: var(--data-destaque-fundo); color: var(--data-destaque); }
 .data-imp-nome { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .data-imp-mais { flex-shrink: 0; }
 .grade-dia .data-imp { align-self: center; }
 .mes-celula .data-imp { margin-top: 0; }
-@media (max-width: 767px) { .data-imp { font-size: 9px; padding: 0 3px; } }
+/* No celular a célula do mês é estreita demais para o nome: vira faixa colorida (como as tarefas); tocar no número abre o dia,
+   que mostra o nome no topo. O texto continua para o leitor de tela. */
+@media (max-width: 767px) {
+  .mes-celula .data-imp { height: 5px; padding: 0; margin-top: 1px; border-radius: 3px; background: var(--data-feriado); }
+  .mes-celula .data-imp[data-tipo="comemorativa"] { background: var(--data-comemorativa); }
+  .mes-celula .data-imp[data-tipo="destaque"] { background: var(--data-destaque); }
+  .mes-celula .data-imp > * { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 
 /* ---------- Sem data: botão (classes do botão de seleção) + lista em vidro, como a lista da seleção ---------- */
 .cal-semdata-botao[data-alvo="true"] { border-color: var(--azul); outline: 2px dashed var(--azul); outline-offset: 3px; }
@@ -314,3 +344,27 @@ body:has(.aviso-erro:not(.aviso-info)) .aviso-info { bottom: calc(var(--s-16) + 
 }
 .grade-mais:hover { background: var(--sup-2); }
 .grade-mais:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+
+/* Balão das datas importantes (Balao.tsx): o vidro das listas (.selecao-lista), preso ao dia pela âncora. Abre em cima e, se não
+   couber, vira para os lados ou para baixo; nunca sai da tela. Não pega o mouse (quem está embaixo continua clicável). */
+.balao {
+  inset: auto; margin: 6px; padding: 10px 12px; overflow: visible; pointer-events: none;
+  position-area: top; position-try-fallbacks: top span-right, top span-left, bottom, bottom span-right, bottom span-left;
+  width: max-content; max-width: min(280px, calc(100vw - 16px));
+  background: var(--vidro-forte); border: 1px solid var(--vidro-linha); border-radius: var(--raio-b); box-shadow: var(--sombra-lista);
+  -webkit-backdrop-filter: var(--vidro-desfoque); backdrop-filter: var(--vidro-desfoque);
+  font: 400 var(--t-12) / 1.4 var(--fonte); color: var(--texto); text-align: left; letter-spacing: 0; text-transform: none; white-space: normal;
+}
+.balao:popover-open { display: flex; flex-direction: column; gap: 6px; }
+.balao-data { font: 600 var(--t-14) / 1.3 var(--fonte); }
+.balao-extra { color: var(--fraco); margin-top: -4px; }
+.balao-item { display: grid; grid-template-columns: 8px 1fr; column-gap: 8px; align-items: center; font-weight: 500; }
+.balao-bolinha { width: 8px; height: 8px; border-radius: 50%; background: var(--data-feriado); }
+.balao-item[data-tipo="comemorativa"] .balao-bolinha { background: var(--data-comemorativa); }
+.balao-item[data-tipo="destaque"] .balao-bolinha { background: var(--data-destaque); }
+.balao-aviso { grid-column: 2; color: var(--fraco); font-weight: 400; }
+.balao-tipo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* só para o leitor de tela */
+@starting-style { .balao:popover-open { opacity: 0; } }
+.balao { transition: opacity var(--dur-rapida) var(--curva); }
+@media (prefers-reduced-motion: reduce) { .balao { transition: none; } }
+.data-imp:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }

@@ -43,17 +43,32 @@ describe("datas importantes", () => {
     expect(das.find((d) => d.dia.startsWith("2026-11"))).toMatchObject({ dia: "2026-11-19", aviso: "Prazo legal 20/11 cai no feriado (Consciência Negra), antecipe para quinta 19/11." });
   });
 
-  it("põe feriado e comemorativa no mesmo dia, feriado primeiro, em ordem de data", () => {
+  it("põe destaque, feriado e comemorativa no mesmo dia nessa ordem, em ordem de data", () => {
     const natal = datasDoAno(2026).filter((d) => d.dia === "2026-12-25");
-    expect(natal.map((d) => d.tipo)).toEqual(["feriado", "comemorativa"]);
+    expect(natal.map((d) => d.tipo)).toEqual(["destaque", "feriado"]);
     const todas = datasDoAno(2027).map((d) => d.dia);
     expect(todas).toEqual([...todas].sort());
     expect(todas.every((d) => d.startsWith("2027-"))).toBe(true);
   });
 
-  it("dá as datas de um dia sem repetir o nome (Natal só como feriado)", () => {
-    expect(datasDoDia("2026-12-25").map((d) => `${d.tipo} ${d.nome}`)).toEqual(["feriado Natal"]);
-    expect(datasDoDia("2026-10-12").map((d) => d.nome)).toEqual(["Nossa Senhora Aparecida", "Dia das Crianças"]);
+  it("dá as datas de um dia sem repetir o nome (Natal dourado, com o aviso de feriado)", () => {
+    expect(datasDoDia("2026-12-25")).toEqual([{ dia: "2026-12-25", nome: "Natal", tipo: "destaque", aviso: "Feriado nacional." }]);
+    expect(datasDoDia("2026-10-12").map((d) => `${d.tipo} ${d.nome}`)).toEqual(["destaque Dia das Crianças", "feriado Nossa Senhora Aparecida"]);
     expect(datasDoDia("2026-10-27")).toEqual([]);
+  });
+
+  it("marca os destaques e as datas duplas de marketplace", () => {
+    const destaques = datasDoAno(2026).filter((d) => d.tipo === "destaque").map((d) => `${d.dia} ${d.nome}`);
+    expect(destaques).toEqual([
+      "2026-01-01 Ano Novo", "2026-03-15 Dia do Consumidor", "2026-05-10 Dia das Mães", "2026-05-29 Fim da entrega do IRPF",
+      "2026-06-12 Dia dos Namorados", "2026-07-07 7.7 (data dupla)", "2026-08-09 Dia dos Pais", "2026-09-09 9.9 (data dupla)",
+      "2026-09-15 Dia do Cliente", "2026-09-22 Dia do Contador", "2026-10-05 Dia da Micro e Pequena Empresa", "2026-10-10 10.10 (data dupla)",
+      "2026-10-12 Dia das Crianças", "2026-11-11 11.11 (data dupla)", "2026-11-27 Black Friday", "2026-11-30 Cyber Monday",
+      "2026-12-12 12.12 (data dupla)", "2026-12-25 Natal",
+    ]);
+    expect(datasDoAno(2027).filter((d) => d.nome.endsWith("(data dupla)")).map((d) => d.dia)).toEqual(
+      ["02-02", "03-03", "04-04", "05-05", "06-06", "07-07", "08-08", "09-09", "10-10", "11-11", "12-12"].map((d) => `2027-${d}`),
+    );
+    expect(datasDoDia("2026-09-09").map((d) => d.nome)).toEqual(["9.9 (data dupla)", "Dia do Administrador"]);
   });
 });

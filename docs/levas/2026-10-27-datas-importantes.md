@@ -5,7 +5,7 @@ Só datas nacionais. Nada estadual ou municipal.
 
 ## Como ler
 
-- **Categoria**: `feriado` (feriado nacional ou ponto facultativo nacional) ou `comemorativa` (data boa para conteúdo; inclui prazos fiscais, marcados como "prazo fiscal").
+- **Categoria**: `feriado` (feriado nacional ou ponto facultativo nacional, vermelho), `comemorativa` (data boa para conteúdo; inclui prazos fiscais e campanhas, verde escuro) ou `destaque` (as datas que mais vendem para o Grupo You e a Beec, dourado; decisão 7).
 - **Facultativo**: ponto facultativo é o dia que o governo federal libera os próprios servidores, mas que não obriga a empresa privada a fechar. Na prática: o comércio e os escritórios decidem.
 - **Regra**: como o sistema vai calcular a data todo ano. "Fixa DD/MM" ou uma regra móvel.
 - **Páscoa**: as datas móveis religiosas dependem da Páscoa, calculada pelo método tradicional da Igreja (cálculo gregoriano). Conferido: o cálculo de 2026 bate com a portaria oficial do governo.
@@ -52,35 +52,58 @@ Observações:
 - **Emendas não entram como regra.** Em 2026 a portaria também deu ponto facultativo em 20/04 (ponte com Tiradentes) e 05/06 (ponte com Corpus Christi). Isso muda todo ano e só se sabe quando sai a portaria, então não dá para calcular.
 - O Dia do Servidor às vezes é transferido pela portaria para outro dia da semana. A regra fixa é 28/10.
 
-## 2. Comemorativas (31 regras; 42 datas por ano, contando o DAS de cada mês)
+## 2. Comemorativas e destaques (42 regras; 53 datas por ano, contando o DAS e as datas duplas de cada mês)
 
 ### 2.1 Datas de conteúdo (19)
 
 | # | Nome | Regra | Fonte |
 |---|------|-------|-------|
 | 1 | Dia Internacional da Mulher | Fixa 08/03 | ONU (data oficializada em 1977) |
-| 2 | Dia do Consumidor | Fixa 15/03 | Dia Mundial dos Direitos do Consumidor (Consumers International) |
+| 2 | Dia do Consumidor **(destaque)** | Fixa 15/03 | Dia Mundial dos Direitos do Consumidor (Consumers International) |
 | 3 | Páscoa | Domingo de Páscoa (cálculo gregoriano) | Calendário litúrgico |
 | 4 | Dia da Contabilidade (antigo Dia do Contabilista) | Fixa 25/04 | CFC; data firmada em 1926 por João Lyra |
 | 5 | Dia Nacional do Respeito ao Contribuinte | Fixa 25/05 | Lei 12.325/2010 |
-| 6 | Dia das Mães | 2º domingo de maio | Decreto 21.366/1932 |
-| 7 | Dia dos Namorados | Fixa 12/06 | Data comercial, desde 1949 |
-| 8 | Dia dos Pais | 2º domingo de agosto | Data comercial, sem lei federal |
+| 6 | Dia das Mães **(destaque)** | 2º domingo de maio | Decreto 21.366/1932 |
+| 7 | Dia dos Namorados **(destaque)** | Fixa 12/06 | Data comercial, desde 1949 |
+| 8 | Dia dos Pais **(destaque)** | 2º domingo de agosto | Data comercial, sem lei federal |
 | 9 | Dia do Administrador | Fixa 09/09 | Data da Lei 4.769/1965 (profissão de administrador) |
-| 10 | Dia do Cliente | Fixa 15/09 | Data comercial, sem lei federal |
-| 11 | Dia do Contador | Fixa 22/09 | Criação do curso de Ciências Contábeis, Decreto-Lei 7.988/1945 |
-| 12 | Dia Nacional da Micro e Pequena Empresa (Dia do Empreendedor) | Fixa 05/10 | Data da Lei 9.841/1999 (primeiro Estatuto da ME e EPP) |
-| 13 | Dia das Crianças | Fixa 12/10 | Decreto 4.867/1924 (cai no feriado de Aparecida) |
+| 10 | Dia do Cliente **(destaque)** | Fixa 15/09 | Data comercial, sem lei federal |
+| 11 | Dia do Contador **(destaque)** | Fixa 22/09 | Criação do curso de Ciências Contábeis, Decreto-Lei 7.988/1945 |
+| 12 | Dia Nacional da Micro e Pequena Empresa (Dia do Empreendedor) **(destaque)** | Fixa 05/10 | Data da Lei 9.841/1999 (primeiro Estatuto da ME e EPP) |
+| 13 | Dia das Crianças **(destaque)** | Fixa 12/10 | Decreto 4.867/1924 (cai no feriado de Aparecida) |
 | 14 | Dia do Empreendedorismo Feminino | Fixa 19/11 | Women's Entrepreneurship Day, reconhecido na ONU |
-| 15 | Black Friday | Sexta depois da Ação de Graças (4ª quinta de novembro) | Data comercial americana |
-| 16 | Cyber Monday | Segunda depois da Black Friday | Data comercial americana |
-| 17 | Natal (conteúdo) | Fixa 25/12 | Já é feriado; ver nota |
-| 18 | Ano Novo (conteúdo) | Fixa 01/01 | Já é feriado; ver nota |
+| 15 | Black Friday **(destaque)** | Sexta depois da Ação de Graças (4ª quinta de novembro) | Data comercial americana |
+| 16 | Cyber Monday **(destaque)** | Segunda depois da Black Friday | Data comercial americana |
+| 17 | Natal (conteúdo) **(destaque)** | Fixa 25/12 | Já é feriado; ver nota |
+| 18 | Ano Novo (conteúdo) **(destaque)** | Fixa 01/01 | Já é feriado; ver nota |
 | 19 | Dia do Trabalhador (conteúdo) | Fixa 01/05 | Já é feriado; ver nota |
 
 Natal, Ano Novo e Dia do Trabalhador aparecem nas duas categorias (decisão 1): uma vez como feriado e outra como comemorativa.
 
-### 2.2 Campanhas do mês inteiro (5)
+### 2.2 Datas duplas de marketplace (11)
+
+Datas em que dia e mês são iguais, com campanha dos grandes marketplaces. Fonte de todas: data comercial.
+
+| Data | Quem faz | Destaque? | Fonte da campanha |
+|------|----------|-----------|-------------------|
+| 2.2, 3.3, 4.4, 5.5, 6.6, 8.8 | Shopee (campanha todo mês) | Não | Blog da Shopee e Cupom Online |
+| 7.7 | Shopee, aniversário no Brasil | Sim | Meio & Mensagem (2025) |
+| 9.9 | Shopee ("9.9 Super Shopping Day"), Mercado Livre ("Liquida 9.9") e Shein | Sim | E-Commerce Brasil (09/2025) |
+| 10.10 | Shopee ("10.10 Festival Lojas Oficiais") | Sim | Blog da Shopee |
+| 11.11 | Shopee e AliExpress (Dia dos Solteiros, esquenta da Black Friday) | Sim | Blog da Shopee |
+| 12.12 | Shopee | Sim | Blog da Shopee |
+
+O 1.1 coincide com o Ano Novo, que já é destaque. Ficaram de fora porque não têm data fixa: Prime Day da Amazon (julho, muda todo ano), Liquidação Fantástica do Magalu (janeiro, muda todo ano) e Semana do Brasil (setembro, muda todo ano). A Semana do Consumidor entra como aviso do Dia do Consumidor (15/03), porque os marketplaces fazem a campanha nos dias em volta e cada um escolhe as datas. "Dia do Frete Grátis" não tem campanha estabelecida no Brasil, então ficou de fora.
+
+Links: https://shopee.com.br/blog/datas-duplas-shopee/ · https://www.ecommercebrasil.com.br/noticias/datas-duplas-marketplaces-no-brasil-dobram-a-aposta-em-setembro · https://www.meioemensagem.com.br/marketing/as-estrategias-por-tras-das-datas-duplas-da-shopee
+
+### 2.3 Datas em destaque (18 por ano)
+
+Ano Novo (01/01), Dia do Consumidor (15/03), Dia das Mães, Fim da entrega do IRPF, Dia dos Namorados (12/06), 7.7, Dia dos Pais, 9.9, Dia do Cliente (15/09), Dia do Contador (22/09), Dia da Micro e Pequena Empresa (05/10), 10.10, Dia das Crianças (12/10), 11.11, Black Friday, Cyber Monday, 12.12 e Natal (25/12).
+
+Além da lista do Natham, entraram por fazer sentido para contabilidade e marketplace: Dia do Contador, Dia da Micro e Pequena Empresa, Fim do IRPF e Cyber Monday. Quando um feriado também é destaque, a etiqueta fica dourada: o Natal leva o aviso "Feriado nacional." e o 1/1 mostra "Ano Novo +1", com a Confraternização Universal no texto. O Dia das Crianças fica dourado, com Aparecida no "+1".
+
+### 2.4 Campanhas do mês inteiro (5)
 
 Aparecem no dia 1º do mês, com o aviso "Campanha do mês inteiro de <mês>" (decisão 4).
 
@@ -92,7 +115,7 @@ Aparecem no dia 1º do mês, com o aviso "Campanha do mês inteiro de <mês>" (d
 | 23 | Outubro Rosa (câncer de mama) | Dia 01/10, mês todo | Campanha nacional |
 | 24 | Novembro Azul (saúde do homem) | Dia 01/11, mês todo | Campanha nacional |
 
-### 2.3 Prazos fiscais (7 regras)
+### 2.5 Prazos fiscais (7 regras)
 
 **Regra de ajuste (decisão 2):** prazo que cai em sábado, domingo ou feriado nacional aparece no dia útil anterior, com aviso no texto. Exemplo: "Prazo legal 20/12 cai no domingo, antecipe para sexta 18/12." Ponto facultativo conta como dia útil.
 
@@ -100,7 +123,7 @@ Aparecem no dia 1º do mês, com o aviso "Campanha do mês inteiro de <mês>" (d
 |---|------|-------|-------|
 | 25 | Prazo de opção pelo Simples Nacional | Último dia útil de janeiro | Resolução CGSN 140/2018, art. 6º |
 | 26 | Entrega da DEFIS (empresas do Simples) | Fixa 31/03, com ajuste | Resolução CGSN 140/2018, art. 72 |
-| 27 | Fim da entrega do IRPF (Imposto de Renda pessoa física) | Último dia útil de maio | Instrução Normativa da Receita, publicada todo ano |
+| 27 | Fim da entrega do IRPF (Imposto de Renda pessoa física) **(destaque)** | Último dia útil de maio | Instrução Normativa da Receita, publicada todo ano |
 | 28 | Entrega da DASN-SIMEI (declaração anual do MEI) | Fixa 31/05, com ajuste | Resolução CGSN 140/2018, art. 109 |
 | 29 | 13º salário, 1ª parcela | Fixa 30/11, com ajuste | Lei 4.749/1965, art. 2º |
 | 30 | 13º salário, 2ª parcela | Fixa 20/12, com ajuste | Lei 4.749/1965, art. 1º |
@@ -124,34 +147,34 @@ Observações:
 | 17/02 | ter | Carnaval | feriado (facultativo) |
 | 18/02 | qua | Quarta-Feira de Cinzas, até 14h | feriado (facultativo) |
 | 08/03 | dom | Dia Internacional da Mulher | comemorativa |
-| 15/03 | dom | Dia do Consumidor | comemorativa |
+| 15/03 | dom | Dia do Consumidor **(destaque)** | comemorativa |
 | 31/03 | ter | Entrega da DEFIS | comemorativa (prazo fiscal) |
 | 03/04 | sex | Paixão de Cristo | feriado |
 | 05/04 | dom | Páscoa | comemorativa |
 | 21/04 | ter | Tiradentes | feriado |
 | 25/04 | sáb | Dia da Contabilidade | comemorativa |
 | 01/05 | sex | Dia Mundial do Trabalho | feriado |
-| 10/05 | dom | Dia das Mães | comemorativa |
+| 10/05 | dom | Dia das Mães **(destaque)** | comemorativa |
 | 25/05 | seg | Dia do Respeito ao Contribuinte | comemorativa |
-| 29/05 | sex | Fim da entrega do IRPF | comemorativa (prazo fiscal) |
+| 29/05 | sex | Fim da entrega do IRPF | destaque (prazo fiscal) |
 | 29/05 | sex | Entrega da DASN-SIMEI (prazo legal 31/05 cai no domingo) | comemorativa (prazo fiscal) |
 | 04/06 | qui | Corpus Christi | feriado (facultativo) |
-| 12/06 | sex | Dia dos Namorados | comemorativa |
-| 09/08 | dom | Dia dos Pais | comemorativa |
+| 12/06 | sex | Dia dos Namorados **(destaque)** | comemorativa |
+| 09/08 | dom | Dia dos Pais **(destaque)** | comemorativa |
 | 07/09 | seg | Independência do Brasil | feriado |
 | 09/09 | qua | Dia do Administrador | comemorativa |
-| 15/09 | ter | Dia do Cliente | comemorativa |
-| 22/09 | ter | Dia do Contador | comemorativa |
-| 05/10 | seg | Dia da Micro e Pequena Empresa | comemorativa |
+| 15/09 | ter | Dia do Cliente **(destaque)** | comemorativa |
+| 22/09 | ter | Dia do Contador **(destaque)** | comemorativa |
+| 05/10 | seg | Dia da Micro e Pequena Empresa | destaque |
 | 12/10 | seg | Nossa Senhora Aparecida | feriado |
-| 12/10 | seg | Dia das Crianças | comemorativa |
+| 12/10 | seg | Dia das Crianças **(destaque)** | comemorativa |
 | 28/10 | qua | Dia do Servidor Público | feriado (facultativo) |
 | 02/11 | seg | Finados | feriado |
 | 15/11 | dom | Proclamação da República | feriado |
 | 19/11 | qui | Dia do Empreendedorismo Feminino | comemorativa |
 | 20/11 | sex | Consciência Negra | feriado |
-| 27/11 | sex | Black Friday | comemorativa |
-| 30/11 | seg | Cyber Monday | comemorativa |
+| 27/11 | sex | Black Friday **(destaque)** | comemorativa |
+| 30/11 | seg | Cyber Monday **(destaque)** | comemorativa |
 | 30/11 | seg | 13º salário, 1ª parcela | comemorativa (prazo fiscal) |
 | 18/12 | sex | 13º salário, 2ª parcela (prazo legal 20/12 cai no domingo) | comemorativa (prazo fiscal) |
 | 24/12 | qui | Véspera de Natal, após 13h | feriado (facultativo) |
@@ -161,6 +184,8 @@ Observações:
 DAS de 2026: 20/01, 20/02, 20/03, 20/04, 20/05, 19/06 (20 cai no sábado), 20/07, 20/08, 18/09 (20 cai no domingo), 20/10, 19/11 (20 é Consciência Negra), 18/12 (20 cai no domingo).
 
 Campanhas e repetidas (Ano Novo, Dia do Trabalhador, Natal) não estão na tabela para ela não ficar longa: caem no dia 1º do mês ou no mesmo dia do feriado.
+
+Datas duplas de 2026 (todas no próprio dia): 02/02, 03/03, 04/04, 05/05, 06/06, 07/07, 08/08, 09/09, 10/10, 11/11 e 12/12. Ano Novo e Natal também são destaque (decisão 7).
 
 Conferência: Carnaval, Paixão e Corpus Christi de 2026 batem com a Portaria MGI 11.460/2025.
 
@@ -174,34 +199,34 @@ Conferência: Carnaval, Paixão e Corpus Christi de 2026 batem com a Portaria MG
 | 09/02 | ter | Carnaval | feriado (facultativo) |
 | 10/02 | qua | Quarta-Feira de Cinzas, até 14h | feriado (facultativo) |
 | 08/03 | seg | Dia Internacional da Mulher | comemorativa |
-| 15/03 | seg | Dia do Consumidor | comemorativa |
+| 15/03 | seg | Dia do Consumidor **(destaque)** | comemorativa |
 | 26/03 | sex | Paixão de Cristo | feriado |
 | 28/03 | dom | Páscoa | comemorativa |
 | 31/03 | qua | Entrega da DEFIS | comemorativa (prazo fiscal) |
 | 21/04 | qua | Tiradentes | feriado |
 | 25/04 | dom | Dia da Contabilidade | comemorativa |
 | 01/05 | sáb | Dia Mundial do Trabalho | feriado |
-| 09/05 | dom | Dia das Mães | comemorativa |
+| 09/05 | dom | Dia das Mães **(destaque)** | comemorativa |
 | 25/05 | ter | Dia do Respeito ao Contribuinte | comemorativa |
 | 27/05 | qui | Corpus Christi | feriado (facultativo) |
-| 31/05 | seg | Fim da entrega do IRPF (previsto) | comemorativa (prazo fiscal) |
+| 31/05 | seg | Fim da entrega do IRPF (previsto) | destaque (prazo fiscal) |
 | 31/05 | seg | Entrega da DASN-SIMEI | comemorativa (prazo fiscal) |
-| 12/06 | sáb | Dia dos Namorados | comemorativa |
-| 08/08 | dom | Dia dos Pais | comemorativa |
+| 12/06 | sáb | Dia dos Namorados **(destaque)** | comemorativa |
+| 08/08 | dom | Dia dos Pais **(destaque)** | comemorativa |
 | 07/09 | ter | Independência do Brasil | feriado |
 | 09/09 | qui | Dia do Administrador | comemorativa |
-| 15/09 | qua | Dia do Cliente | comemorativa |
-| 22/09 | qua | Dia do Contador | comemorativa |
-| 05/10 | ter | Dia da Micro e Pequena Empresa | comemorativa |
+| 15/09 | qua | Dia do Cliente **(destaque)** | comemorativa |
+| 22/09 | qua | Dia do Contador **(destaque)** | comemorativa |
+| 05/10 | ter | Dia da Micro e Pequena Empresa | destaque |
 | 12/10 | ter | Nossa Senhora Aparecida | feriado |
-| 12/10 | ter | Dia das Crianças | comemorativa |
+| 12/10 | ter | Dia das Crianças **(destaque)** | comemorativa |
 | 28/10 | qui | Dia do Servidor Público | feriado (facultativo) |
 | 02/11 | ter | Finados | feriado |
 | 15/11 | seg | Proclamação da República | feriado |
 | 19/11 | sex | Dia do Empreendedorismo Feminino | comemorativa |
 | 20/11 | sáb | Consciência Negra | feriado |
-| 26/11 | sex | Black Friday | comemorativa |
-| 29/11 | seg | Cyber Monday | comemorativa |
+| 26/11 | sex | Black Friday **(destaque)** | comemorativa |
+| 29/11 | seg | Cyber Monday **(destaque)** | comemorativa |
 | 30/11 | ter | 13º salário, 1ª parcela | comemorativa (prazo fiscal) |
 | 20/12 | seg | 13º salário, 2ª parcela | comemorativa (prazo fiscal) |
 | 24/12 | sex | Véspera de Natal, após 13h | feriado (facultativo) |
@@ -220,7 +245,12 @@ Os pontos facultativos de 2027 ainda dependem da portaria que o governo publica 
 4. Campanhas de mês entram como aviso no dia 1º do mês, com o texto dizendo que vale o mês todo.
 5. Início do IRPF fica de fora; só o prazo final.
 6. Datas comerciais sem lei entram, com fonte "data comercial".
+7. (Mesmo dia, mais tarde) Comemorativa passa a verde escuro. Novo tipo `destaque`, em dourado, para as datas que mais vendem, e entram as datas duplas de marketplace (seções 2.2 e 2.3). Feriado continua vermelho.
 
 ## 5. Código
 
-`src/components/calendario/datas.ts`, função `datasDoAno(ano)`. Devolve a lista em ordem de data (feriado antes da comemorativa no mesmo dia), no formato `{ dia: "AAAA-MM-DD", nome, tipo: "feriado" | "comemorativa", aviso? }`. O `aviso` marca ponto facultativo ("Ponto facultativo", "até 14h", "após 13h"), campanha do mês e prazo antecipado. Testes em `datas.test.ts` conferem 2026 e 2027 contra este documento.
+`src/components/calendario/datas.ts`, função `datasDoAno(ano)`. Devolve a lista em ordem de data (feriado antes da comemorativa no mesmo dia), no formato `{ dia: "AAAA-MM-DD", nome, tipo: "feriado" | "comemorativa" | "destaque", aviso? }`, com destaque antes de feriado e feriado antes de comemorativa no mesmo dia. O `aviso` marca ponto facultativo ("Ponto facultativo", "até 14h", "após 13h"), campanha do mês e prazo antecipado. Testes em `datas.test.ts` conferem 2026 e 2027 contra este documento.
+
+Na tela (`DatasDoDia.tsx` e `Ano.tsx`): etiqueta com o nome no topo do dia (Dia, Semana e Mês; no celular, o Mês mostra só uma faixa colorida) e anel no número na visão Ano, com legenda das 3 cores. Cores: `--data-feriado`, `--data-comemorativa` e `--data-destaque` em `src/styles/tarefas-tokens.css`.
+
+Número da semana na visão Ano (`semanaDoAno` em `logica.ts`), como no Google Agenda da referência: a semana vai de domingo a sábado e pertence ao ano da sua quinta-feira. A semana 1 de 2026 vai de 28/12/2025 a 3/1/2026. A de 25/10/2026 é a 44. A de 27/12/2026 a 2/1/2027 é a 53, e a de 3/1/2027 é a 1.

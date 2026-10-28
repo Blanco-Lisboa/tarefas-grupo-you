@@ -25,6 +25,14 @@ const diasEntre = (a: string, b: string) => Math.round((deTexto(b).getTime() - d
 /** Semana começa no domingo, como no Google Agenda do Brasil. */
 export const inicioSemana = (dia: string) => somarDias(dia, -deTexto(dia).getDay());
 export const diasDaSemana = (dia: string) => Array.from({ length: 7 }, (_, i) => somarDias(inicioSemana(dia), i));
+/** Número da semana como no Google Agenda: semana de domingo a sábado, que pertence ao ano da sua quinta-feira;
+    a semana 1 é a da primeira quinta do ano (2026: 28/12 a 3/1; 27/12/2026 é a 53; 25/10/2026 é a 44). */
+export function semanaDoAno(dia: string) {
+  const quinta = somarDias(inicioSemana(dia), 4);
+  const jan1 = deTexto(`${quinta.slice(0, 4)}-01-01`);
+  const primeira = somarDias(paraDia(jan1), (4 - jan1.getDay() + 7) % 7);
+  return Math.round(diasEntre(primeira, quinta) / 7) + 1;
+}
 /** Grade do mês: semanas inteiras (domingo a sábado) que cobrem o mês, 5 ou 6 linhas. */
 export function diasDoMes(dia: string) {
   const primeiro = `${dia.slice(0, 7)}-01`;

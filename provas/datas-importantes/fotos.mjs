@@ -32,7 +32,7 @@ for (const modo of ["Tarefas", "Postagens"]) {
   for (const [v, rotulo] of VISOES) {
     await visao(rotulo);
     if (v === "dia") await seta("Próximo");
-    const etiquetas = await p.locator(".data-imp").evaluateAll((els) => els.map((e) => `${e.textContent} [${e.getAttribute("title")?.replace(/\n/g, " | ")}]`));
+    const etiquetas = await p.locator(".data-imp").evaluateAll((els) => els.map((e) => `${e.querySelector(".data-imp-nome").textContent}${e.querySelector(".data-imp-mais")?.textContent ?? ""} [${[...e.querySelectorAll(".balao-item")].map((i) => i.textContent).join(" | ")}]`));
     const aneis = await p.locator(".ano-dias .ano-dia[data-data]").count();
     console.log(modo, rotulo, v === "ano" ? `anéis: ${aneis}` : `etiquetas: ${etiquetas.join(" ; ") || "nenhuma"}`);
     for (const [w, h] of TAMANHOS) {
@@ -42,9 +42,33 @@ for (const modo of ["Tarefas", "Postagens"]) {
     await p.setViewportSize({ width: 1440, height: 760 }); await p.waitForTimeout(300);
     if (v === "dia") await p.locator(".cal-navegar button", { hasText: "Hoje" }).click().then(() => p.waitForTimeout(400));
   }
-  // Ano: title de um feriado (12/10) e do hoje
-  console.log(modo, "title 12/10:", await p.locator(".ano-dia[title^='12 de outubro']").getAttribute("title"));
   await visao("Semana");
 }
+// Balão de vidro: mouse no Ano (12/10 e 25/12) e na etiqueta do Mês; foco do teclado abre também
+await p.setViewportSize({ width: 1440, height: 760 });
+await p.locator(".ptroca button", { hasText: "Tarefas" }).click(); await p.waitForTimeout(800);
+await visao("Ano");
+const aberto = () => p.locator(".balao:popover-open").evaluateAll((els) => els.map((e) => e.innerText.replace(/\n/g, " | ")));
+await p.locator(".ano-mes").nth(9).locator("button.ano-dia").nth(12 - 1).hover(); await p.waitForTimeout(300);
+console.log("balão Ano 12/10:", await aberto()); await foto("balao-ano-1440");
+await p.locator(".ano-mes").nth(11).locator("button.ano-dia").nth(25 - 1).hover(); await p.waitForTimeout(300);
+console.log("balão Ano 25/12:", await aberto());
+await p.mouse.move(5, 5);
+await p.locator(".ano-mes").nth(10).locator("button.ano-dia").nth(20 - 1).focus(); await p.waitForTimeout(300);
+console.log("balão no foco 20/11:", await aberto(), "| describedby:", await p.evaluate(() => document.getElementById(document.activeElement.getAttribute("aria-describedby"))?.textContent));
+await foto("balao-ano-foco-1440");
+// borda direita: 31/12 na última coluna
+await p.locator(".ano-mes").nth(11).locator("button.ano-dia").nth(31 - 1).hover(); await p.waitForTimeout(300);
+const caixa = await p.locator(".balao:popover-open").boundingBox();
+console.log("balão 31/12 dentro da tela:", caixa && caixa.x >= 0 && caixa.x + caixa.width <= 1440 && caixa.y >= 0, caixa);
+await foto("balao-ano-borda-1440");
+await visao("Mês");
+await p.locator(".data-imp").nth(2).hover(); await p.waitForTimeout(300);
+console.log("balão Mês:", await aberto()); await foto("balao-mes-1440");
+await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(500);
+await visao("Ano");
+await p.locator(".ano-mes").nth(0).locator("button.ano-dia").nth(1 - 1).hover(); await p.waitForTimeout(300);
+const c390 = await p.locator(".balao:popover-open").boundingBox();
+console.log("balão 390 dentro da tela:", c390 && c390.x >= 0 && c390.x + c390.width <= 390, c390); await foto("balao-ano-390");
 console.log("erros:", erros.length ? erros : "nenhum");
 await nav.close();

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
-import { agendaPorDia, andar, diasCobertos, eventoNoTopo, ultimoDia, diasDoMes, empilhar, esperarFimDoArraste, faixas, inicioSemana, mover, paraDia, tituloPeriodo, vaiProGoogle } from "./logica";
+import { agendaPorDia, andar, semanaDoAno, diasCobertos, eventoNoTopo, ultimoDia, diasDoMes, empilhar, esperarFimDoArraste, faixas, inicioSemana, mover, paraDia, tituloPeriodo, vaiProGoogle } from "./logica";
 
 const base: Tarefa = {
   id: "x", titulo: "Gravar", tipo: "gravacao", empresaId: "beec", responsavel: "matheus",
@@ -8,6 +8,18 @@ const base: Tarefa = {
 };
 
 describe("calendário", () => {
+  it("numera a semana como o Google Agenda (domingo a sábado, a semana é do ano da sua quinta)", () => {
+    expect(semanaDoAno("2026-01-01")).toBe(1);
+    expect(semanaDoAno("2025-12-28")).toBe(1);
+    expect(semanaDoAno("2026-10-25")).toBe(44);
+    expect(semanaDoAno("2026-10-31")).toBe(44);
+    expect(semanaDoAno("2026-12-27")).toBe(53);
+    expect(semanaDoAno("2027-01-02")).toBe(53);
+    expect(semanaDoAno("2027-01-03")).toBe(1);
+    expect(semanaDoAno("2027-10-24")).toBe(43);
+    expect(semanaDoAno("2027-12-26")).toBe(52);
+  });
+
   it("usa o relógio local (23h50 continua no mesmo dia)", () => {
     expect(paraDia(new Date(2026, 9, 18, 23, 50))).toBe("2026-10-18");
   });
