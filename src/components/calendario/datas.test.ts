@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { datasDoAno, pascoa } from "./datas";
+import { datasDoAno, datasDoDia, pascoa } from "./datas";
 
 const achar = (ano: number, nome: string) => datasDoAno(ano).filter((d) => d.nome === nome);
 const dias = (ano: number, nome: string) => achar(ano, nome).map((d) => d.dia);
@@ -49,5 +49,11 @@ describe("datas importantes", () => {
     const todas = datasDoAno(2027).map((d) => d.dia);
     expect(todas).toEqual([...todas].sort());
     expect(todas.every((d) => d.startsWith("2027-"))).toBe(true);
+  });
+
+  it("dá as datas de um dia sem repetir o nome (Natal só como feriado)", () => {
+    expect(datasDoDia("2026-12-25").map((d) => `${d.tipo} ${d.nome}`)).toEqual(["feriado Natal"]);
+    expect(datasDoDia("2026-10-12").map((d) => d.nome)).toEqual(["Nossa Senhora Aparecida", "Dia das Crianças"]);
+    expect(datasDoDia("2026-10-27")).toEqual([]);
   });
 });

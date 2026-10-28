@@ -1,9 +1,12 @@
 "use client";
 import type { Tarefa } from "@/lib/dados";
+import { datasDoDia } from "./datas";
+import { textoDatas } from "./DatasDoDia";
 import { useSoltar, type Acoes } from "./Evento";
 import { diasDoMes, nomeMes } from "./logica";
 
 // Visão ANO: 12 mini-meses; quanto mais tarefas no dia, mais forte o azul. Sem `mapa` (Postagens) é só o calendário, sem contar nada.
+// Feriado e data comemorativa: o número ganha um anel na cor do tipo (feriado vence) e o nome vai no title.
 const LETRAS = ["D", "S", "T", "Q", "Q", "S", "S"];
 const nivel = (n: number) => Math.min(n, 4);
 const nada = () => {};
@@ -33,6 +36,8 @@ export function Ano({ cursor, hoje, irPara, mapa, soltar }: Props) {
                   if (!dia.startsWith(chave)) return <span key={dia} />;
                   const n = mapa?.get(dia)?.length ?? 0;
                   const nome = `${Number(dia.slice(8))} de ${nomeMes(dia).toLowerCase()}`;
+                  const datas = datasDoDia(dia);
+                  const resumo = mapa ? `${nome}: ${n ? `${n} ${n === 1 ? "tarefa" : "tarefas"}` : "livre"}` : nome;
                   return (
                     <button
                       key={dia}
@@ -41,7 +46,8 @@ export function Ano({ cursor, hoje, irPara, mapa, soltar }: Props) {
                       data-nivel={mapa ? nivel(n) : undefined}
                       data-hoje={dia === hoje}
                       data-alvo={marcado === dia}
-                      title={mapa ? `${nome}: ${n ? `${n} ${n === 1 ? "tarefa" : "tarefas"}` : "livre"}` : nome}
+                      data-data={datas[0]?.tipo}
+                      title={datas.length ? `${resumo}\n${textoDatas(datas)}` : resumo}
                       onClick={() => irPara("dia", dia)}
                       {...(soltar && alvo(dia, { dia }))}
                     >
@@ -54,11 +60,17 @@ export function Ano({ cursor, hoje, irPara, mapa, soltar }: Props) {
           );
         })}
       </div>
-      {mapa && (
-        <p className="ano-legenda" aria-hidden>
-          Menos {[0, 1, 2, 3, 4].map((n) => <span key={n} className="ano-dia" data-nivel={n} />)} Mais
+      <div className="ano-legenda">
+        <p className="ano-legenda-datas">
+          <span className="ano-dia" data-data="feriado" aria-hidden /> Feriado
+          <span className="ano-dia" data-data="comemorativa" aria-hidden /> Data comemorativa
         </p>
-      )}
+        {mapa && (
+          <p aria-hidden>
+            Menos {[0, 1, 2, 3, 4].map((n) => <span key={n} className="ano-dia" data-nivel={n} />)} Mais
+          </p>
+        )}
+      </div>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import type { CSSProperties } from "react";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
 import { Compromisso } from "./Compromisso";
+import { DatasDoDia } from "./DatasDoDia";
 import { CriarAqui, Evento, useSoltar, type Acoes } from "./Evento";
 import { diasDoMes, eventoNoTopo, nomeMes, nomeSemana, variosDias } from "./logica";
 
@@ -38,6 +39,7 @@ export function Mes({ cursor, mapa, agenda, hoje, acoes }: Props) {
             <button type="button" className="mes-numero" onClick={() => acoes.irPara("dia", dia)} title="Ver o dia">
               {n === 1 ? `1 de ${nomeMes(dia).slice(0, 3).toLowerCase()}` : n}
             </button>
+            <DatasDoDia dia={dia} />
             <CriarAqui destino={{ dia }} criar={acoes.criar} />
             {lista.slice(0, sobra > 0 ? CABEM - 1 : CABEM).map((x) => x.el)}
             {sobra > 0 && (

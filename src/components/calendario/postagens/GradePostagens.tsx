@@ -1,6 +1,7 @@
 "use client";
 import type { CSSProperties, MouseEvent } from "react";
 import type { Ocorrencia } from "@/lib/dados";
+import { DatasDoDia } from "../DatasDoDia";
 import { faixas, minutoDoDia, nomeSemana } from "../logica";
 import { Bloco } from "./Bloco";
 import { MetasDoDia } from "./Metas";
@@ -46,6 +47,7 @@ export function GradePostagens({ dias, mapa, agora, criar, verCard, horaDoCard, 
                 <span className="grade-dia-nome">{nomeSemana(dia)}</span>
                 <span className="grade-dia-num">{Number(dia.slice(8, 10))}</span>
                 <span className="grade-dia-total">{total ? `${total} ${total === 1 ? "postagem" : "postagens"}` : "nada para postar"}</span>
+                <DatasDoDia dia={dia} />
               </div>
             );
           })}

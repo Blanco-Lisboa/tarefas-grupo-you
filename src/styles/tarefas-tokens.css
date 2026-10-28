@@ -19,6 +19,10 @@
   --no-azul: #FFFFFF;        /* texto sobre o azul */
   --no-azul-fraco: #DCE8F7;  /* texto secundário sobre o azul */
   --foco: rgb(0 100 204 / 0.55);
+  /* Datas importantes do calendário (feriado vermelho, comemorativa dourado escuro): longe do azul do clique e das cores de empresa
+     (roxo Beec, laranja You, verde Tu Ecom). Letra sobre o próprio fundo: feriado 5,40 · comemorativa 5,47; sobre branco 6,57 e 6,51 */
+  --data-feriado: #B42318; --data-feriado-fundo: #F6E5E3;
+  --data-comemorativa: #7A5800; --data-comemorativa-fundo: #EFEBE0;
 
   /* Vidro: branco translúcido + borda de luz + desfoque. Só em peça que flutua ou fica fixa (menu, lista que abre) */
   --vidro: rgb(255 255 255 / 0.62);

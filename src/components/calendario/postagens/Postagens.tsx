@@ -8,6 +8,7 @@ import { CampoData } from "@/components/ui/CampoData";
 import { Selecao } from "@/components/ui/Selecao";
 import { quandoDe } from "@/lib/atraso";
 import { Ano } from "../Ano";
+import { DatasDoDia } from "../DatasDoDia";
 import { nomeMes, nomeSemana, paraHora, tituloPeriodo, VISOES } from "../logica";
 import { Navegar } from "../Navegar";
 import { Bloco } from "./Bloco";
@@ -96,6 +97,7 @@ export function Postagens({ agora, trocador }: { agora: string; trocador: ReactN
                   <div key={dia} className="mes-celula" data-fora={dia.slice(0, 7) !== cursor.slice(0, 7)} data-hoje={dia === hoje} data-criar={natham}
                     onClick={(e) => natham && e.target === e.currentTarget && criar(dia)}>
                     <button type="button" className="mes-numero" onClick={() => irPara("semana", dia)} title="Ver a semana">{n === 1 ? `1 de ${nomeMes(dia).slice(0, 3).toLowerCase()}` : n}</button>
+                    <DatasDoDia dia={dia} />
                     {lista.slice(0, sobra > 0 ? CABEM - 1 : CABEM).map((o, i) => <Bloco key={`${o.planejadaId ?? o.cardId}-${i}`} o={o} modo="chip" aoAbrir={abrir(o)} />)}
                     {sobra > 0 && <button type="button" className="mes-mais" onClick={() => irPara("semana", dia)}>+{sobra + 1} mais</button>}
                   </div>

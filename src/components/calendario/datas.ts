@@ -102,3 +102,19 @@ export function datasDoAno(ano: number): DataImportante[] {
   // Feriado antes da comemorativa no mesmo dia.
   return lista.sort((a, b) => a.dia.localeCompare(b.dia) || b.tipo.localeCompare(a.tipo));
 }
+
+// Cada ano é calculado uma vez, quando a tela chega nele (só os anos que aparecem; nada de banco).
+const porAno = new Map<number, Map<string, DataImportante[]>>();
+/** Datas de um dia, feriado primeiro. O mesmo nome nas duas categorias (Natal) aparece uma vez só, como feriado. */
+export function datasDoDia(dia: string) {
+  const ano = Number(dia.slice(0, 4));
+  if (!porAno.has(ano)) {
+    const mapa = new Map<string, DataImportante[]>();
+    for (const d of datasDoAno(ano)) {
+      const lista = mapa.get(d.dia) ?? [];
+      if (!lista.some((x) => x.nome === d.nome)) mapa.set(d.dia, [...lista, d]);
+    }
+    porAno.set(ano, mapa);
+  }
+  return porAno.get(ano)!.get(dia) ?? [];
+}

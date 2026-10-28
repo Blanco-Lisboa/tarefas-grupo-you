@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, type CSSProperties, type DragEvent, type MouseEvent } from "react";
 import type { EventoAgenda, Tarefa } from "@/lib/dados";
 import { Compromisso } from "./Compromisso";
+import { DatasDoDia } from "./DatasDoDia";
 import { CriarAqui, Evento, useSoltar, type Acoes } from "./Evento";
 import { comMinuto, empilhar, eventoNoTopo, faixas, horaCurta, minutoDoDia, nomeSemana, variosDias } from "./logica";
 
@@ -45,6 +46,7 @@ export function Grade({ dias, mapa, agenda, agora, acoes }: Props) {
                 <span className="grade-dia-nome">{nomeSemana(dia)}</span>
                 <span className="grade-dia-num">{Number(dia.slice(8, 10))}</span>
                 <span className="grade-dia-total">{total ? `${total} ${total === 1 ? "tarefa" : "tarefas"}` : compromissos ? `${compromissos} ${compromissos === 1 ? "compromisso" : "compromissos"}` : "livre"}</span>
+                <DatasDoDia dia={dia} />
               </button>
             );
           })}

@@ -264,8 +264,29 @@
 .ano-dia[data-hoje="true"] { outline: 2px solid var(--azul); outline-offset: 1px; font-weight: 700; }
 .ano-dia[data-alvo="true"] { outline: 2px dashed var(--azul); }
 .ano-dia:hover { outline: 1px solid var(--azul); }
-.ano-legenda { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin: var(--s-24) 0 0; font-size: var(--t-12); color: var(--fraco); }
+/* Feriado e data comemorativa: anel em volta do número (o contorno quadrado azul continua sendo o hoje) */
+.ano-dia[data-data] { position: relative; }
+.ano-dia[data-data]::before { content: ""; position: absolute; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--data-feriado); pointer-events: none;
+  box-shadow: 0 0 0 1px var(--sup), inset 0 0 0 1px var(--sup); } /* fio branco: o anel aparece também sobre o azul cheio (dia com muitas tarefas) */
+.ano-dia[data-data="comemorativa"]::before { border-color: var(--data-comemorativa); }
+.ano-legenda { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-8) var(--s-16); margin: var(--s-24) 0 0; font-size: var(--t-12); color: var(--fraco); }
+.ano-legenda p { display: flex; align-items: center; gap: 4px; margin: 0; }
+.ano-legenda p:only-child { margin-left: auto; }
+.ano-legenda-datas .ano-dia + .ano-dia, .ano-legenda-datas .ano-dia ~ .ano-dia { margin-left: var(--s-8); }
 .ano-legenda .ano-dia { width: 14px; height: 14px; cursor: default; }
+.ano-legenda .ano-dia[data-data]::before { inset: 0; width: auto; height: auto; }
+
+/* Etiqueta do feriado / data comemorativa no topo do dia (DatasDoDia.tsx) */
+.data-imp {
+  display: flex; align-items: center; gap: 3px; align-self: stretch; min-width: 0; max-width: 100%; margin-top: 2px; padding: 1px 6px; border-radius: 6px;
+  font: 600 11px / 1.35 var(--fonte); background: var(--data-feriado-fundo); color: var(--data-feriado); cursor: help;
+}
+.data-imp[data-tipo="comemorativa"] { background: var(--data-comemorativa-fundo); color: var(--data-comemorativa); }
+.data-imp-nome { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.data-imp-mais { flex-shrink: 0; }
+.grade-dia .data-imp { align-self: center; }
+.mes-celula .data-imp { margin-top: 0; }
+@media (max-width: 767px) { .data-imp { font-size: 9px; padding: 0 3px; } }
 
 /* ---------- Sem data: botão (classes do botão de seleção) + lista em vidro, como a lista da seleção ---------- */
 .cal-semdata-botao[data-alvo="true"] { border-color: var(--azul); outline: 2px dashed var(--azul); outline-offset: 3px; }
